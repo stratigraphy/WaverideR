@@ -39,7 +39,7 @@ The second column is extracted power.
 The third column is extracted power/total power.
 }
 \description{
-Extracts the the spectral power from a wavelet spectra in the depth domain using a traced period
+Extracts the  spectral power from a wavelet spectra in the depth domain using a traced period
 and boundaries surround the traced period.
 The extraction of spectral is useful for cyclostratigraphic studies because the spectral power of an
 astronomical cycle is modulated by higher order astronomical cycles.
@@ -49,9 +49,9 @@ The traced period result from the \code{\link{track_period_wavelet}}
 function with boundaries is used to extract spectral power in the depth domain from a wavelet spectra.
 }
 \examples{
-#Extract the power of the 405 kyr eccentricity cycle from the the magnetic \cr
-# susceptibility data set of De pas et al., (2018) \cr
-#Perform the CWT on the magnetic susceptibility data set of De pas et al., (2018)
+#Extract the power of the 405 kyr eccentricity cycle from the the magnetic
+# susceptibility data set of De pas et al., (2018)
+#Perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -68,7 +68,7 @@ omega_nr = 10)
 #                                   periodlab = "Period (metres)",
 #                                   x_lab = "depth (metres)")
 
-#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} \cr
+#Instead of tracking, the tracked solution data set mag_track_solution
 #is used
 mag_track <- mag_track_solution
 
@@ -96,4 +96,27 @@ tracked_cycle_period = 405,
 extract_cycle_power = 405
 )
 
+}
+\references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+
+Routines for astrochronologic testing, astronomical time scale construction, and
+time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
+}
+\author{
+Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+The assignment of the standard deviation of the uncertainty of the wavelet
+is based on the work of Gabor (1946) and Russell et al., (2016)
+The functionality of this function is is inspired by the
+\link[astrochron]{integratePower} function of the astrochron R package.
 }

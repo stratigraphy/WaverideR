@@ -10,7 +10,8 @@ extract_signal_stable(
   period_up = 1.2,
   period_down = 0.8,
   add_mean = TRUE,
-  plot_residual = FALSE
+  plot_residual = FALSE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ extract_signal_stable(
 \item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
 
 \item{plot_residual}{plot the residual signal after extraction of set cycle \code{Default=FALSE}.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 #'Returns a matrix with 2 columns.
@@ -37,7 +40,7 @@ function using a fixed period and fixed period boundaries defined as factors of 
 }
 \examples{
 #Example in which the ~210yr de Vries cycle is extracted from the Total Solar
-#Irradiance data set of Steinhilver et al., (2012)\cr
+#Irradiance data set of Steinhilber et al., (2012)
 
 #Perform the CWT
 TSI_wt <-
@@ -56,6 +59,25 @@ cycle=210,
 period_up =1.25,
 period_down = 0.75,
 add_mean=TRUE,
-plot_residual=FALSE)
+plot_residual=FALSE,
+keep_editable=FALSE)
 
+}
+\references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+}
+\author{
+Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+The assignment of the standard deviation of the uncertainty of the wavelet
+is based on the work of Gabor (1946) and Russell et al., (2016)
 }

@@ -146,12 +146,12 @@ Astronomical solutions option are:
      e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
    \item 173kyr obliquity  metronome can be generated using using the formula:\cr
     es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-   \item An etp model using the \link[astrochron]{etp} function of the \link[astrochron]{astrochron-package} package
+   \item An etp model using the \link[astrochron]{etp} function of the astrochron R package
    }
 }
 \examples{
-\dontrun{
-# Use the \code{grey_track} example tracking points to anchor the grey scale data set \cr
+\donttest{
+# Use the grey_track example tracking points to anchor the grey scale data set
 # of Zeeden et al., (2013) to the p-0.5t la2004 solution
 
 grey_wt <-
@@ -214,14 +214,11 @@ insolation_extract <- cbind(grey_ecc[,1],grey_prec[,2]+grey_obl[,2]+grey_ecc[,2]
 insolation_extract <- as.data.frame(insolation_extract)
 insolation_extract_mins <- min_detect(insolation_extract)
 
-#download ETP solution (p-0.5t la2004 solution) from the astrochron package \cr
-#to create a insolation curve.
-#install.packages("astrochron") if not install package.
-#library("astrochron") load package to download p-0.5t la2004 solution.
-
-astrosignal=astrochron::etp(tmin=5000,tmax=6000,pWt=1,oWt=-0.5,eWt=0,genplot=FALSE,verbose=FALSE)
-astrosignal[,2] <- -1*astrosignal[,2]
-astrosignal <- as.data.frame(astrosignal)
+#use the astrosignal_example to tune to which is an \cr
+# ETP solution (p-0.5t la2004 solution)
+astrosignal_example <- na.omit(astrosignal_example)
+astrosignal_example[,2] <- -1*astrosignal_example[,2]
+astrosignal <- as.data.frame(astrosignal_example)
 
 #anchor the synthetic insolation curve extracted from the greyscale record to the insolation curve.
 
@@ -245,12 +242,32 @@ proxy_period_cycle  = NULL
 
 }
 \references{
-J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004, A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys., Volume 428, 261-285. \cr
-Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a, La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys., Volume 532, A89 \cr
-Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.: 2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys., Volume 532, L4. \cr
+J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
+A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
+Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>} \cr
+
+Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
+La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,
+Volume 532, A89 \doi{<doi:10.1051/0004-6361/201116836>} \cr
+
+Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
+2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys.,
+Volume 532, L4.  \doi{<doi.org/10.1051/0004-6361/201117504>}\cr
+
 J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-<doi:10.1016/B978-0-12-824360-2.00004-8> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
-Zeebe, R. E. and Lourens, L. J. Geologically constrained astronomical solutions for the Cenozoic era, Earth and Planetary Science Letters, 2022 \cr
-Zeebe, R. E. and Lourens, L. J. Solar system chaos and the Paleocene-Eocene boundary age constrained by geology and astronomy. Science, <doi:10.1126/science.aax0612> \cr
-Zeebe, R. E. Numerical Solutions for the orbital motion of the Solar System over the Past 100 Myr: Limits and new results. The Astronomical Journal, 2017 \cr
+'\doi{<doi:10.1016/B978-0-12-824360-2.00004-8>} or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
+
+Zeebe, R. E. and Lourens, L. J.
+Geologically constrained astronomical solutions for the Cenozoic era,
+Earth and Planetary Science Letters, 2022 \doi{<doi:10.1016/j.epsl.2022.117595>}\cr
+
+Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the Paleocene–Eocene boundary age constrained by geology and astronomy.Science365,926-929(2019)
+\doi{<doi:10.1126/science.aax0612>}\cr
+
+Zeebe, Richard E. "Numerical solutions for the orbital motion of the Solar System over the past 100 Myr: limits and new results."
+The Astronomical Journal 154, no. 5 (2017): 193. \doi{<doi:10.3847/1538-3881/aa8cce>} \cr
+
+Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
+Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
+\doi{<doi:10.1016/j.earscirev.2018.11.015>}
 }

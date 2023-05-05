@@ -20,8 +20,8 @@ The \code{\link{min_detect}} function is used to detect and
 filter out local minima in a sinusoidal signal
 }
 \examples{
-#Example in which the ~210yr de Vries cycle is extracted from the Total Solar \cr
-#Irradiance data set of Steinhilber et al., (2012)\cr
+#Example in which the ~210yr de Vries cycle is extracted from the Total Solar
+#Irradiance data set of Steinhilber et al., (2012)
 #after which all minima are extracted
 
 TSI_wt <-

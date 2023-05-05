@@ -27,8 +27,8 @@ a set percentile based. To generate the percentile curve the results of
 }
 \examples{
 \dontrun{
-#'#generate red noise curves based on the magnetic susceptibility record of \cr
-#the Sullivan core of De pas et al., (2018)
+#'#generate red noise curves based on the magnetic susceptibility record of
+#the Sullivan core of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,

@@ -5,23 +5,33 @@
 \title{Example data sets for the WaverideR package}
 \description{
 Data sets for testing the WaverideR package:\cr
-The \code{mag} data set is the magnetic susceptibility record of De Pas et al., (2018)\cr
-The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
-The \code{grey} data set is the grey scale record of IODP 926 for the interval (154-174m) which originates from
- Zeeden et al., (2013) \cr
-The \code{mag_track_solution} is the period of the 405 kyr ecc cycle in
-the magnetic susceptibility record of rom De Pas et al., (2018)\cr
-the \code{age_model_zeeden} data set is and age model (anchor points) for
+The \code{age_model_zeeden} data set is and age model (anchor points) for\cr
 the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)\cr
-the \code{grey_track} data set consists of tracking points of the
- precession (22 kyr cycle) in the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
+\cr
+The \code{astrosignal_example} data set consists of pre-generated ETP (eccentricity-tilt-precession)\cr
+data set based on the p-0.5t  la2004 solution and was generated using \cr
+the \link[astrochron]{etp} function of the \link[astrochron]{astrochron-package} \cr
+\cr
+The \code{depth_rank_example} data set is synthetic succession of sedimentary\cr
+The \code{grey} data set is the grey scale record of IODP 926 for the interval (154-174m) which originates\cr from
+ Zeeden et al., (2013) \cr
+ \cr
+The \code{grey_track} data set consists of tracking points of the\cr
+ precession (22 kyr cycle) in the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)\cr
+ \cr
+The \code{mag} data set is the magnetic susceptibility record of Pas et al., (2018)\cr
+\cr
+The \code{mag_track_solution} is the period of the 405 kyr ecc cycle in\cr
+the magnetic susceptibility record of from Pas et al., (2018)\cr
+\cr
+The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
 }
 \references{
 Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
 Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
 Earth and Planetary Science Letters,
 Volume 488,2018,Pages 102-114,ISSN 0012-821X,
-<doi:10.1016/j.epsl.2018.02.010>
+\doi{<doi:10.1016/j.epsl.2018.02.010>}
 
 Steinhilber, Friedhelm & Abreu, Jacksiel & Beer, Juerg & Brunner,
 Irene & Christl, Marcus & Fischer, Hubertus & Heikkilä, U. & Kubik,
@@ -30,10 +40,18 @@ Hiroko & Oerter, Hans & Wilhelms, Frank. (2012).
 9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
 Proceedings of the National Academy of Sciences of the United States of America.
 109. 5967-71. 10.1073/pnas.1118965109.
-<doi:10.1073/pnas.1118965109>
+\doi{<doi:10.1073/pnas.1118965109>}
 
 Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-<doi:10.1016/j.palaeo.2012.11.009>
+\doi{<doi:10.1016/j.palaeo.2012.11.009>}
+
+Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
+Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
+\doi{<doi:10.1016/j.earscirev.2018.11.015>}
+
+J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
+A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
+Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>} \cr
 }

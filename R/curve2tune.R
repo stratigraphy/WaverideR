@@ -16,10 +16,11 @@
 #'Plot 1: the original data set.
 #'Plot 2: the depth time plot.
 #'Plot 3: the data set in the time domain.
-#'
+#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #'@author
-#'Based on the the \link[astrochron]{sedrate2time} function of the \link[astrochron]{astrochron-package}
+#' Part of the code is based on the \link[astrochron]{sedrate2time}
+#' function of the astrochron R package
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
@@ -27,7 +28,7 @@
 #'
 #' @examples
 #' \donttest{
-#'#The example uses the magnetic susceptibility data set of De pas et al., (2018).
+#'#The example uses the magnetic susceptibility data set of Pas et al., (2018).
 #'# perform the CWT
 #'mag_wt <- analyze_wavelet(data = mag,
 #' dj = 1/100,
@@ -41,10 +42,10 @@
 #'#mag_track <- track_period_wavelet(astro_cycle = 405,
 #'#                                   wavelet=mag_wt,
 #'#                                   n.levels = 100,
-#'#                                   periodlab = "Period (metres)",
-#'#                                   x_lab = "depth (metres)")
+#'#                                   periodlab = "Period (meters)",
+#'#                                   x_lab = "depth (meters)")
 #'
-#'#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used
+#'#Instead of tracking, the tracked solution data set mag_track_solution is used
 #'mag_track <- mag_track_solution
 #'
 #' mag_track_complete <- completed_series(
@@ -53,7 +54,7 @@
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
-#'   genplot = TRUE
+#'   genplot = FALSE
 #' )
 #'
 #'# smooth the tracking of the 405 kyr eccentricity cycle
@@ -64,7 +65,8 @@
 #'mag_track_time<- curve2tune(data=mag,
 #'                            tracked_cycle_curve=mag_track_complete,
 #'                            tracked_cycle_period=405,
-#'                            genplot=TRUE)
+#'                            genplot=FALSE,
+#'                            keep_editable=FALSE)
 #'}
 #'@return
 #'The output is a matrix with 2 columns.
@@ -72,20 +74,24 @@
 #'The second column sedimentation proxy value.
 #'
 #'If \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
-#'Plot 1: the original dataset.
+#'Plot 1: the original data set.
 #'Plot 2: the depth time plot.
-#'Plot 3: the dataset in the time domain.
+#'Plot 3: the data set in the time domain.
 #'
 #' @export
 #' @importFrom stats approx
+#' @importFrom astrochron sedrate2time
+
 
 
 curve2tune <- function(data = NULL,
-                       tracked_cycle_curve= NULL,
+                       tracked_cycle_curve = NULL,
                        tracked_cycle_period = NULL,
-                       genplot = TRUE) {
+                       genplot = TRUE,
+                       keep_editable = FALSE) {
   my.data <- data
-  tracked_cycle_curve[,2] <- tracked_cycle_curve[,2]/(tracked_cycle_period/100)
+  tracked_cycle_curve[, 2] <-
+    tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
   sedrates <- data.frame(tracked_cycle_curve)
   dat <- as.matrix(tracked_cycle_curve)
   dat <- na.omit(dat)
@@ -104,53 +110,71 @@ curve2tune <- function(data = NULL,
   sedrates <- as.data.frame(interp)
   npts <- length(sedrates[, 1])
   sedrates[1] = sedrates[1] * 100
-  sedrates[2] = 1/sedrates[2]
+  sedrates[2] = 1 / sedrates[2]
   dx = sedrates[2, 1] - sedrates[1, 1]
-  midptx = (sedrates[2:npts, 1] + sedrates[1:(npts - 1), 1])/2
-  slope = (sedrates[2:npts, 2] - sedrates[1:(npts - 1), 2])/dx
+  midptx = (sedrates[2:npts, 1] + sedrates[1:(npts - 1), 1]) / 2
+  slope = (sedrates[2:npts, 2] - sedrates[1:(npts - 1), 2]) / dx
   yint = sedrates[2:npts, 2] - (slope * sedrates[2:npts, 1])
   midpty = (slope * midptx) + yint
   hsum = cumsum(midpty * dx)
   hsum = append(0, hsum)
-  out = data.frame(cbind(sedrates[, 1]/100, hsum))
-  colnames(out) <- c("meters","ka")
+  out = data.frame(cbind(sedrates[, 1] / 100, hsum))
+  colnames(out) <- c("meters", "ka")
 
-completed_series <- na.omit(out)
-yleft_comp <- completed_series[1,2]
-yright_com <- completed_series[nrow(completed_series),2]
-app <- approx(x=out[,1],y=out[,2],xout=my.data[,1],method="linear",
-              yleft=yleft_comp,yright=yright_com)
-completed_series <- as.data.frame(cbind(app$y,my.data[,2]))
+  completed_series <- na.omit(out)
+  yleft_comp <- completed_series[1, 2]
+  yright_com <- completed_series[nrow(completed_series), 2]
+  app <- approx(
+    x = out[, 1],
+    y = out[, 2],
+    xout = my.data[, 1],
+    method = "linear",
+    yleft = yleft_comp,
+    yright = yright_com
+  )
+  completed_series <- as.data.frame(cbind(app$y, my.data[, 2]))
 
-if (genplot==TRUE) {
-  layout.matrix <- matrix(c(1, 2,3), nrow = 3, ncol = 1)
-  graphics::layout(mat = layout.matrix,
-                   heights = c(1, 1,1), # Heights of the two rows
-                   widths = c(1, 1,1)) # Widths of the two columns
-  par(mar = c(4, 2, 1, 1))
-  plot(x=data[,1],y=data[,2],type="l",
-       main = "Data depth domain",
-       xlab = "meters",)
+  if (genplot == TRUE) {
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+    }
+    layout.matrix <- matrix(c(1, 2, 3), nrow = 3, ncol = 1)
+    graphics::layout(
+      mat = layout.matrix,
+      heights = c(1, 1, 1),
+      # Heights of the two rows
+      widths = c(1, 1, 1)
+    ) # Widths of the two columns
+    par(mar = c(4, 2, 1, 1))
+    plot(
+      x = data[, 1],
+      y = data[, 2],
+      type = "l",
+      main = "Data depth domain",
+      xlab = "meters",
+    )
 
-  plot(x=out[,1],y=out[,2],type="l",
-       xlab = "meters",
-       ylab = "Time (ka)",
-       main = "Depth-time plot")
-  points(x=out[,1],y=out[,2],cex = 1)
+    plot(
+      x = out[, 1],
+      y = out[, 2],
+      type = "l",
+      xlab = "meters",
+      ylab = "Time (ka)",
+      main = "Depth-time plot"
+    )
+    points(x = out[, 1], y = out[, 2], cex = 1)
 
-  plot(completed_series[,1],completed_series[,2],type="l",
-       xlab = "meters",
-       ylab = "Time (ka)",
-       main = "Data time domain")
+    plot(
+      completed_series[, 1],
+      completed_series[, 2],
+      type = "l",
+      xlab = "meters",
+      ylab = "Time (ka)",
+      main = "Data time domain"
+    )
+  }
+
+  completed_series
+
 }
-
-completed_series
-
-}
-
-
-
-
-
-
-

@@ -1,0 +1,478 @@
+#' @title Windowed fft based spectral analysis
+#'
+#' @description The \code{\link{win_fft}} function for conducts a windowed spectral analysis based on the fft
+#'
+#'@param data Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy
+#'@param padfac Pad record with zero, zero padding smooths out the spectra
+#'@param window_size size of the running window
+#'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
+#'@param genplot Generate plot \code{Default="FALSE"}
+#'@param x_lab label for the y-axis \code{Default="depth"}
+#'@param y_lab label for the y-axis \code{Default="sedrate"}
+#'@param plot_res plot 1 of 8 options option 1: Amplitude matrix,
+#'option 2: Power matrix,
+#'option 3: Phase matrix,
+#'option 4: AR1_CL matrix,
+#'option 5: AR1_Fit matrix ,
+#'option 6: AR1_90_power matrix,
+#'option 7: AR1_95_power matrix,
+#'option 8: AR1_99_power matrix, \code{Default=1}
+#'@param perc_vis Cutoff percentile when plotting \code{Default=0}
+#'@param freq_max Maximum frequency to plot
+#'@param freq_min Minimum frequency to plot
+#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#'
+#' @author
+#'Based on the \link[astrochron]{periodogram}
+#'function of the \link[astrochron]{astrochron-package}.
+#'
+#'@references
+#'Routines for astrochronologic testing, astronomical time scale construction, and
+#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'
+#'
+#'@examples
+#'\donttest{
+#'#Conduct a windowed ftt on the magnetic susceptibility record
+#'# of the Sullivan core of Pas et al., (2018).
+#'
+#'mag_win_fft <- win_fft(data= mag,
+#'                    padfac = 5,
+#'                    window_size = 12.5,
+#'                    run_multicore = FALSE,
+#'                    genplot = FALSE,
+#'                    x_lab <- c("depth (m)"),
+#'                    y_lab <- c("frequency cycle/metre"),
+#'                    plot_res <- 1,
+#'                    perc_vis <- 0.5,
+#'                    freq_max <- 5,
+#'                    freq_min <- 0.001,
+#'                    keep_editable=FALSE)
+#'}
+#'
+#' @return
+#'Returns a list which contains 10 elements
+#'element 1: Amplitude matrix
+#'element 2: Power matrix
+#'element 3: Phase matrix
+#'element 4: AR1_CL matrix
+#'element 5: AR1_Fit matrix
+#'element 6: AR1_90_power matrix
+#'element 7: AR1_95_power matrix
+#'element 8: AR1_99_power matrix
+#'element 9: depth
+#'element 10: y_axis
+#'If genplot is \code{Default=TRUE} then a plot of one of the elements 1:8 is plotted
+#'
+#' @export
+#' @importFrom Matrix rowMeans
+#' @importFrom stats quantile
+#' @importFrom parallel detectCores
+#' @importFrom parallel makeCluster
+#' @importFrom doSNOW registerDoSNOW
+#' @importFrom utils txtProgressBar
+#' @importFrom utils setTxtProgressBar
+#' @importFrom tcltk setTkProgressBar
+#' @importFrom tcltk setTkProgressBar
+#' @importFrom foreach foreach
+#' @importFrom stats runif
+#' @importFrom stats sd
+#' @importFrom stats lm
+#' @importFrom graphics par
+#' @importFrom graphics image
+#' @importFrom graphics axis
+#' @importFrom graphics mtext
+#' @importFrom graphics text
+#' @importFrom graphics box
+#' @importFrom graphics polygon
+#' @importFrom grDevices rgb
+#' @importFrom foreach %dopar%
+#' @importFrom graphics layout
+#' @importFrom parallel stopCluster
+#' @importFrom colorednoise autocorrelation
+#' @importFrom colorednoise colored_noise
+#' @importFrom stats cor
+#' @importFrom stats pchisq
+#' @importFrom stats qchisq
+#' @importFrom astrochron periodogram
+
+win_fft <- function(data = NULL,
+                    padfac = 5,
+                    window_size = NULL,
+                    run_multicore = FALSE,
+                    genplot = FALSE,
+                    x_lab = c("depth (m)"),
+                    y_lab = c("frequency cycle/metre"),
+                    plot_res = 1,
+                    perc_vis = 0,
+                    freq_max = NULL,
+                    freq_min = NULL,
+                    keep_editable = FALSE) {
+  dat <- data
+  dat <- na.omit(dat)
+  d <- data.frame(dat)
+  dt <- d[2, 1] - d[1, 1]
+  Nyq <- 1 / (2 * dt)
+  xmax <- Nyq
+
+  timesteps_data <- round(((window_size / dt) / 2), 0)
+
+  phi_x_up <-  autocorrelation(dat[1:timesteps_data, 2])
+  if (phi_x_up >= 1) {
+    phi_x_up <- 0.99
+  }
+  x_up <- colorednoise::colored_noise(
+    timesteps = timesteps_data,
+    mean = mean(dat[1:timesteps_data, 2]),
+    sd = sd(dat[1:timesteps_data, 2]),
+    phi = phi_x_up
+  )
+
+  phi_x_down <-
+    autocorrelation(dat[(nrow(dat) - timesteps_data):nrow(dat), 2])
+
+  if (phi_x_down >= 1) {
+    phi_x_down <- 0.99
+  }
+
+  x_down <- colorednoise::colored_noise(
+    timesteps = timesteps_data,
+    mean = mean(dat[(nrow(dat) - timesteps_data):nrow(dat), 2]),
+    sd = sd(dat[(nrow(dat) - timesteps_data):nrow(dat), 2]),
+    phi = phi_x_down
+  )
+
+  depth_up <-
+    sort(seq(
+      from = d[1, 1] - dt,
+      by = -dt,
+      length.out = timesteps_data
+    ))
+  depth_down <-
+    seq(from = (d[nrow(d), 1] + dt),
+        by = dt,
+        length.out = timesteps_data)
+
+  colnames(d) <- c("a", "b")
+  pad_up <- cbind(depth_up, x_up)
+  colnames(pad_up) <- c("a", "b")
+  pad_down <- cbind(depth_down, x_down)
+  colnames(pad_down) <- c("a", "b")
+
+  d <- rbind(pad_up, d, pad_down)
+
+
+  if (run_multicore == TRUE) {
+    numCores <- detectCores()
+    cl <- parallel::makeCluster(numCores - 2)
+    registerDoSNOW(cl)
+  } else{
+    numCores <- 1
+    cl <- makeCluster(numCores)
+    registerDoSNOW(cl)
+  }
+
+
+  simulations <- nrow(dat)
+
+  pb <- txtProgressBar(max = simulations, style = 3)
+  progress <- function(n)
+    setTxtProgressBar(pb, n)
+  opts <- list(progress = progress)
+
+
+  i <- 1 # needed to assign 1 to ijk to avoid note
+  npts <- round(((window_size / dt)), 0)
+
+  fit <-  foreach (i = 1:simulations, .options.snow = opts) %dopar% {
+    d_subsel <- d[i:(i + (window_size / dt - 1)),]
+
+    demean = TRUE
+    if (demean == TRUE) {
+      dave <- colMeans(d_subsel[2])
+      d_subsel[2] <- d_subsel[2] - dave
+    }
+
+    Nyq <- 1 / (2 * dt)
+    Ray <- 1 / (npts * dt)
+    pad <- as.numeric(d_subsel[, 2])
+
+    if (padfac > 1)
+      pad <- append(pad, rep(0, (npts * padfac - npts)))
+    if ((npts * padfac) %% 2 != 0)
+      pad <- append(pad, 0)
+
+
+    nf = length(pad)
+    df <- 1 / (nf * dt)
+    freq <- double(nf)
+    ijk <- seq(1, nf, by = 1)
+    ft <- fft(pad)
+    nrm = 1
+    if (nrm == 1)
+      ft = ft / npts
+    pwr <- Mod(ft) ^ 2
+    amp <- sqrt(pwr)
+    phase <- atan2(Im(ft), Re(ft))
+    freq <- df * (ijk - 1)
+
+    fft.out <- data.frame(cbind(freq, amp, pwr, phase))
+
+    fft.out <- fft.out[fft.out[, 1] <= Nyq ,]
+    fft.out <- fft.out[fft.out[, 1] > 0,]
+
+
+
+
+
+    colnames(fft.out) <- c("Frequency", "Amplitude", "Power",
+                           "Phase")
+
+    lag0 <- d[1:(npts - 1), 2]
+    lag1 <- d[2:npts, 2]
+    rho <- cor(lag0, lag1)
+    So = mean(fft.out[, 3])
+    AR = So * (1 - (rho ^ 2)) / (1 - (2 * rho * cos(pi * fft.out[,
+                                                                 1] / Nyq)) + (rho ^
+                                                                                 2))
+    dofAR = 2
+    chiAR <- (fft.out[, 3] / AR) * dofAR
+    chiCLAR <- pchisq(chiAR, df = dofAR)
+    AR1_90 <- AR * qchisq(0.9, df = dofAR) / dofAR
+    AR1_95 <- AR * qchisq(0.95, df = dofAR) / dofAR
+    AR1_99 <- AR * qchisq(0.99, df = dofAR) / dofAR
+    fft.out <- data.frame(
+      cbind(
+        fft.out[, 1],
+        fft.out[,
+                2],
+        fft.out[, 3],
+        fft.out[, 4],
+        chiCLAR * 100,
+        AR,
+        AR1_90,
+        AR1_95,
+        AR1_99
+      )
+    )
+    colnames(fft.out) <- c(
+      "Frequency",
+      "Amplitude",
+      "Power",
+      "Phase",
+      "AR1_CL",
+      "AR1_Fit",
+      "AR1_90_power",
+      "AR1_95_power",
+      "AR1_99_power"
+    )
+
+    return(fft.out)
+  }
+
+
+  stopCluster(cl)
+
+  fit2 <- fit
+
+
+  Amplitude_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+  Power_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  Phase_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  AR1_CL_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  AR1_Fit_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+
+  AR1_90_power_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  AR1_95_power_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  AR1_99_power_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
+  for (kk in 1:length(fit2)) {
+    extract <- as.data.frame(fit2[[kk]])
+    Amplitude_mat[, kk] <- extract[, 2]
+    Power_mat[, kk] <- extract[, 3]
+    Phase_mat[, kk] <- extract[, 4]
+    AR1_CL_mat[, kk] <- extract[, 5]
+    AR1_Fit_mat[, kk] <- extract[, 6]
+    AR1_90_power_mat[, kk] <- extract[, 7]
+    AR1_95_power_mat[, kk] <- extract[, 8]
+    AR1_99_power_mat[, kk] <- extract[, 9]
+  }
+
+
+  depth <- (dat[, 1])
+  y_axis <- unlist(fit2[[kk]][1])
+
+  results <- list(
+    Amplitude_mat = Amplitude_mat,
+    Power_mat = Power_mat,
+    Phase_mat = Phase_mat,
+    AR1_CL_mat = AR1_CL_mat,
+    AR1_Fit_mat = AR1_Fit_mat,
+    AR1_90_power_mat = AR1_90_power_mat,
+    AR1_95_power_mat = AR1_95_power_mat,
+    AR1_99_power_mat = AR1_99_power_mat,
+    depth = dat[, 1],
+    y_axis = unlist(fit2[[kk]][1])
+  )
+
+
+
+  if (genplot == TRUE) {
+    y_axis <- as.numeric(unlist(results$y_axis))
+    sel_cols_up <- max(which(y_axis < freq_max))
+    sel_cols_down <- min(which(y_axis > freq_min))
+
+    bottom_perc <- perc_vis
+
+    pmax_avg_sel <- t(results[[plot_res]])
+    pmax_avg_sel <- pmax_avg_sel[, sel_cols_down:sel_cols_up]
+
+    dev.new(width = 14, height = 7)
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+    }
+
+    layout.matrix <- matrix(c(3, 1, 2), nrow = 1, ncol = 3)
+    layout(
+      mat = layout.matrix,
+      heights = c(1, 1, 1),
+      # Heights of the two rows
+      widths = c(8, 2, 2)
+    )
+
+    par(mar = c(4, 4, 2, 3))
+    n.levels = 100
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = bottom_perc,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+
+    image.plt = par()$plt
+    color.palette = "rainbow(n.levels, start = 0, end = 0.7)"
+    key.cols = rev(eval(parse(text = color.palette)))
+
+
+    depth <-  results$depth
+    y_axis <- results$y_axis
+    depth <- as.numeric(depth)
+    y_axis <- as.numeric(y_axis)
+    y_axis <- y_axis[sel_cols_down:sel_cols_up]
+
+
+    r_sum <- colMeans(pmax_avg_sel)
+    plot(
+      y = y_axis,
+      x = r_sum,
+      type = "l",
+      ylim = c(min(y_axis), max(y_axis)),
+      yaxs = "i",
+      xlab = "mean valure",
+      ylab = y_lab
+    )
+
+    lwd.axis = 1
+    n.ticks = 6
+    label.digits = 3
+    label.format = "f"
+    width = 1.2
+    lab.line = 2.5
+    lab = NULL
+
+    key.marks = round(seq(
+      from = 0,
+      to = 1,
+      length.out = n.ticks
+    ) *
+      n.levels)
+    key.labels = formatC(as.numeric(power_max_mat.levels),
+                         digits = label.digits,
+                         format = label.format)[key.marks +
+                                                  1]
+
+
+    image(
+      1,
+      seq(from = 0, to = n.levels),
+      matrix(power_max_mat.levels,
+             nrow = 1),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xaxt = "n",
+      yaxt = "n",
+      xlab = "",
+      ylab = ""
+    )
+
+
+    axis(
+      4,
+      lwd = lwd.axis,
+      at = key.marks,
+      labels = NA,
+      tck = 0.02,
+      tcl = (par()$usr[2] - par()$usr[1]) *
+        width - 0.04
+    )
+    mtext(
+      key.labels,
+      side = 4,
+      at = key.marks,
+      line = 0.5,
+      las = 2,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+    box(lwd = lwd.axis)
+
+    image(
+      x = depth,
+      y = y_axis,
+      z = (pmax_avg_sel),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      xlab = x_lab,
+      ylab = y_lab,
+      useRaster = TRUE
+    )
+
+
+
+  }
+  return(results)
+}

@@ -12,7 +12,8 @@ wavelet_uncertainty(
   verbose = TRUE,
   genplot_time = TRUE,
   genplot_uncertainty = TRUE,
-  genplot_uncertainty_wt = TRUE
+  genplot_uncertainty_wt = TRUE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -40,7 +41,9 @@ continuous wavelet transform using a Mortlet wavelet, which uses which uses the 
 principle applied to the continuous wavelet transform using a Mortlet wavelet superimposed on top of
 original wavelet plot. The red curve is period of the tracked curve plus the analytical uncertainty.
 The blue curve is period of the tracked curve min the analytical uncertainty.
-The blakc black curve is the curve tracked using the '\code{Default=tracked_cycle_curve} function \code{Default=TRUE}}
+The  black curve is the curve tracked using the '\code{Default=tracked_cycle_curve} function \code{Default=TRUE}}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 Results pertaining to the uncertainty calculated based on the Gabor uncertainty principle.\cr
@@ -72,8 +75,8 @@ continuous wavelet transform using a Mortlet wavelet.
 }
 \examples{
 \donttest{
-#calculate the gabor uncertainty derived mathematical uncertainty of the \cr
-#magnetic susceptibility record of the Sullivan core
+#calculate the gabor uncertainty derived mathematical uncertainty of the
+#magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -90,7 +93,7 @@ omega_nr = 10)
 #                                   periodlab = "Period (metres)",
 #                                   x_lab = "depth (metres)")
 
-#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used \cr
+#Instead of tracking, the tracked solution data set mag_track_solution is used
 mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
@@ -99,11 +102,12 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = FALSE,
-  genplot = FALSE
+  genplot = FALSE,
+  keep_editable=FALSE
 )
 
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
- genplot = TRUE, print_span = TRUE)
+ genplot = FALSE, print_span = FALSE,keep_editable=FALSE)
 
 uncertainty <- wavelet_uncertainty(
   tracked_cycle = mag_track_complete,
@@ -113,15 +117,44 @@ uncertainty <- wavelet_uncertainty(
   verbose = TRUE,
   genplot_time = TRUE,
   genplot_uncertainty = TRUE,
-  genplot_uncertainty_wt = TRUE
+  genplot_uncertainty_wt = TRUE,
+  keep_editable=FALSE
 )
 }
 }
 \references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+
 Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 Journal of the Institution of Electrical Engineers-part III: radio and
-communication engineering 93, no. 26 (1946): 429-441.
+communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
 
 Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
-" CREWES Res. Rep 28 (2016): 115.
+" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
+
+
+Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
+"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+" Geophysics 47, no. 2 (1982): 203-221.
+\doi{<doi:10.1190/1.1441328>}
+
+J. Morlet, G. Arens, E. Fourgeau, D. Giard;
+Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
+ Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+}
+\author{
+Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
+and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
+wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+The assignment of the standard deviation of the uncertainty of the wavelet
+is based on the work of Gabor (1946) and Russell et al., (2016)
 }

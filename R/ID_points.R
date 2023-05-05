@@ -16,7 +16,10 @@
 #' @noRd
 
 
-ID_points <- function(x, y = NULL, n = length(x), pch = 19,
+ID_points <- function(x,
+                      y = NULL,
+                      n = length(x),
+                      pch = 19,
                       ...) {
   xy <- xy.coords(x, y)
   x <- xy$x

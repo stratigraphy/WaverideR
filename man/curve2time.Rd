@@ -7,7 +7,8 @@
 curve2time(
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
-  genplot = TRUE
+  genplot = TRUE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ Any input (matrix or data frame) in which the first column is depth in
 \item{tracked_cycle_period}{Period of the tracked curve in kyr.}
 
 \item{genplot}{Generates a plot with depth vs time \code{Default=TRUE}.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 The output is a matrix with 2 columns.
@@ -31,8 +34,8 @@ Converts the tracked curve to a depth time space.
 }
 \examples{
 \donttest{
-#Convert a tracked curve to a depth time space. The examples uses the \cr
-#magnetic susceptibility data set of De pas et al., (2018).\cr
+#Convert a tracked curve to a depth time space. The examples uses the
+#magnetic susceptibility data set of Pas et al., (2018).
 
 #'# perform the CWT
 mag_wt <- analyze_wavelet(data = mag,
@@ -50,7 +53,7 @@ omega_nr = 10)
 #                                   periodlab = "Period (metres)",
 #                                   x_lab = "depth (metres)")
 
-#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used \cr
+#Instead of tracking, the tracked solution data set mag_track_solution is used
 mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
@@ -69,7 +72,8 @@ genplot = TRUE, print_span = TRUE)
 #convert period in meters to sedrate depth vs time
 mag_track_time<- curve2time(tracked_cycle_curve=mag_track_complete,
 tracked_cycle_period=405,
-genplot=TRUE)
+genplot=TRUE,
+keep_editable=FALSE)
 
 }
 }
@@ -78,6 +82,6 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
 }
 \author{
-Based on the the \link[astrochron]{sedrate2time}
-function of the \link[astrochron]{astrochron-package}.
+Based on the \link[astrochron]{sedrate2time}
+function of the astrochron R package
 }

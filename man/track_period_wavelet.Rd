@@ -36,8 +36,8 @@ allowing one to track a ridge hence one can track the a cycle with a changing pe
 }
 \examples{
 \dontrun{
-#Track the 405kyr eccentricity cycle in the magnetic susceptibility record \cr
-# of the Sullivan core of De pas et al., (2018)
+#Track the 405kyr eccentricity cycle in the magnetic susceptibility record
+# of the Sullivan core of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -53,4 +53,12 @@ mag_track <- track_period_wavelet(astro_cycle = 405,
                                   x_lab = "depth (metres)")
 }
 
+}
+\references{
+Routines for astrochronologic testing, astronomical time scale construction, and
+time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+}
+\author{
+The function is based/inspired on the \link[astrochron]{traceFreq}
+function of the astrochron R package
 }

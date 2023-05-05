@@ -10,7 +10,8 @@ completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = TRUE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ if no spectral peak is found data is interpolated between spectral peaks.}
 
 \item{genplot}{Generate a plot \code{Default=TRUE}. The red curve is the completed curve,
 the black curve is the original curve.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 Returns a matrix with 2 columns
@@ -50,8 +53,8 @@ the interpolated curve values with the values of the nearest spectral peak in th
 }
 \examples{
 \donttest{
-#Use the \code{grey_track} example points to complete the tracking of the \cr
-# precession cycle in the wavelet spectra of the greyscale data set \cr
+#Use the grey_track example points to complete the tracking of the
+# precession cycle in the wavelet spectra of the grey scale data set
 # of Zeeden et al., (2013).
 
 
@@ -66,15 +69,15 @@ grey_wt <-
    omega_nr = 8
  )
 
-#The ~22kyr precession cycle is between 0.25 and 1m The \code{grey_track} data \cr
+#The ~22kyr precession cycle is between 0.25 and 1m The grey_track data
 #set is a pre-loaded uncompleted tracking of the precession cycle
 
 #grey_track <- track_period_wavelet(
 #astro_cycle = 22,
 #wavelet = NULL,
 #n.levels = 100,
-#periodlab = "Period (metres)",
-#x_lab = "depth (metres)"
+#periodlab = "Period (meters)",
+#x_lab = "depth (meters)"
 #)
 
 
@@ -85,7 +88,8 @@ grey_track <- completed_series(
  period_up  = 1.25,
  period_down  = 0.75,
  extrapolate = TRUE,
-genplot = TRUE
+genplot = FALSE,
+keep_editable=FALSE
 )
 
 }

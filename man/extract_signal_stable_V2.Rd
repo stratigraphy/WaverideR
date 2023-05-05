@@ -9,7 +9,8 @@ extract_signal_stable_V2(
   period_max = NULL,
   period_min = NULL,
   add_mean = TRUE,
-  plot_residual = FALSE
+  plot_residual = FALSE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ extract_signal_stable_V2(
 \item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
 
 \item{plot_residual}{Plot the signal from which the extracted cycle is subtracted \code{Default=FALSE}.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 Signal extracted from the wavelet spectra.
@@ -32,8 +35,8 @@ and the second column is the cycle extracted from the proxy record.
 Extract a signal from the wavelet using a upper and lower period boundary
 }
 \examples{
-#Example in which the ~210yr de Vries cycle is extracted from the Total Solar \cr
-# Irradiance data set of Steinhilver et al., (2012)\cr
+#Example in which the ~210yr de Vries cycle is extracted from the Total Solar
+# Irradiance data set of Steinhilber et al., (2012)
 
 TSI_wt <-
 analyze_wavelet(
@@ -49,7 +52,26 @@ de_Vries_cycle <- extract_signal_stable_V2(wavelet=TSI_wt,
 period_max = 240,
 period_min = 180,
 add_mean=TRUE,
-plot_residual=FALSE)
+plot_residual=FALSE,
+keep_editable=FALSE)
 
 
+}
+\references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+}
+\author{
+Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+The assignment of the standard deviation of the uncertainty of the wavelet
+is based on the work of Gabor (1946) and Russell et al., (2016)
 }

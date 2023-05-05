@@ -6,10 +6,11 @@
 #' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #' @param y_lab Label for the y-axis \code{Default="Power"}.
 #' @param x_lab Label for the x-axis \code{Default="depth (metres)"}.
+#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
-#' @examples
+#'@examples
 #'\donttest{
-#'#Example 1. Plot the average spectral power of the wavelet spectra of \cr
+#'#Example 1. Plot the average spectral power of the wavelet spectra of
 #'# the Total Solar Irradiance data set of Steinhilver et al., (2012)
 #'TSI_wt <-
 #'  analyze_wavelet(
@@ -23,11 +24,12 @@
 #'
 #' plot_avg_wavelet(wavelet=TSI_wt,
 #'                  y_lab= "power",
-#'                  x_lab="period (years)")
+#'                  x_lab="period (years)",
+#'                  keep_editable=FALSE)
 #'
 #'
 #'#Example 2. Plot the average spectral power of the wavelet spectra of \cr
-#'# the magnetic susceptibility data set of De pas et al., (2018)
+#'# the magnetic susceptibility data set of Pas et al., (2018)
 #'mag_wt <-
 #'analyze_wavelet(
 #'data = mag,
@@ -39,11 +41,12 @@
 #')
 #' plot_avg_wavelet(wavelet=mag_wt,
 #'                  y_lab= "power",
-#'                  x_lab="period (metres)")
+#'                  x_lab="period (metres)",
+#'                  keep_editable=FALSE)
 #'
 #'
 #'
-#'#Example 3. Plot the average spectral power of the wavelet spectra of \cr
+#'#Example 3. Plot the average spectral power of the wavelet spectra of
 #'#the greyscale data set of Zeeden et al., (2013)
 #'grey_wt <-
 #'  analyze_wavelet(
@@ -57,7 +60,8 @@
 #'
 #' plot_avg_wavelet(wavelet=grey_wt,
 #'                  y_lab= "power",
-#'                  x_lab="period (metres)")
+#'                  x_lab="period (metres)",
+#'                  keep_editable=FALSE)
 #'
 #'}
 #'@return
@@ -65,9 +69,22 @@
 #' @export
 
 
-plot_avg_wavelet <- function(wavelet = NULL,
-                         y_lab = "Power",
-                         x_lab = "period (metres)") {
 
-  plot(wavelet$Period,wavelet$Power.avg, log = "x",type="l",
-       ylab = y_lab, xlab=x_lab)}
+plot_avg_wavelet <- function(wavelet = NULL,
+                             y_lab = "Power",
+                             x_lab = "period (metres)",
+                             keep_editable = FALSE) {
+  if (keep_editable == FALSE) {
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
+  }
+
+  plot(
+    wavelet$Period,
+    wavelet$Power.avg,
+    log = "x",
+    type = "l",
+    ylab = y_lab,
+    xlab = x_lab
+  )
+}

@@ -8,7 +8,8 @@ curve2tune(
   data = NULL,
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
-  genplot = TRUE
+  genplot = TRUE,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ is depth in meters and the second column is period in meters can be used.}
 Plot 1: the original data set.
 Plot 2: the depth time plot.
 Plot 3: the data set in the time domain.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 The output is a matrix with 2 columns.
@@ -34,9 +37,9 @@ The first column is time.
 The second column sedimentation proxy value.
 
 If \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
-Plot 1: the original dataset.
+Plot 1: the original data set.
 Plot 2: the depth time plot.
-Plot 3: the dataset in the time domain.
+Plot 3: the data set in the time domain.
 }
 \description{
 Converts a data set from the depth to the time domain
@@ -45,7 +48,7 @@ tracked curve/cycle.
 }
 \examples{
 \donttest{
-#The example uses the magnetic susceptibility data set of De pas et al., (2018).
+#The example uses the magnetic susceptibility data set of Pas et al., (2018).
 # perform the CWT
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -59,10 +62,10 @@ omega_nr = 10)
 #mag_track <- track_period_wavelet(astro_cycle = 405,
 #                                   wavelet=mag_wt,
 #                                   n.levels = 100,
-#                                   periodlab = "Period (metres)",
-#                                   x_lab = "depth (metres)")
+#                                   periodlab = "Period (meters)",
+#                                   x_lab = "depth (meters)")
 
-#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used
+#Instead of tracking, the tracked solution data set mag_track_solution is used
 mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
@@ -71,7 +74,7 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 # smooth the tracking of the 405 kyr eccentricity cycle
@@ -81,7 +84,8 @@ genplot = TRUE, print_span = TRUE)
 mag_track_time<- curve2tune(data=mag,
                            tracked_cycle_curve=mag_track_complete,
                            tracked_cycle_period=405,
-                           genplot=TRUE)
+                           genplot=FALSE,
+                           keep_editable=FALSE)
 }
 }
 \references{
@@ -89,5 +93,6 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis \doi{doi:10.1016/j.earscirev.2018.11.015}
 }
 \author{
-Based on the the \link[astrochron]{sedrate2time} function of the \link[astrochron]{astrochron-package}
+Part of the code is based on the \link[astrochron]{sedrate2time}
+function of the astrochron R package
 }

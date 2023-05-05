@@ -17,7 +17,10 @@
 #' @keywords internal
 #' @noRd
 
-tuning_pts <- function(x, y = NULL, n = 1, pch = 19,
+tuning_pts <- function(x,
+                       y = NULL,
+                       n = 1,
+                       pch = 19,
                        ...) {
   xy <- xy.coords(x, y)
   x <- xy$x

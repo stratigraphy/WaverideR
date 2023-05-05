@@ -1,4 +1,4 @@
-#' @title Extract a signal  using standard deviation
+#' @title Extract a signal using standard deviation
 #'
 #' @description Extract signal from a
 #' wavelet spectra in the depth domain using a the standard deviation of the omega (number of cycles)
@@ -10,7 +10,7 @@
 #'
 #' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #' @param tracked_cycle_curve Curve of the cycle tracked using the
-#' \code{\link{track_period_wavelet}} function. Any input (matrix or dataframe)
+#' \code{\link{track_period_wavelet}} function. Any input (matrix or data frame)
 #'  in which the first column is depth or time and the second column is period should work.
 #' @param multi multiple of the standard deviation to be used as boundaries for the cycle extraction
 #'  \code{Default=1}.
@@ -26,21 +26,51 @@
 #'The black curve is the \code{Default=tracked_cycle_curve} curve.
 #' @param genplot_extracted Generates a plot with the data set and
 #' the extracted cycle on top \code{Default=TRUE} of it.
+#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#'
+#' @author
+#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' The assignment of the standard deviation of the uncertainty of the wavelet
+#' is based on the work of Gabor (1946) and Russell et al., (2016)
 #'
 #' @references
-#' Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
+#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+#'Wavelet Analysis. R package version 1.1.
+#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#'
+#'Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+#'\url{https://github.com/tgouhier/biwavelet}
+#'
+#'Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+#'Bulletin of the American Meteorological Society 79:61-78.
+#'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+#'
+#'Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 #' Journal of the Institution of Electrical Engineers-part III: radio and
-#' communication engineering 93, no. 26 (1946): 429-441.
+#' communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
 #'
 #'Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
-#'" CREWES Res. Rep 28 (2016): 115.
+#'" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
+#'
+#'
+#'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
+#'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+#'" Geophysics 47, no. 2 (1982): 203-221.
+#' \doi{<doi:10.1190/1.1441328>}
+#'
+#'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
+#' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
+#'  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+#'
 #'
 #'@examples
 #'\donttest{
-#'#Extract the 405 kyr eccentricity cycle from the the magnetic susceptibility \cr
-#'#record of the Sullivan core and use the Gabor uncertainty principle to define \cr
-#'# the mathematical uncertainty of the analysis and use a factor of that standard \cr
-#'#  deviation to define boundaries
+#'#Extract the 405 kyr eccentricity cycle from the magnetic susceptibility
+#'#record of the Sullivan core of Pas et al., (2018) and use the Gabor
+#'# uncertainty principle to define the mathematical uncertainty of the
+#'# analysis and use a factor of that standard deviation to define
+#'# boundaries
 #'
 #'# perform the CWT
 #'mag_wt <- analyze_wavelet(data = mag,
@@ -58,7 +88,7 @@
 #'#                                   periodlab = "Period (metres)",
 #'#                                   x_lab = "depth (metres)")
 #'
-#'#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used \cr
+#'#Instead of tracking, the tracked solution data set mag_track_solution is used
 #'mag_track <- mag_track_solution
 #'
 #' mag_track_complete <- completed_series(
@@ -67,15 +97,15 @@
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
-#'   genplot = TRUE
+#'   genplot = FALSE
 #' )
 #'
 #'# smooth the tracking of the 405 kyr eccentricity cycle
 #' mag_track_complete <- loess_auto(time_series = mag_track_complete,
-#' genplot = TRUE, print_span = TRUE)
+#' genplot = FALSE, print_span = FALSE)
 #'
-#'# extract the 405 kyr eccentricty cycle from the wavelet spectrum and use \cr
-#'# the Gabor uncertainty principle to define the mathematical uncertainty of \cr
+#'# extract the 405 kyr eccentricty cycle from the wavelet spectrum and use
+#'# the Gabor uncertainty principle to define the mathematical uncertainty of
 #'# the analysis and use a multiple of the derived standard deviation to define boundaries
 #'
 #'mag_405_ecc <- extract_signal_standard_deviation(
@@ -86,8 +116,9 @@
 #'tracked_cycle_period = 405,
 #'add_mean = TRUE,
 #'tune = FALSE,
-#'genplot_uncertainty_wt = TRUE,
-#'genplot_extracted = TRUE
+#'genplot_uncertainty_wt = FALSE,
+#'genplot_extracted = FALSE,
+#'keep_editable=FALSE
 #')
 #'}
 #' @return Signal extracted from the wavelet spectra.
@@ -110,29 +141,36 @@
 #' @importFrom stats median
 #' @importFrom stats fft
 #' @importFrom DescTools Closest
+#' @importFrom WaveletComp reconstruct
 
 
-extract_signal_standard_deviation <- function(
-wavelet=NULL,
-tracked_cycle_curve= NULL,
-multi = 1,
-extract_cycle = NULL,
-tracked_cycle_period = NULL,
-add_mean=TRUE,
-tune=FALSE,
-genplot_uncertainty_wt=TRUE,
-genplot_extracted=TRUE
-){my.w <- wavelet
-  my.data <- cbind(wavelet$x,wavelet$y)
-  filtered_cycle <- my.data[,1]
+extract_signal_standard_deviation <- function(wavelet = NULL,
+                                              tracked_cycle_curve = NULL,
+                                              multi = 1,
+                                              extract_cycle = NULL,
+                                              tracked_cycle_period = NULL,
+                                              add_mean = TRUE,
+                                              tune = FALSE,
+                                              genplot_uncertainty_wt = TRUE,
+                                              genplot_extracted = TRUE,
+                                              keep_editable = FALSE) {
+  my.w <- wavelet
+  my.data <- cbind(wavelet$x, wavelet$y)
+  filtered_cycle <- my.data[, 1]
   filtered_cycle <- as.data.frame(filtered_cycle)
   filtered_cycle$value <- NA
 
   completed_series <- na.omit(tracked_cycle_curve)
-  completed_series[,2] <- completed_series[,2]*(extract_cycle/tracked_cycle_period)
-  app <- approxExtrap(x=completed_series[,1],y=completed_series[,2],xout=my.data[,1],
-                      method="linear")
-  interpolated <- cbind(app$x,app$y)
+  completed_series[, 2] <-
+    completed_series[, 2] * (extract_cycle / tracked_cycle_period)
+  app <-
+    approxExtrap(
+      x = completed_series[, 1],
+      y = completed_series[, 2],
+      xout = my.data[, 1],
+      method = "linear"
+    )
+  interpolated <- cbind(app$x, app$y)
 
   Wave = my.w$Wave
   Power = my.w$Power
@@ -149,59 +187,66 @@ genplot_extracted=TRUE
 
 
   for (s.ind in seq_len(nr)) {
-    rec.waves[s.ind, ] = (Re(Wave[s.ind, ])/sqrt(Scale[s.ind])) *
-      dj * sqrt(dt)/(pi^(-1/4))}
+    rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
+      dj * sqrt(dt) / (pi ^ (-1 / 4))
+  }
 
 
   interpolated <- as.data.frame(interpolated)
 
   ncycles <- my.w$omega_nr
-  b <- (2*sqrt(2*log(2)))
-  a <- ((8*log(2)/(2*pi)))
-  k <- (ncycles/(8*log(2)))*2
+  b <- (2 * sqrt(2 * log(2)))
+  a <- ((8 * log(2) / (2 * pi)))
+  k <- (ncycles / (8 * log(2))) * 2
 
 
 
-  interpolated$f0 <- (1/(interpolated[,2]))
-  interpolated$df <- (a*interpolated$f0)/k
-  interpolated$sd_morlet <- interpolated$df/b
+  interpolated$f0 <- (1 / (interpolated[, 2]))
+  interpolated$df <- (a * interpolated$f0) / k
+  interpolated$sd_morlet <- interpolated$df / b
 
 
-  fact_high <- 1/(interpolated$f0-(interpolated$sd_morlet*multi)
-  )
-  fact_low <-  1/(interpolated$f0+(interpolated$sd_morlet*multi)
-  )
+  fact_high <-
+    1 / (interpolated$f0 - (interpolated$sd_morlet * multi))
+  fact_low <-
+    1 / (interpolated$f0 + (interpolated$sd_morlet * multi))
 
-  fact_high[fact_high>max(my.w$Period)] <- max(my.w$Period)
-  fact_low[fact_low<min(my.w$Period)] <- min(my.w$Period)
+  fact_high[fact_high > max(my.w$Period)] <- max(my.w$Period)
+  fact_low[fact_low < min(my.w$Period)] <- min(my.w$Period)
 
 
-  interpolated[,3] <-fact_high
-  interpolated[,4]<- fact_low
+  interpolated[, 3] <- fact_high
+  interpolated[, 4] <- fact_low
 
-  for (i in 1:nrow(filtered_cycle)){
-    row_nr_high <- Closest(Period[],interpolated[i,3],which=TRUE)
-    row_nr_low <- Closest(Period[],interpolated[i,4],which=TRUE)
+  for (i in 1:nrow(filtered_cycle)) {
+    row_nr_high <- Closest(Period[], interpolated[i, 3], which = TRUE)
+    row_nr_low <-
+      Closest(Period[], interpolated[i, 4], which = TRUE)
 
-    row_nr_high <-row_nr_high[1]
+    row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]
 
-    value <- rec.waves[c(row_nr_low:row_nr_high),i]
+    value <- rec.waves[c(row_nr_low:row_nr_high), i]
     value  <- sum(value, na.rm = T)
     value <- as.numeric(value)
-    filtered_cycle[i,2] <- value
+    filtered_cycle[i, 2] <- value
   }
 
   rec_value  <- colSums(rec.waves, na.rm = T)
 
-  filtered_cycle[,2] <- (filtered_cycle[,2]) * sd(my.data[,2])/sd(rec_value)
+  filtered_cycle[, 2] <-
+    (filtered_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
 
-  if(add_mean==TRUE){
-    filtered_cycle[,2] <- filtered_cycle[,2] + mean(my.data[,2])
+  if (add_mean == TRUE) {
+    filtered_cycle[, 2] <- filtered_cycle[, 2] + mean(my.data[, 2])
   }
 
 
-  if (genplot_uncertainty_wt==TRUE & tune==FALSE){
+  if (genplot_uncertainty_wt == TRUE & tune == FALSE) {
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+    }
     plot_wavelet(
       wavelet = wavelet,
       plot.COI = TRUE,
@@ -209,30 +254,52 @@ genplot_extracted=TRUE
       color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
       useRaster = TRUE,
       periodlab = "Period (metres)",
-      x_lab = "depth (metres)")
+      x_lab = "depth (metres)",
+      keep_editable = TRUE
+    )
 
 
-    combined_sedrate <-cbind(interpolated[,1],1/interpolated[,2],interpolated$sd_morlet*multi)
+    combined_sedrate <-
+      cbind(interpolated[, 1],
+            1 / interpolated[, 2],
+            interpolated$sd_morlet * multi)
 
-    xcords <- c(combined_sedrate[,1],sort(combined_sedrate[,1],decreasing = TRUE))
+    xcords <-
+      c(combined_sedrate[, 1],
+        sort(combined_sedrate[, 1], decreasing = TRUE))
     xcords
-    data_sort1 <- combined_sedrate[order(combined_sedrate[,1],decreasing = TRUE), ]
-    ycords <- c(1/(combined_sedrate[,2]+combined_sedrate[,3]),1/(data_sort1[,2]-data_sort1[,3]))
+    data_sort1 <-
+      combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
+    ycords <-
+      c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
+        1 / (data_sort1[, 2] - data_sort1[, 3]))
 
-    polygon(x = xcords,
-            y = log2(ycords),
-            col=rgb(0.5, 0.5, 0.5,0.5),
-            border = "black")
+    polygon(
+      x = xcords,
+      y = log2(ycords),
+      col = rgb(0.5, 0.5, 0.5, 0.5),
+      border = "black"
+    )
 
-    lines(interpolated[,1],log2(interpolated[,2]),lwd=2)
-    lines(interpolated[,1],log2(interpolated[,3]),col="red",lwd=2)
-    lines(interpolated[,1],log2(interpolated[,4]),col="blue",lwd=2)
+    lines(interpolated[, 1], log2(interpolated[, 2]), lwd = 2)
+    lines(interpolated[, 1],
+          log2(interpolated[, 3]),
+          col = "red",
+          lwd = 2)
+    lines(interpolated[, 1],
+          log2(interpolated[, 4]),
+          col = "blue",
+          lwd = 2)
 
   }
 
 
-  if (genplot_uncertainty_wt==TRUE & tune==TRUE){
-    data_set <- cbind(wavelet$x,wavelet$y)
+  if (genplot_uncertainty_wt == TRUE & tune == TRUE) {
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+    }
+    data_set <- cbind(wavelet$x, wavelet$y)
     data_set_time <- curve2tune(
       data = data_set,
       tracked_cycle_curve = tracked_cycle_curve,
@@ -260,83 +327,115 @@ genplot_extracted=TRUE
     data_set_time_wt <-
       analyze_wavelet(
         data = data_set_time,
-        dj = 1/200,
+        dj = 1 / 200,
         lowerPeriod = steps_size,
-        upperPeriod =  data_set_time[nrow(data_set_time),1]-data_set_time[1,1],
+        upperPeriod =  data_set_time[nrow(data_set_time), 1] - data_set_time[1, 1],
         verbose = FALSE,
-        omega_nr = wavelet$omega_nr)
+        omega_nr = wavelet$omega_nr
+      )
 
-  plot_wavelet(
+    plot_wavelet(
       wavelet = data_set_time_wt,
       plot.COI = TRUE,
       n.levels = 100,
       color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
       useRaster = TRUE,
       periodlab = "Period (kyr)",
-      x_lab = "depth (metres)")
+      x_lab = "depth (metres)",
+      keep_editable = TRUE
+    )
 
 
-interpolated_time <- curve2tune(
-    data = interpolated[,c(1,2)],
-    tracked_cycle_curve = tracked_cycle_curve,
-    tracked_cycle_period = tracked_cycle_period,
-    genplot = FALSE)
+    interpolated_time <- curve2tune(
+      data = interpolated[, c(1, 2)],
+      tracked_cycle_curve = tracked_cycle_curve,
+      tracked_cycle_period = tracked_cycle_period,
+      genplot = FALSE
+    )
 
 
-combined_sedrate <-cbind(interpolated_time[,1],1/(interpolated[,2]/(tracked_cycle_curve[,2]*tracked_cycle_period))
-                         ,interpolated$sd_morlet*multi*(tracked_cycle_curve[,2]*tracked_cycle_period))
-    xcords <- c(combined_sedrate[,1],sort(combined_sedrate[,1],decreasing = TRUE))
-    data_sort1 <- combined_sedrate[order(combined_sedrate[,1],decreasing = TRUE), ]
-    ycords <- c(1/(combined_sedrate[,2]+combined_sedrate[,3]),1/(data_sort1[,2]-data_sort1[,3]))
-    polygon(x = xcords,
-            y = log2(1/ycords),
-            col=rgb(0.5, 0.5, 0.5,0.5),
-            border = "black")
+    combined_sedrate <-
+      cbind(
+        interpolated_time[, 1],
+        1 / (
+          interpolated[, 2] / (tracked_cycle_curve[, 2] * tracked_cycle_period)
+        )
+        ,
+        interpolated$sd_morlet * multi * (tracked_cycle_curve[, 2] * tracked_cycle_period)
+      )
+    xcords <-
+      c(combined_sedrate[, 1],
+        sort(combined_sedrate[, 1], decreasing = TRUE))
+    data_sort1 <-
+      combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
+    ycords <-
+      c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
+        1 / (data_sort1[, 2] - data_sort1[, 3]))
+    polygon(
+      x = xcords,
+      y = log2(1 / ycords),
+      col = rgb(0.5, 0.5, 0.5, 0.5),
+      border = "black"
+    )
 
-    lines(interpolated_time[,1],log2(interpolated[,2]),lwd=2)
-    lines(interpolated_time[,1],log2((combined_sedrate[,2]+combined_sedrate[,3])),col="red",lwd=2)
-    lines(interpolated_time[,1],log2((combined_sedrate[,2]-combined_sedrate[,3])),col="blue",lwd=2)
+    lines(interpolated_time[, 1], log2(interpolated[, 2]), lwd = 2)
+    lines(interpolated_time[, 1],
+          log2((
+            combined_sedrate[, 2] + combined_sedrate[, 3]
+          )),
+          col = "red",
+          lwd = 2)
+    lines(interpolated_time[, 1],
+          log2((
+            combined_sedrate[, 2] - combined_sedrate[, 3]
+          )),
+          col = "blue",
+          lwd = 2)
 
   }
 
 
 
-  if(tune==TRUE){
+  if (tune == TRUE) {
     filtered_cycle <- curve2tune(
       data = filtered_cycle,
       tracked_cycle_curve = tracked_cycle_curve,
       tracked_cycle_period = tracked_cycle_period,
-      genplot = FALSE)
+      genplot = FALSE
+    )
+  }
+
+
+  if (genplot_extracted == TRUE) {
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
     }
-
-
-  if(genplot_extracted==TRUE){
-    dev.new(width=7,height=4,noRStudioGD = TRUE)
-    if(tune==TRUE){
+    dev.new(width = 7,
+            height = 4,
+            noRStudioGD = TRUE)
+    if (tune == TRUE) {
       my.data_time <- curve2tune(
         data = my.data,
         tracked_cycle_curve = tracked_cycle_curve,
         tracked_cycle_period = tracked_cycle_period,
-        genplot = FALSE)
-      plot(my.data_time,type="l")
-    }else{
-      plot(my.data[,1], my.data[,2],type="l")
-      }
+        genplot = FALSE
+      )
+      plot(my.data_time, type = "l")
+    } else{
+      plot(my.data[, 1], my.data[, 2], type = "l")
+    }
 
-    if(add_mean==TRUE){
-      lines(filtered_cycle[,1],filtered_cycle[,2],col="blue")
-    }else{
-      lines(filtered_cycle[,1],filtered_cycle[,2]+ mean(my.data[,2]),col="blue")
-      }
+    if (add_mean == TRUE) {
+      lines(filtered_cycle[, 1], filtered_cycle[, 2], col = "blue")
+    } else{
+      lines(filtered_cycle[, 1],
+            filtered_cycle[, 2] + mean(my.data[, 2]),
+            col = "blue")
+    }
 
 
   }
 
   filtered_cycle
 }
-
-
-
-
-
-

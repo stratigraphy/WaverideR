@@ -2,10 +2,10 @@
 % Please edit documentation in R/WaverideR_Datasets.R
 \name{mag}
 \alias{mag}
-\title{Magnetic susceptibility data of the Sullivan core of De Pas et al., (2018)}
+\title{Magnetic susceptibility data of the Sullivan core of Pas et al., (2018)}
 \description{
 The magnetic susceptibility data set consists
-of the magnetic susceptibility measurements of De Pas et al., (2018), which measured the magnetic
+of the magnetic susceptibility measurements of Pas et al., (2018), which measured the magnetic
  susceptibility on the Sullivan core which is of Famennian age.
 }
 \details{
@@ -20,5 +20,5 @@ Volume 488,
 2018,
 Pages 102-114,
 ISSN 0012-821X,
-<doi:1016/j.epsl.2018.02.010>
+\doi{<doi:1016/j.epsl.2018.02.010>}
 }

@@ -15,11 +15,10 @@ Column 2: Age (kyr)\cr
 Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-<doi:10.1016/j.palaeo.2012.11.009>
+\doi{<doi:10.1016/j.palaeo.2012.11.009>}
 
 
-Laskar, Jacques, Philippe Robutel, Frédéric Joutel, Mickael Gastineau, Alexandre CM Correia,
- and Benjamin Levrard. "A long-term numerical solution for the insolation quantities of the Earth.
- " Astronomy & Astrophysics 428, no. 1 (2004): 261-285.
-\url{https://www.aanda.org/articles/aa/pdf/2004/46/aa1335.pdf}
+J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
+A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
+Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/extract_signal_standard_deviation.R
 \name{extract_signal_standard_deviation}
 \alias{extract_signal_standard_deviation}
-\title{Extract a signal  using standard deviation}
+\title{Extract a signal using standard deviation}
 \usage{
 extract_signal_standard_deviation(
   wavelet = NULL,
@@ -13,14 +13,15 @@ extract_signal_standard_deviation(
   add_mean = TRUE,
   tune = FALSE,
   genplot_uncertainty_wt = TRUE,
-  genplot_extracted = TRUE
+  genplot_extracted = TRUE,
+  keep_editable = FALSE
 )
 }
 \arguments{
 \item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
 
 \item{tracked_cycle_curve}{Curve of the cycle tracked using the
-\code{\link{track_period_wavelet}} function. Any input (matrix or dataframe)
+\code{\link{track_period_wavelet}} function. Any input (matrix or data frame)
  in which the first column is depth or time and the second column is period should work.}
 
 \item{multi}{multiple of the standard deviation to be used as boundaries for the cycle extraction
@@ -43,6 +44,8 @@ The black curve is the \code{Default=tracked_cycle_curve} curve.}
 
 \item{genplot_extracted}{Generates a plot with the data set and
 the extracted cycle on top \code{Default=TRUE} of it.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 Signal extracted from the wavelet spectra.
@@ -66,10 +69,11 @@ continuous wavelet transform using a Morlet wavelet.
 }
 \examples{
 \donttest{
-#Extract the 405 kyr eccentricity cycle from the the magnetic susceptibility \cr
-#record of the Sullivan core and use the Gabor uncertainty principle to define \cr
-# the mathematical uncertainty of the analysis and use a factor of that standard \cr
-#  deviation to define boundaries
+#Extract the 405 kyr eccentricity cycle from the magnetic susceptibility
+#record of the Sullivan core of Pas et al., (2018) and use the Gabor
+# uncertainty principle to define the mathematical uncertainty of the
+# analysis and use a factor of that standard deviation to define
+# boundaries
 
 # perform the CWT
 mag_wt <- analyze_wavelet(data = mag,
@@ -87,7 +91,7 @@ omega_nr = 10)
 #                                   periodlab = "Period (metres)",
 #                                   x_lab = "depth (metres)")
 
-#Instead of tracking, the tracked solution data set \code{\link{mag_track_solution}} is used \cr
+#Instead of tracking, the tracked solution data set mag_track_solution is used
 mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
@@ -96,15 +100,15 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
-# extract the 405 kyr eccentricty cycle from the wavelet spectrum and use \cr
-# the Gabor uncertainty principle to define the mathematical uncertainty of \cr
+# extract the 405 kyr eccentricty cycle from the wavelet spectrum and use
+# the Gabor uncertainty principle to define the mathematical uncertainty of
 # the analysis and use a multiple of the derived standard deviation to define boundaries
 
 mag_405_ecc <- extract_signal_standard_deviation(
@@ -115,16 +119,44 @@ extract_cycle = 405,
 tracked_cycle_period = 405,
 add_mean = TRUE,
 tune = FALSE,
-genplot_uncertainty_wt = TRUE,
-genplot_extracted = TRUE
+genplot_uncertainty_wt = FALSE,
+genplot_extracted = FALSE,
+keep_editable=FALSE
 )
 }
 }
 \references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+
 Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 Journal of the Institution of Electrical Engineers-part III: radio and
-communication engineering 93, no. 26 (1946): 429-441.
+communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
 
 Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
-" CREWES Res. Rep 28 (2016): 115.
+" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
+
+
+Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
+"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+" Geophysics 47, no. 2 (1982): 203-221.
+\doi{<doi:10.1190/1.1441328>}
+
+J. Morlet, G. Arens, E. Fourgeau, D. Giard;
+Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
+ Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+}
+\author{
+Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+The assignment of the standard deviation of the uncertainty of the wavelet
+is based on the work of Gabor (1946) and Russell et al., (2016)
 }

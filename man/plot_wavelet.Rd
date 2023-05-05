@@ -11,7 +11,8 @@ plot_wavelet(
   color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
   useRaster = TRUE,
   periodlab = "Period (metres)",
-  x_lab = "depth (metres)"
+  x_lab = "depth (metres)",
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ WARNING plotting as a vector image is computationally intensive.}
 \item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
 
 \item{x_lab}{label for the x-axis \code{Default="depth (metres)"}.}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
 The output is a plot of a wavelet spectra.
@@ -38,7 +41,7 @@ Plot wavelet spectra using the outcome of the \code{\link{analyze_wavelet}} func
 }
 \examples{
 \donttest{
-#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance \cr
+#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 # data set of Steinhilver et al., (2012)
 TSI_wt <-
  analyze_wavelet(
@@ -57,11 +60,12 @@ plot.COI = TRUE,
  color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
  useRaster = TRUE,
  periodlab = "Period (years)",
-x_lab = "years (before present)"
+x_lab = "years (before present)",
+ keep_editable=FALSE
 )
 
-#Example 2. A plot of a wavelet spectra using the magnetic susceptibility \cr
-#data set of De pas et al., (2018)
+#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
+#data set of Pas et al., (2018)
 mag_wt <-
 analyze_wavelet(
 data = mag,
@@ -78,10 +82,11 @@ plot_wavelet(
  color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
  useRaster = TRUE,
  periodlab = "Period (metres)",
- x_lab = "depth (metres)"
+ x_lab = "depth (metres)",
+  keep_editable=FALSE
 )
 
-#Example 3. A plot of a wavelet spectra using the greyscale \cr
+#Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
 grey_wt <-
  analyze_wavelet(
@@ -99,7 +104,8 @@ plot_wavelet(
  color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
  useRaster = TRUE,
  periodlab = "Period (metres)",
- x_lab = "depth (metres)"
+ x_lab = "depth (metres)",
+  keep_editable=FALSE
 )
 
 
@@ -114,9 +120,21 @@ Wavelet Analysis. R package version 1.1.
 Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
 \url{https://github.com/tgouhier/biwavelet}
 
-Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis. Bulletin of the American Meteorological Society 79:61-78.
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+
+Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
+"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+" Geophysics 47, no. 2 (1982): 203-221.
+\doi{<doi:10.1190/1.1441328>}
+
+J. Morlet, G. Arens, E. Fourgeau, D. Giard;
+Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
+ Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
 }
 \author{
-Code based on the R packages :WaveletComp and biwavelet
-which are based on the wavelet MATLAB program written by Christopher Torrence and Gibert P. Compo.
+Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
+and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
+wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
 }

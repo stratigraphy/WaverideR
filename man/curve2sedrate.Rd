@@ -8,7 +8,7 @@ curve2sedrate(tracked_cycle_curve = NULL, tracked_cycle_period = NULL)
 }
 \arguments{
 \item{tracked_cycle_curve}{A cycle tracked using the \code{\link{track_period_wavelet}} function \cr
-Any input (matrix or dataframe) in which the first column is depth in meters and the second column is period in meters}
+Any input (matrix or data frame) in which the first column is depth in meters and the second column is period in meters}
 
 \item{tracked_cycle_period}{Period of the tracked cycle (in kyr).}
 }
@@ -18,13 +18,14 @@ The first column is depth
 The second column sedimentation rate in cm/kyr
 }
 \description{
-Converts the period of a tracked cycle to a sedimentation rate curve by assiging a duration
-(in kyr) to the period of a tracked cycle
+Converts the period of a tracked cycle to a sedimentation rate curve by
+assigning a duration (in kyr) to the period of a tracked cycle
 }
 \examples{
 \donttest{
-#Conversion of the period (in meters) of a 405 kyr eccentricity cycle tracked \cr
+#Conversion of the period (in meters) of a 405 kyr eccentricity cycle tracked
 #in a wavelet spectra by assigning a duration of  405 kyr to the tracked cycle.
+# the example uses the magnetic susceptibility data set of Pas et al., (2018)
 # perform the CWT
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,

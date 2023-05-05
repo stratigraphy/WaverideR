@@ -15,7 +15,10 @@ sum_power_sedrate(
   cycles = c(NULL),
   x_lab = "depth",
   y_lab = "sedrate",
-  genplot = TRUE
+  run_multicore = FALSE,
+  genplot = FALSE,
+  plot_res = 1,
+  keep_editable = FALSE
 )
 }
 \arguments{
@@ -40,14 +43,25 @@ random red-noise the data is normalized against a percentile based red-noise cur
 
 \item{y_lab}{label for the y-axis \code{Default="sedrate"}}
 
-\item{genplot}{Generate plot \code{Default="TRUE"}}
+\item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
+the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes}
+
+\item{genplot}{Generate plot \code{Default="FALSE"}}
+
+\item{plot_res}{plot options are 1: sum max power or 2: nr of components \code{Default=2}}
+
+\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
 \value{
-Returns a matrix with sum of maximum spectral power for a given sedimentation rates and a given depths.
+Returns a list which contains 4 elements
+element 1: sum of maximum spectral power
+element 2: number of cycles used in the sum of maximum spectral power
+element 3: y-axis values of the matrices which is sedimentation rate
+element 4: x-axis values of the matrices which is depth
 
 If \code{Default="TRUE"} a plot is created with 3 subplots.
 Subplot 1 is plot in which the the sum of maximum spectral power for a
-given sedimentation rate is plotted for each depth given depth.
+given sedimentation rate or nr of cycles is plotted for each depth given depth.
 Subplot 2 is a plot in which the average sum of maximum spectral power is plotted fro each sedimentation
 Subplot 3 is a color scale for subplot 1.
 }
@@ -58,9 +72,9 @@ The data is first normalized using the average spectral power curves
  for a given percentile based on results of the \code{\link{model_red_noise_wt}} function
 }
 \examples{
-\dontrun{
-#estimate sedimentation rate for the the magnetic susceptibility record \cr
-# of the Sullivan core of De pas et al., (2018).
+\donttest{
+#estimate sedimentation rate for the the magnetic susceptibility record
+# of the Sullivan core of Pas et al., (2018).
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -72,6 +86,7 @@ omega_nr = 10)
 #increase n_simulations to better define the red noise spectral power curve
 mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
 n_simulations=100,
+run_multicore=FALSE,
 verbose=FALSE)
 
 sedrates <- sum_power_sedrate(red_noise=mag_wt_red_noise,
@@ -83,8 +98,30 @@ spacing = 0.05,
 cycles = c(2376,1600,1180,696,406,110),
 x_lab="depth",
 y_lab="sedrate",
-genplot = TRUE)
+run_multicore=FALSE,
+genplot = FALSE,
+plot_res=1,
+keep_editable=FALSE)
 }
 
 
+}
+\references{
+Routines for astrochronologic testing, astronomical time scale construction, and
+time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+
+Acycle: Time-series analysis software for paleoclimate research and education,
+Mingsong Li, Linda Hinnov, Lee Kump,
+Computers & Geosciences,Volume 127,2019,Pages 12-22,ISSN 0098-3004,
+\doi{<doi:10.1016/j.cageo.2019.02.011>}
+
+Tracking variable sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy series with evolutionary correlation coefficients and hypothesis testing,
+Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael E. Mann,
+Earth and Planetary Science Letters,Volume 501,
+T2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}
+}
+\author{
+Based on the \link[astrochron]{asm} and \link[astrochron]{eAsm}
+functions of the astrochron R package
+and the eCOCO and COCO functions of the Acycle software
 }

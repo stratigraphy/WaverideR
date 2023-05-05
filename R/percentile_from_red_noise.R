@@ -12,8 +12,8 @@
 #'
 #'@examples
 #'\dontrun{
-#'#'#generate red noise curves based on the magnetic susceptibility record of \cr
-#'#the Sullivan core of De pas et al., (2018)
+#'#'#generate red noise curves based on the magnetic susceptibility record of
+#'#the Sullivan core of Pas et al., (2018)
 #'
 #'mag_wt <- analyze_wavelet(data = mag,
 #' dj = 1/100,
@@ -43,17 +43,19 @@
 #' @importFrom stats qnorm
 
 
-percentile_from_red_noise <- function(red_noise=NULL,
-                                       wavelet=NULL,
-                                      percentile=NULL) {
-noise_period <- cbind(wavelet$Period,red_noise)
-noise_period2 <- as.data.frame(noise_period)
-noise_period2$mean <- rowMeans(noise_period2[,2:(ncol(red_noise)+1)])
-noise_period2$sd <- rowSds(as.matrix(noise_period2[,2:(ncol(red_noise)+1)]))
-prob <- qnorm(p=percentile, mean=noise_period2$mean, sd=noise_period2$sd)
-prob <- cbind(noise_period[,1],prob)
-prob
+percentile_from_red_noise <- function(red_noise = NULL,
+                                      wavelet = NULL,
+                                      percentile = NULL) {
+  noise_period <- cbind(wavelet$Period, red_noise)
+  noise_period2 <- as.data.frame(noise_period)
+  noise_period2$mean <-
+    rowMeans(noise_period2[, 2:(ncol(red_noise) + 1)])
+  noise_period2$sd <-
+    rowSds(as.matrix(noise_period2[, 2:(ncol(red_noise) + 1)]))
+  prob <-
+    qnorm(p = percentile,
+          mean = noise_period2$mean,
+          sd = noise_period2$sd)
+  prob <- cbind(noise_period[, 1], prob)
+  prob
 }
-
-
-

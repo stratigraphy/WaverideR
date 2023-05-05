@@ -9,7 +9,7 @@
 #'
 #' @examples
 #'#Example in which the ~210yr de Vries cycle is extracted from the Total Solar
-#'#Irradiance data set of Steinhilver et al., (2012)\cr
+#'#Irradiance data set of Steinhilver et al., (2012)
 #'#after which all maxima are extracted
 #'
 #'TSI_wt <-
@@ -39,54 +39,86 @@
 #'
 #' @export
 
+max_detect <- function(data = NULL) {
+  astro_mindetect <- as.data.frame(data)
+  astro_mindetect$min <- 0
+  for (i in 3:(nrow(data) - 2)) {
+    if ((data[i, 2] - data[(i + 1), 2] < 0) &
+        (data[i, 2] - data[(i - 1), 2] < 0))
+    {
+      astro_mindetect[i, 3] <- 1
+    }
+  }
 
- max_detect <- function(data=NULL){
-  astro_maxdetect <- data
+  astro_mindetect_error_corr <- astro_mindetect
+  astro_mindetect_error_corr <-
+    astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 , ]
+  #astro_mindetect_error_corr <- astro_mindetect_error_corr[astro_mindetect_error_corr[,2] < mean(data[,2]), ]
+
+  astro_maxdetect <- as.data.frame(data)
   astro_maxdetect$max <- 0
-  for(i in 3:(nrow(data)-2)){
-    if ((data[i,2]- data[(i+1),2] > 0) & (data[i,2] - data[(i-1),2]  > 0))
-    {astro_maxdetect[i,3] <- 1}
+  for (i in 3:(nrow(data) - 2)) {
+    if ((data[i, 2] - data[(i + 1), 2] > 0) &
+        (data[i, 2] - data[(i - 1), 2]  > 0))
+    {
+      astro_maxdetect[i, 3] <- 1
+    }
   }
 
   astro_maxdetect_error_corr <- astro_maxdetect
+  astro_maxdetect_error_corr <-
+    astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
+  #astro_maxdetect_error_corr <- astro_maxdetect_error_corr[astro_maxdetect_error_corr[,2] > mean(data[,2]), ]
 
-  for(i in 1:(nrow(astro_maxdetect)-1)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+1,3] == 1))
-    {astro_maxdetect_error_corr[i+1,3] <- 0}
+  max <- astro_maxdetect_error_corr
+  colnames(max) <- c("A", "B", "C")
+  min <- astro_mindetect_error_corr
+  colnames(min) <- c("A", "B", "C")
+
+  min[, 3] <- -1
+  peaks <- rbind(max, min)
+
+  peaks <- peaks[order(peaks[, 1]),]
+  i <- 1
+  res_rownr <- nrow(peaks)
+
+  while (i < res_rownr) {
+    if (peaks[i, 3] == peaks[(i + 1), 3]) {
+      if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
+          (peaks[i, 2] > peaks[(i + 1), 2])) {
+        peaks[(i + 1),] <- NA
+        peaks <- na.omit(peaks)
+        res_rownr <- res_rownr - 1
+      }
+      if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
+          (peaks[i, 2] < peaks[(i + 1), 2])) {
+        peaks[i,] <- NA
+        peaks <- na.omit(peaks)
+        res_rownr <- res_rownr - 1
+      }
+      if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
+          (peaks[i, 2] < peaks[(i + 1), 2])) {
+        peaks[(i + 1),] <- NA
+        peaks <- na.omit(peaks)
+        res_rownr <- res_rownr - 1
+      }
+      if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
+          (peaks[i, 2] > peaks[(i + 1), 2])) {
+        peaks[i,] <- NA
+        peaks <- na.omit(peaks)
+        res_rownr <- res_rownr - 1
+
+      }
+    }
+    if ((peaks[i, 3] != peaks[(i + 1), 3]) |
+        is.na(peaks[i, 3] != peaks[(i + 1), 3])) {
+      i <- i + 1
+    }
   }
 
-  for(i in 1:(nrow(astro_maxdetect)-2)){
-    if (((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+2,3] == 1)))
-    {astro_maxdetect_error_corr[i+2,3] <- 0}
-  }
+  peaks_max <- peaks[peaks[, 3] > 0,]
+  peaks_max
 
-  for(i in 1:(nrow(astro_maxdetect)-3)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+3,3] == 1))
-    {astro_maxdetect_error_corr[i+3,3] <- 0}
-  }
-  for(i in 1:(nrow(astro_maxdetect)-4)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+4,3] == 1))
-    {astro_maxdetect_error_corr[i+4,3] <- 0}
-  }
-  for(i in 1:(nrow(astro_maxdetect)-5)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+5,3] == 1))
-    {astro_maxdetect_error_corr[i+5,3] <- 0}
-  }
-  for(i in 1:(nrow(astro_maxdetect)-6)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+6,3] == 1))
-    {astro_maxdetect_error_corr[i+6,3] <- 0}
-  }
 
-  for(i in 1:(nrow(astro_maxdetect)-7)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+7,3] == 1))
-    {astro_maxdetect_error_corr[i+7,3] <- 0}
-  }
-  for(i in 1:(nrow(astro_maxdetect)-8)){
-    if ((astro_maxdetect[i,3]==1) & (astro_maxdetect[i+8,3] == 1))
-    {astro_maxdetect_error_corr[i+8,3] <- 0}
-  }
-  astro_maxdetect_error_corr <- astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
-  astro_maxdetect_error_corr <- astro_maxdetect_error_corr[astro_maxdetect_error_corr[,2] > mean(data[,2]), ]
-  astro_maxdetect_error_corr
+
 }
-

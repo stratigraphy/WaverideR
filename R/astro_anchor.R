@@ -68,7 +68,7 @@
 #'	     e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
 #'	   \item 173kyr obliquity  metronome can be generated using using the formula:\cr
 #'	    es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-#'	   \item An etp model using the \link[astrochron]{etp} function of the \link[astrochron]{astrochron-package} package
+#'	   \item An etp model using the \link[astrochron]{etp} function of the astrochron R package
 #'	   }
 #'
 #'@param astro_solution Input is an astronomical solution which the proxy record will be anchored to,
@@ -108,14 +108,34 @@
 #' from the proxy record.
 #'
 #'@references
-#'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004, A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys., Volume 428, 261-285. \cr
-#'Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a, La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys., Volume 532, A89 \cr
-#'Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.: 2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys., Volume 532, L4. \cr
+#'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
+#'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
+#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>} \cr
+#'
+#'Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
+#' La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,
+#' Volume 532, A89 \doi{<doi:10.1051/0004-6361/201116836>} \cr
+#'
+#'Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
+#'2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys.,
+#'Volume 532, L4.  \doi{<doi.org/10.1051/0004-6361/201117504>}\cr
+#'
 #'J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-#' <doi:10.1016/B978-0-12-824360-2.00004-8> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
-#'Zeebe, R. E. and Lourens, L. J. Geologically constrained astronomical solutions for the Cenozoic era, Earth and Planetary Science Letters, 2022 \cr
-#'Zeebe, R. E. and Lourens, L. J. Solar system chaos and the Paleocene-Eocene boundary age constrained by geology and astronomy. Science, <doi:10.1126/science.aax0612> \cr
-#'Zeebe, R. E. Numerical Solutions for the orbital motion of the Solar System over the Past 100 Myr: Limits and new results. The Astronomical Journal, 2017 \cr
+#' '\doi{<doi:10.1016/B978-0-12-824360-2.00004-8>} or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
+#'
+#'Zeebe, R. E. and Lourens, L. J.
+#'Geologically constrained astronomical solutions for the Cenozoic era,
+#'Earth and Planetary Science Letters, 2022 \doi{<doi:10.1016/j.epsl.2022.117595>}\cr
+#'
+#'Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the Paleocene–Eocene boundary age constrained by geology and astronomy.Science365,926-929(2019)
+#'\doi{<doi:10.1126/science.aax0612>}\cr
+#'
+#'Zeebe, Richard E. "Numerical solutions for the orbital motion of the Solar System over the past 100 Myr: limits and new results."
+#'The Astronomical Journal 154, no. 5 (2017): 193. \doi{<doi:10.3847/1538-3881/aa8cce>} \cr
+#'
+#'Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
+#'Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
+#'\doi{<doi:10.1016/j.earscirev.2018.11.015>}
 #'
 #' @return
 #'The output is a matrix with the 4 columns.
@@ -127,8 +147,8 @@
 #'
 #'
 #'@examples
-#'\dontrun{
-#'# Use the \code{grey_track} example tracking points to anchor the grey scale data set \cr
+#'\donttest{
+#'# Use the grey_track example tracking points to anchor the grey scale data set
 #'# of Zeeden et al., (2013) to the p-0.5t la2004 solution
 #'
 #'grey_wt <-
@@ -192,14 +212,11 @@
 #'insolation_extract <- as.data.frame(insolation_extract)
 #'insolation_extract_mins <- min_detect(insolation_extract)
 #'
-#'#download ETP solution (p-0.5t la2004 solution) from the astrochron package \cr
-#'#to create a insolation curve.
-#'#install.packages("astrochron") if not install package.
-#'#library("astrochron") load package to download p-0.5t la2004 solution.
-#'
-#'astrosignal=astrochron::etp(tmin=5000,tmax=6000,pWt=1,oWt=-0.5,eWt=0,genplot=FALSE,verbose=FALSE)
-#'astrosignal[,2] <- -1*astrosignal[,2]
-#'astrosignal <- as.data.frame(astrosignal)
+#'#use the astrosignal_example to tune to which is an \cr
+#'# ETP solution (p-0.5t la2004 solution)
+#'astrosignal_example <- na.omit(astrosignal_example)
+#'astrosignal_example[,2] <- -1*astrosignal_example[,2]
+#'astrosignal <- as.data.frame(astrosignal_example)
 #'
 #'#anchor the synthetic insolation curve extracted from the greyscale record to the insolation curve.
 #'
@@ -227,34 +244,38 @@
 #' @importFrom graphics par
 #' @importFrom graphics points
 #' @importFrom grDevices graphics.off
+#' @importFrom astrochron etp
 
-astro_anchor <- function(astro_solution=NULL,
-                         proxy_signal=NULL,
-                         proxy_min_or_max="max",
-                         clip_astrosolution=FALSE,
-                         astrosolution_min_or_max="max",
-                         clip_high=NULL,
-                         clip_low=NULL,
-                         extract_astrosolution=FALSE,
-                         astro_period_up=1.2,
-                         astro_period_down=0.8,
-                         astro_period_cycle=NULL,
-                         extract_proxy_signal=FALSE,
-                         proxy_period_up=1.2,
-                         proxy_period_down=0.8,
-                         proxy_period_cycle=NULL){
+astro_anchor <- function(astro_solution = NULL,
+                         proxy_signal = NULL,
+                         proxy_min_or_max = "max",
+                         clip_astrosolution = FALSE,
+                         astrosolution_min_or_max = "max",
+                         clip_high = NULL,
+                         clip_low = NULL,
+                         extract_astrosolution = FALSE,
+                         astro_period_up = 1.2,
+                         astro_period_down = 0.8,
+                         astro_period_cycle = NULL,
+                         extract_proxy_signal = FALSE,
+                         proxy_period_up = 1.2,
+                         proxy_period_down = 0.8,
+                         proxy_period_cycle = NULL
+                         ){
 
 
-  if(clip_astrosolution==TRUE){
-    astro_solution <- astro_solution[astro_solution[,1]  >= clip_low, ]
-    astro_solution <- astro_solution[astro_solution[,1]  <= clip_high, ]}
+  if (clip_astrosolution == TRUE) {
+    astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low, ]
+    astro_solution <-
+      astro_solution[astro_solution[, 1]  <= clip_high, ]
+  }
 
-  if(extract_astrosolution==TRUE){
+  if (extract_astrosolution == TRUE) {
     extract_astrosolution_wt <- analyze_wavelet(
       data = astro_solution,
-      dj = 1/200,
-      lowerPeriod = (astro_solution[2,1] - astro_solution[1,1]),
-      upperPeriod = (astro_solution[nrow(astro_solution),1] - astro_solution[1,1]),
+      dj = 1 / 200,
+      lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
+      upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
       verbose = TRUE,
       omega_nr = 6
     )
@@ -268,15 +289,14 @@ astro_anchor <- function(astro_solution=NULL,
       plot_residual = FALSE
     )
 
-    }
+  }
 
-  if(extract_proxy_signal==TRUE){
-
+  if (extract_proxy_signal == TRUE) {
     proxy_signal_wt <- analyze_wavelet(
       data = astro_solution,
-      dj = 1/200,
-      lowerPeriod = (astro_solution[2,1] - astro_solution[1,1]),
-      upperPeriod = (astro_solution[nrow(astro_solution),1] - astro_solution[1,1]),
+      dj = 1 / 200,
+      lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
+      upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
       verbose = TRUE,
       omega_nr = 6
     )
@@ -293,23 +313,31 @@ astro_anchor <- function(astro_solution=NULL,
 
 
   astro_solution <- as.data.frame(astro_solution)
-  if(astrosolution_min_or_max=="max"){
-    astro_maxdetect_error_corr <- max_detect(astro_solution)}
+  if (astrosolution_min_or_max == "max") {
+    astro_maxdetect_error_corr <- max_detect(astro_solution)
+  }
 
 
-  if(astrosolution_min_or_max=="min"){
-    astro_maxdetect_error_corr <- min_detect(astro_solution)}
+  if (astrosolution_min_or_max == "min") {
+    astro_maxdetect_error_corr <- min_detect(astro_solution)
+  }
 
   all_data_pre_max <- as.data.frame(proxy_signal)
 
-  if(proxy_min_or_max=="max"){
-    proxy_signal_max <- max_detect(all_data_pre_max)}
+  if (proxy_min_or_max == "max") {
+    proxy_signal_max <- max_detect(all_data_pre_max)
+  }
 
-  if(proxy_min_or_max=="min"){
-    proxy_signal_max <- min_detect(all_data_pre_max)}
+  if (proxy_min_or_max == "min") {
+    proxy_signal_max <- min_detect(all_data_pre_max)
+  }
 
-  proxy_signal_max <- proxy_signal_max[,c(1,2)]
-  plot(proxy_signal,type="l",
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))
+  par(mfrow = c(1, 1))
+  proxy_signal_max <- proxy_signal_max[, c(1, 2)]
+  plot(proxy_signal,
+       type = "l",
        xlab = "depth/time",
        ylab = "proxy")
   points(proxy_signal_max,
@@ -317,91 +345,155 @@ astro_anchor <- function(astro_solution=NULL,
          ylab = "proxy")
 
 
-  tie_points <- matrix(data=NA,ncol=4)
-  colnames(tie_points) <- c("data_x","data_y","insolation_x","insolation_y")
+  tie_points <- matrix(data = NA, ncol = 4)
+  colnames(tie_points) <-
+    c("data_x", "data_y", "insolation_x", "insolation_y")
   tie_points <- tie_points[-c(1),]
 
-    for (i in 1:nrow(proxy_signal_max)){
+  for (i in 1:nrow(proxy_signal_max)) {
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
     next_step <- "NO"
     while (next_step == "NO") {
       next_step <- "NO"
-     dev.new(width=20,height=10,noRStudioGD = TRUE)
-      par(mfrow=c(2,1))
-      plot(all_data_pre_max,type="l",
-           xlab = "depth/time",
-           ylab = "proxy")
-      points(proxy_signal_max,type="p", pch=1, col="black",lwd="1",
-             xlab = "depth/time",
-             ylab = "proxy")
-      par(new=TRUE)
+      dev.new(width = 20,
+              height = 10,
+              noRStudioGD = TRUE)
+      par(mfrow = c(2, 1))
       plot(
-        x=proxy_signal_max[i,1],
-        y=proxy_signal_max[i,2],
-        type="p", pch=19, cex=1.5, col="red",lwd="1",xlim=c(min(all_data_pre_max[,1]), max(all_data_pre_max[,1])),
-        ylim=c(min(all_data_pre_max[,2]), max(all_data_pre_max[,2])),
+        all_data_pre_max,
+        type = "l",
         xlab = "depth/time",
         ylab = "proxy"
-        )
-      par(new=TRUE)
-      plot(
-        x=tie_points[,1],
-        y=tie_points[,2],
-        type="p", pch=19, cex=1.5, col="green",lwd="1",xlim=c(min(all_data_pre_max[,1]), max(all_data_pre_max[,1])),
-        ylim=c(min(all_data_pre_max[,2]), max(all_data_pre_max[,2])),
+      )
+      points(
+        proxy_signal_max,
+        type = "p",
+        pch = 1,
+        col = "black",
+        lwd = "1",
         xlab = "depth/time",
-        ylab = "proxy")
-      plot(astro_solution,type="l", xlim=c(min(astro_solution[,1]), max(astro_solution[,1])),
-           ylim=c(min(astro_solution[,2]), max(astro_solution[,2])),
-           xlab = "depth/time",
-           ylab = "tie_point value")
-      par(new=TRUE)
-      plot(astro_maxdetect_error_corr[,c(1,2)],type="p", xlim=c(min(astro_solution[,1]), max(astro_solution[,1])),
-           ylim=c(min(astro_solution[,2]), max(astro_solution[,2])),
-           xlab = "depth/time",
-           ylab = "tie_point value")
-      par(new=TRUE)
-      plot(tie_points[,c(3,4)],type="p", pch=19, cex=1.5, col="green",lwd="1", xlim=c(min(astro_solution[,1]), max(astro_solution[,1])),
-           ylim=c(min(astro_solution[,2]), max(astro_solution[,2])),
-           xlab = "depth/time",
-           ylab = "tie_point value")
-      pts <- tuning_pts(x=astro_maxdetect_error_corr[,1],
-                        y=astro_maxdetect_error_corr[,2])
-      var = readline(prompt<-"did you select the right point Y/N : ");
+        ylab = "proxy"
+      )
+      par(new = TRUE)
+      plot(
+        x = proxy_signal_max[i, 1],
+        y = proxy_signal_max[i, 2],
+        type = "p",
+        pch = 19,
+        cex = 1.5,
+        col = "red",
+        lwd = "1",
+        xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+        ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+        xlab = "depth/time",
+        ylab = "proxy"
+      )
+      par(new = TRUE)
+      plot(
+        x = tie_points[, 1],
+        y = tie_points[, 2],
+        type = "p",
+        pch = 19,
+        cex = 1.5,
+        col = "green",
+        lwd = "1",
+        xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+        ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+        xlab = "depth/time",
+        ylab = "proxy"
+      )
+      plot(
+        astro_solution,
+        type = "l",
+        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+        xlab = "depth/time",
+        ylab = "tie_point value"
+      )
+      par(new = TRUE)
+      plot(
+        astro_maxdetect_error_corr[, c(1, 2)],
+        type = "p",
+        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+        xlab = "depth/time",
+        ylab = "tie_point value"
+      )
+      par(new = TRUE)
+      plot(
+        tie_points[, c(3, 4)],
+        type = "p",
+        pch = 19,
+        cex = 1.5,
+        col = "green",
+        lwd = "1",
+        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+        xlab = "depth/time",
+        ylab = "tie_point value"
+      )
+      pts <- tuning_pts(x = astro_maxdetect_error_corr[, 1],
+                        y = astro_maxdetect_error_corr[, 2])
+      var = readline(prompt <-
+                       "did you select the right point Y/N : ")
 
-      if (var=="Y"|var=="Yes"|var=="yes"|var=="y")
-      {print("okay next point")
-        if(identical(pts, integer(0))){
-          print("no points selected on to the next point")
-          sel_astro_maxdetect_error_corr <- matrix(data=NA,ncol=2)
-          sel_proxy_signal_max <- (as.data.frame(proxy_signal_max[i,]))
-          tie_row <- cbind(sel_proxy_signal_max,sel_astro_maxdetect_error_corr)
-          colnames(tie_row) <- c("data_x","data_y","insolation_x","insolation_y")
-          tie_points <- rbind(tie_points,tie_row)
+
+      if (var == "Y" | var == "Yes"| var == "YES" | var == "yes" | var == "y")
+      {
+        cat("okay next point")
+        if (identical(pts, integer(0))) {
+          cat("no points selected on to the next point")
+          sel_astro_maxdetect_error_corr <-
+            matrix(data = NA, ncol = 2)
+          sel_proxy_signal_max <-
+            (as.data.frame(proxy_signal_max[i,]))
+          tie_row <-
+            cbind(sel_proxy_signal_max,
+                  sel_astro_maxdetect_error_corr)
+          colnames(tie_row) <-
+            c("data_x", "data_y", "insolation_x", "insolation_y")
+          tie_points <- rbind(tie_points, tie_row)
           graphics.off()
-          next_step <- "YES"}
+          next_step <- "YES"
+        }
         else
-        {sel_astro_maxdetect_error_corr <- as.data.frame(astro_maxdetect_error_corr[pts,c(1,2)])
-        sel_proxy_signal_max <- (as.data.frame(proxy_signal_max[i,]))
-        tie_row <- cbind(sel_proxy_signal_max,sel_astro_maxdetect_error_corr)
-        colnames(tie_row) <- c("data_x","data_y","insolation_x","insolation_y")
-        tie_points <- rbind(tie_points,tie_row)
+        {
+          sel_astro_maxdetect_error_corr <-
+            as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
+          sel_proxy_signal_max <-
+            (as.data.frame(proxy_signal_max[i,]))
+          tie_row <-
+            cbind(sel_proxy_signal_max,
+                  sel_astro_maxdetect_error_corr)
+          colnames(tie_row) <-
+            c("data_x", "data_y", "insolation_x", "insolation_y")
+          tie_points <- rbind(tie_points, tie_row)
+          graphics.off()
+          next_step <- "YES"
+        }
+      }
+      else if (var == "N"| var == "NO" | var == "No" | var == "no" | var == "n")
+      {
+        cat("okay selection of point will be redone")
         graphics.off()
-        next_step <- "YES"}}
-      else if (var=="N"|var=="No"|var=="no"|var=="n")
-      {print("okay selection of point will be redone")
-        graphics.off()
-        next_step <- "NO"}
+        next_step <- "NO"
+
+      }
       else
-      {print("Y/N not specified point selection will be redone")
+      {cat("You did not type yes or no quiting of selection process")
         graphics.off()
-        next_step <- "NO"}
-    }}
+        next_step <- "Finished"
+
+      }
+
+    }
+  }
 
   tie_points <- na.omit(tie_points)
   tie_points <- tie_points[, c(1, 3, 2, 4)]
 
 }
-
 
 
 

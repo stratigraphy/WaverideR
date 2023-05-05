@@ -14,9 +14,32 @@
 #'@param period_up Upper period as a factor of the to be extracted power \code{Default=1.2}.
 #'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
 #'
+#' @author
+#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
+#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' The assignment of the standard deviation of the uncertainty of the wavelet
+#' is based on the work of Gabor (1946) and Russell et al., (2016)
+#' The functionality of this function is is inspired by the
+#' \link[astrochron]{integratePower} function of the astrochron R package
+#'
+#' @references
+#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+#'Wavelet Analysis. R package version 1.1.
+#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#'
+#'Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+#'\url{https://github.com/tgouhier/biwavelet}
+#'
+#'Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+#'Bulletin of the American Meteorological Society 79:61-78.
+#'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+#'
+#'Routines for astrochronologic testing, astronomical time scale construction, and
+#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
+#'
 #'@examples
-#'#Extract the spectral power of the 210 yr de Vries cycle from the Total Solar \cr
-#'#Irradiance data set of Steinhilver et al., (2012).
+#'#Extract the spectral power of the 210 yr de Vries cycle from the Total Solar
+#'#Irradiance data set of Steinhilber et al., (2012).
 #'
 #'TSI_wt <-
 #'  analyze_wavelet(
@@ -43,25 +66,27 @@
 #'
 #' @export
 #' @importFrom DescTools Closest
+#' @importFrom WaveletComp reconstruct
 
-extract_power_stable <- function(wavelet=NULL,
-                          cycle=NULL,
-                          period_up =1.2,
-                          period_down = 0.8){
-
+extract_power_stable <- function(wavelet = NULL,
+                                 cycle = NULL,
+                                 period_up = 1.2,
+                                 period_down = 0.8) {
   Period <- as.data.frame(wavelet$Period)
-  extract_power_high <- cycle*period_up
-  extract_power_low <- cycle*period_down
-  low_rownr <- Closest(Period[,1],extract_power_low,which=TRUE)
-  high_rownr <- Closest(Period[,1],extract_power_high,which=TRUE)
+  extract_power_high <- cycle * period_up
+  extract_power_low <- cycle * period_down
+  low_rownr <- Closest(Period[, 1], extract_power_low, which = TRUE)
+  high_rownr <-
+    Closest(Period[, 1], extract_power_high, which = TRUE)
   Power <- as.data.frame(wavelet$Power)
   Power_sel <- Power[(low_rownr:high_rownr),]
   Power_sel <- as.data.frame(colSums(Power_sel))
-  filtered_power <- cbind(wavelet$axis.1 ,Power_sel)
-  filtered_power <-as.data.frame(filtered_power)
-  total_pwr <- colSums(Power,na.rm = TRUE)
+  filtered_power <- cbind(wavelet$axis.1 , Power_sel)
+  filtered_power <- as.data.frame(filtered_power)
+  total_pwr <- colSums(Power, na.rm = TRUE)
   filtered_power$total <- total_pwr
-  filtered_power$pwr_div_total <- filtered_power[,2]/filtered_power[,3]
+  filtered_power$pwr_div_total <-
+    filtered_power[, 2] / filtered_power[, 3]
   filtered_power
 
-  }
+}
