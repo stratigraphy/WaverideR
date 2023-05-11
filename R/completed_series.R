@@ -38,7 +38,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
 #'    upperPeriod = 256,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
 #'
@@ -80,7 +80,7 @@ completed_series <- function(wavelet = NULL,
                              period_up = 1.2,
                              period_down = 0.8,
                              extrapolate = TRUE,
-                             genplot = TRUE,
+                             genplot = FALSE,
                              keep_editable = FALSE) {
   my.w <- wavelet
   my.data <- cbind(wavelet$x, wavelet$y)
@@ -176,5 +176,5 @@ completed_series <- function(wavelet = NULL,
     lines(tracked_curve, col = "black")
   }
 
-  completed_series
+  return(completed_series)
 }

@@ -2,13 +2,13 @@
 % Please edit documentation in R/curve2tune.R
 \name{curve2tune}
 \alias{curve2tune}
-\title{Converts data from the depth to the time domain}
+\title{Convert data from the depth to the time domain}
 \usage{
 curve2tune(
   data = NULL,
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
-  genplot = TRUE,
+  genplot = FALSE,
   keep_editable = FALSE
 )
 }
@@ -54,7 +54,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -79,7 +79,7 @@ mag_track_complete <- completed_series(
 
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
 mag_track_time<- curve2tune(data=mag,
                            tracked_cycle_curve=mag_track_complete,
@@ -94,5 +94,5 @@ time series analysis \doi{doi:10.1016/j.earscirev.2018.11.015}
 }
 \author{
 Part of the code is based on the \link[astrochron]{sedrate2time}
-function of the astrochron R package
+function of the 'astrochron' R package
 }

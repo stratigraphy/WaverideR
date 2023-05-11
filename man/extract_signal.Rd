@@ -57,7 +57,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -78,14 +78,14 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
-# extract the 405 kyr eccentricty cycle from the wavelet spectrum and use the \cr
+# extract the 405 kyr eccentricity cycle from the wavelet spectrum and use the \cr
 # tracked cycle curve and set factors of the extracted cycle as boundaries
 
 mag_405_ecc  <- extract_signal(
@@ -100,4 +100,20 @@ tune = FALSE,
 plot_residual = FALSE
 )
 }
+}
+\references{
+Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Wavelet Analysis. R package version 1.1.
+\url{https://CRAN.R-project.org/package=WaveletComp}
+
+Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
+\url{https://github.com/tgouhier/biwavelet}
+
+Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
+Bulletin of the American Meteorological Society 79:61-78.
+\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+}
+\author{
+Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 }

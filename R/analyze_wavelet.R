@@ -1,4 +1,4 @@
-#' @title Computes the wavelet power spectrum of a time series/signal
+#' @title Conduct the continuous wavelet transform on a time series/signal
 #'
 #' @description
 #' Compute the continuous wavelet transform (CWT) using a Morlet wavelet
@@ -10,15 +10,33 @@
 #' scaling is done using power 2 so for the best plotting results select a value to the power or 2.
 #' @param upperPeriod Upper period to be analyzed \code{Default=1024},
 #'  scaling is done using power 2 so for the best plotting results select a value to the power or 2.
-#' @param verbose Print text \code{Default=TRUE}.
+#' @param verbose Print text \code{Default=FALSE}.
 #' @param omega_nr Number of cycles contained within the Morlet wavelet
 #'
 #' @return
-#' The output is a list (wavelet object) with the results of the continuous wavelet transform (CWT).
+#' The output is a list (wavelet object) which contain 18 objects which are the result of the continuous wavelet transform (CWT).
+#'Object 1: Wave - Wave values of the wavelet
+#'Object 2: Phase - Phase of the wavelet
+#'Object 3: Ampl - Amplitude values of the wavelet
+#'Object 4: Power - Power values of the wavelet
+#'Object 5: dt - Step size
+#'Object 6: dj - Scale size
+#'Object 7: Power.avg  - Average power values
+#'Object 8: Period - Period values
+#'Object 9: Scale - Scale value
+#'Object 10: coi.1 - Cone of influence values 1
+#'Object 11: coi.2 - Cone of influence values 2
+#'Object 12: nc - Number of columns
+#'Object 13: nr - Number of rows
+#'Object 14: axis.1 - axis values 1
+#'Object 15: axis.2 - axis values 2
+#'Object 16: omega_nr - Number of cycles in the wavelet
+#'Object 17: x - x values of the data set
+#'Object 18: y - y values of the data set
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-#' and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
+#' Code based on on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
+#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
 #' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
 #'
 #' @references
@@ -51,7 +69,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 16,
 #'    upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -63,7 +81,7 @@
 #'dj = 1/100,
 #'lowerPeriod = 0.1,
 #'upperPeriod = 254,
-#'verbose = TRUE,
+#'verbose = FALSE,
 #'omega_nr = 10
 #')
 #'
@@ -74,7 +92,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
 #'    upperPeriod = 256,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
 #'
@@ -93,7 +111,7 @@ analyze_wavelet <-
            dj = 1 / 20,
            lowerPeriod = 2,
            upperPeriod = 1024,
-           verbose = TRUE,
+           verbose = FALSE,
            omega_nr = 6) {
     dat <- as.matrix(data)
     dat <- na.omit(dat)

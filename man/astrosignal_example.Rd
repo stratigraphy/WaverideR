@@ -6,10 +6,11 @@
 \description{
 The \code{\link{astrosignal_example}} is a pre-generated ETP \cr
 (eccentricity-tilt-precession) (p-0.5t based on the la2004 solution) \cr
-the \code{\link{astrosignal_example}} can be used to achor the \code{\link{grey}}\cr
+the \code{\link{astrosignal_example}} can be used to anchor the \code{\link{grey}}\cr
 data set to an astronomical solution eg. \code{\link{astrosignal_example}} \cr
-using the  \code{\link{astro_anchor}} function. the dataset was generated using the \cr
-\link[astrochron]{etp} function of the \link[astrochron]{astrochron-package}
+using the  \code{\link{astro_anchor}} function. the data set was generated using the \cr
+\link[astrochron]{etp} function of the 'astrochron' R package.
+ The pre-generated ETP spans 5000 to 6000kyr.
 
 #'@details
 Column 1: time (kyr)\cr

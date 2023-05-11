@@ -14,7 +14,7 @@ Hilbert_transform(data = NULL, demean = TRUE)
 \value{
 Returns a matrix with 2 columns.
 The first column is depth/time.
-The second column is the hilbert transform of the signal.
+The second column is the Hilbert transform of the signal.
 }
 \description{
 Extract the amplitude modulation using the Hilbert transform.
@@ -31,7 +31,7 @@ data = TSI,
 dj = 1/200,
 lowerPeriod = 16,
 upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 
@@ -58,5 +58,5 @@ Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, a
 "On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. \doi{<doi:10.1142/S1793536909000096>}
 }
 \author{
-Based on the the \link[DecomposeR]{inst.pulse} function of the DecomposeR R package
+Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.
 }

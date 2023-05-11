@@ -7,8 +7,8 @@
 #' be a very small number as such the discriticized data set can be large which impacts computational
 #' performance later on therefore a linear interpolation option is added to downscale the data to allow
 #' for computational efficiency later on. This is made to discriticize lithologs created using the
-#'  \link[StratigrapheR]{StratigrapheR} package. as such the same data format for input is used.
-#'  eg. column 1 is bottom of the bed, column 2 is top of bed, column is depth rank/proxy value
+#' 'StratigrapheR' package. as such the same data format for input is used.
+#' eg. column 1 is bottom of the bed, column 2 is top of bed, column is depth rank/proxy value
 #'
 #'@references
 #' Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X.. 2021.
@@ -39,10 +39,8 @@
 #'
 #'@return
 #'Returns a matrix with 2 columns, the first column is depth the second columns is the depth/rank proxy
-#'If genplot is \code{Default=TRUE} then a plot of the discriticizes timeseries is plotted
+#'If genplot is \code{Default=TRUE} then a plot of the discriticizes time series is plotted
 #' @export
-#' @importFrom StratigrapheR StratigrapheR
-
 
 
 lithlog_disc <- function(litholog = NULL,
@@ -149,6 +147,5 @@ lithlog_disc <- function(litholog = NULL,
       ylab = y_lab
     )
   }
-
-  col_interp <- col_interp
+return(col_interp)
 }

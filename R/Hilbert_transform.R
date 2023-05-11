@@ -6,7 +6,7 @@
 #'@param demean Remove the mean from the time series.
 #'
 #'@author
-#'Based on the the \link[DecomposeR]{inst.pulse} function of the DecomposeR R package
+#'Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.
 #'@references
 #'Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 #'Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
@@ -27,7 +27,7 @@
 #'dj = 1/200,
 #'lowerPeriod = 16,
 #'upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -47,7 +47,7 @@
 #'@return
 #'Returns a matrix with 2 columns.
 #'The first column is depth/time.
-#'The second column is the hilbert transform of the signal.
+#'The second column is the Hilbert transform of the signal.
 #'
 #'@export
 #'@importFrom DecomposeR inst.pulse
@@ -58,9 +58,9 @@ Hilbert_transform <- function(data = NULL,
   my.data <- data
   my.hilbert <- as.data.frame(my.data)
   my.data <- as.data.frame(my.data)
-  if (demean == TRUE) {
-    my.data[, 2] <- my.data[, 2] - mean(my.data[, 2])
-  }
+  mean_dat <- mean(my.data[, 2])
+  my.data[, 2] <- my.data[, 2] - mean_dat
+
   hilb_result <-
     inst.pulse(
       imf = my.data[, 2],
@@ -68,6 +68,11 @@ Hilbert_transform <- function(data = NULL,
       method = "HT",
       plot = FALSE
     )
+
   my.hilbert[, 2] <- hilb_result$a
-  my.hilbert
+
+  if (demean != TRUE) {
+    my.hilbert[, 2] <- my.hilbert[, 2]+mean_dat
+    }
+  return(my.hilbert)
 }

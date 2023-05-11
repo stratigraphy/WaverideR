@@ -15,12 +15,10 @@
 #'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
-#' The assignment of the standard deviation of the uncertainty of the wavelet
-#' is based on the work of Gabor (1946) and Russell et al., (2016)
+#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 #' The functionality of this function is is inspired by the
-#' \link[astrochron]{integratePower} function of the astrochron R package
+#' \link[astrochron]{integratePower} function of the 'astrochron' R package
 #'
 #' @references
 #'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
@@ -47,7 +45,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 16,
 #'    upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'TSI_wt_pwr_de_Vries_cycle <-  extract_power_stable(
@@ -87,6 +85,6 @@ extract_power_stable <- function(wavelet = NULL,
   filtered_power$total <- total_pwr
   filtered_power$pwr_div_total <-
     filtered_power[, 2] / filtered_power[, 3]
-  filtered_power
+  return(filtered_power)
 
 }

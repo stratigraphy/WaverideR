@@ -30,7 +30,7 @@ data = TSI,
 dj = 1/200,
 lowerPeriod = 16,
 upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 

@@ -16,9 +16,9 @@
 #' The output is a plot of a wavelet spectra.
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-#' and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
-#' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package
+#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+#' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo (1998).
 #'
 #' @references
 #'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
@@ -44,14 +44,14 @@
 #' @examples
 #' \donttest{
 #'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
-#'# data set of Steinhilver et al., (2012)
+#'# data set of Steinhilber et al., (2012)
 #'TSI_wt <-
 #'  analyze_wavelet(
 #'    data = TSI,
 #'    dj = 1/200,
 #'    lowerPeriod = 16,
 #'    upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -74,7 +74,7 @@
 #'dj = 1/100,
 #'lowerPeriod = 0.1,
 #'upperPeriod = 254,
-#'verbose = TRUE,
+#'verbose = FALSE,
 #'omega_nr = 10
 #')
 #'plot_wavelet(
@@ -96,7 +96,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
 #'    upperPeriod = 256,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
 #'plot_wavelet(
@@ -124,6 +124,7 @@
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
 #' @importFrom WaveletComp analyze.wavelet
+#' @importFrom WaveletComp wt.image
 #' @importFrom biwavelet wt
 
 

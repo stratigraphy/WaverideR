@@ -6,7 +6,7 @@
 \description{
 The \code{\link{depth_rank_example}} example data set is a depth rank series which \cr
 can be used as input for the \code{\link{lithlog_disc}} function which creates a \cr
-discritzed record which can be used as input in the \code{\link{analyze_wavelet}}\cr
+discritzed record which can then be used as input in the \code{\link{analyze_wavelet}}\cr
 function
 }
 \details{

@@ -21,7 +21,7 @@ to detect and filter out local maxima in a sinusoidal signal.
 }
 \examples{
 #Example in which the ~210yr de Vries cycle is extracted from the Total Solar
-#Irradiance data set of Steinhilver et al., (2012)
+#Irradiance data set of Steinhilber et al., (2012)
 #after which all maxima are extracted
 
 TSI_wt <-
@@ -30,7 +30,7 @@ data = TSI,
 dj = 1/200,
 lowerPeriod = 16,
 upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 

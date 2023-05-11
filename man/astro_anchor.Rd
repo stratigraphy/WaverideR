@@ -19,7 +19,8 @@ astro_anchor(
   extract_proxy_signal = FALSE,
   proxy_period_up = 1.2,
   proxy_period_down = 0.8,
-  proxy_period_cycle = NULL
+  proxy_period_cycle = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -72,6 +73,8 @@ which the astronomical component is multiplied by. \code{Default=0.8}.}
 
 \item{proxy_period_cycle}{Period in kyr of the astronomical cycle/component which is extracted
 from the proxy record.}
+
+\item{verbose}{print text \code{Default=FALSE} #  set verbose to TRUE to allow for anchoring using text feedback commands}
 }
 \value{
 The output is a matrix with the 4 columns.
@@ -89,8 +92,7 @@ can be used to generate a astrochronological age-model
 As minima or maxima in the proxy record are tied to minima or maxima in an astronomical solution it is
 important to provide input which has clearly definable minima and maxima.
 As such input should be of a "sinusoidal" nature otherwise the \code{extract_astrosolution=TRUE}
-and/or \code{extract_proxy_signal=TRUE} options need to be set to TRUE
-to create sinusoidal signals.
+and/or \code{extract_proxy_signal=TRUE} options need to be set to TRUE to create sinusoidal signals.
 
 Astronomical solutions option are:
 \itemize{
@@ -146,7 +148,7 @@ Astronomical solutions option are:
      e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
    \item 173kyr obliquity  metronome can be generated using using the formula:\cr
     es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-   \item An etp model using the \link[astrochron]{etp} function of the astrochron R package
+   \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
    }
 }
 \examples{
@@ -160,7 +162,7 @@ grey_wt <-
    dj = 1/200,
    lowerPeriod = 0.02,
    upperPeriod = 256,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 8
  )
 
@@ -237,7 +239,8 @@ astro_period_cycle  = NULL,
 extract_proxy_signal  = FALSE,
 proxy_period_up  = NULL,
 proxy_period_down  = NULL,
-proxy_period_cycle  = NULL
+proxy_period_cycle  = NULL,
+verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
 )}
 
 }

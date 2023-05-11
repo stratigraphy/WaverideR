@@ -20,7 +20,7 @@ model_red_noise_wt(
 \item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
 the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.}
 
-\item{verbose}{Print text \code{Default=TRUE}.}
+\item{verbose}{Print text \code{Default=FALSE}.}
 }
 \value{
 Returns a matrix in which each column represents the average spectral
@@ -73,7 +73,7 @@ Wave propagation and sampling theory; Part II, Sampling theory and complex waves
  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
-wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+Code based on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
+and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 }

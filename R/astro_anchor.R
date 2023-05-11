@@ -8,8 +8,7 @@
 #' As minima or maxima in the proxy record are tied to minima or maxima in an astronomical solution it is
 #' important to provide input which has clearly definable minima and maxima.
 #' As such input should be of a "sinusoidal" nature otherwise the \code{extract_astrosolution=TRUE}
-#' and/or \code{extract_proxy_signal=TRUE} options need to be set to TRUE
-#' to create sinusoidal signals.
+#' and/or \code{extract_proxy_signal=TRUE} options need to be set to TRUE to create sinusoidal signals.
 #'
 #'
 #'
@@ -68,7 +67,7 @@
 #'	     e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
 #'	   \item 173kyr obliquity  metronome can be generated using using the formula:\cr
 #'	    es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-#'	   \item An etp model using the \link[astrochron]{etp} function of the astrochron R package
+#'	   \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
 #'	   }
 #'
 #'@param astro_solution Input is an astronomical solution which the proxy record will be anchored to,
@@ -106,6 +105,7 @@
 #' which the astronomical component is multiplied by. \code{Default=0.8}.
 #'@param proxy_period_cycle Period in kyr of the astronomical cycle/component which is extracted
 #' from the proxy record.
+#' @param verbose print text \code{Default=FALSE} #  set verbose to TRUE to allow for anchoring using text feedback commands
 #'
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
@@ -145,7 +145,6 @@
 #'The fourth column is the proxy/insolation value of the astronomical solution  tie-point.
 #'
 #'
-#'
 #'@examples
 #'\donttest{
 #'# Use the grey_track example tracking points to anchor the grey scale data set
@@ -157,7 +156,7 @@
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
 #'    upperPeriod = 256,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
 #'
@@ -235,7 +234,8 @@
 #'extract_proxy_signal  = FALSE,
 #'proxy_period_up  = NULL,
 #'proxy_period_down  = NULL,
-#'proxy_period_cycle  = NULL
+#'proxy_period_cycle  = NULL,
+#'verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
 #')}
 #'
 #' @export
@@ -260,14 +260,12 @@ astro_anchor <- function(astro_solution = NULL,
                          extract_proxy_signal = FALSE,
                          proxy_period_up = 1.2,
                          proxy_period_down = 0.8,
-                         proxy_period_cycle = NULL
-                         ){
-
-
+                         proxy_period_cycle = NULL,
+                         verbose = FALSE) {
   if (clip_astrosolution == TRUE) {
-    astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low, ]
+    astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
-      astro_solution[astro_solution[, 1]  <= clip_high, ]
+      astro_solution[astro_solution[, 1]  <= clip_high,]
   }
 
   if (extract_astrosolution == TRUE) {
@@ -276,7 +274,7 @@ astro_anchor <- function(astro_solution = NULL,
       dj = 1 / 200,
       lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
       upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
-      verbose = TRUE,
+      verbose = FALSE,
       omega_nr = 6
     )
 
@@ -297,7 +295,7 @@ astro_anchor <- function(astro_solution = NULL,
       dj = 1 / 200,
       lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
       upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
-      verbose = TRUE,
+      verbose = FALSE,
       omega_nr = 6
     )
 
@@ -348,7 +346,7 @@ astro_anchor <- function(astro_solution = NULL,
   tie_points <- matrix(data = NA, ncol = 4)
   colnames(tie_points) <-
     c("data_x", "data_y", "insolation_x", "insolation_y")
-  tie_points <- tie_points[-c(1),]
+  tie_points <- tie_points[-c(1), ]
 
   for (i in 1:nrow(proxy_signal_max)) {
     oldpar <- par(no.readonly = TRUE)
@@ -435,19 +433,26 @@ astro_anchor <- function(astro_solution = NULL,
       )
       pts <- tuning_pts(x = astro_maxdetect_error_corr[, 1],
                         y = astro_maxdetect_error_corr[, 2])
-      var = readline(prompt <-
-                       "did you select the right point Y/N : ")
 
 
-      if (var == "Y" | var == "Yes"| var == "YES" | var == "yes" | var == "y")
+      if (verbose == TRUE){
+        var = readline(prompt <-
+                         "did you select the right point Y/N : ")}
+      else(var ="Y")
+
+      if (var == "Y" |var == "Yes" | var == "YES" | var == "yes" | var == "y")
       {
-        cat("okay next point")
+        if (verbose == TRUE) {
+          cat("okay next point")
+        }
         if (identical(pts, integer(0))) {
-          cat("no points selected on to the next point")
+          if (verbose == TRUE) {
+            cat("no points selected on to the next point")
+          }
           sel_astro_maxdetect_error_corr <-
             matrix(data = NA, ncol = 2)
           sel_proxy_signal_max <-
-            (as.data.frame(proxy_signal_max[i,]))
+            (as.data.frame(proxy_signal_max[i, ]))
           tie_row <-
             cbind(sel_proxy_signal_max,
                   sel_astro_maxdetect_error_corr)
@@ -462,7 +467,7 @@ astro_anchor <- function(astro_solution = NULL,
           sel_astro_maxdetect_error_corr <-
             as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
           sel_proxy_signal_max <-
-            (as.data.frame(proxy_signal_max[i,]))
+            (as.data.frame(proxy_signal_max[i, ]))
           tie_row <-
             cbind(sel_proxy_signal_max,
                   sel_astro_maxdetect_error_corr)
@@ -473,15 +478,21 @@ astro_anchor <- function(astro_solution = NULL,
           next_step <- "YES"
         }
       }
-      else if (var == "N"| var == "NO" | var == "No" | var == "no" | var == "n")
+      else if (var == "N" |
+               var == "NO" | var == "No" | var == "no" | var == "n")
       {
-        cat("okay selection of point will be redone")
+        if (verbose == TRUE) {
+          cat("okay selection of point will be redone")
+        }
         graphics.off()
         next_step <- "NO"
 
       }
       else
-      {cat("You did not type yes or no quiting of selection process")
+      {
+        if (verbose == TRUE) {
+          cat("You did not type yes or no quiting of selection process")
+        }
         graphics.off()
         next_step <- "Finished"
 
@@ -492,9 +503,6 @@ astro_anchor <- function(astro_solution = NULL,
 
   tie_points <- na.omit(tie_points)
   tie_points <- tie_points[, c(1, 3, 2, 4)]
+  return(tie_points)
 
 }
-
-
-
-

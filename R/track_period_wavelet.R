@@ -17,14 +17,14 @@
 #'
 #' @author
 #' The function is based/inspired on the \link[astrochron]{traceFreq}
-#'function of the astrochron R package
+#'function of the 'astrochron' R package
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
 #'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'#Track the 405kyr eccentricity cycle in the magnetic susceptibility record
 #'# of the Sullivan core of Pas et al., (2018)
 #'
@@ -32,7 +32,7 @@
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
-#' verbose = TRUE,
+#' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #' mag_track <- track_period_wavelet(astro_cycle = 405,
@@ -67,7 +67,6 @@ track_period_wavelet <- function(astro_cycle = 405,
   plot.COI = TRUE
   color.palette = "rainbow(n.levels, start = 0, end = .7)"
   useRaster = TRUE
-
   plot.legend = TRUE
   exponent = 1
   periodtck = 0.02
@@ -99,6 +98,7 @@ track_period_wavelet <- function(astro_cycle = 405,
 
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
+
   image.plt = par()$plt
   legend.plt = NULL
   dev.new(width = 15,
@@ -272,18 +272,24 @@ track_period_wavelet <- function(astro_cycle = 405,
   pts <- ID_points(x = maxdetect2$x_val,
                    y = maxdetect2$y_val)
 
+
+
   out <- data.frame(cbind(maxdetect2[pts, 2], maxdetect2[pts, 1]))
   out <- na.omit(out)
-  out <- out[order(out[, 1]),]
-  out <- na.omit(out)
-  out <- aggregate(out,
-                   by = list(name = out[, 1]),
-                   data = out,
-                   FUN = mean)
-  out <- out[, c(2, 3)]
-  out[, 2] <- 2 ^ out[, 2]
-  out$sedrate <- out[, 2] / astro_cycle * 100
-  colnames(out) <- c("depth", "period", "sedrate")
-  out
+
+  if(nrow(out)!= 0){
+    out <- na.omit(out)
+    out <- out[order(out[, 1]),]
+    out <- na.omit(out)
+    out <- aggregate(out,
+                     by = list(name = out[, 1]),
+                     data = out,
+                     FUN = mean)
+    out <- out[, c(2, 3)]
+    out[, 2] <- 2 ^ out[, 2]
+    out$sedrate <- out[, 2] / astro_cycle * 100
+    colnames(out) <- c("depth", "period", "sedrate")}
+
+  return(out)
 
 }

@@ -9,7 +9,7 @@
 #'
 #' @examples
 #'#Example in which the ~210yr de Vries cycle is extracted from the Total Solar
-#'#Irradiance data set of Steinhilver et al., (2012)
+#'#Irradiance data set of Steinhilber et al., (2012)
 #'#after which all maxima are extracted
 #'
 #'TSI_wt <-
@@ -18,7 +18,7 @@
 #'dj = 1/200,
 #'lowerPeriod = 16,
 #'upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -52,8 +52,7 @@ max_detect <- function(data = NULL) {
 
   astro_mindetect_error_corr <- astro_mindetect
   astro_mindetect_error_corr <-
-    astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 , ]
-  #astro_mindetect_error_corr <- astro_mindetect_error_corr[astro_mindetect_error_corr[,2] < mean(data[,2]), ]
+  astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 , ]
 
   astro_maxdetect <- as.data.frame(data)
   astro_maxdetect$max <- 0
@@ -67,8 +66,7 @@ max_detect <- function(data = NULL) {
 
   astro_maxdetect_error_corr <- astro_maxdetect
   astro_maxdetect_error_corr <-
-    astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
-  #astro_maxdetect_error_corr <- astro_maxdetect_error_corr[astro_maxdetect_error_corr[,2] > mean(data[,2]), ]
+  astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
 
   max <- astro_maxdetect_error_corr
   colnames(max) <- c("A", "B", "C")
@@ -117,7 +115,7 @@ max_detect <- function(data = NULL) {
   }
 
   peaks_max <- peaks[peaks[, 3] > 0,]
-  peaks_max
+  return(peaks_max)
 
 
 

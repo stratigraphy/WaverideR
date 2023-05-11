@@ -7,17 +7,17 @@
 The continuous wavelet transform enables the observation of transient/non-stationary
 cyclicity in time-series. The goal of cyclostratigraphic studies is to define frequency/period
 in the depth/time domain. By conducting the continuous wavelet transform on cyclostratigraphic
- data series one can observe and extract cyclic signals/signatures from signals.
- These results can then be visualized and interpreted enabling one to identify/interpret
-  cyclicity in the geological record, which can be used to construct astrochronological
-  age-models and identify and interpret cyclicity in past en present climate systems.
+data series one can observe and extract cyclic signals/signatures from signals.
+These results can then be visualized and interpreted enabling one to identify/interpret
+cyclicity in the geological record, which can be used to construct astrochronological
+age-models and identify and interpret cyclicity in past en present climate systems.
 }
 \details{
-Package: WaverideR
+Package: 'WaverideR'
 
 Type: R package
 
-Version: 0.3.0 (begin of 2023)
+Version: 0.3.1 (begin of 2023)
 
 License: GPL (>= 2)
 }
@@ -26,14 +26,14 @@ If you want to use this package for publication or research
 purposes, please cite: to be submitted
 }
 \references{
-The WaverideR package builds upon existing literature and an existing codebase.
-The following list of articles are articles which are relevant for the functions of the WaverideR
-package but also for the WaverideR package as a whole.
+The 'WaverideR' package builds upon existing literature and an existing codebase.
+The following list of articles are articles which are relevant for the functions of the 'WaverideR'
+package but also for the 'WaverideR' R package as a whole.
 Individual articles are (re)cited in the descriptions of function when relative for set function.
 The list of Articles is can be grouped in four subjects (Cyclostratigraphic data analysis,
 example data sets,the (continuous) wavelet transform and astronomical solutions). For each of
 these categories the relevance of set articles will be given and then explained why set article is
-important for the WaverideR package.
+important for the 'WaverideR' R package.
 
 # 1. Cyclostratigraphic data analysis
 
@@ -41,35 +41,35 @@ Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
 \doi{<doi:10.1016/j.earscirev.2018.11.015>} \cr
 The article of Meyers (2019) is the article which needs to cited when one wants to cite the
-astrochron R package. The astrochron R package is the most extensive
-R package with regards to cyclostratigraphic analysis. As such many of the functionalities of the WaverideR
-are inspired/based on the astrochron R package.The major difference between the astrochron R package
-and the WaverideR package is that the astrochron R package relies on the Fast Fourier Transform
-whereas the WaverideR package relies on the continuous wavelet transform (CWT).
+astrochron R package. The 'astrochron' R package is the most extensive
+R package with regards to cyclostratigraphic analysis. As such many of the functionalities of the 'WaverideR' R package
+are inspired/based on the 'astrochron' R package.The major difference between the 'astrochron' R package
+and the 'WaverideR' package is that the 'astrochron' R package relies on the Fast Fourier Transform
+whereas the 'WaverideR' R package relies on the continuous wavelet transform (CWT).
 
 
 Acycle: Time-series analysis software for paleoclimate research and education,
 Mingsong Li, Linda Hinnov, Lee Kump,
 Computers & Geosciences,Volume 127,2019,Pages 12-22,ISSN 0098-3004,
 \doi{<doi:10.1016/j.cageo.2019.02.011>}\cr
-The Acycle software package is a Matlab based program, which is used for cyclostratigraphic studies.
+The 'Acycle' software package is a 'Matlab' based program, which is used for cyclostratigraphic studies.
 Acycle has many relies mostly on the Fast Fourier Transform. Many of the Fast Fourier Transform based functions
-formed as inspiration for the continuous wavelet transform (CWT) based functions of the WaverideR package.
+formed as inspiration for the continuous wavelet transform (CWT) based functions of the 'WaverideR' R package.
 
 Tracking variable sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy series with evolutionary correlation coefficients and hypothesis testing,
 Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael E. Mann,
 Earth and Planetary Science Letters,Volume 501,
 2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}\cr
 Li et al., (2019) introduces the Coco and eCoco functions of the Acycle software package.
-the Coco and eCoco function are able to estimate the sedimentation rate based on
-spectral characteristics of astronomical cycles. The Coco and eCoco function and form the inspiration for the inspiration
+the 'Coco' and 'eCoco' function of the 'Acycle' software are able to estimate the sedimentation rate based on
+spectral characteristics of astronomical cycles. The 'Coco' and 'eCoco' function and form the inspiration for the inspiration
 for the \link[WaverideR]{flmw} \link[WaverideR]{sum_power_sedrate} functions.
 
 Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
 Earth-Science Reviews 225 (103894).\doi{<doi:10.1016/j.earscirev.2021.103894>}\cr
 Wouters  et al., (2022) introduces the Empirical Mode Decomposition (EMD) as
-part of the DecomposeR R package. EMD is a non-Fast Fourier Transform based spectral
+part of the 'DecomposeR' R package. EMD is a non-Fast Fourier Transform based spectral
 analysis technique. The Hilbert transform function (\link[DecomposeR]{inst.pulse}) of set package is used as
 a control for the estimation of the amplitude extraction using wavelets
 
@@ -83,7 +83,7 @@ continuous wavelet transform (CWT) can be conducted.
 
 Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, and Karin Blank. 2009.
 "On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. \doi{<doi:10.1142/S1793536909000096>}\cr
-The Hilbert transform function (\link[DecomposeR]{inst.pulse}) of the DecomposeR R package is based on
+The Hilbert transform function (\link[DecomposeR]{inst.pulse}) of the 'DecomposeR' R package is based on
 the work of Huang et al., (2009).
 
 Cleveland, W. S. (1979) Robust locally weighted regression and smoothing scatter plots. Journal of the American Statistical Association. 74, 829–836. \doi{doi:10.1080/01621459.1979.10481038}
@@ -96,6 +96,7 @@ Hurvich et al., (1998) explains how the Improved Akaike Information Criterion ca
 Golub et al., (1979) explains how the Generalized cross validation can be used to optimally smooth data sets
 
 # 2. Example data sets
+
 Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
 Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
 Earth and Planetary Science Letters,
@@ -124,9 +125,10 @@ Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,
 \doi{<doi:10.1016/j.palaeo.2012.11.009>}\cr
 The record of Zeeden et al., (2013) consists of a grey scale record from Miocene sediment cores from offshore
 Brazil. The record contains a clear imprint of astronomical cycles as such it is a good Neogene example data set
-to demonstrate the functionalities of the WaverideR package
+to demonstrate the functionalities of the 'WaverideR' R package
 
 # 3. The (continuous) wavelet transform
+
 Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 "Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 " Geophysics 47, no. 2 (1982): 203-221.
@@ -152,31 +154,32 @@ Gouhier TC, Grinsted A, Simko V (2021).
 R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
 \url{https://github.com/tgouhier/biwavelet}\cr
 Gouhier et al., (2021) is the implementation of equations of Torrence and Compo (1998) in the form of the
-\link[biwavelet]{biwavelet-package} R package
+'biwavelet' R package
 
 Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
 Wavelet Analysis. R package version 1.1.
 \url{https://CRAN.R-project.org/package=WaveletComp}\cr
-Roesch and Schmidbauer et al., (2018) is the article of the \link[WaveletComp]{WaveletComp-package} R package which
-is a built upon the functionalities of the \link[biwavelet]{biwavelet-package} R package
+Roesch and Schmidbauer et al., (2018) is the article of the 'WaveletComp' R package which
+is a built upon the functionalities of the 'biwavelet' R package
 
 Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
 " CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}\cr
 Russell and Han (2016) gives a concise summary of the work of Morlet et al., (1982a) and Morlet et al., (1982b) and the
-developments since then. The publication also describes how the Gabor uncertainty principle (gabor 1946) affects the frequency
+developments since then. The publication also describes how the Gabor uncertainty principle (Gabor 1946) affects the frequency
 uncertainty of the wavelet which can be used to calculate the analytical uncertainty of a given wavelet spectra.
 
 Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 Journal of the Institution of Electrical Engineers-part III: radio and
 communication engineering 93, no. 26 (1946): 429-441. \url{http://genesis.eecg.toronto.edu/gabor1946.pdf}\cr
-Gabor (1946) describes the Gabor uncertainty principle which states how the uncertainitry in time and frequency are related
+Gabor (1946) describes the Gabor uncertainty principle which states how the uncertainty in time and frequency are related
 in time series analysis.
 
 # 4. Astronomical solutions
+
 J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
 Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}\cr
-#Laskar et al., (2004) is an astronomical solution which can be used to anchor geological data to absolute ages.
+Laskar et al., (2004) is an astronomical solution which can be used to anchor geological data to absolute ages.
 
 Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
 La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,

@@ -23,12 +23,12 @@
 #'\code{tracked_cycle_period}) are of the same unit (either depth or time domain).
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
 #' The assignment of the standard deviation of the uncertainty of the wavelet
 #' is based on the work of Gabor (1946) and Russell et al., (2016)
 #' The functionality of this function is is inspired by the
-#' \link[astrochron]{integratePower} function of the astrochron R package.
+#' \link[astrochron]{integratePower} function of the 'astrochron' R package.
 #'
 #' @references
 #'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
@@ -54,7 +54,7 @@
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
-#' verbose = TRUE,
+#' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'#Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -75,13 +75,13 @@
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
-#'   genplot = TRUE
+#'   genplot = FALSE
 #' )
 #'
 #'#Smooth the completed tracking of the 405 kyr eccentricity cycle in the wavelet spectra
 #'
 #'mag_track_complete <- loess_auto(time_series = mag_track_complete,
-#' genplot = TRUE, print_span = TRUE)
+#' genplot = FALSE, print_span = FALSE)
 #'
 #'#extract the spectral power of the 405 kyr eccentricity cycle
 #'mag_power <- extract_power(
@@ -157,5 +157,5 @@ extract_power <- function(completed_series = NULL,
   filtered_power$pwr_div_total <-
     filtered_power[, 2] / filtered_power[, 3]
 
-  filtered_power
+  return(filtered_power)
 }

@@ -9,16 +9,16 @@ wavelet_uncertainty(
   period_of_tracked_cycle = NULL,
   wavelet = NULL,
   multi = 1,
-  verbose = TRUE,
-  genplot_time = TRUE,
-  genplot_uncertainty = TRUE,
-  genplot_uncertainty_wt = TRUE,
+  verbose = FALSE,
+  genplot_time = FALSE,
+  genplot_uncertainty = FALSE,
+  genplot_uncertainty_wt = FALSE,
   keep_editable = FALSE
 )
 }
 \arguments{
 \item{tracked_cycle}{Curve of the cycle tracked using the \code{\link{track_period_wavelet}} function
-Any input (matrix or dataframe) in which the first column is depth or
+Any input (matrix or data frame) in which the first column is depth or
 time and the second column is period should work}
 
 \item{period_of_tracked_cycle}{period of the tracked curve (in kyr).}
@@ -27,18 +27,18 @@ time and the second column is period should work}
 
 \item{multi}{multiple of the standard deviation to be used for defining uncertainty \code{Default=1}.}
 
-\item{verbose}{Print text \code{Default=TRUE}.}
+\item{verbose}{Print text \code{Default=FALSE}.}
 
 \item{genplot_time}{plot time curves with a upper and lower uncertainty based on Gabor uncertainty principle applied to the
-continuous wavelet transform using a Mortlet wavelet, which uses which uses the omega number (number
+continuous wavelet transform using a Morlet wavelet, which uses which uses the omega number (number
 of cycles in the wavelet) at one standard deviation to define the analytical uncertainty \code{Default=TRUE}}
 
 \item{genplot_uncertainty}{Plot period curves with upper and lower uncertainty based on Gabor uncertainty principle applied to the
-continuous wavelet transform using a Mortlet wavelet, which uses which uses the omega number
+continuous wavelet transform using a Morlet wavelet, which uses which uses the omega number
 (number of cycles in the wavelet) to define uncertainty at one standard deviation \code{Default=TRUE}}
 
 \item{genplot_uncertainty_wt}{generate a wavelet plot with the uncertainty based on Gabor uncertainty
-principle applied to the continuous wavelet transform using a Mortlet wavelet superimposed on top of
+principle applied to the continuous wavelet transform using a Morlet wavelet superimposed on top of
 original wavelet plot. The red curve is period of the tracked curve plus the analytical uncertainty.
 The blue curve is period of the tracked curve min the analytical uncertainty.
 The  black curve is the curve tracked using the '\code{Default=tracked_cycle_curve} function \code{Default=TRUE}}
@@ -52,7 +52,7 @@ x times the standard deviation and age minus x times the standard deviation . \c
 If the genplot_uncertainty is TRUE then a curve will be plotted with the mean period, the tracked period plus
 x times the standard deviation and the tracked period minus x times the standard deviation. \cr
 If the genplot_uncertainty_wt is TRUE a wavelet spectra will be plotted with the tracked period, the tracked period plus
-x times the standard deviation,the tracked period minus x times the standard devation and the area in between will be shaded in grey.\cr
+x times the standard deviation,the tracked period minus x times the standard deviation and the area in between will be shaded in grey.\cr
 
 Returns a matrix with 8 columns.\cr
 The first column is called "depth" eg. depth \cr
@@ -69,20 +69,20 @@ The eight column "time min x_times sd" is the time based on the tracked period m
 \description{
 The \code{\link{wavelet_uncertainty}} function is used to calculate uncertainties associated
 with the wavelet analysis based on the Gabor uncertainty principle applied to the
-continuous wavelet transform using a Mortlet wavelet. The calculated uncertainty is the underlying
+continuous wavelet transform using a Morlet wavelet. The calculated uncertainty is the underlying
 analytical uncertainty which is the result of applying the Gabor uncertainty principle to the
-continuous wavelet transform using a Mortlet wavelet.
+continuous wavelet transform using a Morlet wavelet.
 }
 \examples{
 \donttest{
-#calculate the gabor uncertainty derived mathematical uncertainty of the
+#calculate the Gabor uncertainty derived mathematical uncertainty of the
 #magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -114,10 +114,10 @@ uncertainty <- wavelet_uncertainty(
   period_of_tracked_cycle = 405,
   wavelet = mag_wt,
   multi=1,
-  verbose = TRUE,
-  genplot_time = TRUE,
-  genplot_uncertainty = TRUE,
-  genplot_uncertainty_wt = TRUE,
+  verbose = FALSE,
+  genplot_time = FALSE,
+  genplot_uncertainty = FALSE,
+  genplot_uncertainty_wt = FALSE,
   keep_editable=FALSE
 )
 }
@@ -152,9 +152,9 @@ Wave propagation and sampling theory; Part II, Sampling theory and complex waves
  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
-wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+Code based on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
+and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 The assignment of the standard deviation of the uncertainty of the wavelet
 is based on the work of Gabor (1946) and Russell et al., (2016)
 }

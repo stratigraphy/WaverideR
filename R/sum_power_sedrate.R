@@ -1,4 +1,4 @@
-#' @title Calculate sum of maximum spectral power for sedimentation rates based
+#' @title Calculate sum of maximum spectral power for sedimentation rates
 #' for a wavelet spectra
 #'
 #' @description The \code{\link{sum_power_sedrate}} function is used calculate the sum of
@@ -23,11 +23,12 @@
 #'@param genplot Generate plot \code{Default="FALSE"}
 #'@param plot_res plot options are 1: sum max power or 2: nr of components \code{Default=2}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
 #'Based on the \link[astrochron]{asm} and \link[astrochron]{eAsm}
-#'functions of the astrochron R package
-#'and the eCOCO and COCO functions of the Acycle software
+#'functions of the 'astrochron' R package
+#'and the 'eCOCO' and 'COCO' functions of the 'Acycle' software
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
@@ -73,7 +74,8 @@
 #'run_multicore=FALSE,
 #'genplot = FALSE,
 #'plot_res=1,
-#'keep_editable=FALSE)
+#'keep_editable=FALSE,
+#'verbose=FALSE)
 #'}
 #'
 #'
@@ -136,7 +138,8 @@ sum_power_sedrate  <- function(red_noise = NULL,
                                run_multicore = FALSE,
                                genplot = FALSE,
                                plot_res = 1,
-                               keep_editable = FALSE) {
+                               keep_editable = FALSE,
+                               verbose=FALSE) {
   my.data <- cbind(wavelet$x, wavelet$y)
   my.w <- wavelet
 
@@ -199,10 +202,13 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
 
   simulations <- ncol(Powert)
-  pb <- txtProgressBar(max = simulations, style = 3)
-  progress <- function(n)
-    setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+
+  if (verbose==TRUE){
+    pb <- txtProgressBar(max = simulations, style = 3)
+    progress <- function(n)
+      setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)}else{opts=NULL}
+
   multi <-  (2 * sqrt(2 * log(2)))
   ijk <- 1 # needed to assign 1 to ijk to avoid note
 
@@ -470,6 +476,5 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
     box(lwd = lwd.axis)
   }
-
-  results <- results
+return(results)
 }

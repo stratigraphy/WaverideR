@@ -21,10 +21,11 @@
 #'@param freq_max Maximum frequency to plot
 #'@param freq_min Minimum frequency to plot
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
 #'Based on the \link[astrochron]{periodogram}
-#'function of the \link[astrochron]{astrochron-package}.
+#'function of the 'astrochron' R package.
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
@@ -34,7 +35,7 @@
 #'@examples
 #'\donttest{
 #'#Conduct a windowed ftt on the magnetic susceptibility record
-#'# of the Sullivan core of Pas et al., (2018).
+#'#of the Sullivan core of Pas et al., (2018).
 #'
 #'mag_win_fft <- win_fft(data= mag,
 #'                    padfac = 5,
@@ -47,7 +48,8 @@
 #'                    perc_vis <- 0.5,
 #'                    freq_max <- 5,
 #'                    freq_min <- 0.001,
-#'                    keep_editable=FALSE)
+#'                    keep_editable=FALSE,
+#'                    verbose=FALSE)
 #'}
 #'
 #' @return
@@ -107,7 +109,8 @@ win_fft <- function(data = NULL,
                     perc_vis = 0,
                     freq_max = NULL,
                     freq_min = NULL,
-                    keep_editable = FALSE) {
+                    keep_editable = FALSE,
+                    verbose=FALSE) {
   dat <- data
   dat <- na.omit(dat)
   d <- data.frame(dat)
@@ -175,10 +178,12 @@ win_fft <- function(data = NULL,
 
   simulations <- nrow(dat)
 
-  pb <- txtProgressBar(max = simulations, style = 3)
-  progress <- function(n)
-    setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+  if (verbose==TRUE){
+    pb <- txtProgressBar(max = simulations, style = 3)
+    progress <- function(n)
+      setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)}else{opts=NULL}
+
 
 
   i <- 1 # needed to assign 1 to ijk to avoid note

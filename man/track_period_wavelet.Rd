@@ -35,7 +35,7 @@ The \code{\link{track_period_wavelet}} function plots a wavelet spectra in which
 allowing one to track a ridge hence one can track the a cycle with a changing period.
 }
 \examples{
-\dontrun{
+\donttest{
 #Track the 405kyr eccentricity cycle in the magnetic susceptibility record
 # of the Sullivan core of Pas et al., (2018)
 
@@ -43,7 +43,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 mag_track <- track_period_wavelet(astro_cycle = 405,
@@ -60,5 +60,5 @@ time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
 }
 \author{
 The function is based/inspired on the \link[astrochron]{traceFreq}
-function of the astrochron R package
+function of the 'astrochron' R package
 }

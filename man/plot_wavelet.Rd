@@ -42,14 +42,14 @@ Plot wavelet spectra using the outcome of the \code{\link{analyze_wavelet}} func
 \examples{
 \donttest{
 #Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
-# data set of Steinhilver et al., (2012)
+# data set of Steinhilber et al., (2012)
 TSI_wt <-
  analyze_wavelet(
    data = TSI,
    dj = 1/200,
    lowerPeriod = 16,
    upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 
@@ -72,7 +72,7 @@ data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10
 )
 plot_wavelet(
@@ -94,7 +94,7 @@ grey_wt <-
    dj = 1/200,
    lowerPeriod = 0.02,
    upperPeriod = 256,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 8
  )
 plot_wavelet(
@@ -134,7 +134,7 @@ Wave propagation and sampling theory; Part II, Sampling theory and complex waves
  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
-wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package
+and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo (1998).
 }

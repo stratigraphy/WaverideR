@@ -1,7 +1,7 @@
-#' @title Fit linear models to spectral peaks extracted from the wavelet spectra to astronomical cycles mutliples by sedimentation rate x
+#' @title Fit linear models to spectral peaks extracted from the wavelet spectra to astronomical cycles multiplied by sedimentation rate x
 #'
 #' @description The \code{\link{flmw}} function is used calculate the linear correlation
-#' for a list of astronomical cycles transformed using a range of sedrates and then compared
+#' for a list of astronomical cycles transformed using a range of sedimentation rates and then compared
 #' to spectral peaks of a wavelet spectra
 #'
 #'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function
@@ -21,11 +21,10 @@
 #'option 6: r squared percentile, option 7: nr of components percentile,
 #'option 8: difference to the origin percentile \code{Default=2}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
-#'Based on the \link[astrochron]{eAsm}
-#'function of the \link[astrochron]{astrochron-package}.
-#'and the eCOCO and COCO function of the Acycle software
+#'Based on the \link[astrochron]{eAsm} function of the 'astrochron' R package and the 'eCOCO' and 'COCO' function of the 'Acycle' software
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
@@ -65,7 +64,8 @@
 #'     run_multicore = FALSE,
 #'     genplot = FALSE,
 #'     plot_res = 2,
-#'     keep_editable=FALSE)
+#'     keep_editable=FALSE,
+#'     verbose=FALSE)
 #'}
 #'
 #' @return
@@ -125,7 +125,8 @@ flmw  <- function(wavelet = NULL,
                   run_multicore = FALSE,
                   genplot = FALSE,
                   plot_res = 2,
-                  keep_editable = FALSE) {
+                  keep_editable = FALSE,
+                  verbose=FALSE) {
   my.data <- cbind(wavelet$x, wavelet$y)
   my.w <- wavelet
 
@@ -155,10 +156,13 @@ flmw  <- function(wavelet = NULL,
 
 
   simulations <- ncol(Powert)
-  pb <- txtProgressBar(max = simulations, style = 3)
-  progress <- function(n)
-    setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+
+  if (verbose==TRUE){
+    pb <- txtProgressBar(max = simulations, style = 3)
+    progress <- function(n)
+      setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)}else{opts=NULL}
+
 
   ijk <- 1 # needed to assign 1 to ijk to avoid note
 
@@ -583,11 +587,6 @@ flmw  <- function(wavelet = NULL,
 
     box(lwd = lwd.axis)
   }
-
-
-
-  results <- results
-
-
+return(results)
 
 }

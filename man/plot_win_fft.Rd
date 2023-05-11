@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_win_fft.R
 \name{plot_win_fft}
 \alias{plot_win_fft}
-\title{plot windowed fft based spectral analysis results}
+\title{Plot windowed fft based spectral analysis results}
 \usage{
 plot_win_fft(
   win_fft = NULL,
@@ -55,7 +55,7 @@ The \code{\link{plot_win_fft}} function allows for the (re)plotting of the resul
 }
 \examples{
 \donttest{
-#Conduct a windowed ftt on the magnetic susceptibility record \cr
+#Conduct a windowed fft on the magnetic susceptibility record \cr
 # of the Sullivan core of Pas et al., (2018).
 
 mag_win_fft <- win_fft(data= mag,
@@ -64,17 +64,18 @@ mag_win_fft <- win_fft(data= mag,
                    run_multicore = FALSE,
                    genplot = FALSE,
                    x_lab = c("depth (m)"),
-                   y_lab = c("frequency cycle/metre"),
+                   y_lab = c("frequency cycle/meter"),
                    plot_res = 1,
                    perc_vis = 0.5,
                    freq_max = 5,
                    freq_min = 0.001,
-                   keep_editable=FALSE)
+                   keep_editable=FALSE,
+                   verbose=FALSE)
 
-# Plot the mplitude spectra
+# Plot the amplitude spectra
 plot_win_fft(win_fft= mag_win_fft,
 x_lab = c("depth (m)"),
-y_lab = c("frequency cycle/metre"),
+y_lab = c("frequency cycle/meter"),
 plot_res = 1,
 perc_vis = 0.5,
 freq_max = 5,

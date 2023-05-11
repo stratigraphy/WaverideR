@@ -16,7 +16,8 @@ win_fft(
   perc_vis = 0,
   freq_max = NULL,
   freq_min = NULL,
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ option 8: AR1_99_power matrix, \code{Default=1}}
 \item{freq_min}{Minimum frequency to plot}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{verbose}{Print text \code{Default=FALSE}.}
 }
 \value{
 Returns a list which contains 10 elements
@@ -71,7 +74,7 @@ The \code{\link{win_fft}} function for conducts a windowed spectral analysis bas
 \examples{
 \donttest{
 #Conduct a windowed ftt on the magnetic susceptibility record
-# of the Sullivan core of Pas et al., (2018).
+#of the Sullivan core of Pas et al., (2018).
 
 mag_win_fft <- win_fft(data= mag,
                    padfac = 5,
@@ -84,7 +87,8 @@ mag_win_fft <- win_fft(data= mag,
                    perc_vis <- 0.5,
                    freq_max <- 5,
                    freq_min <- 0.001,
-                   keep_editable=FALSE)
+                   keep_editable=FALSE,
+                   verbose=FALSE)
 }
 
 }
@@ -94,5 +98,5 @@ time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
 }
 \author{
 Based on the \link[astrochron]{periodogram}
-function of the \link[astrochron]{astrochron-package}.
+function of the 'astrochron' R package.
 }

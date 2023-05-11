@@ -10,10 +10,9 @@
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
-#' The assignment of the standard deviation of the uncertainty of the wavelet
-#' is based on the work of Gabor (1946) and Russell et al., (2016)
+#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
+
 #'
 #' @references
 #'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
@@ -41,7 +40,7 @@
 #'dj = 1/200,
 #'lowerPeriod = 16,
 #'upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -129,5 +128,5 @@ extract_signal_stable_V2 <- function(wavelet = NULL,
     hist(residual)
   }
 
-  filtered_cycle
+  return(filtered_cycle)
 }

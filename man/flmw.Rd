@@ -2,7 +2,7 @@
 % Please edit documentation in R/flmw.R
 \name{flmw}
 \alias{flmw}
-\title{Fit linear models to spectral peaks extracted from the wavelet spectra to astronomical cycles mutliples by sedimentation rate x}
+\title{Fit linear models to spectral peaks extracted from the wavelet spectra to astronomical cycles multiplied by sedimentation rate x}
 \usage{
 flmw(
   wavelet = NULL,
@@ -17,7 +17,8 @@ flmw(
   run_multicore = FALSE,
   genplot = FALSE,
   plot_res = 2,
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ option 6: r squared percentile, option 7: nr of components percentile,
 option 8: difference to the origin percentile \code{Default=2}}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{verbose}{Print text \code{Default=FALSE}.}
 }
 \value{
 Returns a list which contains 10 elements
@@ -66,7 +69,7 @@ element 10: x-axis values of the matrices which is depth
 }
 \description{
 The \code{\link{flmw}} function is used calculate the linear correlation
-for a list of astronomical cycles transformed using a range of sedrates and then compared
+for a list of astronomical cycles transformed using a range of sedimentation rates and then compared
 to spectral peaks of a wavelet spectra
 }
 \examples{
@@ -93,7 +96,8 @@ sedrates <- flmw(wavelet = mag_wt,
     run_multicore = FALSE,
     genplot = FALSE,
     plot_res = 2,
-    keep_editable=FALSE)
+    keep_editable=FALSE,
+    verbose=FALSE)
 }
 
 }
@@ -112,7 +116,5 @@ Earth and Planetary Science Letters,Volume 501,
 T2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}
 }
 \author{
-Based on the \link[astrochron]{eAsm}
-function of the \link[astrochron]{astrochron-package}.
-and the eCOCO and COCO function of the Acycle software
+Based on the \link[astrochron]{eAsm} function of the 'astrochron' R package and the 'eCOCO' and 'COCO' function of the 'Acycle' software
 }

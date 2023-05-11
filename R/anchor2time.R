@@ -10,10 +10,11 @@
 #'The data set should consist of a matrix with 2 column the first column should be depth
 #'and the second column should be a proxy value.
 #' @param genplot
-#'If  \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
+#'If  \code{genplot=FALSE} then 3 plots stacked on top of each other will be plotted.
 #'Plot 1: the original data set
 #'Plot 2: the depth time plot
 #'Plot 3: the data set in the time domain
+#'set to TRUE to allow for anchoring using the GUI
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #'@examples
@@ -22,7 +23,7 @@
 #'
 #'achored2time <- anchor2time(anchor_points=age_model_zeeden,
 #' data=grey,
-#' genplot=TRUE,
+#' genplot=FALSE,
 #' keep_editable=FALSE)
 #'
 #' @return
@@ -31,9 +32,9 @@
 #'The second column sedimentation proxy value.
 #'
 #'If \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
-#'Plot 1: the original dataset.
+#'Plot 1: the original data set.
 #'Plot 2: the depth time plot.
-#'Plot 3: the dataset in the time domain.
+#'Plot 3: the data set in the time domain.
 #'
 #' @export
 #' @importFrom stats approx
@@ -42,7 +43,7 @@
 
 anchor2time <- function(anchor_points = NULL,
                        data = NULL,
-                       genplot = TRUE,
+                       genplot = FALSE,
                        keep_editable = FALSE) {
   my.data <- cbind(data)
   completed_series <- cbind(anchor_points[, 1], anchor_points[, 2])
@@ -100,7 +101,6 @@ anchor2time <- function(anchor_points = NULL,
       main = "Data time domain"
     )
   }
-
-  completed_series
+return(completed_series)
 
 }

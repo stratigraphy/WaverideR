@@ -8,15 +8,15 @@
 #'depth/time and the second column is the proxy record from which the amplitude is extracted
 #'@param genplot If set to TRUE a plot with extracted amplitude will be displayed \code{Default=FALSE}.
 #'@param remean Prior to analysis the mean is subtracted from the data set to re-mean set \code{Default=TRUE}.
-#'@param ver_results To verify the amplitude extraction is representative the amplitude
-#'extracted using the \code{\link{extract_amplitude}} function can be compared to the amplitude extracted
+#'@param ver_results To verify the amplitude extraction is representative of the amplitude
+#'extracted using the \code{\link{extract_amplitude}} function the results can be compared to the amplitude extracted
 #'using the \code{\link{Hilbert_transform}} if the mean difference is more then 5% one might need to reconsider
 #'whether the input contains a reliable enough signal with high a enough amplitude modulation to actually extract an amplitude from. \code{Default=FALSE}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
 #' The assignment of the standard deviation of the uncertainty of the wavelet
 #' is based on the work of Gabor (1946) and Russell et al., (2016)
 #'
@@ -51,7 +51,7 @@
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
-#' verbose = TRUE,
+#' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'#Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -78,7 +78,7 @@
 #'#Smooth the completed tracking of the 405 kyr eccentricity cycle in the wavelet spectra
 #'
 #'mag_track_complete <- loess_auto(time_series = mag_track_complete,
-#' genplot = FALSE, print_span = TRUE)
+#' genplot = FALSE, print_span = FALSE)
 #'
 #'
 #'
@@ -183,7 +183,7 @@ extract_amplitude <- function(signal = NULL,
     if (mean(ampl[, 2] / hilb[, 2]) > 1.05 |
         mean(ampl[, 2] / hilb[, 2]) < 0.95) {
       cat(
-        "Mean differnce between the amplitude extracted via the Hilbert Transform and the amplitude extracted
+        "Mean difference between the amplitude extracted via the Hilbert Transform and the amplitude extracted
       using wavelets is larger then 5% therefore results might not be representative"
       )
       if ((mean(ampl[, 2] / hilb[, 2]) < 1.05) &
@@ -196,5 +196,5 @@ extract_amplitude <- function(signal = NULL,
     }
   }
 
-  ampl
+  return(ampl)
 }

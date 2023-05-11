@@ -2,7 +2,7 @@
 % Please edit documentation in R/sum_power_sedrate.R
 \name{sum_power_sedrate}
 \alias{sum_power_sedrate}
-\title{Calculate sum of maximum spectral power for sedimentation rates based
+\title{Calculate sum of maximum spectral power for sedimentation rates
 for a wavelet spectra}
 \usage{
 sum_power_sedrate(
@@ -18,7 +18,8 @@ sum_power_sedrate(
   run_multicore = FALSE,
   genplot = FALSE,
   plot_res = 1,
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -51,6 +52,8 @@ the simulation is run at x-2 cores to allow the 2 remaining processes to run bac
 \item{plot_res}{plot options are 1: sum max power or 2: nr of components \code{Default=2}}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{verbose}{Print text \code{Default=FALSE}.}
 }
 \value{
 Returns a list which contains 4 elements
@@ -101,7 +104,8 @@ y_lab="sedrate",
 run_multicore=FALSE,
 genplot = FALSE,
 plot_res=1,
-keep_editable=FALSE)
+keep_editable=FALSE,
+verbose=FALSE)
 }
 
 
@@ -122,6 +126,6 @@ T2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}
 }
 \author{
 Based on the \link[astrochron]{asm} and \link[astrochron]{eAsm}
-functions of the astrochron R package
-and the eCOCO and COCO functions of the Acycle software
+functions of the 'astrochron' R package
+and the 'eCOCO' and 'COCO' functions of the 'Acycle' software
 }

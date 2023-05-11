@@ -57,7 +57,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -78,13 +78,13 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 #Smooth the completed tracking of the 405 kyr eccentricity cycle in the wavelet spectra
 
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
 #extract the spectral power of the 405 kyr eccentricity cycle
 mag_power <- extract_power(
@@ -113,10 +113,10 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
 The assignment of the standard deviation of the uncertainty of the wavelet
 is based on the work of Gabor (1946) and Russell et al., (2016)
 The functionality of this function is is inspired by the
-\link[astrochron]{integratePower} function of the astrochron R package.
+\link[astrochron]{integratePower} function of the 'astrochron' R package.
 }

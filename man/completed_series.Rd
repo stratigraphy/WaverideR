@@ -65,7 +65,7 @@ grey_wt <-
    dj = 1/200,
    lowerPeriod = 0.02,
    upperPeriod = 256,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 8
  )
 

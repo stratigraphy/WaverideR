@@ -35,7 +35,7 @@ column 2 is top of bed, column is depth rank/proxy value}
 }
 \value{
 Returns a matrix with 2 columns, the first column is depth the second columns is the depth/rank proxy
-If genplot is \code{Default=TRUE} then a plot of the discriticizes timeseries is plotted
+If genplot is \code{Default=TRUE} then a plot of the discriticizes time series is plotted
 }
 \description{
 Discriticizes lithologs to allow further time-series analysis first the
@@ -45,8 +45,8 @@ at the original depth level of the bed boundaries. The Greatest common divisor/h
 be a very small number as such the discriticized data set can be large which impacts computational
 performance later on therefore a linear interpolation option is added to downscale the data to allow
 for computational efficiency later on. This is made to discriticize lithologs created using the
- \link[StratigrapheR]{StratigrapheR} package. as such the same data format for input is used.
- eg. column 1 is bottom of the bed, column 2 is top of bed, column is depth rank/proxy value
+'StratigrapheR' package. as such the same data format for input is used.
+eg. column 1 is bottom of the bed, column 2 is top of bed, column is depth rank/proxy value
 }
 \examples{
 # Convert depth rank record to a discrete proxy record to allow for further

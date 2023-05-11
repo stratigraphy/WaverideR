@@ -18,7 +18,7 @@
 #'dj = 1/200,
 #'lowerPeriod = 16,
 #'upperPeriod = 8192,
-#'    verbose = TRUE,
+#'    verbose = FALSE,
 #'    omega_nr = 6
 #'  )
 #'
@@ -53,7 +53,6 @@ min_detect <- function(data) {
   astro_mindetect_error_corr <- astro_mindetect
   astro_mindetect_error_corr <-
     astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 , ]
-  #astro_mindetect_error_corr <- astro_mindetect_error_corr[astro_mindetect_error_corr[,2] < mean(data[,2]), ]
 
   astro_maxdetect <- as.data.frame(data)
   astro_maxdetect$max <- 0
@@ -68,7 +67,6 @@ min_detect <- function(data) {
   astro_maxdetect_error_corr <- astro_maxdetect
   astro_maxdetect_error_corr <-
     astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
-  #astro_maxdetect_error_corr <- astro_maxdetect_error_corr[astro_maxdetect_error_corr[,2] > mean(data[,2]), ]
 
   max <- astro_maxdetect_error_corr
   colnames(max) <- c("A", "B", "C")
@@ -117,10 +115,6 @@ min_detect <- function(data) {
   }
 
   peaks_min <- peaks[peaks[, 3] < 0,]
-  peaks_min
-
-
-
-
+  return(peaks_min)
 
 }

@@ -45,7 +45,7 @@ TSI_wt <-
    dj = 1/200,
    lowerPeriod = 16,
    upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 TSI_wt_pwr_de_Vries_cycle <-  extract_power_stable(
@@ -73,10 +73,8 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
-The assignment of the standard deviation of the uncertainty of the wavelet
-is based on the work of Gabor (1946) and Russell et al., (2016)
+Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 The functionality of this function is is inspired by the
-\link[astrochron]{integratePower} function of the astrochron R package
+\link[astrochron]{integratePower} function of the 'astrochron' R package
 }

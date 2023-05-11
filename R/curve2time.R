@@ -1,4 +1,4 @@
-#' @title Converts the tracked curve to a depth time space
+#' @title Convert the tracked curve to a depth time space
 #'
 #' @description Converts the tracked curve to a depth time space.
 #'
@@ -7,12 +7,12 @@
 #' Any input (matrix or data frame) in which the first column is depth in
 #'  meters and the second column is period in meters can be used.
 #' @param tracked_cycle_period Period of the tracked curve in kyr.
-#' @param genplot Generates a plot with depth vs time \code{Default=TRUE}.
+#' @param genplot Generates a plot with depth vs time \code{Default=FALSE}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #' @author
 #'Based on the \link[astrochron]{sedrate2time}
-#'function of the astrochron R package
+#'function of the 'astrochron' R package
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
@@ -28,7 +28,7 @@
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
-#' verbose = TRUE,
+#' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'#Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -48,17 +48,17 @@
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
-#'   genplot = TRUE
+#'   genplot = FALSE
 #' )
 #'
 #'# smooth the tracking of the 405 kyr eccentricity cycle
 #' mag_track_complete <- loess_auto(time_series = mag_track_complete,
-#' genplot = TRUE, print_span = TRUE)
+#' genplot = FALSE, print_span = FALSE)
 #'
 #'#convert period in meters to sedrate depth vs time
 #'mag_track_time<- curve2time(tracked_cycle_curve=mag_track_complete,
 #'tracked_cycle_period=405,
-#'genplot=TRUE,
+#'genplot=FALSE,
 #'keep_editable=FALSE)
 #'
 #'}
@@ -73,7 +73,7 @@
 
 curve2time <- function(tracked_cycle_curve = NULL,
                        tracked_cycle_period = NULL,
-                       genplot = TRUE,
+                       genplot = FALSE,
                        keep_editable = FALSE) {
   tracked_cycle_curve[, 2] <-
     tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
@@ -123,5 +123,5 @@ curve2time <- function(tracked_cycle_curve = NULL,
     )
     lines(out)
   }
-  out
+  return(out)
 }

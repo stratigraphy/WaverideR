@@ -2,12 +2,12 @@
 % Please edit documentation in R/curve2sedrate.R
 \name{curve2sedrate}
 \alias{curve2sedrate}
-\title{Converts a tracked tracked to a sedimentation rate curve}
+\title{Convert a tracked tracked to a sedimentation rate curve}
 \usage{
 curve2sedrate(tracked_cycle_curve = NULL, tracked_cycle_period = NULL)
 }
 \arguments{
-\item{tracked_cycle_curve}{A cycle tracked using the \code{\link{track_period_wavelet}} function \cr
+\item{tracked_cycle_curve}{A tracked cycle  which is the result of using the \code{\link{track_period_wavelet}} function \cr
 Any input (matrix or data frame) in which the first column is depth in meters and the second column is period in meters}
 
 \item{tracked_cycle_period}{Period of the tracked cycle (in kyr).}
@@ -31,7 +31,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -51,12 +51,12 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
 #convert period in meters to sedrate in cm/kyr
 mag_track_sedrate <- curve2sedrate(tracked_cycle_curve=mag_track_complete,

@@ -2,12 +2,12 @@
 % Please edit documentation in R/curve2time.R
 \name{curve2time}
 \alias{curve2time}
-\title{Converts the tracked curve to a depth time space}
+\title{Convert the tracked curve to a depth time space}
 \usage{
 curve2time(
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
-  genplot = TRUE,
+  genplot = FALSE,
   keep_editable = FALSE
 )
 }
@@ -19,7 +19,7 @@ Any input (matrix or data frame) in which the first column is depth in
 
 \item{tracked_cycle_period}{Period of the tracked curve in kyr.}
 
-\item{genplot}{Generates a plot with depth vs time \code{Default=TRUE}.}
+\item{genplot}{Generates a plot with depth vs time \code{Default=FALSE}.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
@@ -42,7 +42,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -62,17 +62,17 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE
+  genplot = FALSE
 )
 
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = TRUE, print_span = TRUE)
+genplot = FALSE, print_span = FALSE)
 
 #convert period in meters to sedrate depth vs time
 mag_track_time<- curve2time(tracked_cycle_curve=mag_track_complete,
 tracked_cycle_period=405,
-genplot=TRUE,
+genplot=FALSE,
 keep_editable=FALSE)
 
 }
@@ -83,5 +83,5 @@ time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
 }
 \author{
 Based on the \link[astrochron]{sedrate2time}
-function of the astrochron R package
+function of the 'astrochron' R package
 }

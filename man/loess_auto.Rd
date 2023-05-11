@@ -6,8 +6,8 @@
 \usage{
 loess_auto(
   time_series = NULL,
-  genplot = TRUE,
-  print_span = TRUE,
+  genplot = FALSE,
+  print_span = FALSE,
   keep_editable = FALSE
 )
 }
@@ -31,7 +31,7 @@ The third column is difference between the original curve and the smoothed curve
 \description{
 Perform an automatically loess based smoothing of a time series.
 The local polynomial regression with automatic smoothing parameter selection is based on an
-optimization using the aicc  bias-corrected AIC criterion and the gcv generalized cross-validation criterion.
+optimization using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
 }
 \examples{
 \donttest{
@@ -43,7 +43,7 @@ mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10)
 
 #Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -63,7 +63,7 @@ mag_track_complete <- completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE,
+  genplot = FALSE,
   keep_editable=FALSE
 )
 
@@ -78,5 +78,5 @@ Hurvich, C.M., Simonoff, J.S., and Tsai, C.L. (1998), Smoothing Parameter Select
 Golub, G., Heath, M. and Wahba, G. (1979). Generalized cross validation as a method for choosing a good ridge parameter. Technometrics. 21, 215–224. \doi{<doi:10.2307/1268518>}
 }
 \author{
-Based on the the \code{\link{loess.as}} function of the fANCOVA package.
+Based on the the \code{\link{loess.as}} function of the 'fANCOVA' R package.
 }

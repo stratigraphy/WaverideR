@@ -30,14 +30,14 @@ the \code{\link{analyze_wavelet}} function.
 \examples{
 \donttest{
 #Example 1. Plot the average spectral power of the wavelet spectra of
-# the Total Solar Irradiance data set of Steinhilver et al., (2012)
+# the Total Solar Irradiance data set of Steinhilber et al., (2012)
 TSI_wt <-
  analyze_wavelet(
    data = TSI,
    dj = 1/200,
    lowerPeriod = 16,
    upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 
@@ -55,7 +55,7 @@ data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
-verbose = TRUE,
+verbose = FALSE,
 omega_nr = 10
 )
 plot_avg_wavelet(wavelet=mag_wt,
@@ -73,7 +73,7 @@ grey_wt <-
    dj = 1/200,
    lowerPeriod = 0.02,
    upperPeriod = 256,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 8
  )
 

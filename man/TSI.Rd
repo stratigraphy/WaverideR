@@ -4,7 +4,7 @@
 \alias{TSI}
 \title{Total solar irradiation data (0-9400ka) of steinhilber et al., (2012)}
 \description{
-The Total solar irradiation data set consists of the TSI values of steinhilber et al., (2012)
+The Total solar irradiation data set consists of the TSI values of Steinhilber et al., (2012)
 }
 \details{
 Column 1: Age (kyr)\cr

@@ -21,6 +21,8 @@ ID_points <- function(x,
                       n = length(x),
                       pch = 19,
                       ...) {
+  defaultW <- getOption("warn")
+  options(warn = -1)
   xy <- xy.coords(x, y)
   x <- xy$x
   y <- xy$y
@@ -36,5 +38,9 @@ ID_points <- function(x,
     sel[ans] <- TRUE
     res <- c(res, ans)
   }
-  res
+  options(warn=defaultW)
+  return(res)
 }
+
+
+

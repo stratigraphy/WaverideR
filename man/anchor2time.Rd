@@ -7,7 +7,7 @@
 anchor2time(
   anchor_points = NULL,
   data = NULL,
-  genplot = TRUE,
+  genplot = FALSE,
   keep_editable = FALSE
 )
 }
@@ -19,10 +19,11 @@ and the second column is time.}
 The data set should consist of a matrix with 2 column the first column should be depth
 and the second column should be a proxy value.}
 
-\item{genplot}{If  \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
+\item{genplot}{If  \code{genplot=FALSE} then 3 plots stacked on top of each other will be plotted.
 Plot 1: the original data set
 Plot 2: the depth time plot
-Plot 3: the data set in the time domain}
+Plot 3: the data set in the time domain
+set to TRUE to allow for anchoring using the GUI}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 }
@@ -32,9 +33,9 @@ The first column is time.
 The second column sedimentation proxy value.
 
 If \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
-Plot 1: the original dataset.
+Plot 1: the original data set.
 Plot 2: the depth time plot.
-Plot 3: the dataset in the time domain.
+Plot 3: the data set in the time domain.
 }
 \description{
 Convert a proxy record to the time domain using anchor points made using the \code{\link{astro_anchor}} function.
@@ -45,7 +46,7 @@ Convert a proxy record to the time domain using anchor points made using the \co
 
 achored2time <- anchor2time(anchor_points=age_model_zeeden,
 data=grey,
-genplot=TRUE,
+genplot=FALSE,
 keep_editable=FALSE)
 
 }

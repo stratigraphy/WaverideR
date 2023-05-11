@@ -8,12 +8,12 @@
 #'@param n_simulations Number of red noise simulations.
 #'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
 #'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.
-#'@param verbose Print text \code{Default=TRUE}.
+#'@param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{analyze.wavelet} function of the WaveletComp R package
-#' and \link[biwavelet]{wt} function of the biwavelet R package which are based on the
-#' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' Code based on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
+#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+#' wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 #'
 #' @references
 #'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
@@ -128,10 +128,12 @@ model_red_noise_wt <- function(wavelet = NULL,
     registerDoSNOW(cl)
   }
 
-  pb <- txtProgressBar(max = n_simulations, style = 3)
-  progress <- function(n)
-    setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)
+  if (verbose==TRUE){
+    pb <- txtProgressBar(max = n_simulations, style = 3)
+    progress <- function(n)
+      setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)}else{opts=NULL}
+
 
 
 
@@ -220,5 +222,5 @@ model_red_noise_wt <- function(wavelet = NULL,
     }
 
   stopCluster(cl)
-  red_noise
+  return(red_noise)
 }

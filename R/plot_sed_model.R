@@ -1,6 +1,6 @@
 #' @title Plot sedimentation modelling results
 #'
-#' @description The \code{\link{plot_sed_model}} function is used plot/replot the results from the
+#' @description The \code{\link{plot_sed_model}} function is used plot/re-plot the results from the
 #' \code{\link{flmw}} and  \code{\link{sum_power_sedrate}} functions
 #'
 #'@param model_results Wavelet object created using the \code{\link{analyze_wavelet}} function
@@ -42,7 +42,8 @@
 #'x_lab="depth",
 #'y_lab="sedrate",
 #'run_multicore=FALSE,
-#'genplot = FALSE)
+#'genplot = FALSE,
+#'verbose=FALSE)
 #'
 #'plot_sed_model(model_results=sedrates,
 #'plot_res=1,
@@ -53,7 +54,8 @@
 #'
 #'
 #' @return
-#'Returns a plot of sedrates vs depth and a value which was generated using the \code{\link{flmw}} or  \code{\link{sum_power_sedrate}} functions
+#'Returns a plot of sedimentation rates vs depth and a value which was generated using
+#'the \code{\link{flmw}} or \code{\link{sum_power_sedrate}} functions
 #'
 #' @export
 #' @importFrom stats quantile

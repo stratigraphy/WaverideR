@@ -1,12 +1,12 @@
-#' @title Example data sets for the WaverideR package
+#' @title Example data sets for the 'WaverideR' package
 #' @name WaverideR_Datasets
-#' @description Data sets for testing the WaverideR package:\cr
+#' @description Data sets for testing the 'WaverideR' R package:\cr
 #' The \code{age_model_zeeden} data set is and age model (anchor points) for\cr
 #' the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)\cr
 #' \cr
 #' The \code{astrosignal_example} data set consists of pre-generated ETP (eccentricity-tilt-precession)\cr
 #' data set based on the p-0.5t  la2004 solution and was generated using \cr
-#' the \link[astrochron]{etp} function of the \link[astrochron]{astrochron-package} \cr
+#' the \link[astrochron]{etp} function of the 'astrochron' R package \cr
 #' \cr
 #' The \code{depth_rank_example} data set is synthetic succession of sedimentary\cr
 #' The \code{grey} data set is the grey scale record of IODP 926 for the interval (154-174m) which originates\cr from
@@ -17,7 +17,7 @@
 #'  \cr
 #' The \code{mag} data set is the magnetic susceptibility record of Pas et al., (2018)\cr
 #' \cr
-#' The \code{mag_track_solution} is the period of the 405 kyr ecc cycle in\cr
+#' The \code{mag_track_solution} is the period of the 405 kyr eccentricity cycle in\cr
 #' the magnetic susceptibility record of from Pas et al., (2018)\cr
 #' \cr
 #' The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
@@ -79,7 +79,7 @@ NULL
 #' @rdname TSI
 #' @name TSI
 #'
-#' @description The Total solar irradiation data set consists of the TSI values of steinhilber et al., (2012)
+#' @description The Total solar irradiation data set consists of the TSI values of Steinhilber et al., (2012)
 #'
 #' @details
 #'Column 1: Age (kyr)\cr
@@ -192,7 +192,7 @@ NULL
 #' @description
 #' The \code{\link{depth_rank_example}} example data set is a depth rank series which \cr
 #' can be used as input for the \code{\link{lithlog_disc}} function which creates a \cr
-#' discritzed record which can be used as input in the \code{\link{analyze_wavelet}}\cr
+#' discritzed record which can then be used as input in the \code{\link{analyze_wavelet}}\cr
 #' function
 #'
 #'@details
@@ -207,10 +207,11 @@ NULL
 #' @description
 #'The \code{\link{astrosignal_example}} is a pre-generated ETP \cr
 #'(eccentricity-tilt-precession) (p-0.5t based on the la2004 solution) \cr
-#'the \code{\link{astrosignal_example}} can be used to achor the \code{\link{grey}}\cr
+#'the \code{\link{astrosignal_example}} can be used to anchor the \code{\link{grey}}\cr
 #' data set to an astronomical solution eg. \code{\link{astrosignal_example}} \cr
-#' using the  \code{\link{astro_anchor}} function. the dataset was generated using the \cr
-#' \link[astrochron]{etp} function of the \link[astrochron]{astrochron-package}
+#' using the  \code{\link{astro_anchor}} function. the data set was generated using the \cr
+#' \link[astrochron]{etp} function of the 'astrochron' R package.
+#'  The pre-generated ETP spans 5000 to 6000kyr.
 #'
 #' #'@details
 #'Column 1: time (kyr)\cr

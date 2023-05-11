@@ -23,14 +23,14 @@
 #' continuous wavelet transform using a Morlet wavelet on superimposed on top of it.
 #' In the plot the red curve and blue curves are the upper and lower bounds
 #'based on the \code{multi} parameter which x-times the standard deviation of uncertainty.
-#'The black curve is the \code{Default=tracked_cycle_curve} curve.
+#'The black curve is the \code{Default=FALSE} curve.
 #' @param genplot_extracted Generates a plot with the data set and
-#' the extracted cycle on top \code{Default=TRUE} of it.
+#' the extracted cycle on top \code{Default=FALSE} of it.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #' @author
-#' Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-#' which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
+#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 #' The assignment of the standard deviation of the uncertainty of the wavelet
 #' is based on the work of Gabor (1946) and Russell et al., (2016)
 #'
@@ -77,7 +77,7 @@
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
-#' verbose = TRUE,
+#' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'#Track the 405 kyr eccentricity cycle in a wavelet spectra
@@ -151,8 +151,8 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
                                               tracked_cycle_period = NULL,
                                               add_mean = TRUE,
                                               tune = FALSE,
-                                              genplot_uncertainty_wt = TRUE,
-                                              genplot_extracted = TRUE,
+                                              genplot_uncertainty_wt = FALSE,
+                                              genplot_extracted = FALSE,
                                               keep_editable = FALSE) {
   my.w <- wavelet
   my.data <- cbind(wavelet$x, wavelet$y)
@@ -304,7 +304,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
       data = data_set,
       tracked_cycle_curve = tracked_cycle_curve,
       tracked_cycle_period = tracked_cycle_period,
-      genplot = TRUE
+      genplot = FALSE
     )
 
     dat <- as.matrix(data_set_time)
@@ -437,5 +437,5 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
   }
 
-  filtered_cycle
+  return(filtered_cycle)
 }

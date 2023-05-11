@@ -49,7 +49,7 @@ data = TSI,
 dj = 1/200,
 lowerPeriod = 16,
 upperPeriod = 8192,
-   verbose = TRUE,
+   verbose = FALSE,
    omega_nr = 6
  )
 
@@ -76,8 +76,6 @@ Bulletin of the American Meteorological Society 79:61-78.
 \url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 }
 \author{
-Code based on  ased on the \link[WaveletComp]{reconstruct} function of the WaveletComp R package
-which is based on the wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
-The assignment of the standard deviation of the uncertainty of the wavelet
-is based on the work of Gabor (1946) and Russell et al., (2016)
+Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 }

@@ -26,9 +26,9 @@ a set percentile based. To generate the percentile curve the results of
  the \code{\link{model_red_noise_wt}} function are used.
 }
 \examples{
-\dontrun{
-#'#generate red noise curves based on the magnetic susceptibility record of
-#the Sullivan core of Pas et al., (2018)
+\donttest{
+#'#generate average spectral power curves based on red noise curves which are
+# based on the magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
 mag_wt <- analyze_wavelet(data = mag,
 dj = 1/100,
@@ -37,14 +37,18 @@ upperPeriod = 254,
 verbose = FALSE,
 omega_nr = 10)
 
-mag_wt_red_noise <- model_red_noise_wt(data=NULL,
-n_simulations =1000,
+#increase n_simulations to better define the red noise spectral power curve
+mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
+n_simulations=100,
+run_multicore=FALSE,
 verbose=FALSE)
+
 
 prob_curve <- percentile_from_red_noise(
 red_noise = mag_wt_red_noise,
 wavelet = mag_wt,
 percentile = 0.9
-)}
+)
+}
 
 }

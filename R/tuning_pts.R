@@ -22,6 +22,9 @@ tuning_pts <- function(x,
                        n = 1,
                        pch = 19,
                        ...) {
+  defaultW <- getOption("warn")
+  options(warn = -1)
+
   xy <- xy.coords(x, y)
   x <- xy$x
   y <- xy$y
@@ -33,5 +36,6 @@ tuning_pts <- function(x,
   points(x[ans], y[ans], pch = pch, col = "red")
   sel[ans] <- TRUE
   res <- c(res, ans)
-  res
+  options(warn=defaultW)
+  return(res)
 }
