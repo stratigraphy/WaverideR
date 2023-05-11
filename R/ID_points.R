@@ -29,8 +29,7 @@ ID_points <- function(x,
   sel <- rep(FALSE, length(x))
   res <- integer(0)
   while (sum(sel) < n) {
-    ans <- identify(x[!sel], y[!sel], n = 1, plot = F,
-                    ...)
+    ans <- identify(x[!sel], y[!sel], n = 1, plot = F)
     if (!length(ans))
       break
     ans <- which(!sel)[ans]

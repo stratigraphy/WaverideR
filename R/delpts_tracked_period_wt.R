@@ -1,32 +1,21 @@
-#' @title Track the period of a cycle in a wavelet spectra
+#' @title Remove tracking points which were tracked in a wavelet spectra
 #'
-#' @description Interactively select points in a wavelet spectra to trace a period in a wavelet spectra.
-#'The \code{\link{track_period_wavelet}} function plots a wavelet spectra in which spectral peaks can selected
-#'allowing one to track a ridge hence one can track the a cycle with a changing period.
-#'Tracking points can be selected in the Interactive interface and will be shown as white dots
-#'when one wants to deselect a point the white dots can be re-clicked/re-selected and will turn red which
-#'indicates that the previously selected point is deselected. Deselecting points can be quite tricky
-#'due to the close spacing of  points and such the \code{\link{delpts_tracked_period_wt}} can be used to
-#'delete points were previously selected using the \code{\link{track_period_wavelet}} function.
-#'
-#' @param astro_cycle Duration (in kyr) of the cycle which traced.
+#' @description Interactively select points for deletion
+#'With the  \code{\link{track_period_wavelet}} function it is possible to track points in a wavelet spectra,
+#'however errors can be made and as such it is possible to delete these points with the \code{\link{delpts_tracked_period_wt}} function.
+#'This function allows one to select points for deletion.
+#'#'
+#' @param tracking_pts Points tracked using the \code{\link{track_period_wavelet}} function.
 #' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #' @param n.levels Number of color levels \code{Default=100}.
 #' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
 #' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
 #'
-#'@return Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
+#'@return The results of the deletion of the tracking points is a matrix with 3 columns.
 #'The first column is depth/time
 #'The second column is the period of the tracked cycle
 #'The third column is the sedimentation rate based on the duration (in time) of the tracked cycle
 #'
-#' @author
-#' The function is based/inspired on the \link[astrochron]{traceFreq}
-#'function of the 'astrochron' R package
-#'
-#'@references
-#'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
 #'
 #'@examples
 #'\donttest{
@@ -40,15 +29,24 @@
 #' verbose = FALSE,
 #' omega_nr = 10)
 #'
-#' mag_track <- track_period_wavelet(astro_cycle = 405,
-#'                                   wavelet=mag_wt,
-#'                                   n.levels = 100,
-#'                                   periodlab = "Period (metres)",
-#'                                   x_lab = "depth (metres)")
+#'#mag_track <- track_period_wavelet(astro_cycle = 405,
+#'#                                   wavelet=mag_wt,
+#'#                                   n.levels = 100,
+#'#                                   periodlab = "Period (metres)",
+#'#                                   x_lab = "depth (metres)")
+#'
+#'#load the mag_track_solution data set to get an example data set from which
+#'#data points can be deleted
+#'
+#'
+#' mag_track_corr <- delpts_tracked_period_wt(tracking_pts = mag_track_solution,
+#'                                     wavelet = mag_wt,
+#'                                     n.levels = 100,
+#'                                     periodlab = "Period (metres)",
+#'                                     x_lab = "depth (metres)")
 #'}
 #'
 #' @export
-#' @importFrom reshape2 melt
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom grDevices dev.new
@@ -60,15 +58,14 @@
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
 #' @importFrom graphics points
-#' @importFrom stats aggregate
 #' @importFrom stats na.omit
-#' @importFrom astrochron traceFreq
 
-track_period_wavelet <- function(astro_cycle = 405,
-                                 wavelet = NULL,
-                                 n.levels = 100,
-                                 periodlab = "Period (metres)",
-                                 x_lab = "depth (metres)") {
+
+delpts_tracked_period_wt <- function(tracking_pts = NULL,
+                                     wavelet = NULL,
+                                     n.levels = 100,
+                                     periodlab = "Period (metres)",
+                                     x_lab = "depth (metres)") {
   plot.COI = TRUE
   color.palette = "rainbow(n.levels, start = 0, end = .7)"
   useRaster = TRUE
@@ -238,96 +235,41 @@ track_period_wavelet <- function(astro_cycle = 405,
     cex = par()$cex.axis
   )
 
-  Pwert <- wavelet$Power
-
-  maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
-
-  for (j in 1:ncol(Pwert)) {
-    for (i in 2:(nrow(maxdetect) - 1)) {
-      if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
-          (Pwert[i, j] - Pwert[(i - 1), j]  > 0))
-      {
-        maxdetect[i, j] <- 1
-      }
-    }
-  }
-
-  maxdetect2 <- melt(maxdetect)
-
-  depth <- rep(wavelet$x, each = length(wavelet$axis.2))
-  period <- rep(wavelet$axis.2, times = length(wavelet$x))
-
-  maxdetect2 <- as.data.frame(maxdetect2)
-  maxdetect2[, 1] <- period
-  maxdetect2[, 2] <- depth
-  maxdetect2 <- maxdetect2[maxdetect2$value > 0,]
-
-  colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
 
   points(
-    x = maxdetect2$x_val,
-    y = maxdetect2$y_val,
+    x = tracking_pts[, 1],
+    y = log2(tracking_pts[, 2]),
     type = "p",
-    pch = 1,
+    pch = 19,
     col = "black",
     lwd = "0.5"
   )
 
-
-  x = maxdetect2$x_val
-  y = maxdetect2$y_val
+  x <-  tracking_pts[, 1]
+  y <-  log2(tracking_pts[, 2])
 
   defaultW <- getOption("warn")
   options(warn = -1)
   xy <- xy.coords(x, y)
   x <- xy$x
   y <- xy$y
-  sel <- cbind(rep(FALSE, length(x)), rep(FALSE, length(x)))
-  n <- nrow(maxdetect2)
+
+  sel <- rep(FALSE, length(x))
+  res <- integer(0)
+  n <- length(x)
 
   while (sum(sel) < n) {
-    ans <- identify(x,
-                    y,
-                    n = 1,
-                    plot = F,
-                    tolerance = 0.1)
-
+    ans <- identify(x[!sel], y[!sel], n = 1, plot = F,tolerance = 0.15)
     if (!length(ans))
       break
-
-
-    if (sel[ans, 1] == FALSE) {
-      sel[ans, 1] <- TRUE
-      sel[ans, 2] <- FALSE
-    } else{
-      sel[ans, 1] <- FALSE
-      sel[ans, 2] <- TRUE
-    }
-
-    points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-    points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
+    ans <- which(!sel)[ans]
+    points(x[ans], y[ans], pch = 19, col = "white")
+    sel[ans] <- TRUE
   }
 
-  pts <- sel[, 1]
+  out <- tracking_pts[!sel,]
 
-  out <- data.frame(cbind(maxdetect2[pts, 2], maxdetect2[pts, 1]))
-  out <- na.omit(out)
-
-  if (nrow(out) != 0) {
-    out <- na.omit(out)
-    out <- out[order(out[, 1]), ]
-    out <- na.omit(out)
-    out <- aggregate(out,
-                     by = list(name = out[, 1]),
-                     data = out,
-                     FUN = mean)
-    out <- out[, c(2, 3)]
-    out[, 2] <- 2 ^ out[, 2]
-    out$sedrate <- out[, 2] / astro_cycle * 100
-    colnames(out) <- c("depth", "period", "sedrate")
-  }
 
   return(out)
 
 }
-

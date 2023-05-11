@@ -10,7 +10,7 @@ completed_series(
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
-  genplot = TRUE,
+  genplot = FALSE,
   keep_editable = FALSE
 )
 }

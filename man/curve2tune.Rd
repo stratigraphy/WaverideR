@@ -84,7 +84,7 @@ genplot = FALSE, print_span = FALSE)
 mag_track_time<- curve2tune(data=mag,
                            tracked_cycle_curve=mag_track_complete,
                            tracked_cycle_period=405,
-                           genplot=FALSE,
+                           genplot = FALSE,
                            keep_editable=FALSE)
 }
 }

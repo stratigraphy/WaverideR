@@ -33,6 +33,11 @@ The third column is the sedimentation rate based on the duration (in time) of th
 Interactively select points in a wavelet spectra to trace a period in a wavelet spectra.
 The \code{\link{track_period_wavelet}} function plots a wavelet spectra in which spectral peaks can selected
 allowing one to track a ridge hence one can track the a cycle with a changing period.
+Tracking points can be selected in the Interactive interface and will be shown as white dots
+when one wants to deselect a point the white dots can be re-clicked/re-selected and will turn red which
+indicates that the previously selected point is deselected. Deselecting points can be quite tricky
+due to the close spacing of  points and such the \code{\link{delpts_tracked_period_wt}} can be used to
+delete points were previously selected using the \code{\link{track_period_wavelet}} function.
 }
 \examples{
 \donttest{
