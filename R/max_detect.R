@@ -5,7 +5,9 @@
 #'
 #' @param data Matrix or data frame with the first column being depth or time
 #'  and the second column being a proxy
-#'
+#' @param pts Number of points up and down which is used to detect a peak
+#' More points means more peak certainty, but it also means that minor peaks might not be
+#' picked up by the algorithm \code{Default=3}
 #'
 #' @examples
 #'#Example in which the ~210yr de Vries cycle is extracted from the Total Solar
@@ -39,12 +41,12 @@
 #'
 #' @export
 
-max_detect <- function(data = NULL) {
+max_detect <- function(data = NULL,pts) {
   astro_mindetect <- as.data.frame(data)
   astro_mindetect$min <- 0
-  for (i in 3:(nrow(data) - 3)) {
-    if ((data[i, 2] - data[(i + 3), 2] < 0) &
-        (data[i, 2] - data[(i - 2), 2] < 0))
+  for (i in pts:(nrow(data) - pts)) {
+    if ((data[i, 2] - data[(i + pts), 2] < 0) &
+        (data[i, 2] - data[(i - (pts-1)), 2] < 0))
     {
       astro_mindetect[i, 3] <- 1
     }
@@ -52,13 +54,13 @@ max_detect <- function(data = NULL) {
 
   astro_mindetect_error_corr <- astro_mindetect
   astro_mindetect_error_corr <-
-  astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 , ]
+    astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 ,]
 
   astro_maxdetect <- as.data.frame(data)
   astro_maxdetect$max <- 0
-  for (i in 3:(nrow(data) - 3)) {
-    if ((data[i, 2] - data[(i + 3), 2] > 0) &
-        (data[i, 2] - data[(i - 2), 2]  > 0))
+  for (i in pts:(nrow(data) - pts)) {
+    if ((data[i, 2] - data[(i + pts), 2] > 0) &
+        (data[i, 2] - data[(i - (pts-1)), 2]  > 0))
     {
       astro_maxdetect[i, 3] <- 1
     }
@@ -66,7 +68,7 @@ max_detect <- function(data = NULL) {
 
   astro_maxdetect_error_corr <- astro_maxdetect
   astro_maxdetect_error_corr <-
-  astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 , ]
+    astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 ,]
 
   max <- astro_maxdetect_error_corr
   colnames(max) <- c("A", "B", "C")
@@ -76,33 +78,33 @@ max_detect <- function(data = NULL) {
   min[, 3] <- -1
   peaks <- rbind(max, min)
 
-  peaks <- peaks[order(peaks[, 1]),]
+  peaks <- peaks[order(peaks[, 1]), ]
   i <- 1
   res_rownr <- nrow(peaks)
 
-  while (i+1 < res_rownr) {
-    if (peaks[i, 3] == peaks[(i + 1), 3]) {
-      if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
+  while (i < res_rownr) {
+    if ((i < res_rownr) & (peaks[i, 3] == peaks[(i + 1), 3])) {
+      if ((i < res_rownr) &(peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
           (peaks[i, 2] > peaks[(i + 1), 2])) {
-        peaks[(i + 1),] <- NA
+        peaks[(i + 1), ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
       }
-      if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
+      if ((i < res_rownr) &(peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
           (peaks[i, 2] < peaks[(i + 1), 2])) {
-        peaks[i,] <- NA
+        peaks[i, ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
       }
-      if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
+      if ((i < res_rownr) &(peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
           (peaks[i, 2] < peaks[(i + 1), 2])) {
-        peaks[(i + 1),] <- NA
+        peaks[(i + 1), ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
       }
-      if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
+      if ((i < res_rownr) &(peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
           (peaks[i, 2] > peaks[(i + 1), 2])) {
-        peaks[i,] <- NA
+        peaks[i, ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
 
@@ -112,11 +114,11 @@ max_detect <- function(data = NULL) {
         is.na(peaks[i, 3] != peaks[(i + 1), 3])) {
       i <- i + 1
     }
+
   }
 
-  peaks_max <- peaks[peaks[, 3] > 0,]
+  peaks_max <- peaks[peaks[, 3] > 0, ]
   return(peaks_max)
 
-
-
 }
+

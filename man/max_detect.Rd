@@ -4,11 +4,15 @@
 \alias{max_detect}
 \title{Detect and filter out all maxima in a signal}
 \usage{
-max_detect(data = NULL)
+max_detect(data = NULL, pts)
 }
 \arguments{
 \item{data}{Matrix or data frame with the first column being depth or time
 and the second column being a proxy}
+
+\item{pts}{Number of points up and down which is used to detect a peak
+More points means more peak certainty, but it also means that minor peaks might not be
+picked up by the algorithm \code{Default=3}}
 }
 \value{
 #Returns a matrix with 2 columns

@@ -161,9 +161,9 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
 
   for (j in 1:ncol(Powert)) {
-    for (i in 2:(nrow(maxdetect_new) - 1)) {
-      if ((Powert[i, j] - Powert[(i + 1), j] > 0) &
-          (Powert[i, j] - Powert[(i - 1), j]  > 0))
+    for (i in 3:(nrow(maxdetect_new) - 3)) {
+      if ((Powert[i, j] - Powert[(i + 3), j] > 0) &
+          (Powert[i, j] - Powert[(i - 2), j]  > 0))
       {
         maxdetect_new[i, j] <- 1
       }

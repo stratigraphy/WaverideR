@@ -215,8 +215,8 @@ flmw  <- function(wavelet = NULL,
       astro_mindetect <- as.data.frame(data)
       astro_mindetect$min <- 0
       for (i in 3:(nrow(data) - 2)) {
-        if ((data[i, 2] - data[(i + 1), 2] < 0) &
-            (data[i, 2] - data[(i - 1), 2] < 0))
+        if ((data[i, 2] - data[(i + 2), 2] < 0) &
+            (data[i, 2] - data[(i - 2), 2] < 0))
         {
           astro_mindetect[i, 3] <- 1
         }
@@ -229,8 +229,8 @@ flmw  <- function(wavelet = NULL,
       astro_maxdetect <- as.data.frame(data)
       astro_maxdetect$max <- 0
       for (i in 3:(nrow(data) - 2)) {
-        if ((data[i, 2] - data[(i + 1), 2] > 0) &
-            (data[i, 2] - data[(i - 1), 2]  > 0))
+        if ((data[i, 2] - data[(i + 2), 2] > 0) &
+            (data[i, 2] - data[(i - 2), 2]  > 0))
         {
           astro_maxdetect[i, 3] <- 1
         }

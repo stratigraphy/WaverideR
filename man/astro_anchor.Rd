@@ -20,7 +20,9 @@ astro_anchor(
   proxy_period_up = 1.2,
   proxy_period_down = 0.8,
   proxy_period_cycle = NULL,
-  verbose = FALSE
+  pts = 3,
+  verbose = FALSE,
+  time_dir = TRUE
 )
 }
 \arguments{
@@ -74,7 +76,16 @@ which the astronomical component is multiplied by. \code{Default=0.8}.}
 \item{proxy_period_cycle}{Period in kyr of the astronomical cycle/component which is extracted
 from the proxy record.}
 
+\item{pts}{Number of points up and down which is used to detect a peak
+More points means more peak certainty, but it also means that minor peaks might not be
+picked up by the algorithm \code{Default=3}}
+
 \item{verbose}{print text \code{Default=FALSE} #  set verbose to TRUE to allow for anchoring using text feedback commands}
+
+\item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
+(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
+if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
+then time_dir should be set to FALSE \code{time_dir=TRUE}}
 }
 \value{
 The output is a matrix with the 4 columns.
@@ -214,7 +225,7 @@ grey_ecc <- extract_signal(
 
 insolation_extract <- cbind(grey_ecc[,1],grey_prec[,2]+grey_obl[,2]+grey_ecc[,2]+mean(grey[,2]))
 insolation_extract <- as.data.frame(insolation_extract)
-insolation_extract_mins <- min_detect(insolation_extract)
+insolation_extract_mins <- min_detect(insolation_extract,pts=3)
 
 #use the astrosignal_example to tune to which is an \cr
 # ETP solution (p-0.5t la2004 solution)
@@ -240,6 +251,7 @@ extract_proxy_signal  = FALSE,
 proxy_period_up  = NULL,
 proxy_period_down  = NULL,
 proxy_period_cycle  = NULL,
+pts=3,
 verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
 )}
 

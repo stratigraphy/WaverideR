@@ -6,6 +6,7 @@
 \usage{
 extract_amplitude(
   signal = NULL,
+  pts = 3,
   genplot = FALSE,
   remean = TRUE,
   ver_results = FALSE,
@@ -15,6 +16,10 @@ extract_amplitude(
 \arguments{
 \item{signal}{Input signal from which the amplitude is extracted any signal in which the first column is
 depth/time and the second column is the proxy record from which the amplitude is extracted}
+
+\item{pts}{Number of points up and down which is used to detect a peak
+More points means more peak certainty, but it also means that minor peaks might not be
+picked up by the algohritm \code{Default=3}}
 
 \item{genplot}{If set to TRUE a plot with extracted amplitude will be displayed \code{Default=FALSE}.}
 
@@ -94,6 +99,7 @@ plot_residual = FALSE
 #extract the amplitude  of the 405 kyr eccentricity cycle
 mag_ampl <- extract_amplitude(
 signal = mag_405_ecc,
+pts=3,
 genplot = FALSE,
 ver_results = FALSE,
 keep_editable=FALSE)

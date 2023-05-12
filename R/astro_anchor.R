@@ -105,8 +105,14 @@
 #' which the astronomical component is multiplied by. \code{Default=0.8}.
 #'@param proxy_period_cycle Period in kyr of the astronomical cycle/component which is extracted
 #' from the proxy record.
+#' @param pts Number of points up and down which is used to detect a peak
+#' More points means more peak certainty, but it also means that minor peaks might not be
+#' picked up by the algorithm \code{Default=3}
 #' @param verbose print text \code{Default=FALSE} #  set verbose to TRUE to allow for anchoring using text feedback commands
-#'
+#'@param time_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
+#'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
+#'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
+#'then time_dir should be set to FALSE \code{time_dir=TRUE}
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
@@ -209,7 +215,7 @@
 #'
 #'insolation_extract <- cbind(grey_ecc[,1],grey_prec[,2]+grey_obl[,2]+grey_ecc[,2]+mean(grey[,2]))
 #'insolation_extract <- as.data.frame(insolation_extract)
-#'insolation_extract_mins <- min_detect(insolation_extract)
+#'insolation_extract_mins <- min_detect(insolation_extract,pts=3)
 #'
 #'#use the astrosignal_example to tune to which is an \cr
 #'# ETP solution (p-0.5t la2004 solution)
@@ -235,6 +241,7 @@
 #'proxy_period_up  = NULL,
 #'proxy_period_down  = NULL,
 #'proxy_period_cycle  = NULL,
+#'pts=3,
 #'verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
 #')}
 #'
@@ -261,7 +268,9 @@ astro_anchor <- function(astro_solution = NULL,
                          proxy_period_up = 1.2,
                          proxy_period_down = 0.8,
                          proxy_period_cycle = NULL,
-                         verbose = FALSE) {
+                         pts=3,
+                         verbose = FALSE,
+                         time_dir = TRUE) {
   if (clip_astrosolution == TRUE) {
     astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
@@ -312,192 +321,423 @@ astro_anchor <- function(astro_solution = NULL,
 
   astro_solution <- as.data.frame(astro_solution)
   if (astrosolution_min_or_max == "max") {
-    astro_maxdetect_error_corr <- max_detect(astro_solution)
+    astro_maxdetect_error_corr <- max_detect(data=astro_solution,pts=pts)
   }
 
 
   if (astrosolution_min_or_max == "min") {
-    astro_maxdetect_error_corr <- min_detect(astro_solution)
+    astro_maxdetect_error_corr <- min_detect(data=astro_solution,pts=pts)
   }
 
   all_data_pre_max <- as.data.frame(proxy_signal)
 
   if (proxy_min_or_max == "max") {
-    proxy_signal_max <- max_detect(all_data_pre_max)
+    proxy_signal_max <- max_detect(all_data_pre_max,pts=pts)
   }
 
   if (proxy_min_or_max == "min") {
-    proxy_signal_max <- min_detect(all_data_pre_max)
+    proxy_signal_max <- min_detect(all_data_pre_max,pts=pts)
   }
 
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
-  par(mfrow = c(1, 1))
-  proxy_signal_max <- proxy_signal_max[, c(1, 2)]
-  plot(proxy_signal,
-       type = "l",
-       xlab = "depth/time",
-       ylab = "proxy")
-  points(proxy_signal_max,
-         xlab = "depth/time",
-         ylab = "proxy")
 
-
-  tie_points <- matrix(data = NA, ncol = 4)
-  colnames(tie_points) <-
-    c("data_x", "data_y", "insolation_x", "insolation_y")
-  tie_points <- tie_points[-c(1), ]
-
-  for (i in 1:nrow(proxy_signal_max)) {
+  if (time_dir == TRUE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
-    next_step <- "NO"
-    while (next_step == "NO") {
+    par(mfrow = c(1, 1))
+    proxy_signal_max <- proxy_signal_max[, c(1, 2)]
+    plot(proxy_signal,
+         type = "l",
+         xlab = "depth/time",
+         ylab = "proxy")
+    points(proxy_signal_max,
+           xlab = "depth/time",
+           ylab = "proxy")
+
+
+    tie_points <- matrix(data = NA, ncol = 4)
+    colnames(tie_points) <-
+      c("data_x", "data_y", "insolation_x", "insolation_y")
+    tie_points <- tie_points[-c(1), ]
+
+    for (i in 1:nrow(proxy_signal_max)) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
       next_step <- "NO"
-      dev.new(width = 20,
-              height = 10,
-              noRStudioGD = TRUE)
-      par(mfrow = c(2, 1))
-      plot(
-        all_data_pre_max,
-        type = "l",
-        xlab = "depth/time",
-        ylab = "proxy"
-      )
-      points(
-        proxy_signal_max,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "1",
-        xlab = "depth/time",
-        ylab = "proxy"
-      )
-      par(new = TRUE)
-      plot(
-        x = proxy_signal_max[i, 1],
-        y = proxy_signal_max[i, 2],
-        type = "p",
-        pch = 19,
-        cex = 1.5,
-        col = "red",
-        lwd = "1",
-        xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
-        ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-        xlab = "depth/time",
-        ylab = "proxy"
-      )
-      par(new = TRUE)
-      plot(
-        x = tie_points[, 1],
-        y = tie_points[, 2],
-        type = "p",
-        pch = 19,
-        cex = 1.5,
-        col = "green",
-        lwd = "1",
-        xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
-        ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-        xlab = "depth/time",
-        ylab = "proxy"
-      )
-      plot(
-        astro_solution,
-        type = "l",
-        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-        xlab = "depth/time",
-        ylab = "tie_point value"
-      )
-      par(new = TRUE)
-      plot(
-        astro_maxdetect_error_corr[, c(1, 2)],
-        type = "p",
-        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-        xlab = "depth/time",
-        ylab = "tie_point value"
-      )
-      par(new = TRUE)
-      plot(
-        tie_points[, c(3, 4)],
-        type = "p",
-        pch = 19,
-        cex = 1.5,
-        col = "green",
-        lwd = "1",
-        xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-        ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-        xlab = "depth/time",
-        ylab = "tie_point value"
-      )
-      pts <- tuning_pts(x = astro_maxdetect_error_corr[, 1],
-                        y = astro_maxdetect_error_corr[, 2])
+      while (next_step == "NO") {
+        next_step <- "NO"
+        dev.new(width = 20,
+                height = 10,
+                noRStudioGD = TRUE)
+        par(mfrow = c(2, 1))
+        plot(
+          all_data_pre_max,
+          type = "l",
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        points(
+          proxy_signal_max,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "1",
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        par(new = TRUE)
+        plot(
+          x = proxy_signal_max[i, 1],
+          y = proxy_signal_max[i, 2],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "red",
+          lwd = "1",
+          xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        par(new = TRUE)
+        plot(
+          x = tie_points[, 1],
+          y = tie_points[, 2],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "green",
+          lwd = "1",
+          xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        plot(
+          astro_solution,
+          type = "l",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+          astro_maxdetect_error_corr[, c(1, 2)],
+          type = "p",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+          tie_points[, c(3, 4)],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "green",
+          lwd = "1",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
+        pts <- tuning_pts(x = astro_maxdetect_error_corr[, 1],
+                          y = astro_maxdetect_error_corr[, 2])
 
 
-      if (verbose == TRUE){
-        var = readline(prompt <-
-                         "did you select the right point Y/N : ")}
-      else(var ="Y")
-
-      if (var == "Y" |var == "Yes" | var == "YES" | var == "yes" | var == "y")
-      {
         if (verbose == TRUE) {
-          cat("okay next point")
+          var = readline(prompt <-
+                           "did you select the right point Y/N : ")
         }
-        if (identical(pts, integer(0))) {
+        else
+          (var = "Y")
+
+        if (var == "Y" |
+            var == "Yes" | var == "YES" | var == "yes" | var == "y")
+        {
           if (verbose == TRUE) {
-            cat("no points selected on to the next point")
+            cat("okay next point")
           }
-          sel_astro_maxdetect_error_corr <-
-            matrix(data = NA, ncol = 2)
-          sel_proxy_signal_max <-
-            (as.data.frame(proxy_signal_max[i, ]))
-          tie_row <-
-            cbind(sel_proxy_signal_max,
-                  sel_astro_maxdetect_error_corr)
-          colnames(tie_row) <-
-            c("data_x", "data_y", "insolation_x", "insolation_y")
-          tie_points <- rbind(tie_points, tie_row)
+          if (identical(pts, integer(0))) {
+            if (verbose == TRUE) {
+              cat("no points selected on to the next point")
+            }
+            sel_astro_maxdetect_error_corr <-
+              matrix(data = NA, ncol = 2)
+            sel_proxy_signal_max <-
+              (as.data.frame(proxy_signal_max[i,]))
+            tie_row <-
+              cbind(sel_proxy_signal_max,
+                    sel_astro_maxdetect_error_corr)
+            colnames(tie_row) <-
+              c("data_x",
+                "data_y",
+                "insolation_x",
+                "insolation_y")
+            tie_points <- rbind(tie_points, tie_row)
+            graphics.off()
+            next_step <- "YES"
+          }
+          else
+          {
+            sel_astro_maxdetect_error_corr <-
+              as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
+            sel_proxy_signal_max <-
+              (as.data.frame(proxy_signal_max[i,]))
+            tie_row <-
+              cbind(sel_proxy_signal_max,
+                    sel_astro_maxdetect_error_corr)
+            colnames(tie_row) <-
+              c("data_x",
+                "data_y",
+                "insolation_x",
+                "insolation_y")
+            tie_points <- rbind(tie_points, tie_row)
+            graphics.off()
+            next_step <- "YES"
+          }
+        }
+        else if (var == "N" |
+                 var == "NO" |
+                 var == "No" | var == "no" | var == "n")
+        {
+          if (verbose == TRUE) {
+            cat("okay selection of point will be redone")
+          }
           graphics.off()
-          next_step <- "YES"
+          next_step <- "NO"
+
         }
         else
         {
-          sel_astro_maxdetect_error_corr <-
-            as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
-          sel_proxy_signal_max <-
-            (as.data.frame(proxy_signal_max[i, ]))
-          tie_row <-
-            cbind(sel_proxy_signal_max,
-                  sel_astro_maxdetect_error_corr)
-          colnames(tie_row) <-
-            c("data_x", "data_y", "insolation_x", "insolation_y")
-          tie_points <- rbind(tie_points, tie_row)
+          if (verbose == TRUE) {
+            cat("You did not type yes or no quiting of selection process")
+          }
           graphics.off()
-          next_step <- "YES"
+          next_step <- "Finished"
+
         }
+
       }
-      else if (var == "N" |
-               var == "NO" | var == "No" | var == "no" | var == "n")
-      {
-        if (verbose == TRUE) {
-          cat("okay selection of point will be redone")
-        }
-        graphics.off()
+    }
+  }
+  else{
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
+    par(mfrow = c(1, 1))
+    proxy_signal_max <- proxy_signal_max[, c(1, 2)]
+    plot(
+      proxy_signal,
+      type = "l",
+      xlab = "depth/time",
+      ylab = "proxy",
+      xlim = rev(c(
+        min(proxy_signal[, 1]), max(proxy_signal[, 1])
+      ))
+    )
+    points(proxy_signal_max,
+           xlab = "depth/time",
+           ylab = "proxy")
+
+    tie_points <- matrix(data = NA, ncol = 4)
+    colnames(tie_points) <-
+      c("data_x", "data_y", "insolation_x", "insolation_y")
+    tie_points <- tie_points[-c(1), ]
+
+    for (i in 1:nrow(proxy_signal_max)) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+      next_step <- "NO"
+      while (next_step == "NO") {
         next_step <- "NO"
+        dev.new(width = 20,
+                height = 10,
+                noRStudioGD = TRUE)
+        par(mfrow = c(2, 1))
+        plot(
+          all_data_pre_max,
+          type = "l",
+          xlab = "depth/time",
+          ylab = "proxy",
+          xlim = rev(c(
+            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+          ))
+        )
+        points(
+          proxy_signal_max,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "1",
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        par(new = TRUE)
+        plot(
+          x = proxy_signal_max[i, 1],
+          y = proxy_signal_max[i, 2],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "red",
+          lwd = "1",
+          xlim = rev(c(
+            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+          )),
+          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        par(new = TRUE)
+        plot(
+          x = tie_points[, 1],
+          y = tie_points[, 2],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "green",
+          lwd = "1",
+          xlim = rev(c(
+            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+          )),
+          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+          xlab = "depth/time",
+          ylab = "proxy"
+        )
+        plot(
+          astro_solution,
+          type = "l",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+          astro_maxdetect_error_corr[, c(1, 2)],
+          type = "p",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+          tie_points[, c(3, 4)],
+          type = "p",
+          pch = 19,
+          cex = 1.5,
+          col = "green",
+          lwd = "1",
+          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+          xlab = "depth/time",
+          ylab = "tie_point value"
+        )
 
-      }
-      else
-      {
+
+        x = astro_maxdetect_error_corr[, 1]
+        y = astro_maxdetect_error_corr[, 2]
+
+        defaultW <- getOption("warn")
+        options(warn = -1)
+        xy <- xy.coords(x, y)
+        x <- xy$x
+        y <- xy$y
+        sel <- rep(FALSE, length(x))
+        res <- integer(0)
+        ans <- identify(x[!sel], y[!sel], n = 1, plot = F)
+        ans <- which(!sel)[ans]
+        points(
+          x[ans],
+          y[ans],
+          pch = 19,
+          col = "red",
+          xlim = rev(c(
+            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+          )),
+          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2]))
+        )
+        sel[ans] <- TRUE
+        res <- c(res, ans)
+        pts <- res
+        options(warn = defaultW)
+
         if (verbose == TRUE) {
-          cat("You did not type yes or no quiting of selection process")
+          var = readline(prompt <-
+                           "did you select the right point Y/N : ")
         }
-        graphics.off()
-        next_step <- "Finished"
+        else
+          (var = "Y")
+
+        if (var == "Y" |
+            var == "Yes" | var == "YES" | var == "yes" | var == "y")
+        {
+          if (verbose == TRUE) {
+            cat("okay next point")
+          }
+          if (identical(pts, integer(0))) {
+            if (verbose == TRUE) {
+              cat("no points selected on to the next point")
+            }
+            sel_astro_maxdetect_error_corr <-
+              matrix(data = NA, ncol = 2)
+            sel_proxy_signal_max <-
+              (as.data.frame(proxy_signal_max[i,]))
+            tie_row <-
+              cbind(sel_proxy_signal_max,
+                    sel_astro_maxdetect_error_corr)
+            colnames(tie_row) <-
+              c("data_x",
+                "data_y",
+                "insolation_x",
+                "insolation_y")
+            tie_points <- rbind(tie_points, tie_row)
+            graphics.off()
+            next_step <- "YES"
+          }
+          else
+          {
+            sel_astro_maxdetect_error_corr <-
+              as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
+            sel_proxy_signal_max <-
+              (as.data.frame(proxy_signal_max[i,]))
+            tie_row <-
+              cbind(sel_proxy_signal_max,
+                    sel_astro_maxdetect_error_corr)
+            colnames(tie_row) <-
+              c("data_x",
+                "data_y",
+                "insolation_x",
+                "insolation_y")
+            tie_points <- rbind(tie_points, tie_row)
+            graphics.off()
+            next_step <- "YES"
+          }
+        }
+        else if (var == "N" |
+                 var == "NO" |
+                 var == "No" | var == "no" | var == "n")
+        {
+          if (verbose == TRUE) {
+            cat("okay selection of point will be redone")
+          }
+          graphics.off()
+          next_step <- "NO"
+
+        }
+        else
+        {
+          if (verbose == TRUE) {
+            cat("You did not type yes or no quiting of selection process")
+          }
+          graphics.off()
+          next_step <- "Finished"
+
+        }
 
       }
-
     }
   }
 
