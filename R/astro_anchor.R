@@ -113,6 +113,8 @@
 #'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
 #'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
 #'then time_dir should be set to FALSE \code{time_dir=TRUE}
+#'@param genplot Generate plot \code{Default="FALSE"}
+#'
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
@@ -149,6 +151,7 @@
 #'The second column is the time value of the astronomical solution tie-point.
 #'The third column is the proxy value of the proxy tie-point.
 #'The fourth column is the proxy/insolation value of the astronomical solution  tie-point.
+#'If genplot is set to true then at plot of the of the achored points will be plotted
 #'
 #'
 #'@examples
@@ -165,7 +168,7 @@
 #'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
-#'
+#'#Use the pretracked grey_track curve which traced the precession cycle
 #'grey_track <- completed_series(
 #'  wavelet = grey_wt,
 #'  tracked_curve  = grey_track,
@@ -242,7 +245,8 @@
 #'proxy_period_down  = NULL,
 #'proxy_period_cycle  = NULL,
 #'pts=3,
-#'verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
+#'verbose=FALSE, #set verbose to TRUE to allow for anchoring using text feedback commands
+#'genplot=FALSE
 #')}
 #'
 #' @export
@@ -270,7 +274,8 @@ astro_anchor <- function(astro_solution = NULL,
                          proxy_period_cycle = NULL,
                          pts=3,
                          verbose = FALSE,
-                         time_dir = TRUE) {
+                         time_dir = TRUE,
+                         genplot=FALSE) {
   if (clip_astrosolution == TRUE) {
     astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
@@ -743,6 +748,15 @@ astro_anchor <- function(astro_solution = NULL,
 
   tie_points <- na.omit(tie_points)
   tie_points <- tie_points[, c(1, 3, 2, 4)]
+
+  if(genplot==TRUE){
+    plot_astro_anchor(astro_solution = astro_solution ,
+                                  proxy_signal = all_data_pre_max,
+                                  anchor_points = tie_points,
+                                  time_dir = time_dir,
+                                  keep_editable = FALSE)}
+
+
   return(tie_points)
 
 }

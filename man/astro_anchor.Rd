@@ -22,7 +22,8 @@ astro_anchor(
   proxy_period_cycle = NULL,
   pts = 3,
   verbose = FALSE,
-  time_dir = TRUE
+  time_dir = TRUE,
+  genplot = FALSE
 )
 }
 \arguments{
@@ -86,6 +87,8 @@ picked up by the algorithm \code{Default=3}}
 (e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
 if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
 then time_dir should be set to FALSE \code{time_dir=TRUE}}
+
+\item{genplot}{Generate plot \code{Default="FALSE"}}
 }
 \value{
 The output is a matrix with the 4 columns.
@@ -93,6 +96,7 @@ The first column is the depth/time of the proxy tie-point.
 The second column is the time value of the astronomical solution tie-point.
 The third column is the proxy value of the proxy tie-point.
 The fourth column is the proxy/insolation value of the astronomical solution  tie-point.
+If genplot is set to true then at plot of the of the achored points will be plotted
 }
 \description{
 Anchor the extracted signal to an astronomical solution using a GUI.
@@ -176,7 +180,7 @@ grey_wt <-
    verbose = FALSE,
    omega_nr = 8
  )
-
+#Use the pretracked grey_track curve which traced the precession cycle
 grey_track <- completed_series(
  wavelet = grey_wt,
  tracked_curve  = grey_track,
@@ -252,7 +256,8 @@ proxy_period_up  = NULL,
 proxy_period_down  = NULL,
 proxy_period_cycle  = NULL,
 pts=3,
-verbose=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
+verbose=FALSE, #set verbose to TRUE to allow for anchoring using text feedback commands
+genplot=FALSE
 )}
 
 }

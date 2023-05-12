@@ -85,6 +85,11 @@ plot_avg_wavelet <- function(wavelet = NULL,
     log = "x",
     type = "l",
     ylab = y_lab,
-    xlab = x_lab
+    xlab = x_lab,
+    xaxs ="i"
   )
 }
+
+
+
+

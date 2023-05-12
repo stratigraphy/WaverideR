@@ -174,7 +174,7 @@ NULL
 #'Column 2: tracked period of 405 kyr eccentricity cycle (meters)\cr
 #'
 #' @references
-#' Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
+#'Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
 #'Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
 #'Earth and Planetary Science Letters,
 #'Volume 488,
@@ -230,3 +230,52 @@ NULL
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
 #' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
 NULL
+
+
+#' @title Example anchor points for the grey scale data set of Zeeden et al., (2013)
+#' @rdname anchor_points_grey
+#' @name anchor_points_grey
+#'
+#' @description
+#'An example of anchor points generated using \code{\link{astro_anchor}} function \cr
+#'The anchor points were generated for the \code{\link{grey}} grey data set of \cr
+#'Zeeden et al., (2013) and anchored to the code{\link{astrosignal_example}} \cr
+#'astronomical solution which is a pre-generated ETP (eccentricity-tilt-precession) \cr
+#'solution(p-0.5t based on the la2004 solution) based on Laskar et al., (20004) \cr
+#'astronomical solution.
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: time astronomical solution  \cr
+#'Column 3: y-scale value proxy record\cr
+#'Column 4: y-scale value astronomical solution  \cr
+#'
+#'
+#'@references
+#' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
+#' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
+#' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
+#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#'
+#'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
+#'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
+#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
+NULL
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
