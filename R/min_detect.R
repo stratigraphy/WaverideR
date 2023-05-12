@@ -43,8 +43,8 @@ min_detect <- function(data) {
   astro_mindetect <- as.data.frame(data)
   astro_mindetect$min <- 0
   for (i in 3:(nrow(data) - 3)) {
-    if ((data[i, 2] - data[(i + 1), 3] < 0) &
-        (data[i, 2] - data[(i - 1), 2] < 0))
+    if ((data[i, 2] - data[(i + 3), 2] < 0) &
+        (data[i, 2] - data[(i - 2), 2] < 0))
     {
       astro_mindetect[i, 3] <- 1
     }
@@ -57,8 +57,8 @@ min_detect <- function(data) {
   astro_maxdetect <- as.data.frame(data)
   astro_maxdetect$max <- 0
   for (i in 3:(nrow(data) - 3)) {
-    if ((data[i, 2] - data[(i + 1), 3] > 0) &
-        (data[i, 2] - data[(i - 1), 2]  > 0))
+    if ((data[i, 2] - data[(i + 3), 2] > 0) &
+        (data[i, 2] - data[(i - 2), 2]  > 0))
     {
       astro_maxdetect[i, 3] <- 1
     }
@@ -80,7 +80,7 @@ min_detect <- function(data) {
   i <- 1
   res_rownr <- nrow(peaks)
 
-  while (i < res_rownr) {
+  while (i+1 < res_rownr) {
     if (peaks[i, 3] == peaks[(i + 1), 3]) {
       if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
           (peaks[i, 2] > peaks[(i + 1), 2])) {
