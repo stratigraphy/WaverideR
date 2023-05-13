@@ -21,9 +21,9 @@ age and the second column should be a insolation/angle/value}
 anchored to an astronomical solution, the input should be a matrix or
 data frame with the first column being  depth/time and the second column should be a proxy value.}
 
-\item{anchor_points}{anchor points generated using the \code{\link{astro_anchor}} function}
+\item{anchor_points}{Anchor points generated using the \code{\link{astro_anchor}} function}
 
-\item{time_dir}{The direction of the proxy record which was assumed during achoring if time increases with increasing depth/time values
+\item{time_dir}{The direction of the proxy record which was assumed during anchoring if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
 if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
 then time_dir should be set to FALSE \code{time_dir=TRUE}}
@@ -34,11 +34,11 @@ then time_dir should be set to FALSE \code{time_dir=TRUE}}
 The output is a set of 2 plots connected by lines
 The top plot is the proxy record with anchor points on top of it
 The bottom plot is the astronomical solution
-The lines connect the anchro points
+The lines connect the anchor points
 }
 \description{
 Plot the results of the anchoring  the extracted signal to an astronomical solution using
-The \code{\link{astro_anchor}} f
+which was conducted using the \code{\link{astro_anchor}}
 }
 \examples{
 \donttest{
@@ -107,43 +107,45 @@ insolation_extract <- as.data.frame(insolation_extract)
 insolation_extract_mins <- min_detect(insolation_extract,pts=3)
 
 #use the astrosignal_example to tune to which is an \cr
-# ETP solution (p-0.5t la2004 solution)
+# ETP solution (p-0.5t la2004 solution).
+
 astrosignal_example <- na.omit(astrosignal_example)
 astrosignal_example[,2] <- -1*astrosignal_example[,2]
 astrosignal <- as.data.frame(astrosignal_example)
 
-#'#anchor the synthetic insolation curve extracted from the greyscale record to the insolation curve.
-#'#use the anchor_points_grey dataset to plot a result of using the anchor_points function
+#anchor the synthetic insolation curve extracted from the
+# grey scale record to the insolation curve.
+#use the anchor_points_grey data set to plot the
+#result of using the astro_anchor function
 
-#'anchor_points <- astro_anchor(
-#'astro_solution = astrosignal,
-#'proxy_signal = insolation_extract,
-#'proxy_min_or_max = "min",
-#'clip_astrosolution = FALSE,
-#'astrosolution_min_or_max = "min",
-#'clip_high = NULL,
-#'clip_low = NULL,
-#'extract_astrosolution  = FALSE,
-#'astro_period_up  = NULL,
-#'astro_period_down  = NULL,
-#'astro_period_cycle  = NULL,
-#'extract_proxy_signal  = FALSE,
-#'proxy_period_up  = NULL,
-#'proxy_period_down  = NULL,
-#'proxy_period_cycle  = NULL,
-#'pts=3,
-#'verbose=FALSE,
-#'genplot=FALSE #  set verbose to TRUE to allow for anchoring using text feedback commands
-)
+#anchor_points_grey <- astro_anchor(
+#astro_solution = astrosignal,
+#proxy_signal = insolation_extract,
+#proxy_min_or_max = "min",
+#clip_astrosolution = FALSE,
+#astrosolution_min_or_max = "min",
+#clip_high = NULL,
+#clip_low = NULL,
+#extract_astrosolution  = FALSE,
+#astro_period_up  = NULL,
+#astro_period_down  = NULL,
+#astro_period_cycle  = NULL,
+#extract_proxy_signal  = FALSE,
+#proxy_period_up  = NULL,
+#proxy_period_down  = NULL,
+#proxy_period_cycle  = NULL,
+#pts=3,
+#verbose=FALSE,
+#genplot=FALSE # set verbose to TRUE to allow for anchoring using text feedback commands
+#)
 
 
 plot_astro_anchor(astro_solution = astrosignal,
 proxy_signal = insolation_extract,
 anchor_points = anchor_points_grey,
-time_dir =TRUE,
+time_dir = FALSE,
 keep_editable = FALSE)
 
-
-)}
+}
 
 }

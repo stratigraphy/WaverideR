@@ -237,9 +237,9 @@ astrosignal_example <- na.omit(astrosignal_example)
 astrosignal_example[,2] <- -1*astrosignal_example[,2]
 astrosignal <- as.data.frame(astrosignal_example)
 
-#anchor the synthetic insolation curve extracted from the greyscale record to the insolation curve.
+#anchor the synthetic insolation curve extracted from the grey scale record to the insolation curve.
 
-anchor_points <- astro_anchor(
+anchor_pts <- astro_anchor(
 astro_solution = astrosignal,
 proxy_signal = insolation_extract,
 proxy_min_or_max = "min",

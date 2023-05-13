@@ -226,9 +226,9 @@
 #'astrosignal_example[,2] <- -1*astrosignal_example[,2]
 #'astrosignal <- as.data.frame(astrosignal_example)
 #'
-#'#anchor the synthetic insolation curve extracted from the greyscale record to the insolation curve.
+#'#anchor the synthetic insolation curve extracted from the grey scale record to the insolation curve.
 #'
-#'anchor_points <- astro_anchor(
+#'anchor_pts <- astro_anchor(
 #'astro_solution = astrosignal,
 #'proxy_signal = insolation_extract,
 #'proxy_min_or_max = "min",
@@ -276,6 +276,7 @@ astro_anchor <- function(astro_solution = NULL,
                          verbose = FALSE,
                          time_dir = TRUE,
                          genplot=FALSE) {
+
   if (clip_astrosolution == TRUE) {
     astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
@@ -750,13 +751,175 @@ astro_anchor <- function(astro_solution = NULL,
   tie_points <- tie_points[, c(1, 3, 2, 4)]
 
   if(genplot==TRUE){
-    plot_astro_anchor(astro_solution = astro_solution ,
-                                  proxy_signal = all_data_pre_max,
-                                  anchor_points = tie_points,
-                                  time_dir = time_dir,
-                                  keep_editable = FALSE)}
+
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
+    proxy_signal <- all_data_pre_max
+    anchor_pts <-  tie_points
+
+
+    if (time_dir == TRUE){
+      dev.new(width = 20,
+              height = 10,
+              noRStudioGD = TRUE)
+      par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
+      plot(x=proxy_signal[,1],
+           y=proxy_signal[,2],
+           type = "l",
+           xlab = "",
+           ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
+           ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+           xlim = (c(
+             min(proxy_signal[, 1]), max(proxy_signal[, 1])
+           )))
+      mtext(text = "Depth (metres)",
+            side = 3, #side 2 = left
+            line = 2)
+      box(lwd=2)
+      axis(3)
+      segments(x0=anchor_pts[,1],
+               y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
+               x1 = anchor_pts[,1],
+               y1 =anchor_pts[,3],
+               ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+               xlim = (c(
+                 min(proxy_signal[, 1]), max(proxy_signal[, 1])
+               )),col = "black", lwd = 2)
+
+      points(x=anchor_pts[,1],y=anchor_pts[,3],col="green",pch=19,
+             ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+             xlim = (c(
+               min(proxy_signal[, 1]), max(proxy_signal[, 1])
+             )),cex=2)
+
+
+
+
+      par(new = FALSE,mai = c(2/2.54, 2/2.54, 0.5/2.54 , 1/2.54),mgp=c(2,1,0))
+
+
+      plot(
+        astro_solution,
+        type = "l",
+        xlab = "Time",
+        ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
+      )
+      box(lwd=2)
+
+      segments(x0=anchor_pts[,2], y0=anchor_pts[,4], x1 = anchor_pts[,2],
+               y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
+               col = "black", lwd = 2)
+      points(x=anchor_pts[,2],y=anchor_pts[,4],col="red",pch=19,cex=2)
+
+
+
+      par(new = TRUE,mfrow = c(1, 1),mai = c(2/2.54, 2/2.54, 2/2.54, 1/2.54))
+      plot.new()
+      settings_dev <- dev.size("in")
+
+      plot.window(xlim = c(min(astro_solution[,1]) , max(astro_solution[,1])),
+                  ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
+
+      y0_val <- ((settings_dev[2]-((5)/2.54))/2)+1.5/2.54
+      y1_val <-  ((settings_dev[2]-((5)/2.54))/2)+(2.5)/2.54
+
+
+      fact <- (anchor_pts[,1]-min(proxy_signal[, 1]))/
+        (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
+      x1_vals <- ((max(astro_solution[, 1])-min(astro_solution[, 1]))*(fact))+min(astro_solution[, 1])
+
+
+      segments(x0=anchor_pts[,2],
+               y0=rep(y0_val,times=(nrow(anchor_pts)))
+               ,x1 = x1_vals,
+               y1 = rep(y1_val,times=(nrow(anchor_pts))),
+               col = "black", lwd = 2,lend=1)
+
+    }else{
+      dev.new(width = 20,
+              height = 10,
+              noRStudioGD = TRUE)
+      par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
+      plot(x=proxy_signal[,1],
+           y=proxy_signal[,2],
+           type = "l",
+           xlab = "",
+           ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
+           ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+           xlim = rev(c(
+             min(proxy_signal[, 1]), max(proxy_signal[, 1])
+           )))
+      mtext(text = "Depth (metres)",
+            side = 3, #side 2 = left
+            line = 2)
+      box(lwd=2)
+      axis(3)
+
+
+      segments(x0=anchor_pts[,1],
+               y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
+               x1 = anchor_pts[,1],
+               y1 =anchor_pts[,3],
+               ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+               xlim = rev(c(
+                 min(proxy_signal[, 1]), max(proxy_signal[, 1])
+               )),col = "black", lwd = 2)
+
+      points(x=anchor_pts[,1],y=anchor_pts[,3],col="green",pch=19,
+             ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+             xlim = rev(c(
+               min(proxy_signal[, 1]), max(proxy_signal[, 1])
+             )),cex=2)
+
+
+
+
+      par(new = FALSE,mai = c(2/2.54, 2/2.54, 0.5/2.54 , 1/2.54),mgp=c(2,1,0))
+
+
+      plot(
+        astro_solution,
+        type = "l",
+        xlab = "Time",
+        ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
+      )
+      box(lwd=2)
+
+      segments(x0=anchor_pts[,2], y0=anchor_pts[,4], x1 = anchor_pts[,2],
+               y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
+               col = "black", lwd = 2)
+      points(x=anchor_pts[,2],y=anchor_pts[,4],col="red",pch=19,cex=2)
+
+      par(new = TRUE,mfrow = c(1, 1),mai = c(2/2.54, 2/2.54, 2/2.54, 1/2.54))
+      plot.new()
+      settings_dev <- dev.size("in")
+
+      plot.window(xlim = c(min(astro_solution[,1]) , max(astro_solution[,1])),
+                  ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
+
+      y0_val <- ((settings_dev[2]-((5)/2.54))/2)+1.5/2.54
+      y1_val <-  ((settings_dev[2]-((5)/2.54))/2)+(2.5)/2.54
+
+
+      fact <- (anchor_pts[,1]-min(proxy_signal[, 1]))/
+        (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
+      x1_vals <- ((max(astro_solution[, 1])-min(astro_solution[, 1]))*(1-fact))+min(astro_solution[, 1])
+
+
+      segments(x0=anchor_pts[,2],
+               y0=rep(y0_val,times=(nrow(anchor_pts)))
+               ,x1 = x1_vals,
+               y1 = rep(y1_val,times=(nrow(anchor_pts))),
+               col = "black", lwd = 2,lend=1)
+    }
+
+
+    }
+
+
 
 
   return(tie_points)
+
 
 }

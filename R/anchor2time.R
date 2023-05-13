@@ -21,7 +21,7 @@
 #'# Use the age_model_zeeden example anchor points of Zeeden et al., (2013)
 #'#to anchor the grey data set of Zeeden et al., (2013) in the time domain.
 #'
-#'achored2time <- anchor2time(anchor_points=age_model_zeeden,
+#'anchored2time <- anchor2time(anchor_points=age_model_zeeden,
 #' data=grey,
 #' genplot=FALSE,
 #' keep_editable=FALSE)
