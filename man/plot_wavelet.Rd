@@ -6,17 +6,35 @@
 \usage{
 plot_wavelet(
   wavelet = NULL,
+  lowerPeriod = NULL,
+  upperPeriod = NULL,
   plot.COI = TRUE,
   n.levels = 100,
   color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
   useRaster = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  time_dir = TRUE,
+  add_line = NULL,
+  add_abline = NULL,
+  add_MTM_peaks = FALSE,
+  add_data = TRUE,
+  add_avg = FALSE,
+  add_MTM = FALSE,
+  siglvl = 0.95,
+  demean_mtm = TRUE,
+  detrend_mtm = TRUE,
+  padfac_mtm = 5,
+  tbw_mtm = 3
 )
 }
 \arguments{
 \item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+
+\item{lowerPeriod}{Lowest period value which will be plotted}
+
+\item{upperPeriod}{Highest period value which will be plotted}
 
 \item{plot.COI}{Option to plot the cone of influence \code{Default=TRUE}.}
 
@@ -24,17 +42,46 @@ plot_wavelet(
 
 \item{color.palette}{Definition of color palette \code{Default="rainbow(n.levels, start = 0, end = 0.7)"}.}
 
-\item{useRaster}{plot as a raster or vector image \code{Default=TRUE}.
+\item{useRaster}{Plot as a raster or vector image \code{Default=TRUE}.
 WARNING plotting as a vector image is computationally intensive.}
 
-\item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
+\item{periodlab}{Label for the y-axis \code{Default="Period (metres)"}.}
 
-\item{x_lab}{label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
+(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
+if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
+then time_dir should be set to FALSE \code{time_dir=TRUE}}
+
+\item{add_line}{Add a line to the wavelet plot input should be matrix with first axis being depth/time and the second
+axis being its period  \code{Default=NULL}}
+
+\item{add_abline}{Add horizontal lines to the plot specify as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+
+\item{add_MTM_peaks}{Add the MTM peak periods as horizontal lines \code{Default=FALSE}}
+
+\item{add_data}{Plot the data on top of the wavelet \code{Default=TRUE}}
+
+\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+
+\item{add_MTM}{Add the MTM  plot next to the wavelet plot \code{Default=FALSE}}
+
+\item{siglvl}{Set the significance level for the MTM analysis (0-1) \code{Default=0.95}}
+
+\item{demean_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
+
+\item{detrend_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
+
+\item{padfac_mtm}{Pad factor for the MTM analysis \code{Default=5}}
+
+\item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
 }
 \value{
 The output is a plot of a wavelet spectra.
+if add_MTM_peaks = TRUE then the output of the MTM analysis will given as matrix
 }
 \description{
 Plot wavelet spectra using the outcome of the \code{\link{analyze_wavelet}} function.
@@ -54,15 +101,28 @@ TSI_wt <-
  )
 
 plot_wavelet(
- wavelet = TSI_wt,
+wavelet = TSI_wt,
+lowerPeriod = NULL,
+upperPeriod = NULL,
 plot.COI = TRUE,
- n.levels = 100,
- color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
- useRaster = TRUE,
- periodlab = "Period (years)",
-x_lab = "years (before present)",
- keep_editable=FALSE
-)
+n.levels = 100,
+color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+useRaster = TRUE,
+periodlab = "Period (metres)",
+x_lab = "depth (metres)",
+keep_editable = FALSE,
+time_dir = TRUE,
+add_line = NULL,
+add_abline = NULL,
+add_MTM_peaks = FALSE,
+add_data = TRUE,
+add_avg = TRUE,
+add_MTM = FALSE,
+siglvl = 0.95,
+demean_mtm = TRUE,
+detrend_mtm = TRUE,
+padfac_mtm = 5,
+tbw_mtm = 3)
 
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
@@ -75,16 +135,31 @@ upperPeriod = 254,
 verbose = FALSE,
 omega_nr = 10
 )
+
 plot_wavelet(
- wavelet = mag_wt,
- plot.COI = TRUE,
- n.levels = 100,
- color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
- useRaster = TRUE,
- periodlab = "Period (metres)",
- x_lab = "depth (metres)",
-  keep_editable=FALSE
-)
+wavelet = mag_wt,
+lowerPeriod = NULL,
+upperPeriod = NULL,
+plot.COI = TRUE,
+n.levels = 100,
+color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+useRaster = TRUE,
+periodlab = "Period (metres)",
+x_lab = "depth (metres)",
+keep_editable = FALSE,
+time_dir = TRUE,
+add_line = NULL,
+add_abline = NULL,
+add_MTM_peaks = FALSE,
+add_data = TRUE,
+add_avg = TRUE,
+add_MTM = FALSE,
+siglvl = 0.95,
+demean_mtm = TRUE,
+detrend_mtm = TRUE,
+padfac_mtm = 5,
+tbw_mtm = 3)
+
 
 #Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
@@ -97,16 +172,30 @@ grey_wt <-
    verbose = FALSE,
    omega_nr = 8
  )
+
 plot_wavelet(
- wavelet = grey_wt,
- plot.COI = TRUE,
- n.levels = 100,
- color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
- useRaster = TRUE,
- periodlab = "Period (metres)",
- x_lab = "depth (metres)",
-  keep_editable=FALSE
-)
+wavelet = grey_wt,
+lowerPeriod = NULL,
+upperPeriod = NULL,
+plot.COI = TRUE,
+n.levels = 100,
+color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+useRaster = TRUE,
+periodlab = "Period (metres)",
+x_lab = "depth (metres)",
+keep_editable = FALSE,
+time_dir = TRUE,
+add_line = NULL,
+add_abline = NULL,
+add_MTM_peaks = FALSE,
+add_data = TRUE,
+add_avg = TRUE,
+add_MTM = FALSE,
+siglvl = 0.95,
+demean_mtm = TRUE,
+detrend_mtm = TRUE,
+padfac_mtm = 5,
+tbw_mtm = 3)
 
 
 
@@ -132,9 +221,13 @@ Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+
+S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
+Astrochronology: Paleoceanography, 27, PA3228, \doi{<doi:10.1029/2012PA002307>}
 }
 \author{
 Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package
 and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
 wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo (1998).
+The MTM analysis is from the astrochron R package of Meyers et al., (2012)
 }

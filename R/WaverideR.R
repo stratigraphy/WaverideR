@@ -30,6 +30,12 @@
 #' and the 'WaverideR' package is that the 'astrochron' R package relies on the Fast Fourier Transform
 #' whereas the 'WaverideR' R package relies on the continuous wavelet transform (CWT).
 #'
+#'S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
+#'Astrochronology: Paleoceanography, 27, PA3228, \doi{<doi:10.1029/2012PA002307>}
+#'The article of Meyers (2012)  explain the (Multitaper method) MTM technique implemented into The 'astrochron' R package
+#'The MTM method can be used to assign confidence levels to spectral peaks and distinguish spectral peaks
+#'from harmonic spectral peaks
+#'
 #'
 #'Acycle: Time-series analysis software for paleoclimate research and education,
 #'Mingsong Li, Linda Hinnov, Lee Kump,
