@@ -17,9 +17,12 @@
 #'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
 #'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
 #'then time_dir should be set to FALSE \code{time_dir=TRUE}
-#'@param add_line Add a line to the wavelet plot input should be matrix with first axis being depth/time and the second
-#'axis being its period  \code{Default=NULL}
-#'@param add_abline Add horizontal lines to the plot specify as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
+#'@param add_lines Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
+#'should be period values  \code{Default=NULL}
+#'@param add_points Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
+#'should be period values \code{Default=NULL}
+#'@param add_abline_h Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
+#'@param add_abline_v Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
 #'@param add_MTM_peaks Add the MTM peak periods as horizontal lines \code{Default=FALSE}
 #'@param add_data Plot the data on top of the wavelet \code{Default=TRUE}
 #'@param add_avg Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
@@ -91,8 +94,10 @@
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
 #'time_dir = TRUE,
-#'add_line = NULL,
-#'add_abline = NULL,
+#'add_lines = NULL,
+#'add_points= NULL,
+#'add_abline_h = NULL,
+#'add_abline_v = NULL,
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = TRUE,
@@ -127,8 +132,10 @@
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
 #'time_dir = TRUE,
-#'add_line = NULL,
-#'add_abline = NULL,
+#'add_lines= NULL,
+#'add_points= NULL,
+#'add_abline_h = NULL,
+#'add_abline_v = NULL,
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = TRUE,
@@ -164,8 +171,10 @@
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
 #'time_dir = TRUE,
-#'add_line = NULL,
-#'add_abline = NULL,
+#'add_lines = NULL,
+#'add_points= NULL,
+#'add_abline_h = NULL,
+#'add_abline_v = NULL,
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = TRUE,
@@ -208,8 +217,10 @@ plot_wavelet <- function(wavelet = NULL,
                          x_lab = "depth (metres)",
                          keep_editable = FALSE,
                          time_dir = TRUE,
-                         add_line = NULL,
-                         add_abline = NULL,
+                         add_lines = NULL,
+                         add_points= NULL,
+                         add_abline_h = NULL,
+                         add_abline_v = NULL,
                          add_MTM_peaks = FALSE,
                          add_data = TRUE,
                          add_avg = FALSE,
@@ -348,6 +359,11 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = xlim_vals
     )
 
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
     par(new = FALSE,mar = c(3, 2, 2, 2),
         mgp = c(2, 1, 0))
 
@@ -435,9 +451,16 @@ plot_wavelet <- function(wavelet = NULL,
       cex = par()$cex.axis
     )
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+      lines(add_lines[, 1], log2(add_lines[, i]))
+      }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
     }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -445,10 +468,14 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    add_abline <- NULL
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
 
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
 
@@ -564,6 +591,10 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = xlim_vals
 
     )
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
 
     par(new = FALSE,
         mar = c(3, 2, 2, 2),
@@ -610,10 +641,12 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    add_abline <- NULL
-    if (is.null(add_abline) != TRUE) {
-      abline(h = add_abline)
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = add_abline_h)
     }
+
+
+
 
     par(new = FALSE, mar = c(4, 4, 0, 0))
 
@@ -675,9 +708,16 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
     }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
+    }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -685,10 +725,15 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
-  }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+    }
 
   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE) {
     layout.matrix <- matrix(c(1, 0, 3, 2),
@@ -721,6 +766,10 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = xlim_vals
 
     )
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
 
 
     par(new = FALSE, mar = c(4, 0, 2, 5))
@@ -810,9 +859,16 @@ plot_wavelet <- function(wavelet = NULL,
       cex = par()$cex.axis
     )
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
     }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
+    }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -820,9 +876,15 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+
   }
 
   if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE) {
@@ -856,6 +918,11 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = xlim_vals
 
     )
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
 
     par(new = FALSE,
         mar = c(3, 2, 2, 2),
@@ -947,10 +1014,16 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
     }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
+    }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -958,10 +1031,14 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    add_abline <- NULL
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
 
 
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
@@ -983,12 +1060,11 @@ plot_wavelet <- function(wavelet = NULL,
              col = "black",
              lty = 3)
     }
-
-    if (is.null(add_abline) != TRUE) {
-      abline(h = add_abline)
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = add_abline_h)
     }
 
-    plot(
+      plot(
       y = 1 / MTM_res_1[, 1],
       x = MTM_res_1[, 2],
       type = "l",
@@ -1133,10 +1209,11 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    add_abline <- NULL
-    if (is.null(add_abline) != TRUE) {
-      abline(h = add_abline)
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = add_abline_h)
     }
+
+
 
     par(new = FALSE,
         mar = c(4, 4, 2, 0),
@@ -1200,9 +1277,14 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
+    }
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
     }
 
     if (add_MTM_peaks == TRUE) {
@@ -1211,9 +1293,20 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+
+
+
+
+
+
   }
 
   if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE) {
@@ -1362,9 +1455,10 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = add_abline)
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = add_abline_h)
     }
+
 
     par(new = FALSE,
         mar = c(4, 4, 2, 0),
@@ -1428,10 +1522,16 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
     }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
+    }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -1439,10 +1539,15 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    add_abline <- NULL
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+
   }
 
   if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE) {
@@ -1636,9 +1741,16 @@ plot_wavelet <- function(wavelet = NULL,
 
 
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
     }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
+    }
+
 
     if (add_MTM_peaks == TRUE) {
       abline(h = log2(1 / MTM_res_2[, 1]),
@@ -1646,10 +1758,15 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
-  }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+}
 
   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE) {
     layout.matrix <- matrix(c(2, 1),
@@ -1754,9 +1871,14 @@ plot_wavelet <- function(wavelet = NULL,
       cex = par()$cex.axis
     )
 
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:nrow(add_lines))
+        lines(add_lines[, 1], log2(add_lines[, i]))
+    }
 
-    if (is.null(add_line) != TRUE) {
-      lines(add_line[, 1], log2(add_line[, 2]))
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:nrow(add_points))
+        lines(add_points[, 1], log2(add_points[, i]))
     }
 
     if (add_MTM_peaks == TRUE) {
@@ -1765,9 +1887,17 @@ plot_wavelet <- function(wavelet = NULL,
              lty = 3)
     }
 
-    if (is.null(add_abline) != TRUE) {
-      abline(h = log2(add_abline))
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = log2(add_abline_h))
     }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = add_abline_v)
+    }
+
+
+
+
   }
 
   if (add_MTM_peaks == TRUE) {

@@ -16,8 +16,10 @@ plot_wavelet(
   x_lab = "depth (metres)",
   keep_editable = FALSE,
   time_dir = TRUE,
-  add_line = NULL,
-  add_abline = NULL,
+  add_lines = NULL,
+  add_points = NULL,
+  add_abline_h = NULL,
+  add_abline_v = NULL,
   add_MTM_peaks = FALSE,
   add_data = TRUE,
   add_avg = FALSE,
@@ -56,10 +58,15 @@ WARNING plotting as a vector image is computationally intensive.}
 if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
 then time_dir should be set to FALSE \code{time_dir=TRUE}}
 
-\item{add_line}{Add a line to the wavelet plot input should be matrix with first axis being depth/time and the second
-axis being its period  \code{Default=NULL}}
+\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
+should be period values  \code{Default=NULL}}
 
-\item{add_abline}{Add horizontal lines to the plot specify as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
+should be period values \code{Default=NULL}}
+
+\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+
+\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
 
 \item{add_MTM_peaks}{Add the MTM peak periods as horizontal lines \code{Default=FALSE}}
 
@@ -112,8 +119,10 @@ periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
 time_dir = TRUE,
-add_line = NULL,
-add_abline = NULL,
+add_lines = NULL,
+add_points= NULL,
+add_abline_h = NULL,
+add_abline_v = NULL,
 add_MTM_peaks = FALSE,
 add_data = TRUE,
 add_avg = TRUE,
@@ -148,8 +157,10 @@ periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
 time_dir = TRUE,
-add_line = NULL,
-add_abline = NULL,
+add_lines= NULL,
+add_points= NULL,
+add_abline_h = NULL,
+add_abline_v = NULL,
 add_MTM_peaks = FALSE,
 add_data = TRUE,
 add_avg = TRUE,
@@ -185,8 +196,10 @@ periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
 time_dir = TRUE,
-add_line = NULL,
-add_abline = NULL,
+add_lines = NULL,
+add_points= NULL,
+add_abline_h = NULL,
+add_abline_v = NULL,
 add_MTM_peaks = FALSE,
 add_data = TRUE,
 add_avg = TRUE,
