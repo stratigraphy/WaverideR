@@ -196,6 +196,7 @@
 #' @importFrom DescTools Closest
 #' @importFrom graphics abline
 
+
 plot_wavelet <- function(wavelet = NULL,
                          lowerPeriod = NULL,
                          upperPeriod = NULL,
@@ -226,7 +227,8 @@ plot_wavelet <- function(wavelet = NULL,
 
   y_lab <- periodlab
   maximum.level = max(wavelet$Power)
-  wavelet.levels = seq(from = 0, to = maximum.level, length.out = n.levels + 1)
+  power_max_mat.levels = quantile(wavelet$Power, probs = seq(from = 0,
+                                                             to = 1, length.out = n.levels + 1))
   key.cols = rev(eval(parse(text = color.palette)))
   periodtck = 0.02
   periodtcl = 0.5
@@ -245,10 +247,13 @@ plot_wavelet <- function(wavelet = NULL,
     lab.line = 2.5
   )
 
-  key.marks = round(seq(from = 0, to = 1, length.out = legend.params$n.ticks) * n.levels)
-  key.labels = formatC(as.numeric(wavelet.levels), digits = legend.params$label.digits,
-                       format = legend.params$label.format)[key.marks +
-                                                              1]
+  key.marks = round(seq(from = 0, to = 1, length.out = legend.params$n.ticks) *
+                      n.levels)
+
+  key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
+                       format = legend.params$label.format)[key.marks + 1]
+
+
   dev.new(width = 15,
           height = 7,
           noRStudioGD = TRUE)
@@ -328,7 +333,7 @@ plot_wavelet <- function(wavelet = NULL,
 
     power_max_mat.levels = quantile(pmax_avg_sel,
                                     probs = seq(
-                                      from = ,
+                                      from = 0 ,
                                       to = 1,
                                       length.out = n.levels + 1
                                     ))
@@ -344,23 +349,29 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = xlim_vals
     )
 
-    par(new = FALSE,
-        mar = c(3, 2, 2, 2),
+    par(new = FALSE,mar = c(3, 2, 2, 2),
         mgp = c(2, 1, 0))
 
-
     image(
-      y = 1,
       x = seq(from = 0, to = n.levels),
+      y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = key.cols,
+      col = rev(eval(parse(text = color.palette))),
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
-      xlab = "power",
+      xaxt = "n",
+      xlab = "Power",
       ylab = ""
     )
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl =  1.2)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex=0.75)
+    box(lwd = lwd.axis)
 
 
     par(new = FALSE,
@@ -373,7 +384,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -560,18 +571,25 @@ plot_wavelet <- function(wavelet = NULL,
         mgp = c(2, 1, 0))
 
     image(
-      y = 1,
       x = seq(from = 0, to = n.levels),
+      y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = key.cols,
+      col = rev(eval(parse(text = color.palette))),
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
-      xlab = "power",
+      xaxt = "n",
+      xlab = "Power",
       ylab = ""
     )
 
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl =  1.2 )
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex=0.75)
+    box(lwd = lwd.axis)
 
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
 
@@ -605,7 +623,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks =  power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -709,37 +727,27 @@ plot_wavelet <- function(wavelet = NULL,
     par(new = FALSE, mar = c(4, 0, 2, 5))
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(wavelet.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = useRaster,
-      xaxt = "n",
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = rev(eval(parse(text = color.palette))),
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
       yaxt = "n",
+      xaxt = "n",
       xlab = "",
-      ylab = ""
+      ylab = "",
     )
 
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
-        legend.params$width - 0.04
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
 
 
     par(new = FALSE, mar = c(4, 4, 0, 2))
@@ -749,7 +757,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -856,17 +864,25 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     image(
-      y = 1,
       x = seq(from = 0, to = n.levels),
+      y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = key.cols,
+      col = rev(eval(parse(text = color.palette))),
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
-      xlab = "power",
+      xaxt = "n",
+      xlab = "Power",
       ylab = ""
     )
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl =  1.2 )
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex=0.75)
+    box(lwd = lwd.axis)
 
 
     par(new = FALSE,
@@ -879,7 +895,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -1071,41 +1087,31 @@ plot_wavelet <- function(wavelet = NULL,
                                       to = 1,
                                       length.out = n.levels + 1
                                     ))
-    par(mar = c(4, 0, 2, 3))
+    par(mar = c(4, 0, 2, 5))
 
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(wavelet.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = useRaster,
-      xaxt = "n",
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = rev(eval(parse(text = color.palette))),
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
       yaxt = "n",
+      xaxt = "n",
       xlab = "",
-      ylab = ""
+      ylab = "",
     )
 
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
-        legend.params$width - 0.04
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
 
 
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
@@ -1142,7 +1148,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -1231,41 +1237,30 @@ plot_wavelet <- function(wavelet = NULL,
                                       length.out = n.levels + 1
                                     ))
 
-    par(mar = c(4, 0, 2, 3))
+    par(mar = c(4, 0, 2, 5))
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(wavelet.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = useRaster,
-      xaxt = "n",
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = rev(eval(parse(text = color.palette))),
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
       yaxt = "n",
+      xaxt = "n",
       xlab = "",
-      ylab = ""
+      ylab = "",
     )
 
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
-        legend.params$width - 0.04
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
 
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
 
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
 
@@ -1381,7 +1376,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -1470,41 +1465,30 @@ plot_wavelet <- function(wavelet = NULL,
                                       to = 1,
                                       length.out = n.levels + 1
                                     ))
-    par(mar = c(4, 0, 2, 3))
-
+    par(mar = c(4, 0, 2, 5))
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(wavelet.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = useRaster,
-      xaxt = "n",
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = rev(eval(parse(text = color.palette))),
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
       yaxt = "n",
+      xaxt = "n",
       xlab = "",
-      ylab = ""
+      ylab = "",
     )
 
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
-        legend.params$width - 0.04
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
 
 
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
@@ -1599,7 +1583,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
@@ -1688,37 +1672,28 @@ plot_wavelet <- function(wavelet = NULL,
     par(mar = c(4, 0, 2, 5))
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(wavelet.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = useRaster,
-      xaxt = "n",
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = rev(eval(parse(text = color.palette))),
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
       yaxt = "n",
+      xaxt = "n",
       xlab = "",
-      ylab = ""
+      ylab = "",
     )
 
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
-        legend.params$width - 0.04
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
+
 
 
     par(new = FALSE, mar = c(4, 4, 2, 0.5))
@@ -1728,7 +1703,7 @@ plot_wavelet <- function(wavelet = NULL,
       y = wavelet$axis.2,
       z = t(wavelet$Power),
       col = key.cols,
-      breaks = wavelet.levels,
+      breaks = power_max_mat.levels,
       useRaster = TRUE,
       ylab = periodlab,
       xlab = "depth metres",
