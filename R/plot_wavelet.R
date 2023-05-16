@@ -452,12 +452,12 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
       lines(add_lines[, 1], log2(add_lines[, i]))
       }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -709,12 +709,12 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -860,12 +860,12 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -1015,12 +1015,12 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -1278,12 +1278,12 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -1523,12 +1523,12 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -1742,12 +1742,12 @@ plot_wavelet <- function(wavelet = NULL,
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
@@ -1872,12 +1872,12 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:nrow(add_lines))
+      for (i  in 2:ncol(add_lines))
         lines(add_lines[, 1], log2(add_lines[, i]))
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:nrow(add_points))
+      for (i  in 2:ncol(add_points))
         lines(add_points[, 1], log2(add_points[, i]))
     }
 
