@@ -253,7 +253,7 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
-    plot_wavelet(
+ res <- plot_wavelet(
       wavelet = wavelet,
       plot.COI = TRUE,
       n.levels = 100,
@@ -261,8 +261,22 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       useRaster = TRUE,
       periodlab = "Period (metres)",
       x_lab = "depth (metres)",
-      keep_editable = TRUE
-      )
+      keep_editable = TRUE,
+      add_lines = NULL,
+      add_points= NULL,
+      add_abline_h = NULL,
+      add_abline_v = NULL,
+      add_MTM_peaks = FALSE,
+      add_data = TRUE,
+      add_avg = FALSE,
+      add_MTM = FALSE,
+      siglvl = 0.95,
+      demean_mtm = TRUE,
+      detrend_mtm = TRUE,
+      padfac_mtm = 5,
+      tbw_mtm = 3)
+
+
 
     lines(data[, 1], log2(1 / data$f0), lwd = 2)
     lines(data[, 1], log2(1 / (data$f0 - data$sd_morlet * multi)), col =

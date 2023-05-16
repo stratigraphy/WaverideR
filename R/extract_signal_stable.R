@@ -80,7 +80,6 @@ extract_signal_stable <- function(wavelet = NULL,
   Wave = my.w$Wave
   Power = my.w$Power
 
-
   nc = my.w$nc
   nr = my.w$nr
   dt = my.w$dt
