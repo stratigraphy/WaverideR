@@ -189,15 +189,15 @@ sum_power_sedrate  <- function(red_noise = NULL,
     seq(from = sedrate_low, to = sedrate_high, by = spacing)
   testsedrates <- as.data.frame(testsedrates)
 
+
   if (run_multicore == TRUE) {
     numCores <- detectCores()
-    cl <- makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  }
-  else{
+    cl <- parallel::makeCluster(numCores - 2)
+    doSNOW::registerDoSNOW(cl)
+  }else{
     numCores <- 1
-    cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
+    cl <- parallel::makeCluster(numCores)
+    doSNOW::registerDoSNOW(cl)
   }
 
 
@@ -229,8 +229,7 @@ sum_power_sedrate  <- function(red_noise = NULL,
       maxdetect_new3[, 2] <- maxdetect_new3[, 2]#*prob_threshold
       maxdetect_new3 <- maxdetect_new3[maxdetect_new3$power > 0, ]
       Power_sel[, 2] <- Power_sel[, 2] * prob_threshold
-      Power_sel[, 2] <-
-        (Power_sel[, 2] * (probabillity[, 2]) * max(probabillity[, 2]))
+      Power_sel[, 2] <-(Power_sel[, 2] * probabillity[, 2]) #* max(probabillity[, 2])
       colnames(Power_sel) <- c("Period", "power")
 
       for (ij in 1:nrow(testsedrates)) {
@@ -312,8 +311,7 @@ sum_power_sedrate  <- function(red_noise = NULL,
           nr_compenents[nr_compenents[, 1] > 0, 1] <- 1
           nr_compenents <- sum(nr_compenents[, 1])
           #calc <-sum(calc)/max(Power_sel[,2])
-          calc <-
-            ((sum(calc) - min(Power_sel[, 2])) / (max(Power_sel[, 2]) - min(Power_sel[, 2]))) *
+          calc <-((sum(calc) - min(Power_sel[, 2])) / (max(Power_sel[, 2]) - min(Power_sel[, 2]))) *
             (nr_compenents / length(cycles))
           calc[!is.finite(calc)] <- 0
         }
@@ -375,9 +373,9 @@ sum_power_sedrate  <- function(red_noise = NULL,
       widths = c(8, 2, 2)
     )
 
-    par(mar = c(4, 4, 2, 3))
+    par(mar = c(4, 4, 2, 0))
 
-    pmax_avg <- t(results[plot_res])
+    pmax_avg <- t(results[[plot_res]])
 
 
     n.levels = 100
@@ -410,15 +408,21 @@ sum_power_sedrate  <- function(red_noise = NULL,
     )
 
     r_sum <- colMeans(pmax_avg)
+
+    par(new=FALSE, mar = c(4, 0, 2, 0.5))
+
     plot(
       y = y_axis,
       x = r_sum,
       type = "l",
       ylim = c(min(y_axis), max(y_axis)),
       yaxs = "i",
+      yaxt = "n",
       xlab = "normalized power",
       ylab = y_lab
     )
+
+    par(new=FALSE, mar = c(4, 0.5, 2, 5))
 
     lwd.axis = 1
     n.ticks = 6
@@ -476,5 +480,6 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
     box(lwd = lwd.axis)
   }
-return(results)
+  return(results)
 }
+
