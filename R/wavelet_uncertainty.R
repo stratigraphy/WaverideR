@@ -260,8 +260,9 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
       useRaster = TRUE,
       periodlab = "Period (metres)",
-      x_lab = "depth (metres)"
-    )
+      x_lab = "depth (metres)",
+      keep_editable = TRUE
+      )
 
     lines(data[, 1], log2(1 / data$f0), lwd = 2)
     lines(data[, 1], log2(1 / (data$f0 - data$sd_morlet * multi)), col =
