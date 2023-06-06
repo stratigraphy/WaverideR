@@ -169,14 +169,14 @@ model_red_noise_wt <- function(wavelet = NULL,
       .combine = 'cbind',
       .options.snow = opts
     ) %dopar% {
-      #phi_data_2 <- truncnorm::rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5) #old option
+      phi_data_2 <- truncnorm::rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5) #old option
       x <-
         (
           colorednoise::colored_noise(
             timesteps = timesteps_data,
             mean = mean_data,
             sd = sd_data,
-            phi_data
+            phi_data_2
           )
         )
 

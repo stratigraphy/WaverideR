@@ -13,6 +13,8 @@
 #'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
 #'@param x_lab Label for the x-axis \code{Default="depth (metres)"}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#'@param dev_new Opens a new plotting window to plot the plot, this gaurantees a "nice" looking plot however when plotting in an R markdown
+#'document the plot might not plot  \code{Default=TRUE}
 #'@param time_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 #'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
 #'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
@@ -93,6 +95,7 @@
 #'periodlab = "Period (metres)",
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
+#'dev_new=TRUE,
 #'time_dir = TRUE,
 #'add_lines = NULL,
 #'add_points= NULL,
@@ -131,6 +134,7 @@
 #'periodlab = "Period (metres)",
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
+#'dev_new=TRUE,
 #'time_dir = TRUE,
 #'add_lines= NULL,
 #'add_points= NULL,
@@ -170,6 +174,7 @@
 #'periodlab = "Period (metres)",
 #'x_lab = "depth (metres)",
 #'keep_editable = FALSE,
+#'dev_new=TRUE,
 #'time_dir = TRUE,
 #'add_lines = NULL,
 #'add_points= NULL,
@@ -216,6 +221,7 @@ plot_wavelet <- function(wavelet = NULL,
                          periodlab = "Period (metres)",
                          x_lab = "depth (metres)",
                          keep_editable = FALSE,
+                         dev_new=TRUE,
                          time_dir = TRUE,
                          add_lines = NULL,
                          add_points= NULL,
@@ -263,10 +269,10 @@ plot_wavelet <- function(wavelet = NULL,
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
 
-
+if(dev_new=TRUE){
   dev.new(width = 15,
           height = 7,
-          noRStudioGD = TRUE)
+          noRStudioGD = TRUE)}
 
 
   y_axis <- as.numeric(unlist(wavelet$Period))
