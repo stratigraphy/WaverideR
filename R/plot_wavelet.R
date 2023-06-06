@@ -269,7 +269,7 @@ plot_wavelet <- function(wavelet = NULL,
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
 
-if(dev_new=TRUE){
+if(dev_new==TRUE){
   dev.new(width = 15,
           height = 7,
           noRStudioGD = TRUE)}
