@@ -26,7 +26,29 @@
 #'The blue curve is period of the tracked curve min the analytical uncertainty.
 #'The  black curve is the curve tracked using the '\code{Default=tracked_cycle_curve} function \code{Default=TRUE}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'
+
+#'@param palette_name Name of the color palette which is used for plotting.
+#'The color palettes than can be chosen depends on which the R package is specified in
+#'the color_brewer parameter. The included R packages from which palettes can be chosen
+#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages \code{Default=rainbow}.
+#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
+#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
+#'To see the color palette options of the The R pacakge 'RColorBrewer' run
+#'the RColorBrewer::brewer.pal.info() function
+#'The R package 'colorRamps' has the color palette options:"blue2green",
+#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
+#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
+#'The R package 'grDevices' has the built in  palette options:"rainbow",
+#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
+#'To see even more color palette options of the The R pacakge 'grDevices' run
+#'the grDevices::hcl.pals() function
+#'@param color_brewer Name of the R package from which the color palette is chosen from.
+#'The included R packages from which palettes can be chosen
+#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages. "\code{Default=grDevices}
 #'
 #'@return Results pertaining to the uncertainty calculated based on the Gabor uncertainty principle.\cr
 #'If the genplot_time is TRUE then a depth time plot will be plotted with 3 lines, the mean age,age plus
@@ -103,7 +125,9 @@
 #'#                                   wavelet=mag_wt,
 #'#                                   n.levels = 100,
 #'#                                   periodlab = "Period (metres)",
-#'#                                   x_lab = "depth (metres)")
+#'#                                   x_lab = "depth (metres)",
+#'#                                palette_name="rainbow",
+#'#                                color_brewer= "grDevices")
 #'
 #'#Instead of tracking, the tracked solution data set mag_track_solution is used
 #'mag_track <- mag_track_solution
@@ -130,7 +154,9 @@
 #'   genplot_time = FALSE,
 #'   genplot_uncertainty = FALSE,
 #'   genplot_uncertainty_wt = FALSE,
-#'   keep_editable=FALSE
+#'   keep_editable=FALSE,
+#'   palette_name="rainbow",
+#'   color_brewer= "grDevices"
 #' )
 #'}
 #' @export
@@ -149,7 +175,9 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
                                 genplot_time = FALSE,
                                 genplot_uncertainty = FALSE,
                                 genplot_uncertainty_wt = FALSE,
-                                keep_editable = FALSE) {
+                                keep_editable = FALSE,
+                                palette_name="rainbow",
+                                color_brewer= "grDevices"){
   data <- tracked_cycle[, c(1, 2)]
   ncycles <- wavelet$omega_nr
   b <- (2 * sqrt(2 * log(2)))
@@ -253,11 +281,13 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
+
  res <- plot_wavelet(
       wavelet = wavelet,
       plot.COI = TRUE,
       n.levels = 100,
-      color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+      palette_name = palette_name,
+      color_brewer= color_brewer,
       useRaster = TRUE,
       periodlab = "Period (metres)",
       x_lab = "depth (metres)",

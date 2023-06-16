@@ -16,6 +16,28 @@
 #'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
 #'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes
 #'@param genplot Generate plot \code{Default="FALSE"}
+#'@param palette_name Name of the color palette which is used for plotting.
+#'The color palettes than can be chosen depends on which the R package is specified in
+#'the color_brewer parameter. The included R packages from which palettes can be chosen
+#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages \code{Default=rainbow}.
+#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
+#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
+#'To see the color palette options of the The R pacakge 'RColorBrewer' run
+#'the RColorBrewer::brewer.pal.info() function
+#'The R package 'colorRamps' has the color palette options:"blue2green",
+#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
+#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
+#'The R package 'grDevices' has the built in  palette options:"rainbow",
+#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
+#'To see even more color palette options of the The R pacakge 'grDevices' run
+#'the grDevices::hcl.pals() function
+#'@param color_brewer Name of the R package from which the color palette is chosen from.
+#'The included R packages from which palettes can be chosen
+#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages. "\code{Default=grDevices}
 #'@param plot_res options 1-8 option 1: slope coefficient, option 2: r squared,
 #'option 3: nr of components, option 4: difference to the  origin , option 5: slope coefficient percentile
 #'option 6: r squared percentile, option 7: nr of components percentile,
@@ -63,6 +85,8 @@
 #'     rand_simulations = 1000,
 #'     run_multicore = FALSE,
 #'     genplot = FALSE,
+#'     palette_name = "rainbow",
+#'     color_brewer = "grDevices",
 #'     plot_res = 2,
 #'     keep_editable=FALSE,
 #'     verbose=FALSE)
@@ -124,6 +148,8 @@ flmw  <- function(wavelet = NULL,
                   rand_simulations = 1000,
                   run_multicore = FALSE,
                   genplot = FALSE,
+                  palette_name = "rainbow",
+                  color_brewer = "grDevices",
                   plot_res = 2,
                   keep_editable = FALSE,
                   verbose=FALSE) {
@@ -477,6 +503,8 @@ flmw  <- function(wavelet = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
+
+
     dev.new(width = 14, height = 7)
     layout.matrix <- matrix(c(1, 2, 3), nrow = 1, ncol = 3)
     layout(
@@ -500,8 +528,38 @@ flmw  <- function(wavelet = NULL,
 
 
     image.plt = par()$plt
-    color.palette = "rainbow(n.levels, start = 0, end = 0.7)"
-    key.cols = rev(eval(parse(text = color.palette)))
+    if (color_brewer== "RColorBrewer"){
+      key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
+
+    }
+
+
+    if (color_brewer== "colorRamps"){
+      color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
+      key.cols = eval(parse(text = color_brewer_Sel))
+    }
+
+
+    if (color_brewer == "grDevices"){
+      if (palette_name == "rainbow"){
+        color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
+        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+      }
+      else if (palette_name == "heat.colors"|
+               palette_name == "terrain.colors"|
+               palette_name == "topo.colors"|
+               palette_name == "cm.colors"){
+        color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
+        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+      }
+      else{key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
+
+
+
+    if (color_brewer== "viridis"){
+      color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
+      key.cols = rev(eval(parse(text = color_brewer_Sel)))
+    }
 
 
     depth <- (my.data[, 1])

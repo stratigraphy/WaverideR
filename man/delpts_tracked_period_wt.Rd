@@ -9,7 +9,9 @@ delpts_tracked_period_wt(
   wavelet = NULL,
   n.levels = 100,
   periodlab = "Period (metres)",
-  x_lab = "depth (metres)"
+  x_lab = "depth (metres)",
+  palette_name = "rainbow",
+  color_brewer = "grDevices"
 )
 }
 \arguments{
@@ -22,6 +24,30 @@ delpts_tracked_period_wt(
 \item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
 
 \item{x_lab}{label for the x-axis \code{Default="depth (metres)"}.}
+
+\item{palette_name}{Name of the color palette which is used for plotting.
+The color palettes than can be chosen depends on which the R package is specified in
+the color_brewer parameter. The included R packages from which palettes can be chosen
+from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
+There are many options to choose from so please
+read the documentation of these packages \code{Default=rainbow}.
+The R package 'viridis' has the color palette options: “magma”, “plasma”,
+“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
+To see the color palette options of the The R pacakge 'RColorBrewer' run
+the RColorBrewer::brewer.pal.info() function
+The R package 'colorRamps' has the color palette options:"blue2green",
+"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
+"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
+The R package 'grDevices' has the built in  palette options:"rainbow",
+"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
+To see even more color palette options of the The R pacakge 'grDevices' run
+the grDevices::hcl.pals() function}
+
+\item{color_brewer}{Name of the R package from which the color palette is chosen from.
+The included R packages from which palettes can be chosen
+are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+There are many options to choose from so please
+read the documentation of these packages. "\code{Default=grDevices}}
 }
 \value{
 The results of the deletion of the tracking points is a matrix with 3 columns.
@@ -52,7 +78,9 @@ omega_nr = 10)
 #                                   wavelet=mag_wt,
 #                                   n.levels = 100,
 #                                   periodlab = "Period (metres)",
-#                                   x_lab = "depth (metres)")
+#                                   x_lab = "depth (metres)"
+#                                    palette_name ="rainbow",
+#                                    color_brewer ="grDevices)
 
 #load the mag_track_solution data set to get an example data set from which
 #data points can be deleted
@@ -62,7 +90,9 @@ mag_track_corr <- delpts_tracked_period_wt(tracking_pts = mag_track_solution,
                                     wavelet = mag_wt,
                                     n.levels = 100,
                                     periodlab = "Period (metres)",
-                                    x_lab = "depth (metres)")
+                                    x_lab = "depth (metres)",
+                                   palette_name ="rainbow",
+                                   color_brewer ="grDevices")
 }
 
 }

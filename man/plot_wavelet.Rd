@@ -10,11 +10,13 @@ plot_wavelet(
   upperPeriod = NULL,
   plot.COI = TRUE,
   n.levels = 100,
-  color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+  palette_name = "rainbow",
+  color_brewer = "grDevices",
   useRaster = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   keep_editable = FALSE,
+  dev_new = TRUE,
   time_dir = TRUE,
   add_lines = NULL,
   add_points = NULL,
@@ -42,7 +44,29 @@ plot_wavelet(
 
 \item{n.levels}{Number of color levels \code{Default=100}.}
 
-\item{color.palette}{Definition of color palette \code{Default="rainbow(n.levels, start = 0, end = 0.7)"}.}
+\item{palette_name}{Name of the color palette which is used for plotting.
+The color palettes than can be chosen depends on which the R package is specified in
+the color_brewer parameter. The included R packages from which palettes can be chosen
+from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
+There are many options to choose from so please
+read the documentation of these packages \code{Default=rainbow}.
+The R package 'viridis' has the color palette options: “magma”, “plasma”,
+“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
+To see the color palette options of the The R pacakge 'RColorBrewer' run
+the RColorBrewer::brewer.pal.info() function
+The R package 'colorRamps' has the color palette options:"blue2green",
+"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
+"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
+The R package 'grDevices' has the built in  palette options:"rainbow",
+"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
+To see even more color palette options of the The R pacakge 'grDevices' run
+the grDevices::hcl.pals() function}
+
+\item{color_brewer}{Name of the R package from which the color palette is chosen from.
+The included R packages from which palettes can be chosen
+are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+There are many options to choose from so please
+read the documentation of these packages. "\code{Default=grDevices}}
 
 \item{useRaster}{Plot as a raster or vector image \code{Default=TRUE}.
 WARNING plotting as a vector image is computationally intensive.}
@@ -52,6 +76,9 @@ WARNING plotting as a vector image is computationally intensive.}
 \item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{dev_new}{Opens a new plotting window to plot the plot, this gaurantees a "nice" looking plot however when plotting in an R markdown
+document the plot might not plot  \code{Default=TRUE}}
 
 \item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
@@ -97,6 +124,7 @@ Plot wavelet spectra using the outcome of the \code{\link{analyze_wavelet}} func
 \donttest{
 #Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 # data set of Steinhilber et al., (2012)
+
 TSI_wt <-
  analyze_wavelet(
    data = TSI,
@@ -108,30 +136,32 @@ TSI_wt <-
  )
 
 plot_wavelet(
-wavelet = TSI_wt,
-lowerPeriod = NULL,
-upperPeriod = NULL,
-plot.COI = TRUE,
-n.levels = 100,
-color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
-useRaster = TRUE,
-periodlab = "Period (metres)",
-x_lab = "depth (metres)",
-keep_editable = FALSE,
-time_dir = TRUE,
-add_lines = NULL,
-add_points= NULL,
-add_abline_h = NULL,
-add_abline_v = NULL,
-add_MTM_peaks = FALSE,
-add_data = TRUE,
-add_avg = TRUE,
-add_MTM = FALSE,
-siglvl = 0.95,
-demean_mtm = TRUE,
-detrend_mtm = TRUE,
-padfac_mtm = 5,
-tbw_mtm = 3)
+ wavelet = TSI_wt,
+ lowerPeriod = NULL,
+ upperPeriod = NULL,
+ plot.COI = TRUE,
+ n.levels = 100,
+ palette_name = "rainbow",
+color_brewer= "grDevices",
+ useRaster = TRUE,
+ periodlab = "Period (metres)",
+ x_lab = "depth (metres)",
+ keep_editable = FALSE,
+ dev_new=TRUE,
+ time_dir = TRUE,
+ add_lines = NULL,
+ add_points= NULL,
+ add_abline_h = NULL,
+ add_abline_v = NULL,
+ add_MTM_peaks = FALSE,
+ add_data = TRUE,
+ add_avg = TRUE,
+ add_MTM = FALSE,
+ siglvl = 0.95,
+ demean_mtm = TRUE,
+ detrend_mtm = TRUE,
+ padfac_mtm = 5,
+ tbw_mtm = 3)
 
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
@@ -151,11 +181,13 @@ lowerPeriod = NULL,
 upperPeriod = NULL,
 plot.COI = TRUE,
 n.levels = 100,
-color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+palette_name = "rainbow",
+color_brewer= "grDevices",
 useRaster = TRUE,
 periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
+dev_new=TRUE,
 time_dir = TRUE,
 add_lines= NULL,
 add_points= NULL,
@@ -190,11 +222,13 @@ lowerPeriod = NULL,
 upperPeriod = NULL,
 plot.COI = TRUE,
 n.levels = 100,
-color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+palette_name = "rainbow",
+color_brewer= "grDevices",
 useRaster = TRUE,
 periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
+dev_new=TRUE,
 time_dir = TRUE,
 add_lines = NULL,
 add_points= NULL,

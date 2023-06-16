@@ -7,7 +7,28 @@
 #'@param upperPeriod Highest period value which will be plotted
 #'@param plot.COI Option to plot the cone of influence \code{Default=TRUE}.
 #'@param n.levels  Number of color levels \code{Default=100}.
-#'@param color.palette Definition of color palette \code{Default="rainbow(n.levels, start = 0, end = 0.7)"}.
+#'@param palette_name Name of the color palette which is used for plotting.
+#'The color palettes than can be chosen depends on which the R package is specified in
+#'the color_brewer parameter. The included R packages from which palettes can be chosen
+#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages \code{Default=rainbow}.
+#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
+#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
+#'To see the color palette options of the The R pacakge 'RColorBrewer' run
+#'the RColorBrewer::brewer.pal.info() function
+#'The R package 'colorRamps' has the color palette options:"blue2green",
+#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
+#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
+#'The R package 'grDevices' has the built in  palette options:"rainbow",
+#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
+#'To see even more color palette options of the The R pacakge 'grDevices' run
+#'the grDevices::hcl.pals() function
+#'@param color_brewer Name of the R package from which the color palette is chosen from.
+#'The included R packages from which palettes can be chosen
+#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+#'There are many options to choose from so please
+#'read the documentation of these packages. "\code{Default=grDevices}
 #'@param useRaster Plot as a raster or vector image \code{Default=TRUE}.
 #'WARNING plotting as a vector image is computationally intensive.
 #'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
@@ -74,6 +95,7 @@
 #' \donttest{
 #'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 #'# data set of Steinhilber et al., (2012)
+#'
 #'TSI_wt <-
 #'  analyze_wavelet(
 #'    data = TSI,
@@ -85,31 +107,32 @@
 #'  )
 #'
 #'plot_wavelet(
-#'wavelet = TSI_wt,
-#'lowerPeriod = NULL,
-#'upperPeriod = NULL,
-#'plot.COI = TRUE,
-#'n.levels = 100,
-#'color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
-#'useRaster = TRUE,
-#'periodlab = "Period (metres)",
-#'x_lab = "depth (metres)",
-#'keep_editable = FALSE,
-#'dev_new=TRUE,
-#'time_dir = TRUE,
-#'add_lines = NULL,
-#'add_points= NULL,
-#'add_abline_h = NULL,
-#'add_abline_v = NULL,
-#'add_MTM_peaks = FALSE,
-#'add_data = TRUE,
-#'add_avg = TRUE,
-#'add_MTM = FALSE,
-#'siglvl = 0.95,
-#'demean_mtm = TRUE,
-#'detrend_mtm = TRUE,
-#'padfac_mtm = 5,
-#'tbw_mtm = 3)
+#'  wavelet = TSI_wt,
+#'  lowerPeriod = NULL,
+#'  upperPeriod = NULL,
+#'  plot.COI = TRUE,
+#'  n.levels = 100,
+#'  palette_name = "rainbow",
+#' color_brewer= "grDevices",
+#'  useRaster = TRUE,
+#'  periodlab = "Period (metres)",
+#'  x_lab = "depth (metres)",
+#'  keep_editable = FALSE,
+#'  dev_new=TRUE,
+#'  time_dir = TRUE,
+#'  add_lines = NULL,
+#'  add_points= NULL,
+#'  add_abline_h = NULL,
+#'  add_abline_v = NULL,
+#'  add_MTM_peaks = FALSE,
+#'  add_data = TRUE,
+#'  add_avg = TRUE,
+#'  add_MTM = FALSE,
+#'  siglvl = 0.95,
+#'  demean_mtm = TRUE,
+#'  detrend_mtm = TRUE,
+#'  padfac_mtm = 5,
+#'  tbw_mtm = 3)
 #'
 #'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #'#data set of Pas et al., (2018)
@@ -129,7 +152,8 @@
 #'upperPeriod = NULL,
 #'plot.COI = TRUE,
 #'n.levels = 100,
-#'color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+#' palette_name = "rainbow",
+#' color_brewer= "grDevices",
 #'useRaster = TRUE,
 #'periodlab = "Period (metres)",
 #'x_lab = "depth (metres)",
@@ -169,7 +193,8 @@
 #'upperPeriod = NULL,
 #'plot.COI = TRUE,
 #'n.levels = 100,
-#'color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+#' palette_name = "rainbow",
+#' color_brewer= "grDevices",
 #'useRaster = TRUE,
 #'periodlab = "Period (metres)",
 #'x_lab = "depth (metres)",
@@ -209,14 +234,41 @@
 #' @importFrom astrochron mtm
 #' @importFrom DescTools Closest
 #' @importFrom graphics abline
-
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
 
 plot_wavelet <- function(wavelet = NULL,
                          lowerPeriod = NULL,
                          upperPeriod = NULL,
                          plot.COI = TRUE,
                          n.levels = 100,
-                         color.palette = "rainbow(n.levels, start = 0, end = 0.7)",
+                         palette_name = "rainbow",
+                         color_brewer= "grDevices",
                          useRaster = TRUE,
                          periodlab = "Period (metres)",
                          x_lab = "depth (metres)",
@@ -245,7 +297,43 @@ plot_wavelet <- function(wavelet = NULL,
   maximum.level = max(wavelet$Power)
   power_max_mat.levels = quantile(wavelet$Power, probs = seq(from = 0,
                                                              to = 1, length.out = n.levels + 1))
-  key.cols = rev(eval(parse(text = color.palette)))
+
+
+  if (color_brewer== "RColorBrewer"){
+    key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
+
+  }
+
+
+  if (color_brewer== "colorRamps"){
+    color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
+    key.cols = eval(parse(text = color_brewer_Sel))
+  }
+
+
+  if (color_brewer == "grDevices"){
+    if (palette_name == "rainbow"){
+      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
+      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+    }
+    else if (palette_name == "heat.colors"|
+             palette_name == "terrain.colors"|
+             palette_name == "topo.colors"|
+             palette_name == "cm.colors"){
+      color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
+      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+    }
+    else{
+      key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
+
+
+
+  if (color_brewer== "viridis"){
+    color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
+    key.cols = rev(eval(parse(text = color_brewer_Sel)))
+  }
+
+
   periodtck = 0.02
   periodtcl = 0.5
   main = NULL
@@ -269,10 +357,10 @@ plot_wavelet <- function(wavelet = NULL,
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
 
-if(dev_new==TRUE){
-  dev.new(width = 15,
-          height = 7,
-          noRStudioGD = TRUE)}
+  if(dev_new==TRUE){
+    dev.new(width = 15,
+            height = 7,
+            noRStudioGD = TRUE)}
 
 
   y_axis <- as.numeric(unlist(wavelet$Period))
@@ -373,12 +461,13 @@ if(dev_new==TRUE){
     par(new = FALSE,mar = c(3, 2, 2, 2),
         mgp = c(2, 1, 0))
 
+
     image(
       x = seq(from = 0, to = n.levels),
       y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -459,8 +548,8 @@ if(dev_new==TRUE){
 
     if (is.null(add_lines) != TRUE) {
       for (i  in 2:ncol(add_lines))
-      lines(add_lines[, 1], log2(add_lines[, i]))
-      }
+        lines(add_lines[, 1], log2(add_lines[, i]))
+    }
 
     if (is.null(add_points) != TRUE) {
       for (i  in 2:ncol(add_points))
@@ -611,7 +700,7 @@ if(dev_new==TRUE){
       y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -739,7 +828,7 @@ if(dev_new==TRUE){
       abline(v = add_abline_v)
     }
 
-    }
+  }
 
   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE) {
     layout.matrix <- matrix(c(1, 0, 3, 2),
@@ -785,7 +874,7 @@ if(dev_new==TRUE){
       x = 1,
       z = (matrix(power_max_mat.levels,
                   nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -940,7 +1029,7 @@ if(dev_new==TRUE){
       y = 1,
       z = t(matrix(power_max_mat.levels,
                    nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -1070,7 +1159,7 @@ if(dev_new==TRUE){
       abline(h = add_abline_h)
     }
 
-      plot(
+    plot(
       y = 1 / MTM_res_1[, 1],
       x = MTM_res_1[, 2],
       type = "l",
@@ -1176,7 +1265,7 @@ if(dev_new==TRUE){
       x = 1,
       z = (matrix(power_max_mat.levels,
                   nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -1342,7 +1431,7 @@ if(dev_new==TRUE){
       x = 1,
       z = (matrix(power_max_mat.levels,
                   nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col =key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -1582,7 +1671,7 @@ if(dev_new==TRUE){
       x = 1,
       z = (matrix(power_max_mat.levels,
                   nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
@@ -1772,7 +1861,7 @@ if(dev_new==TRUE){
       abline(v = add_abline_v)
     }
 
-}
+  }
 
   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE) {
     layout.matrix <- matrix(c(2, 1),
@@ -1798,7 +1887,7 @@ if(dev_new==TRUE){
       x = 1,
       z = (matrix(power_max_mat.levels,
                   nrow = 1)),
-      col = rev(eval(parse(text = color.palette))),
+      col = key.cols,
       breaks = power_max_mat.levels,
       useRaster = TRUE,
       yaxt = "n",
