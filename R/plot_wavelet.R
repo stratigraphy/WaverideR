@@ -219,9 +219,8 @@
 #'tbw_mtm = 3,
 #'plot_horizontal=TRUE)
 #'
-#'
-#'
 #'}
+#'
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
