@@ -34,7 +34,7 @@
 #'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
 #'@param x_lab Label for the x-axis \code{Default="depth (metres)"}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param dev_new Opens a new plotting window to plot the plot, this gaurantees a "nice" looking plot however when plotting in an R markdown
+#'@param dev_new Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
 #'document the plot might not plot  \code{Default=TRUE}
 #'@param time_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 #'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
@@ -55,6 +55,7 @@
 #'@param detrend_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}
 #'@param padfac_mtm Pad factor for the MTM analysis \code{Default=5}
 #'@param tbw_mtm time bandwidth product of the MTM analysis  \code{Default=3}
+#'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}
 #'
 #'
 #' @return
@@ -86,10 +87,10 @@
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+#'  Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
 #'
 #'S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
-#'Astrochronology: Paleoceanography, 27, PA3228, \doi{<doi:10.1029/2012PA002307>}
+#'Astrochronology: Paleoceanography, 27, PA3228, <\doi{doi:10.1029/2012PA002307}>
 #'
 #' @examples
 #' \donttest{
@@ -132,7 +133,8 @@
 #'  demean_mtm = TRUE,
 #'  detrend_mtm = TRUE,
 #'  padfac_mtm = 5,
-#'  tbw_mtm = 3)
+#'  tbw_mtm = 3,
+#'  plot_horizontal=TRUE)
 #'
 #'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #'#data set of Pas et al., (2018)
@@ -172,7 +174,8 @@
 #'demean_mtm = TRUE,
 #'detrend_mtm = TRUE,
 #'padfac_mtm = 5,
-#'tbw_mtm = 3)
+#'tbw_mtm = 3,
+#'plot_horizontal=TRUE)
 #'
 #'
 #'#Example 3. A plot of a wavelet spectra using the greyscale
@@ -213,7 +216,8 @@
 #'demean_mtm = TRUE,
 #'detrend_mtm = TRUE,
 #'padfac_mtm = 5,
-#'tbw_mtm = 3)
+#'tbw_mtm = 3,
+#'plot_horizontal=TRUE)
 #'
 #'
 #'
@@ -227,6 +231,7 @@
 #' @importFrom graphics text
 #' @importFrom graphics box
 #' @importFrom graphics polygon
+#' @importFrom graphics title
 #' @importFrom grDevices rgb
 #' @importFrom WaveletComp analyze.wavelet
 #' @importFrom WaveletComp wt.image
@@ -234,6 +239,33 @@
 #' @importFrom astrochron mtm
 #' @importFrom DescTools Closest
 #' @importFrom graphics abline
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
 #' @importFrom RColorBrewer brewer.pal.info
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
@@ -287,7 +319,9 @@ plot_wavelet <- function(wavelet = NULL,
                          demean_mtm = TRUE,
                          detrend_mtm = TRUE,
                          padfac_mtm = 5,
-                         tbw_mtm = 3) {
+                         tbw_mtm = 3,
+                         plot_horizontal = TRUE) {
+
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
@@ -357,10 +391,16 @@ plot_wavelet <- function(wavelet = NULL,
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
 
-  if(dev_new==TRUE){
+  if(dev_new==TRUE & plot_horizontal==TRUE){
     dev.new(width = 15,
             height = 7,
             noRStudioGD = TRUE)}
+
+  if(dev_new==TRUE & plot_horizontal==FALSE){
+    dev.new(width = 7,
+            height = 10,
+            noRStudioGD = TRUE)}
+
 
 
   y_axis <- as.numeric(unlist(wavelet$Period))
@@ -370,6 +410,9 @@ plot_wavelet <- function(wavelet = NULL,
   y_axis <- wavelet$Period
   depth <- as.numeric(depth)
   y_axis <- as.numeric(y_axis)
+
+  #library(astrochron)
+  #library(DescTools)
 
   if (add_MTM_peaks == TRUE) {
     MTM_res_1 <- mtm(
@@ -422,7 +465,1648 @@ plot_wavelet <- function(wavelet = NULL,
 
   ylim_vals = c(lowerPeriod, upperPeriod)
 
-  if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE) {
+
+
+
+
+  if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE & plot_horizontal==FALSE) {
+
+    layout.matrix <- matrix(c(1,  3, 0,2),
+                            nrow = 2,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 0.25),
+           # Heights of the two rows
+           widths = c(1, 4))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(4, 4, 2, 0))
+
+
+    plot(
+      x = wavelet$y,
+      y = wavelet$x,
+      type = "l",
+      yaxs = "i",
+      xlab = "proxy value",
+      ylab = x_lab,
+      #yaxt = "n",
+      ylim = xlim_vals
+
+    )
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = add_abline_h)
+    }
+
+
+    par(new = FALSE, mar = c(3, 0, 2, 2))
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
+
+
+    par(new = FALSE, mar = c(4, 0, 2, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = "",
+      #axes = FALSE,
+      yaxt = "n" ,
+      xaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE & plot_horizontal==FALSE) {
+
+    layout.matrix <- matrix(c(1,  2),
+                            nrow = 2,
+                            ncol = 1 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 4),
+           # Heights of the two rows
+           widths = c(1))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(2, 4, 2, 3))
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
+
+
+    par(new = FALSE, mar = c(4, 4, 2, 3))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE & plot_horizontal ==FALSE) {
+
+
+    layout.matrix <- matrix(c(2,1,3,0,4,0,5,0),
+                            nrow = 4,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 1,1,4),
+           # Heights of the two rows
+           widths = c(4, 1))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(2, 2, 2, 3))
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
+
+
+
+    par(mar = c(0, 4, 2, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 2],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "MTM power",
+      xlab = "",
+      log = "x",
+      xlim = ylim_vals
+    )
+
+    for (i in 5:8) {
+      lines(
+        x = 1 / MTM_res_1[, 1],
+        y = MTM_res_1[, i],
+        xlim = ylim_vals,
+        lty = 3,
+        col = "grey",
+        lwd = 2
+      )
+    }
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    par(mar = c(0, 4, 0, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 4],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Ar. conf lvl",
+      xlab = "",
+      log = "x",
+      ylim = c(80, 101),
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 3],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Har. conf lvl",
+      xlab = "",
+      log = "xy",
+      ylim = c(80, 101),
+      yaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+
+    par(new = FALSE, mar = c(4, 4, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE & plot_horizontal ==FALSE) {
+
+    layout.matrix <- matrix(c(2,1,3,0,4,0,5,0,6,0),
+                            nrow = 5,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 1,1,1,4),
+           # Heights of the two rows
+           widths = c(4, 1))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(2, 2, 2, 3))
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    box(lwd = lwd.axis)
+
+
+
+    par(mar = c(0, 4, 2, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 2],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "MTM power",
+      xlab = "",
+      log = "x",
+      xlim = ylim_vals
+    )
+
+    for (i in 5:8) {
+      lines(
+        x = 1 / MTM_res_1[, 1],
+        y = MTM_res_1[, i],
+        xlim = ylim_vals,
+        lty = 3,
+        col = "grey",
+        lwd = 2
+      )
+    }
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    par(mar = c(0, 4, 0, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 4],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Ar. conf lvl",
+      xlab = "",
+      log = "x",
+      ylim = c(80, 101),
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 3],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Har. conf lvl",
+      xlab = "",
+      log = "xy",
+      ylim = c(80, 101),
+      yaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    plot(
+      y = wavelet$Power.avg,
+      x = wavelet$Period,
+      log = "x",
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Wt. power",
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+
+
+
+
+    par(new = FALSE, mar = c(4, 4, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE & plot_horizontal ==FALSE) {
+
+
+    layout.matrix <- matrix(c(1,2,0,3,0,4,0,5,6,7),
+                            nrow = 5,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 1,1,1,4),
+           # Heights of the two rows
+           widths = c(1, 4))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(0, 1, 2, 6),xpd=NA)
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = mean(key.marks), line = 4,
+          font = par()$font.axis, cex = par()$cex.axis,las=1)
+    box(lwd = lwd.axis)
+
+
+
+    par(mar = c(0,0, 2, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 2],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "MTM power",
+      xlab = "",
+      log = "x",
+      xlim = ylim_vals
+    )
+
+
+    for (i in 5:8) {
+      lines(
+        x = 1 / MTM_res_1[, 1],
+        y = MTM_res_1[, i],
+        xlim = ylim_vals,
+        lty = 3,
+        col = "grey",
+        lwd = 2
+      )
+    }
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    par(mar = c(0, 0, 0, 2),xpd=FALSE)
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 4],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "",
+      xlab = "",
+      log = "x",
+      ylim = c(80, 101),
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    title(ylab="Ar. conf lvl",xpd=NA)
+
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 3],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "",
+      xlab = "",
+      log = "xy",
+      ylim = c(80, 101),
+      yaxs = "i",
+      xlim = ylim_vals
+    )
+    title(ylab="Har. conf lvl",xpd=NA)
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    plot(
+      y = wavelet$Power.avg,
+      x = wavelet$Period,
+      log = "x",
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Wt. power",
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    title(ylab="Wt. power",xpd=NA)
+
+
+    par( mar = c(4, 4, 0, 0))
+
+
+    plot(
+      x = wavelet$y,
+      y = wavelet$x,
+      type = "l",
+      yaxs = "i",
+      xlab = "proxy value",
+      ylab = x_lab,
+      #yaxt = "n",
+      ylim = xlim_vals
+
+    )
+
+
+    par(new = FALSE, mar = c(4, 0, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      #ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      yaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE & plot_horizontal ==FALSE) {
+
+
+    layout.matrix <- matrix(c(1,2,3,4),
+                            nrow = 2,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 4),
+           # Heights of the two rows
+           widths = c(1, 4))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(2, 0.5, 2, 6),xpd=NA)
+
+
+    image(
+      y = seq(from = 0, to = n.levels),
+      x = 1,
+      z = (matrix(power_max_mat.levels,
+                  nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(2, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 2, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = 1, line = 0.5,
+          font = par()$font.axis, cex = par()$cex.axis,las=1,xpd=NA)
+    #
+
+    box(lwd = lwd.axis)
+
+
+
+    par(mar = c(0,0, 2, 2))
+
+
+    plot(
+      y = wavelet$Power.avg,
+      x = wavelet$Period,
+      log = "x",
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Wt. power",
+      xlab="",
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    title(ylab="Wt. power",xpd=NA)
+
+
+    par( mar = c(4, 4, 0, 0))
+
+
+    plot(
+      x = wavelet$y,
+      y = wavelet$x,
+      type = "l",
+      yaxs = "i",
+      xlab = "proxy value",
+      ylab = x_lab,
+      #yaxt = "n",
+      ylim = xlim_vals
+
+    )
+
+
+    par(new = FALSE, mar = c(4, 0, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = "",
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      yaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE & plot_horizontal ==FALSE) {
+
+
+    layout.matrix <- matrix(c(1,2,0,3,0,4,5,6),
+                            nrow = 4,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 1,1,4),
+           # Heights of the two rows
+           widths = c(1, 4))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(0, 1, 2, 6),xpd=NA)
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = mean(key.marks), line = 4,
+          font = par()$font.axis, cex = par()$cex.axis,las=1)
+    box(lwd = lwd.axis)
+
+
+
+    par(mar = c(0,0, 2, 2))
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 2],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "MTM power",
+      xlab = "",
+      log = "x",
+      xlim = ylim_vals
+    )
+
+
+    for (i in 5:8) {
+      lines(
+        x = 1 / MTM_res_1[, 1],
+        y = MTM_res_1[, i],
+        xlim = ylim_vals,
+        lty = 3,
+        col = "grey",
+        lwd = 2
+      )
+    }
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    par(mar = c(0, 0, 0, 2),xpd=FALSE)
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 4],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "",
+      xlab = "",
+      log = "x",
+      ylim = c(80, 101),
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+    title(ylab="Ar. conf lvl",xpd=NA)
+
+
+    plot(
+      x = 1 / MTM_res_1[, 1],
+      y = MTM_res_1[, 3],
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "",
+      xlab = "",
+      log = "xy",
+      ylim = c(80, 101),
+      yaxs = "i",
+      xlim = ylim_vals
+    )
+    title(ylab="Har. conf lvl",xpd=NA)
+
+    abline(
+      h = c(90, 95, 99),
+      lty = 3,
+      col = "grey",
+      lwd = 2
+    )
+    if (add_MTM_peaks == TRUE) {
+      abline(v = 1 / MTM_res_2[, 1],
+             col = "red",
+             lty = 3)
+    }
+
+
+
+    par( mar = c(4, 4, 0, 0))
+
+
+    plot(
+      x = wavelet$y,
+      y = wavelet$x,
+      type = "l",
+      yaxs = "i",
+      xlab = "proxy value",
+      ylab = x_lab,
+      #yaxt = "n",
+      ylim = xlim_vals
+
+    )
+
+
+    par(new = FALSE, mar = c(4, 0, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      #ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      yaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+  if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE & plot_horizontal ==FALSE) {
+
+    layout.matrix <- matrix(c(1,2,0,3),
+                            nrow = 2,
+                            ncol = 2 ,
+                            byrow = TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1,4),
+           # Heights of the two rows
+           widths = c(1, 4))
+
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = 0,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+    par(mar = c(2, 2, 2, 3))
+
+
+    image(
+      x = seq(from = 0, to = n.levels),
+      y = 1,
+      z = t(matrix(power_max_mat.levels,
+                   nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      yaxt = "n",
+      xaxt = "n",
+      xlab = "",
+      ylab = "",
+    )
+
+
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = median(key.marks), line = 3,
+          las = 1, font = par()$font.axis, cex = par()$cex.axis,xpd=NA)
+    box(lwd = lwd.axis)
+
+
+    par(mar = c(0, 4, 2, 2))
+
+    plot(
+      y = wavelet$Power.avg,
+      x = wavelet$Period,
+      log = "x",
+      type = "l",
+      xaxs = "i",
+      xaxt = "n",
+      ylab = "Wt. power",
+      xaxs = "i",
+      xlim = ylim_vals
+    )
+
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = (add_abline_v))
+    }
+
+
+    par(new = FALSE, mar = c(4, 4, 0, 2))
+
+    image(
+      y = wavelet$x,
+      x = wavelet$axis.2,
+      z = (wavelet$Power),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xlab = periodlab,
+      ylab = x_lab,
+      #axes = FALSE,
+      #yaxt = "n" ,
+      xaxt = "n" ,
+      main = main,
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    polygon(
+      y=wavelet$coi.1 ,
+      x=wavelet$coi.2,
+      border = NA,
+      col = rgb(1, 1, 1, 0.5),
+      ylim = xlim_vals,
+      xlim = log2(ylim_vals)
+    )
+
+
+    box(lwd = lwd.axis)
+
+    period.tick = unique(trunc(wavelet$axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = period.tick,
+      labels = NA,
+      tck = periodtck,
+      tcl = periodtcl
+    )
+
+
+    # axis(
+    #   4,
+    #   lwd = lwd.axis,
+    #   at = period.tick,
+    #   labels = NA,
+    #   tck = periodtck,
+    #   tcl = periodtcl
+    # )
+
+    mtext(
+      period.tick.label,
+      side = 1,
+      at = period.tick,
+      las = 1,
+      line = par()$mgp[2] - 0.5,
+      font = par()$font.axis,
+      cex = par()$cex.axis
+    )
+
+
+    if (is.null(add_lines) != TRUE) {
+      for (i  in 2:ncol(add_lines))
+        lines(y=add_lines[, 1], x=log2(add_lines[, i]))
+    }
+
+    if (is.null(add_points) != TRUE) {
+      for (i  in 2:ncol(add_points))
+        lines(y=add_points[, 1], x=log2(add_points[, i]))
+    }
+
+
+    if (add_MTM_peaks == TRUE) {
+      abline(v = log2(1 / MTM_res_2[, 1]),
+             col = "black",
+             lty = 3)
+    }
+
+    if (is.null(add_abline_h) != TRUE) {
+      abline(h = (add_abline_h))
+    }
+
+    if (is.null(add_abline_v) != TRUE) {
+      abline(v = log2(add_abline_v))
+    }
+
+
+  }
+
+
+  if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE & plot_horizontal==TRUE) {
     layout.matrix <- matrix(
       c(1, 1, 1, 1, 1, 1, 2, 2, 2,
         3, 3, 3, 3, 3, 3, 4, 5, 6),
@@ -656,7 +2340,7 @@ plot_wavelet <- function(wavelet = NULL,
     }
   }
 
-  if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE) {
+  if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE & plot_horizontal==TRUE) {
     layout.matrix <- matrix(c(1, 2, 4, 3),
                             nrow = 2,
                             ncol = 2 ,
@@ -830,7 +2514,7 @@ plot_wavelet <- function(wavelet = NULL,
 
   }
 
-  if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE) {
+  if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE & plot_horizontal ==TRUE ) {
     layout.matrix <- matrix(c(1, 0, 3, 2),
                             nrow = 2,
                             ncol = 2 ,
@@ -982,7 +2666,7 @@ plot_wavelet <- function(wavelet = NULL,
 
   }
 
-  if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE) {
+  if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE & plot_horizontal ==TRUE) {
     layout.matrix <- matrix(
       c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 3, 3, 4, 5, 6, 7),
@@ -1241,7 +2925,7 @@ plot_wavelet <- function(wavelet = NULL,
     }
   }
 
-  if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE) {
+  if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE & plot_horizontal ==TRUE) {
     layout.matrix <- matrix(c(3, 2, 1),
                             nrow = 1,
                             ncol = 3 ,
@@ -1404,7 +3088,7 @@ plot_wavelet <- function(wavelet = NULL,
 
   }
 
-  if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE) {
+  if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE & plot_horizontal ==TRUE) {
     layout.matrix <-
       matrix(c(6, 5, 4, 3, 2, 1),
              nrow = 1,
@@ -1645,7 +3329,7 @@ plot_wavelet <- function(wavelet = NULL,
 
   }
 
-  if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE) {
+  if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE & plot_horizontal==TRUE) {
     layout.matrix <-
       matrix(c(5, 4, 3, 2, 1),
              nrow = 1,
@@ -1863,7 +3547,7 @@ plot_wavelet <- function(wavelet = NULL,
 
   }
 
-  if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE) {
+  if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE & plot_horizontal==TRUE) {
     layout.matrix <- matrix(c(2, 1),
                             nrow = 1,
                             ncol = 2 ,
@@ -1998,5 +3682,4 @@ plot_wavelet <- function(wavelet = NULL,
   if (add_MTM_peaks == TRUE) {
     return(invisible(mtm_res))
   }
-
 }

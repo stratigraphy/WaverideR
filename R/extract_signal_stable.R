@@ -5,8 +5,8 @@
 #'
 #'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #'@param cycle Period of the cycle which needs to be extracted.
-#'@param period_up Upper period as a factor of the to be extracted cycle \code{Default=1.2}.
-#'@param period_down Lower period as a factor of the to be extracted cycle \code{Default=0.8}.
+#'@param period_up Specifies the upper period as a factor of the to be extracted cycle \code{Default=1.2}.
+#'@param period_down Specifies the lower period as a factor of the to be extracted cycle \code{Default=0.8}.
 #'@param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
 #'@param plot_residual plot the residual signal after extraction of set cycle \code{Default=FALSE}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}

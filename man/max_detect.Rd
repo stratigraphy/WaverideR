@@ -10,8 +10,10 @@ max_detect(data = NULL, pts)
 \item{data}{Matrix or data frame with the first column being depth or time
 and the second column being a proxy}
 
-\item{pts}{Number of points up and down which is used to detect a peak
-More points means more peak certainty, but it also means that minor peaks might not be
+\item{pts}{The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
+a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
+then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
+aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
 picked up by the algorithm \code{Default=3}}
 }
 \value{

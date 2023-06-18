@@ -63,5 +63,5 @@ depth_rank_example_disc <- lithlog_disc(litholog = depth_rank_example,
 \references{
 Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X.. 2021.
 StratigrapheR: Concepts for Litholog Generation in R.
-The R Journal. \doi{<doi:10.32614/RJ-2021-039>}
+The R Journal. <\doi{doi:10.32614/RJ-2021-039}>
 }

@@ -87,63 +87,65 @@
 #'@param clip_low Lower value to clip to.
 #'@param extract_astrosolution Extract a certain astronomical cycle/component from a
 #' astronomical solution prior to anchoring \code{Default=FALSE}.
-#'@param astro_period_up Upper bound of the astronomical cycle which is
-#'extracted from an astronomical solution. The upper bound value is a
+#'@param astro_period_up Specifies the upper period of the astronomical cycle which is
+#'extracted from an astronomical solution. The astro_period_up is a
 #'factor with which the astronomical component is multiplied by.  \code{Default=1.2}
-#'@param astro_period_down Lower bound of the astronomical cycle which is
-#'extracted from an astronomical solution. The upper bound value is a
+#'@param astro_period_down Specified the lower period of the astronomical cycle which is
+#'extracted from an astronomical solution. The astro_period_down value is a
 #'factor with which the astronomical component is multiplied by. \code{Default=0.8}
 #'@param astro_period_cycle Period (in kyr) of the to be extracted astronomical component
 #'from the astronomical solution.
 #'@param extract_proxy_signal Extract a certain astronomical cycle/component from a
 #'proxy signal  \code{Default=FALSE}.
-#'@param proxy_period_up Upper bound of the astronomical cycle to be extracted
+#'@param proxy_period_up Specifies the upper period of the astronomical cycle to be extracted
 #' from the proxy record. The upper bound value is a factor with which the
-#' astronomical component is multiplied by. \code{Default=1.2}.
-#'@param proxy_period_down Upper bound of the astronomical cycle to be
+#' (proxy_period_cycle) value is multiplied by. \code{Default=1.2}.
+#'@param proxy_period_down Specifies the upper period of the astronomical cycle to be
 #'extracted from the proxy record. The lower bound value is a factor with
-#' which the astronomical component is multiplied by. \code{Default=0.8}.
-#'@param proxy_period_cycle Period in kyr of the astronomical cycle/component which is extracted
+#' which the astronomical component (proxy_period_cycle) value is multiplied by. \code{Default=0.8}.
+#'@param proxy_period_cycle Period in kyr of the astronomical cycle/component which is to be extracted
 #' from the proxy record.
-#' @param pts Number of points up and down which is used to detect a peak
-#' More points means more peak certainty, but it also means that minor peaks might not be
-#' picked up by the algorithm \code{Default=3}
-#' @param verbose print text \code{Default=FALSE} #  set verbose to TRUE to allow for anchoring using text feedback commands
+#' @param pts The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
+#'a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
+#'then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
+#'aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
+#'picked up by the algorithm \code{Default=3}
+#' @param verbose print text \code{Default=FALSE} set verbose to TRUE to allow for anchoring using text feedback commands
 #'@param time_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 #'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-#'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
+#'if time decreases with depth/time values (eg stratigraphic logs where 0m is the bottom of the section)
 #'then time_dir should be set to FALSE \code{time_dir=TRUE}
 #'@param genplot Generate plot \code{Default="FALSE"}
 #'
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>} \cr
+#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
 #'
 #'Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
 #' La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,
-#' Volume 532, A89 \doi{<doi:10.1051/0004-6361/201116836>} \cr
+#' Volume 532, A89 <\doi{doi:10.1051/0004-6361/201116836}> \cr
 #'
 #'Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
 #'2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys.,
-#'Volume 532, L4.  \doi{<doi.org/10.1051/0004-6361/201117504>}\cr
+#'Volume 532, L4.  <\doi{doi.org/10.1051/0004-6361/201117504}>\cr
 #'
 #'J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-#' '\doi{<doi:10.1016/B978-0-12-824360-2.00004-8>} or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
+#' <\doi{doi:10.1016/B978-0-12-824360-2.00004-8}> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
 #'
 #'Zeebe, R. E. and Lourens, L. J.
 #'Geologically constrained astronomical solutions for the Cenozoic era,
-#'Earth and Planetary Science Letters, 2022 \doi{<doi:10.1016/j.epsl.2022.117595>}\cr
+#'Earth and Planetary Science Letters, 2022 <\doi{doi:10.1016/j.epsl.2022.117595}>\cr
 #'
 #'Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the Paleocene–Eocene boundary age constrained by geology and astronomy.Science365,926-929(2019)
-#'\doi{<doi:10.1126/science.aax0612>}\cr
+#'<\doi{doi:10.1126/science.aax0612}>\cr
 #'
 #'Zeebe, Richard E. "Numerical solutions for the orbital motion of the Solar System over the past 100 Myr: limits and new results."
-#'The Astronomical Journal 154, no. 5 (2017): 193. \doi{<doi:10.3847/1538-3881/aa8cce>} \cr
+#'The Astronomical Journal 154, no. 5 (2017): 193. <\doi{doi:10.3847/1538-3881/aa8cce}> \cr
 #'
 #'Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 #'Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-#'\doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'<\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #' @return
 #'The output is a matrix with the 4 columns.
@@ -168,7 +170,7 @@
 #'    verbose = FALSE,
 #'    omega_nr = 8
 #'  )
-#'#Use the pretracked grey_track curve which traced the precession cycle
+#'#Use the pre-tracked grey_track curve which traced the precession cycle
 #'grey_track <- completed_series(
 #'  wavelet = grey_wt,
 #'  tracked_curve  = grey_track,

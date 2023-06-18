@@ -27,7 +27,7 @@
 #'Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
 #'Earth and Planetary Science Letters,
 #'Volume 488,2018,Pages 102-114,ISSN 0012-821X,
-#'\doi{<doi:10.1016/j.epsl.2018.02.010>}
+#'<\doi{doi:10.1016/j.epsl.2018.02.010}>
 #'
 #'Steinhilber, Friedhelm & Abreu, Jacksiel & Beer, Juerg & Brunner,
 #'Irene & Christl, Marcus & Fischer, Hubertus & Heikkilä, U. & Kubik,
@@ -36,20 +36,20 @@
 #' 9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
 #' Proceedings of the National Academy of Sciences of the United States of America.
 #' 109. 5967-71. 10.1073/pnas.1118965109.
-#' \doi{<doi:10.1073/pnas.1118965109>}
+#' <\doi{doi:10.1073/pnas.1118965109}>
 #'
 #' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 #' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 #' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#' <\doi{doi:10.1016/j.palaeo.2012.11.009}>
 #'
 #'Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 #'Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-#'\doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'<\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>} \cr
+#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
 #'
 NULL
 
@@ -72,7 +72,7 @@ NULL
 #'2018,
 #'Pages 102-114,
 #'ISSN 0012-821X,
-#' \doi{<doi:1016/j.epsl.2018.02.010>}
+#' <\doi{doi:1016/j.epsl.2018.02.010}>
 NULL
 
 #' @title Total solar irradiation data (0-9400ka) of steinhilber et al., (2012)
@@ -93,7 +93,7 @@ NULL
 #' 9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
 #' Proceedings of the National Academy of Sciences of the United States of America.
 #' 109. 5967-71. 10.1073/pnas.1118965109.
-#' \doi{<doi:10.1073/pnas.1118965109>}
+#' <\doi{doi:10.1073/pnas.1118965109}>
 NULL
 
 
@@ -112,7 +112,7 @@ NULL
 #' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 #' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 #' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#' <\doi{doi:10.1016/j.palaeo.2012.11.009}>
 NULL
 
 
@@ -132,12 +132,12 @@ NULL
 #' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 #' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 #' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#' <\doi{doi:10.1016/j.palaeo.2012.11.009}>
 #'
 #'
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
+#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}>
 NULL
 
 #' @title Tracking points of the precession (22 kyr cycle) IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
@@ -156,7 +156,7 @@ NULL
 #' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 #' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 #' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#' <\doi{doi:10.1016/j.palaeo.2012.11.009}>
 NULL
 
 #' @title Period of the 405 kyr ecc cycle in the magnetic susceptibility record of the Sullivan core
@@ -181,7 +181,7 @@ NULL
 #'2018,
 #'Pages 102-114,
 #'ISSN 0012-821X,
-#' \doi{<doi:10.1016/j.epsl.2018.02.010>}
+#' <\doi{doi:10.1016/j.epsl.2018.02.010}>
 NULL
 
 
@@ -224,11 +224,11 @@ NULL
 #'@references
 #'Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 #'Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-#'\doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'<\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
+#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}>
 NULL
 
 
@@ -255,11 +255,11 @@ NULL
 #' Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 #' Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 #' Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-#' \doi{<doi:10.1016/j.palaeo.2012.11.009>}
+#' <\doi{doi:10.1016/j.palaeo.2012.11.009}>
 #'
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
+#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}>
 NULL
 
 

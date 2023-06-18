@@ -78,11 +78,11 @@
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 #'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 #'" Geophysics 47, no. 2 (1982): 203-221.
-#' \doi{<doi:10.1190/1.1441328>}
+#' <\doi{doi:10.1190/1.1441328}>
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+#'  Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
 #'
 #'
 #'@examples
@@ -167,6 +167,34 @@
 #' @importFrom stats fft
 #' @importFrom DescTools Closest
 #' @importFrom WaveletComp reconstruct
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
+
 
 
 extract_signal_standard_deviation <- function(wavelet = NULL,

@@ -30,7 +30,8 @@ plot_wavelet(
   demean_mtm = TRUE,
   detrend_mtm = TRUE,
   padfac_mtm = 5,
-  tbw_mtm = 3
+  tbw_mtm = 3,
+  plot_horizontal = TRUE
 )
 }
 \arguments{
@@ -77,7 +78,7 @@ WARNING plotting as a vector image is computationally intensive.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this gaurantees a "nice" looking plot however when plotting in an R markdown
+\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
 document the plot might not plot  \code{Default=TRUE}}
 
 \item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
@@ -112,6 +113,10 @@ should be period values \code{Default=NULL}}
 \item{padfac_mtm}{Pad factor for the MTM analysis \code{Default=5}}
 
 \item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
+
+\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
+
+#'}
 }
 \value{
 The output is a plot of a wavelet spectra.
@@ -161,7 +166,8 @@ color_brewer= "grDevices",
  demean_mtm = TRUE,
  detrend_mtm = TRUE,
  padfac_mtm = 5,
- tbw_mtm = 3)
+ tbw_mtm = 3,
+ plot_horizontal=TRUE)
 
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
@@ -201,7 +207,8 @@ siglvl = 0.95,
 demean_mtm = TRUE,
 detrend_mtm = TRUE,
 padfac_mtm = 5,
-tbw_mtm = 3)
+tbw_mtm = 3,
+plot_horizontal=TRUE)
 
 
 #Example 3. A plot of a wavelet spectra using the greyscale
@@ -242,7 +249,8 @@ siglvl = 0.95,
 demean_mtm = TRUE,
 detrend_mtm = TRUE,
 padfac_mtm = 5,
-tbw_mtm = 3)
+tbw_mtm = 3,
+plot_horizontal=TRUE)
 
 
 
@@ -267,10 +275,10 @@ Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 
 J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
- Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+ Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
 
 S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
-Astrochronology: Paleoceanography, 27, PA3228, \doi{<doi:10.1029/2012PA002307>}
+Astrochronology: Paleoceanography, 27, PA3228, <\doi{doi:10.1029/2012PA002307}>
 }
 \author{
 Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package

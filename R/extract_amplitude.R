@@ -6,9 +6,11 @@
 #'
 #'@param signal Input signal from which the amplitude is extracted any signal in which the first column is
 #'depth/time and the second column is the proxy record from which the amplitude is extracted
-#'@param pts Number of points up and down which is used to detect a peak
-#' More points means more peak certainty, but it also means that minor peaks might not be
-#' picked up by the algohritm \code{Default=3}
+#'@param pts The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
+#'a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
+#'then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
+#'aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
+#'picked up by the algorithm \code{Default=3}
 #'@param genplot If set to TRUE a plot with extracted amplitude will be displayed \code{Default=FALSE}.
 #'@param remean Prior to analysis the mean is subtracted from the data set to re-mean set \code{Default=TRUE}.
 #'@param ver_results To verify the amplitude extraction is representative of the amplitude
@@ -38,11 +40,11 @@
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 #'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 #'" Geophysics 47, no. 2 (1982): 203-221.
-#' \doi{<doi:10.1190/1.1441328>}
+#' <\doi{doi:10.1190/1.1441328}>
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \doi{<doi:10.1190/1.1441329>}
+#'  Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
 #'
 #'@examples
 #'\donttest{

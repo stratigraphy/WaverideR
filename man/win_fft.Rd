@@ -19,7 +19,8 @@ win_fft(
   palette_name = "rainbow",
   color_brewer = "grDevices",
   keep_editable = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  dev_new = FALSE
 )
 }
 \arguments{
@@ -79,6 +80,9 @@ read the documentation of these packages. "\code{Default=grDevices}}
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
+
+\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+document the plot might not plot  \code{Default=FALSE}}
 }
 \value{
 Returns a list which contains 10 elements
@@ -116,13 +120,14 @@ mag_win_fft <- win_fft(data= mag,
                    palette_name ="rainbow",
                    color_brewer= "grDevices",
                    keep_editable=FALSE,
-                   verbose=FALSE)
+                   verbose=FALSE,
+                   dev_new=FALSE)
 }
 
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 }
 \author{
 Based on the \link[astrochron]{periodogram}

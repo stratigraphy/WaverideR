@@ -110,7 +110,7 @@ Bulletin of the American Meteorological Society 79:61-78.
 \url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
+time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 }
 \author{
 Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package

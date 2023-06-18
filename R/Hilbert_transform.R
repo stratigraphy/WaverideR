@@ -10,10 +10,10 @@
 #'@references
 #'Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 #'Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
-#'Earth-Science Reviews 225 (103894). \doi{<doi:10.1016/j.earscirev.2021.103894>}
+#'Earth-Science Reviews 225 (103894). <\doi{doi:10.1016/j.earscirev.2021.103894}>
 #'
 #'Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, and Karin Blank. 2009.
-#'"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. \doi{<doi:10.1142/S1793536909000096>}
+#'"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <\doi{doi:10.1142/S1793536909000096}>
 #'
 #'@examples
 #'#Example in which the Hilbert transform (eg. amplitude modulation) of the ~210yr

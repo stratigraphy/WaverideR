@@ -7,15 +7,17 @@ present and dontrun{} was not found after replacement
 
 Checked and can now confirm that only 1 core is used by default in functions which can run
 using multiple cores by default the parameter to run multiple cores is set to (run_multicore = FALSE).
-In examples run_multicore is set to; (run_multicore = FALSE)
+In examples run_multicore is set to; (run_multicore = FALSE).
 
 Information messages were still written to the console which is replaced with the if(verbose)cat(..) option
 for interactive scripts where printing text to the console is important text is added to the examples and arguments of text indicating that functionality is reduced if verbose is set to FALSE meaning that only basic functionality is
 maintained
 
-package names, software names and API were written in quotes e.g. '----'
+package names, software names and API were written in quotes e.g. '----'.
 
+added support for more color palette options.
 
+added support to switch the x and y-axis when plotting.
 
 
 # CRAN feedback to version 0.3.0

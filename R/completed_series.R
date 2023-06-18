@@ -12,12 +12,16 @@
 #'
 #'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #'@param tracked_curve Traced period result from the \code{track_period_wavelet} function.
-#'@param period_up The upper period parameter is a factor of the to be completed curve \code{Default=1.2},
-#'which puts a limit on how far the code{\link{completed_series}} function can "look up" to find the next spectral peak.
-#'if no spectral peak is found data is interpolated between spectral peaks.
-#'@param period_down The lower period parameter is a factor of the to be completer curve \code{Default=0.8},
-#', #'which puts a limit on how far the code{\link{completed_series}} function can "look down" to find the next spectral peak.
-#'if no spectral peak is found data is interpolated between spectral peaks.
+#'@param period_up The period_up parameter is the factor with which the linear interpolated tracked_curve
+#'curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_up factor is
+#'the upper boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
+#'curve. If no spectral peak is detected within the specified boundary the interpolated
+#'value is used instead. between spectral peaks \code{Default=1.2},
+#'@param period_down  The period_down parameter is the factor with which the linear interpolated tracked_curve
+#'curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_down factor is
+#'the lower boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
+#'curve. If no spectral peak is detected within the specified boundary the interpolated
+#'value is used instead. between spectral peaks \code{Default=0.8},
 #'@param extrapolate Extrapolate the completed curve when through parts where no spectral peaks could be traced
 #' \code{Default=TRUE}.
 #'@param genplot Generate a plot \code{Default=TRUE}. The red curve is the completed curve,

@@ -39,6 +39,9 @@
 #'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
+#'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
+#'@param dev_new Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+#'document the plot might not plot  \code{Default=TRUE}
 #'
 #'@examples
 #'\donttest{
@@ -71,7 +74,9 @@
 #'freq_min = 0.001,
 #'keep_editable=FALSE,
 #'palette_name = "rainbow",
-#'color_brewer="grDevices")
+#'color_brewer="grDevices",
+#'plot_horizontal=TRUE,
+#'dev_new=TRUE)
 #'
 #'}
 #'
@@ -98,6 +103,33 @@
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
 #' @importFrom graphics layout
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
 
 
 plot_win_fft <- function(win_fft = NULL,
@@ -109,9 +141,12 @@ plot_win_fft <- function(win_fft = NULL,
                          freq_min = NULL,
                          keep_editable = FALSE,
                          palette_name = "rainbow",
-                         color_brewer="grDevices") {
-  results <- win_fft
+                         color_brewer="grDevices",
+                         plot_horizontal=TRUE,
+                         dev_new=TRUE) {
 
+  results <- win_fft
+  n.levels = 100
   y_axis <- as.numeric(unlist(results$y_axis))
   sel_cols_up <- max(which(y_axis < freq_max))
   sel_cols_down <- min(which(y_axis > freq_min))
@@ -121,29 +156,23 @@ plot_win_fft <- function(win_fft = NULL,
   pmax_avg_sel <- t(results[[plot_res]])
   pmax_avg_sel <- pmax_avg_sel[, sel_cols_down:sel_cols_up]
 
-  dev.new(width = 14, height = 7)
+
+  if (dev_new==TRUE & plot_horizontal==TRUE){
+    dev.new(width = 14, height = 7)
+
+  }
+
+  if (dev_new==TRUE & plot_horizontal==FALSE){
+    dev.new(width = 7, height = 10)
+
+  }
+
+
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
 
-  layout.matrix <- matrix(c(3, 1, 2), nrow = 1, ncol = 3)
-  layout(mat = layout.matrix,
-         heights = c(1, 1, 1),
-         # Heights of the two rows
-         widths = c(8, 2, 2))
-
-  par(mar = c(4, 4, 2, 3))
-  n.levels = 100
-  power_max_mat.levels = quantile(pmax_avg_sel,
-                                  probs = seq(
-                                    from = bottom_perc,
-                                    to = 1,
-                                    length.out = n.levels + 1
-                                  ))
-
-
-  image.plt = par()$plt
   if (color_brewer== "RColorBrewer"){
     key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
 
@@ -179,6 +208,28 @@ plot_win_fft <- function(win_fft = NULL,
   }
 
 
+
+
+  if (plot_horizontal==TRUE){
+
+
+
+  layout.matrix <- matrix(c(3, 1, 2), nrow = 1, ncol = 3)
+  layout(mat = layout.matrix,
+         heights = c(1, 1, 1),
+         # Heights of the two rows
+         widths = c(8, 2, 2))
+
+  par(mar = c(4, 4, 2, 3))
+  power_max_mat.levels = quantile(pmax_avg_sel,
+                                  probs = seq(
+                                    from = bottom_perc,
+                                    to = 1,
+                                    length.out = n.levels + 1
+                                  ))
+
+
+  image.plt = par()$plt
   depth <-  results$depth
   y_axis <- results$y_axis
   depth <- as.numeric(depth)
@@ -264,3 +315,127 @@ plot_win_fft <- function(win_fft = NULL,
     useRaster = TRUE
   )
 }
+
+  if (plot_horizontal==FALSE){
+
+    layout.matrix <- matrix(c(1, 2,0,3), nrow = 2, ncol = 2,byrow=TRUE)
+    layout(mat = layout.matrix,
+           heights = c(1, 4),
+           # Heights of the two rows
+           widths = c(1, 3))
+
+    par(mar = c(0, 1, 2, 6))
+    power_max_mat.levels = quantile(pmax_avg_sel,
+                                    probs = seq(
+                                      from = bottom_perc,
+                                      to = 1,
+                                      length.out = n.levels + 1
+                                    ))
+
+
+    image.plt = par()$plt
+
+    depth <-  results$depth
+    y_axis <- results$y_axis
+    depth <- as.numeric(depth)
+    y_axis <- as.numeric(y_axis)
+    y_axis <- y_axis[sel_cols_down:sel_cols_up]
+
+
+    r_sum <- colMeans(pmax_avg_sel)
+
+    lwd.axis = 1
+    n.ticks = 6
+    label.digits = 3
+    label.format = "f"
+    width = 1.2
+    lab.line = 2.5
+    lab = NULL
+
+    key.marks = round(seq(
+      from = 0,
+      to = 1,
+      length.out = n.ticks
+    ) *
+      n.levels)
+    key.labels = formatC(as.numeric(power_max_mat.levels),
+                         digits = label.digits,
+                         format = label.format)[key.marks +
+                                                  1]
+
+
+
+    image(y=1,
+      x=seq(from = 0, to = n.levels),
+      t(matrix(power_max_mat.levels,
+             nrow = 1)),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      useRaster = TRUE,
+      xaxt = "n",
+      yaxt = "n",
+      xlab = "",
+      ylab = ""
+    )
+
+    axis(
+      1,
+      lwd = lwd.axis,
+      at = key.marks,
+      labels = NA,
+      tck = 0.02,
+      tcl = 1
+    )
+
+
+    mtext(
+      key.labels,
+      side = 1,
+      at = key.marks,
+      line = 0.5,
+      las = 2,
+      font = par()$font.axis,
+      cex = 0.75
+    )
+
+    title(xlab="Power",xpd=NA)
+
+    box(lwd = lwd.axis)
+
+
+    par(mar = c(0, 0, 4, 2))
+
+    plot(
+      x = y_axis,
+      y = r_sum,
+      type = "l",
+      xlim = c(min(y_axis), max(y_axis)),
+      xaxs = "i",
+      ylab = "",
+      xlab = y_lab
+    )
+
+    title(ylab="mean power",xpd=NA)
+
+
+    par(mar = c(4, 0, 0, 2))
+
+
+
+    image(
+      y = depth,
+      x = y_axis,
+      z = t(pmax_avg_sel),
+      col = key.cols,
+      breaks = power_max_mat.levels,
+      ylab = "",
+      xlab = y_lab,
+      useRaster = TRUE
+    )
+
+    title(ylab=x_lab,xpd=NA)
+
+
+  }
+
+  }

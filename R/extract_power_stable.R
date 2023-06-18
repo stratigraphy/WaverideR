@@ -11,8 +11,8 @@
 #'
 #'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #'@param cycle Period of cycle for which the power will be extracted from the record.
-#'@param period_up Upper period as a factor of the to be extracted power \code{Default=1.2}.
-#'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
+#'@param period_up Species the upper period of the to be extracted power \code{Default=1.2}.
+#'@param period_down specifies the l;ower period of the to be extracted power \code{Default=0.8}.
 #'
 #' @author
 #' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
@@ -33,7 +33,7 @@
 #'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 #'
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
+#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #'@examples
 #'#Extract the spectral power of the 210 yr de Vries cycle from the Total Solar

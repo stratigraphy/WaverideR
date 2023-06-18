@@ -54,17 +54,17 @@
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #'Acycle: Time-series analysis software for paleoclimate research and education,
 #'Mingsong Li, Linda Hinnov, Lee Kump,
 #'Computers & Geosciences,Volume 127,2019,Pages 12-22,ISSN 0098-3004,
-#'\doi{<doi:10.1016/j.cageo.2019.02.011>}
+#'<\doi{doi:10.1016/j.cageo.2019.02.011}>
 #'
 #'Tracking variable sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy series with evolutionary correlation coefficients and hypothesis testing,
 #'Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael E. Mann,
 #'Earth and Planetary Science Letters,Volume 501,
-#'T2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}
+#'T2018,Pages 165-179,ISSN 0012-821X,<\doi{doi:10.1016/j.epsl.2018.08.041}>
 #'
 #'@examples
 #'\donttest{
@@ -146,6 +146,33 @@
 #' @importFrom parallel stopCluster
 #' @importFrom astrochron asm
 #' @importFrom astrochron eAsm
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
 
 
 
