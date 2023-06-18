@@ -131,17 +131,17 @@ sedrates <- flmw(wavelet = mag_wt,
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 
 Acycle: Time-series analysis software for paleoclimate research and education,
 Mingsong Li, Linda Hinnov, Lee Kump,
 Computers & Geosciences,Volume 127,2019,Pages 12-22,ISSN 0098-3004,
-\doi{<doi:10.1016/j.cageo.2019.02.011>}
+<\doi{doi:10.1016/j.cageo.2019.02.011}>
 
 Tracking variable sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy series with evolutionary correlation coefficients and hypothesis testing,
 Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael E. Mann,
 Earth and Planetary Science Letters,Volume 501,
-T2018,Pages 165-179,ISSN 0012-821X,\doi{<doi:10.1016/j.epsl.2018.08.041>}
+T2018,Pages 165-179,ISSN 0012-821X,<\doi{doi:10.1016/j.epsl.2018.08.041}>
 }
 \author{
 Based on the \link[astrochron]{eAsm} function of the 'astrochron' R package and the 'eCOCO' and 'COCO' function of the 'Acycle' software

@@ -19,9 +19,9 @@ extract_signal_stable(
 
 \item{cycle}{Period of the cycle which needs to be extracted.}
 
-\item{period_up}{Upper period as a factor of the to be extracted cycle \code{Default=1.2}.}
+\item{period_up}{Specifies the upper period as a factor of the to be extracted cycle \code{Default=1.2}.}
 
-\item{period_down}{Lower period as a factor of the to be extracted cycle \code{Default=0.8}.}
+\item{period_down}{Specifies the lower period as a factor of the to be extracted cycle \code{Default=0.8}.}
 
 \item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
 

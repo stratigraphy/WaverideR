@@ -14,7 +14,9 @@ plot_win_fft(
   freq_min = NULL,
   keep_editable = FALSE,
   palette_name = "rainbow",
-  color_brewer = "grDevices"
+  color_brewer = "grDevices",
+  plot_horizontal = TRUE,
+  dev_new = TRUE
 )
 }
 \arguments{
@@ -64,6 +66,11 @@ The included R packages from which palettes can be chosen
 are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
+
+\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
+
+\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+document the plot might not plot  \code{Default=TRUE}}
 }
 \value{
 Returns a plot of, which plot 1 of 8 options,
@@ -110,7 +117,9 @@ freq_max = 5,
 freq_min = 0.001,
 keep_editable=FALSE,
 palette_name = "rainbow",
-color_brewer="grDevices")
+color_brewer="grDevices",
+plot_horizontal=TRUE,
+dev_new=TRUE)
 
 }
 

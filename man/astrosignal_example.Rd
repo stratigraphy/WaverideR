@@ -19,11 +19,11 @@ Column 2: ETP  \cr
 \references{
 Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-\doi{<doi:10.1016/j.earscirev.2018.11.015>}
+<\doi{doi:10.1016/j.earscirev.2018.11.015}>
 
 J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-Volume 428, 261-285. \doi{<doi:10.1051/0004-6361:20041335>}
+Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}>
 }
 \author{
 Generated using the \link[astrochron]{etp}

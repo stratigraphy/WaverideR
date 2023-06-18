@@ -11,7 +11,8 @@ track_period_wavelet(
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   palette_name = "rainbow",
-  color_brewer = "grDevices"
+  color_brewer = "grDevices",
+  plot_horizontal = TRUE
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ The included R packages from which palettes can be chosen
 are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
+
+\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
 }
 \value{
 Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
@@ -83,13 +86,14 @@ mag_track <- track_period_wavelet(astro_cycle = 405,
                                   periodlab = "Period (metres)",
                                   x_lab = "depth (metres)",
                                  palette_name = "rainbow",
-                                 color_brewer="grDevices")
+                                 color_brewer="grDevices",
+                                 plot_horizontal=TRUE)
 }
 
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 }
 \author{
 The function is based/inspired on the \link[astrochron]{traceFreq}

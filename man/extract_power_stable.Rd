@@ -16,9 +16,9 @@ extract_power_stable(
 
 \item{cycle}{Period of cycle for which the power will be extracted from the record.}
 
-\item{period_up}{Upper period as a factor of the to be extracted power \code{Default=1.2}.}
+\item{period_up}{Species the upper period of the to be extracted power \code{Default=1.2}.}
 
-\item{period_down}{Lower period as a factor of the to be extracted power \code{Default=0.8}.}
+\item{period_down}{specifies the l;ower period of the to be extracted power \code{Default=0.8}.}
 }
 \value{
 Returns a matrix with 3 columns.
@@ -70,7 +70,7 @@ Bulletin of the American Meteorological Society 79:61-78.
 \url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>.}
+time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 }
 \author{
 Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package

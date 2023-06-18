@@ -17,13 +17,21 @@ analyze_wavelet(
 \item{data}{Input data, should be a matrix or data frame in which
 the first column is depth or time and the second column is proxy record.}
 
-\item{dj}{Spacing between successive scales \code{Default=1/200}.}
+\item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
+which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
+in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
+the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
+Increasing the increases the computational time of the CWT \code{Default=1/200}.}
 
-\item{lowerPeriod}{Lowest period to be analyzed \code{Default=2},
+\item{lowerPeriod}{Lowest period to be analyzed \code{Default=2}.
+The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
+parameters allows to analyze the signal for a specific range of cycles.
 scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
-\item{upperPeriod}{Upper period to be analyzed \code{Default=1024},
-scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{upperPeriod}{Upper period to be analyzed \code{Default=1024}.
+The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
+parameters allows to analyze the signal for a specific range of cycles.
+ scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
 

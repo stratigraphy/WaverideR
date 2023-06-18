@@ -13,7 +13,7 @@
 #'@references
 #' Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X.. 2021.
 #' StratigrapheR: Concepts for Litholog Generation in R.
-#' The R Journal. \doi{<doi:10.32614/RJ-2021-039>}
+#' The R Journal. <\doi{doi:10.32614/RJ-2021-039}>
 #'
 #'
 #' @param litholog litholog input matrix with 3 columns column 1 is bottom of the bed,

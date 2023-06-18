@@ -44,6 +44,8 @@
 #'read the documentation of these packages. "\code{Default=grDevices}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #' @param verbose Print text \code{Default=FALSE}.
+#' @param dev_new Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+#'document the plot might not plot  \code{Default=FALSE}
 #'
 #' @author
 #'Based on the \link[astrochron]{periodogram}
@@ -51,7 +53,7 @@
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis \doi{<doi:10.1016/j.earscirev.2018.11.015>}
+#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
 #'
 #'
 #'@examples
@@ -73,7 +75,8 @@
 #'                    palette_name ="rainbow",
 #'                    color_brewer= "grDevices",
 #'                    keep_editable=FALSE,
-#'                    verbose=FALSE)
+#'                    verbose=FALSE,
+#'                    dev_new=FALSE)
 #'}
 #'
 #' @return
@@ -121,6 +124,33 @@
 #' @importFrom stats pchisq
 #' @importFrom stats qchisq
 #' @importFrom astrochron periodogram
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
+#' @importFrom colorRamps blue2green
+#' @importFrom colorRamps blue2green2red
+#' @importFrom colorRamps blue2red
+#' @importFrom colorRamps blue2yellow
+#' @importFrom colorRamps cyan2yellow
+#' @importFrom colorRamps green2red
+#' @importFrom colorRamps magenta2green
+#' @importFrom colorRamps matlab.like
+#' @importFrom colorRamps matlab.like2
+#' @importFrom colorRamps ygobb
+#' @importFrom viridis viridis
+#' @importFrom viridis magma
+#' @importFrom viridis plasma
+#' @importFrom viridis inferno
+#' @importFrom viridis cividis
+#' @importFrom viridis mako
+#' @importFrom viridis rocket
+#' @importFrom viridis turbo
+#' @importFrom grDevices rainbow
+#' @importFrom grDevices heat.colors
+#' @importFrom grDevices terrain.colors
+#' @importFrom grDevices topo.colors
+#' @importFrom grDevices cm.colors
+#' @importFrom grDevices hcl.colors
 
 win_fft <- function(data = NULL,
                     padfac = 5,
@@ -136,7 +166,10 @@ win_fft <- function(data = NULL,
                     palette_name ="rainbow",
                     color_brewer= "grDevices",
                     keep_editable = FALSE,
-                    verbose=FALSE) {
+                    verbose=FALSE,
+                    dev_new=FALSE) {
+
+  n.levels = 100
   dat <- data
   dat <- na.omit(dat)
   d <- data.frame(dat)
@@ -388,7 +421,9 @@ win_fft <- function(data = NULL,
     pmax_avg_sel <- t(results[[plot_res]])
     pmax_avg_sel <- pmax_avg_sel[, sel_cols_down:sel_cols_up]
 
-    dev.new(width = 14, height = 7)
+    if(dev_new==TRUE){
+    dev.new(width = 14, height = 7)}
+
     if (keep_editable == FALSE) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
@@ -403,7 +438,6 @@ win_fft <- function(data = NULL,
     )
 
     par(mar = c(4, 4, 2, 3))
-    n.levels = 100
     power_max_mat.levels = quantile(pmax_avg_sel,
                                     probs = seq(
                                       from = bottom_perc,
