@@ -21,6 +21,24 @@
 #' the magnetic susceptibility record of from Pas et al., (2018)\cr
 #' \cr
 #' The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
+#'\cr
+#' The \code{Bisciaro_Mg_wt_track} data set is the 110-kyr (short eccentricity) \cr
+#' cycle tracked in the wavelet scalogram of the Magnesium (XRF) record of Arts (2014)\cr
+#'\cr
+#' The \code{Bisciaro_Mn_wt_track} data set is the 110-kyr (short eccentricity) \cr
+#' cycle tracked in the wavelet scalogram of the Manganese (XRF)record of Arts (2014)\cr
+#'\cr
+#' The \code{Bisciaro_al_wt_track} data set is the 110-kyr (short eccentricity) \cr
+#' cycle tracked in the wavelet scalogram of the Aluminum (XRF) record of Arts (2014)\cr
+#'\cr
+#' The \code{Bisciaro_ca_wt_track} data set is the 110-kyr (short eccentricity) \cr
+#' cycle tracked in the wavelet scalogram of the Calcium (XRF) record of Arts (2014)\cr
+#'\cr
+#' The \code{Bisciaro_sial_wt_track} data set is the 110-kyr (short eccentricity) \cr
+#' cycle tracked in the wavelet scalogram of the Silicon/Aluminum (XRF) record of Arts (2014)\cr
+#'\cr
+#' The \code{Bisciaro_XRF} is the XRF data set of Arts (2014)\cr
+#'\cr
 #'
 #' @references
 #'Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
@@ -50,6 +68,10 @@
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
 #' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
+#'
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
 #'
 NULL
 
@@ -146,7 +168,7 @@ NULL
 #'
 #' @description
 #' Example data which consists of tracking points of the precession (22 kyr cycle) in the wavelet
-#' spectra of the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
+#' scalogram of the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
 #'
 #' @details
 #'Column 1: Depth (meters)\cr
@@ -165,7 +187,7 @@ NULL
 #'
 #' @description
 #' Data points which give the period (in meters) of the 405 kyr eccentricity cycle tracked
-#' in the wavelet spectra of the magnetic susceptibility record of the Sullivan core \cr
+#' in the wavelet scalogram of the magnetic susceptibility record of the Sullivan core \cr
 #' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
 #' The tracking is based on the original age model of Pas et al., (2018)\cr
 #'
@@ -263,19 +285,131 @@ NULL
 NULL
 
 
+#' @title Period of the short kyr ecc cycle in the Mg record of the Bisciaro Fm
+#' @rdname Bisciaro_Mg_wt_track
+#' @name Bisciaro_Mg_wt_track
+#'
+#' @description
+#' Data points which give the period (in meters) of the short kyr eccentricity cycle tracked \cr
+#' in the wavelet scalogram of the magnesium (XRF) record of the Bisciaro Formation \cr
+#' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
+#' The tracking is based on a reinterpretation of Arts (2014)\cr
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: period tracked in the wavelet scalogram of the Magnesium (XRF) record
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
+
+#' @title Period of the short kyr ecc cycle in the Mn record of the Bisciaro Fm
+#' @rdname Bisciaro_Mn_wt_track
+#' @name Bisciaro_Mn_wt_track
+#'
+#' @description
+#' Data points which give the period (in meters) of the short kyr eccentricity cycle tracked \cr
+#' in the wavelet scalogram of the manganese (XRF) record of the Bisciaro Formation \cr
+#' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
+#' The tracking is based on a reinterpretation of Arts (2014)\cr
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: period tracked in the wavelet scalogram of the manganese (XRF) record
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
+
+#' @title Period of the short kyr ecc cycle in the Al record of the Bisciaro Fm
+#' @rdname Bisciaro_al_wt_track
+#' @name Bisciaro_al_wt_track
+#'
+#' @description
+#' Data points which give the period (in meters) of the short kyr eccentricity cycle tracked \cr
+#' in the wavelet scalogram of the aluminium (XRF) record of the Bisciaro Formation \cr
+#' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
+#' The tracking is based on a reinterpretation of Arts (2014)\cr
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: period tracked in the wavelet scalogram of the Aluminium (XRF) record
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
 
 
 
+#' @title Period of the short kyr ecc cycle in the Ca record of the Bisciaro Fm
+#' @rdname Bisciaro_ca_wt_track
+#' @name Bisciaro_ca_wt_track
+#'
+#' @description
+#' Data points which give the period (in meters) of the short kyr eccentricity cycle tracked \cr
+#' in the wavelet scalogram of the calcium (XRF) record of the Bisciaro Formation \cr
+#' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
+#' The tracking is based on a reinterpretation of Arts (2014)\cr
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: period tracked in the wavelet scalogram of the calcium (XRF) record
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
 
 
+#' @title Period of the short kyr ecc cycle in the si/Al record of the Bisciaro Fm
+#' @rdname Bisciaro_sial_wt_track
+#' @name Bisciaro_sial_wt_track
+#'
+#' @description
+#' Data points which give the period (in meters) of the short kyr eccentricity cycle tracked \cr
+#' in the wavelet scalogram of the silicon/aluminium (XRF) record of the Bisciaro Formation \cr
+#' The period was tracked using the \code{\link{track_period_wavelet}} function\cr
+#' The tracking is based on a reinterpretation of Arts (2014)\cr
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2: period tracked in the wavelet scalogram of the silicon/aluminium (XRF) record
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
 
 
-
-
-
-
-
-
-
-
+#' @title XRF records of the Bisciaro Fm
+#' @rdname Bisciaro_XRF
+#' @name Bisciaro_XRF
+#'
+#' @description
+#'XRF proxy records from the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy)
+#'
+#' #'@details
+#'Column 1: depth proxy record\cr
+#'Column 2-71: XRF proxy records
+#'
+#'
+#'@references
+#'M.C.M. Arts, 2014,
+#'Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+#'in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+NULL
 

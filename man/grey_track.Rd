@@ -5,7 +5,7 @@
 \title{Tracking points of the precession (22 kyr cycle) IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)}
 \description{
 Example data which consists of tracking points of the precession (22 kyr cycle) in the wavelet
-spectra of the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
+scalogram of the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)
 }
 \details{
 Column 1: Depth (meters)\cr

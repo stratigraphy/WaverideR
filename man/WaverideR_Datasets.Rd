@@ -25,6 +25,24 @@ The \code{mag_track_solution} is the period of the 405 kyr eccentricity cycle in
 the magnetic susceptibility record of from Pas et al., (2018)\cr
 \cr
 The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
+\cr
+The \code{Bisciaro_Mg_wt_track} data set is the 110-kyr (short eccentricity) \cr
+cycle tracked in the wavelet scalogram of the Magnesium (XRF) record of Arts (2014)\cr
+\cr
+The \code{Bisciaro_Mn_wt_track} data set is the 110-kyr (short eccentricity) \cr
+cycle tracked in the wavelet scalogram of the Manganese (XRF)record of Arts (2014)\cr
+\cr
+The \code{Bisciaro_al_wt_track} data set is the 110-kyr (short eccentricity) \cr
+cycle tracked in the wavelet scalogram of the Aluminum (XRF) record of Arts (2014)\cr
+\cr
+The \code{Bisciaro_ca_wt_track} data set is the 110-kyr (short eccentricity) \cr
+cycle tracked in the wavelet scalogram of the Calcium (XRF) record of Arts (2014)\cr
+\cr
+The \code{Bisciaro_sial_wt_track} data set is the 110-kyr (short eccentricity) \cr
+cycle tracked in the wavelet scalogram of the Silicon/Aluminum (XRF) record of Arts (2014)\cr
+\cr
+The \code{Bisciaro_XRF} is the XRF data set of Arts (2014)\cr
+\cr
 }
 \references{
 Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
@@ -54,4 +72,8 @@ Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
 J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
 Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
+
+M.C.M. Arts, 2014,
+Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
+in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
 }

@@ -5,7 +5,7 @@
 \title{Period of the 405 kyr ecc cycle in the magnetic susceptibility record of the Sullivan core}
 \description{
 Data points which give the period (in meters) of the 405 kyr eccentricity cycle tracked
-in the wavelet spectra of the magnetic susceptibility record of the Sullivan core \cr
+in the wavelet scalogram of the magnetic susceptibility record of the Sullivan core \cr
 The period was tracked using the \code{\link{track_period_wavelet}} function\cr
 The tracking is based on the original age model of Pas et al., (2018)\cr
 }

@@ -47,8 +47,8 @@ verbose=FALSE)
 prob_curve <- percentile_from_red_noise(
 red_noise = mag_wt_red_noise,
 wavelet = mag_wt,
-percentile = 0.9
-)
+percentile = 0.9)
+
 }
 
 }

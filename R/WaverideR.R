@@ -228,13 +228,17 @@
 #'
 #' Type: R package
 #'
-#' Version: 0.3.1 (begin of 2023)
+#' Version: 0.3.2 (begin of 2023)
 #'
 #' License: GPL (>= 2)
 #'
 #' @note
 #' If you want to use this package for publication or research
-#' purposes, please cite: to be submitted
+#' purposes, please cite:
+#'
+#' Arts, M.C.M (2023).
+#' WaverideR: Extracting Signals from Wavelet Spectra.
+#' https://CRAN.R-project.org/package=WaverideR
 #'
 #' @author Michiel Arts
 #'

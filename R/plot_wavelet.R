@@ -321,7 +321,7 @@ plot_wavelet <- function(wavelet = NULL,
                          tbw_mtm = 3,
                          plot_horizontal = TRUE) {
 
-  if (keep_editable == FALSE) {
+    if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
@@ -593,7 +593,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -734,7 +734,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -964,7 +964,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -1208,7 +1208,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -1291,7 +1291,7 @@ plot_wavelet <- function(wavelet = NULL,
 
 
 
-    par(mar = c(0,0, 2, 2))
+    par(mar = c(0,0, 2, 2),xpd=FALSE)
 
     plot(
       x = 1 / MTM_res_1[, 1],
@@ -1397,7 +1397,7 @@ plot_wavelet <- function(wavelet = NULL,
     title(ylab="Wt. power",xpd=NA)
 
 
-    par( mar = c(4, 4, 0, 0))
+    par( mar = c(4, 4, 0, 0),xpd=FALSE)
 
 
     plot(
@@ -1474,7 +1474,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -1655,7 +1655,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -1908,7 +1908,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -1985,7 +1985,7 @@ plot_wavelet <- function(wavelet = NULL,
     mtext(key.labels, side = 1, at = key.marks, line = 0.5,
           las = 2, font = par()$font.axis, cex = par()$cex.axis)
     mtext(c("Power"), side = 1, at = median(key.marks), line = 3,
-          las = 1, font = par()$font.axis, cex = par()$cex.axis,xpd=NA)
+          las = 2, font = par()$font.axis, cex = par()$cex.axis,xpd=NA)
     box(lwd = lwd.axis)
 
 
@@ -2069,7 +2069,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 1,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -2223,7 +2223,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -2479,7 +2479,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -2512,6 +2512,8 @@ plot_wavelet <- function(wavelet = NULL,
     }
 
   }
+
+
 
   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE & plot_horizontal ==TRUE ) {
     layout.matrix <- matrix(c(1, 0, 3, 2),
@@ -2631,7 +2633,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -2785,7 +2787,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -3048,7 +3050,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -3293,7 +3295,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -3511,7 +3513,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis
@@ -3643,7 +3645,7 @@ plot_wavelet <- function(wavelet = NULL,
       period.tick.label,
       side = 2,
       at = period.tick,
-      las = 1,
+      las = 2,
       line = par()$mgp[2] - 0.5,
       font = par()$font.axis,
       cex = par()$cex.axis

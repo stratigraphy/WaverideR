@@ -114,9 +114,7 @@ should be period values \code{Default=NULL}}
 
 \item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
-
-#'}
+\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
 }
 \value{
 The output is a plot of a wavelet spectra.
@@ -252,9 +250,8 @@ padfac_mtm = 5,
 tbw_mtm = 3,
 plot_horizontal=TRUE)
 
-
-
 }
+
 }
 \references{
 Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
