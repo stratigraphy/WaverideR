@@ -101,7 +101,7 @@
 #'@param file_name Name of the images created using this function. Each file
 #'gets a number added to it which corresponds to which number of simulation it was
 #'the files are saved in a folder with a similar name created in the current
-#'directory \code{Default="TEST_1"}
+#'directory
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
 #'@param output #'If output = 1, output is a list which contain 3 objects.
 #'object 1 is a matrix with the x-axis and the mean tracked period and + and
@@ -421,7 +421,7 @@
 #'              x_lab = "depth (metres)",
 #'              add_avg = FALSE,
 #'              time_dir = TRUE,
-#'              file_name = "TEST_1",
+#'              file_name = NULL,
 #'              run_multicore = FALSE,
 #'              output = 1,
 #'              n_imgs = 50,
@@ -511,226 +511,214 @@
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices png
 #' @importFrom astrochron sortNave
+#' @importFrom parallel stopCluster
 
 retrack_wt_MC <- function(wt_list = NULL,
-                           data_track = NULL,
-                           x_axis = NULL,
-                           nr_simulations = 50,
-                           seed_nr = 1337,
-                           verbose = FALSE,
-                           genplot = FALSE,
-                           keep_editable = FALSE,
+                          data_track = NULL,
+                          x_axis = NULL,
+                          nr_simulations = 50,
+                          seed_nr = 1337,
+                          verbose = FALSE,
+                          genplot = FALSE,
+                          keep_editable = FALSE,
                           create_GIF = FALSE,
                           plot_GIF = FALSE,
-                           width_plt =  600,
-                           height_plt = 450,
-                           period_up  =  1.5,
-                           period_down = 0.5,
-                           plot.COI = TRUE,
-                           n.levels = 100,
-                           palette_name = "rainbow",
-                           color_brewer = "grDevices",
-                           periodlab = "Period (metres)",
-                           x_lab = "depth (metres)",
-                           add_avg = FALSE,
-                           time_dir = TRUE,
-                           file_name = "TEST_1",
-                           run_multicore = FALSE,
-                           output = 1,
-                           n_imgs = 50,
-                           plot_horizontal = TRUE,
-                           empty_folder = FALSE){
+                          width_plt =  600,
+                          height_plt = 450,
+                          period_up  =  1.5,
+                          period_down = 0.5,
+                          plot.COI = TRUE,
+                          n.levels = 100,
+                          palette_name = "rainbow",
+                          color_brewer = "grDevices",
+                          periodlab = "Period (metres)",
+                          x_lab = "depth (metres)",
+                          add_avg = FALSE,
+                          time_dir = TRUE,
+                          file_name = NULL,
+                          run_multicore = FALSE,
+                          output = 1,
+                          n_imgs = 50,
+                          plot_horizontal = TRUE,
+                          empty_folder = FALSE){
 
-simulations = nr_simulations
-img_animated <- NULL
+  simulations = nr_simulations
+  img_animated <- NULL
 
-if (run_multicore == TRUE) {
-  numCores <- detectCores()
-  cl <- parallel::makeCluster(numCores - 2)
-  registerDoSNOW(cl)
-} else{
-  numCores <- 1
-  cl <- makeCluster(numCores)
-  registerDoSNOW(cl)
-}
-
-
-if (empty_folder==TRUE & create_GIF==TRUE){
-  f <- list.files(file_name, include.dirs = F, full.names = T, recursive = T)
-  file.remove(f)}
+  if (run_multicore == TRUE) {
+    numCores <- detectCores()
+    cl <- parallel::makeCluster(numCores - 2)
+    registerDoSNOW(cl)
+  } else{
+    numCores <- 1
+    cl <- makeCluster(numCores)
+    registerDoSNOW(cl)
+  }
 
 
-if (verbose==TRUE){
-  pb <- txtProgressBar(max = simulations, style = 3)
-  progress <- function(n)
-    setTxtProgressBar(pb, n)
-  opts <- list(progress = progress)}else{opts=NULL}
-
-if (create_GIF==TRUE){
-dir.create(file_name, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-}
-
-n_curves <- ncol(data_track)
-
-j <- 1 # needed to assign 1 to ijk to avoid note
-set.seed(seed_nr)
+  if (empty_folder==TRUE & create_GIF==TRUE){
+    f <- list.files(file_name, include.dirs = F, full.names = T, recursive = T)
+    file.remove(f)}
 
 
-fit <-  foreach (j = 1:simulations, .options.snow = opts, .combine = 'cbind') %dopar% {
-
-  sel_curve <- sample(1:n_curves, 1, replace=F)
-  n <- n_curves
-  x <- runif(n, 0, 1)
-  y <- x / sum(x)
-
-
-  vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
-  fractions <- data_track*vals
-  fractions <- rowSums(fractions)
-  fractions <- cbind(x_axis,fractions)
-
-  wt_sel <- rlist::list.extract(wt_list, sel_curve)
-
-  completed_curve <- WaverideR::completed_series(
-    wavelet =  wt_sel,
-    tracked_curve =  fractions[,c(1,2)],
-    period_up  = period_up,
-    period_down  = period_down,
-    extrapolate = TRUE,
-    genplot = FALSE
-  )
-
-  completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
-  completed_curve <- completed_curve[1:length(x_axis),]
-  completed_curve <- WaverideR::loess_auto(completed_curve)
-  completed_curve <- completed_curve[,c(1,2)]
-
+  if (verbose==TRUE){
+    pb <- txtProgressBar(max = simulations, style = 3)
+    progress <- function(n)
+      setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)}else{opts=NULL}
 
   if (create_GIF==TRUE){
-  png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
-
-  WaverideR::plot_wavelet(wavelet = wt_sel,
-                          plot.COI = plot.COI,
-                          n.levels = n.levels,
-                          useRaster = TRUE,
-                          palette_name = palette_name,
-                          color_brewer = color_brewer,
-                          periodlab = periodlab,
-                          x_lab = x_lab,
-                          add_lines=completed_curve,
-                          add_avg= add_avg,
-                          dev_new = FALSE,
-                          time_dir = time_dir,
-                          plot_horizontal = plot_horizontal)
-  dev.off()
-}
-  completed_curve <- completed_curve[,2]
-
-}
-
-stopCluster(cl)
-
-sims_2 <- fit
-sims_mean_2 <- rowMeans(sims_2)
-sims_2 <-  as.matrix(sims_2)
-sims_sd_2 <- matrixStats::rowSds(sims_2)
-
-sed_run <- cbind(x_axis,sims_mean_2,sims_mean_2-sims_sd_2,sims_mean_2+sims_sd_2)
-
-if (genplot == TRUE) {
-  if (keep_editable == FALSE) {
-    oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    dir.create(file_name, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
-  layout.matrix <- matrix(c(1), nrow = 1, ncol = 1)
-  graphics::layout(mat = layout.matrix,
-                   heights = c(1),
-                   # Heights of the two rows
-                   widths = c(1))
-  par(mar = c(4, 4, 1, 1))
-  plot(x=sed_run[,1],y=sed_run[,2],type="l",ylim=c(min(sed_run[,3]),
-                                                   max(sed_run[,4])),col="green",lwd=2,
-       xlab=x_lab,ylab=periodlab)
-  lines(x=sed_run[,1],y=sed_run[,3],col="red",lwd=2)
-  lines(x=sed_run[,1],y=sed_run[,4],col="blue",lwd=2)
-}
 
-if (create_GIF==TRUE){
-imgs <- list.files(file_name, full.names = TRUE)
+  n_curves <- ncol(data_track)
 
-if (n_imgs > nr_simulations){
-  n_imgs <- nr_simulations
-}
-
-imgs <- imgs[1:n_imgs]
-
-img_list <- lapply(imgs, image_read)
-img_joined <- image_join(img_list)
-img_animated <- image_animate(img_joined, fps = 5)
-
-if (plot_GIF==TRUE){
-  img_animated
-}
-
-image_write(image = img_animated,
-            path =paste0(file_name,"/",file_name,".gif"))
-}
+  j <- 1 # needed to assign 1 to ijk to avoid note
+  set.seed(seed_nr)
 
 
+  fit <-  foreach (j = 1:simulations, .options.snow = opts, .combine = 'cbind') %dopar% {
 
-if (output == 1) {
-  res <- list(sed_run,fit,img_animated)
-
-}
-
-if (output == 2) {
-  res <- list(sed_run,fit)
-
-}
-
-if (output == 3) {
-  res <- list(sed_run,img_animated)
-
-}
+    sel_curve <- sample(1:n_curves, 1, replace=F)
+    n <- n_curves
+    x <- runif(n, 0, 1)
+    y <- x / sum(x)
 
 
-if (output == 4) {
-  res <- list(fit,img_animated)
+    vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
+    fractions <- data_track*vals
+    fractions <- rowSums(fractions)
+    fractions <- cbind(x_axis,fractions)
 
-}
+    wt_sel <- rlist::list.extract(wt_list, sel_curve)
 
+    completed_curve <- WaverideR::completed_series(
+      wavelet =  wt_sel,
+      tracked_curve =  fractions[,c(1,2)],
+      period_up  = period_up,
+      period_down  = period_down,
+      extrapolate = TRUE,
+      genplot = FALSE
+    )
 
-if (output == 5) {
-  res <- sed_run
-
-}
-
-if (output == 6) {
-  res <- fit
-
-}
-
-if (output == 7) {
-  res <- img_animated
-
-}
-
-
-return(res)}
+    completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
+    completed_curve <- completed_curve[1:length(x_axis),]
+    completed_curve <- WaverideR::loess_auto(completed_curve)
+    completed_curve <- completed_curve[,c(1,2)]
 
 
+    if (create_GIF==TRUE){
+      png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
+
+      WaverideR::plot_wavelet(wavelet = wt_sel,
+                              plot.COI = plot.COI,
+                              n.levels = n.levels,
+                              useRaster = TRUE,
+                              palette_name = palette_name,
+                              color_brewer = color_brewer,
+                              periodlab = periodlab,
+                              x_lab = x_lab,
+                              add_lines=completed_curve,
+                              add_avg= add_avg,
+                              dev_new = FALSE,
+                              time_dir = time_dir,
+                              plot_horizontal = plot_horizontal)
+      dev.off()
+    }
+    completed_curve <- completed_curve[,2]
+
+  }
+
+  stopCluster(cl)
+
+  sims_2 <- fit
+  sims_mean_2 <- rowMeans(sims_2)
+  sims_2 <-  as.matrix(sims_2)
+  sims_sd_2 <- matrixStats::rowSds(sims_2)
+
+  sed_run <- cbind(x_axis,sims_mean_2,sims_mean_2-sims_sd_2,sims_mean_2+sims_sd_2)
+
+  if (genplot == TRUE) {
+    if (keep_editable == FALSE) {
+      oldpar <- par(no.readonly = TRUE)
+      on.exit(par(oldpar))
+    }
+    layout.matrix <- matrix(c(1), nrow = 1, ncol = 1)
+    graphics::layout(mat = layout.matrix,
+                     heights = c(1),
+                     # Heights of the two rows
+                     widths = c(1))
+    par(mar = c(4, 4, 1, 1))
+    plot(x=sed_run[,1],y=sed_run[,2],type="l",ylim=c(min(sed_run[,3]),
+                                                     max(sed_run[,4])),col="green",lwd=2,
+         xlab=x_lab,ylab=periodlab)
+    lines(x=sed_run[,1],y=sed_run[,3],col="red",lwd=2)
+    lines(x=sed_run[,1],y=sed_run[,4],col="blue",lwd=2)
+  }
+
+  if (create_GIF==TRUE){
+    imgs <- list.files(file_name, full.names = TRUE)
+
+    if (n_imgs > nr_simulations){
+      n_imgs <- nr_simulations
+    }
+
+    imgs <- imgs[1:n_imgs]
+
+    img_list <- lapply(imgs, image_read)
+    img_joined <- image_join(img_list)
+    img_animated <- image_animate(img_joined, fps = 5)
+
+    if (plot_GIF==TRUE){
+      img_animated
+    }
+
+    image_write(image = img_animated,
+                path =paste0(file_name,"/",file_name,".gif"))
+  }
 
 
+  sed_run[,3] <- sed_run[,2]-sed_run[,3]
+  sed_run <- sed_run[,c(1:3)]
+  colnames(sed_run) <- c("depth","mean_period","sd")
 
 
+  if (output == 1) {
+    res <- list(sed_run,fit,img_animated)
+
+  }
+
+  if (output == 2) {
+    res <- list(sed_run,fit)
+
+  }
+
+  if (output == 3) {
+    res <- list(sed_run,img_animated)
+
+  }
 
 
+  if (output == 4) {
+    res <- list(fit,img_animated)
+
+  }
 
 
+  if (output == 5) {
+    res <- sed_run
+
+  }
+
+  if (output == 6) {
+    res <- fit
+
+  }
+
+  if (output == 7) {
+    res <- img_animated
+
+  }
 
 
-
-
-
-
-
+  return(res)}

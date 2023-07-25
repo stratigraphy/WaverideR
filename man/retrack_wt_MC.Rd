@@ -27,7 +27,7 @@ retrack_wt_MC(
   x_lab = "depth (metres)",
   add_avg = FALSE,
   time_dir = TRUE,
-  file_name = "TEST_1",
+  file_name = NULL,
   run_multicore = FALSE,
   output = 1,
   n_imgs = 50,
@@ -126,7 +126,7 @@ then time_dir should be set to FALSE \code{time_dir=TRUE}}
 \item{file_name}{Name of the images created using this function. Each file
 gets a number added to it which corresponds to which number of simulation it was
 the files are saved in a folder with a similar name created in the current
-directory \code{Default="TEST_1"}}
+directory}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 
@@ -484,7 +484,7 @@ bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
              x_lab = "depth (metres)",
              add_avg = FALSE,
              time_dir = TRUE,
-             file_name = "TEST_1",
+             file_name = NULL,
              run_multicore = FALSE,
              output = 1,
              n_imgs = 50,
