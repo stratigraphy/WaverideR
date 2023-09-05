@@ -12,6 +12,9 @@
 #' @param astro_cycle Duration (in kyr) of the cycle which traced.
 #' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #' @param n.levels Number of color levels \code{Default=100}.
+#' @param track_peaks Setting which indicates whether tracking is restricted
+#' to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
+#' spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}.
 #' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
 #' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
 #'@param palette_name Name of the color palette which is used for plotting.
@@ -49,7 +52,7 @@
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+#'time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 #'
 #'@examples
 #'\donttest{
@@ -66,6 +69,7 @@
 #' mag_track <- track_period_wavelet(astro_cycle = 405,
 #'                                   wavelet=mag_wt,
 #'                                   n.levels = 100,
+#'                                   track_peaks=TRUE,
 #'                                   periodlab = "Period (metres)",
 #'                                   x_lab = "depth (metres)",
 #'                                  palette_name = "rainbow",
@@ -117,9 +121,11 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 
+
 track_period_wavelet <- function(astro_cycle = 405,
                                  wavelet = NULL,
                                  n.levels = 100,
+                                 track_peaks=TRUE,
                                  periodlab = "Period (metres)",
                                  x_lab = "depth (metres)",
                                  palette_name = "rainbow",
@@ -330,44 +336,52 @@ track_period_wavelet <- function(astro_cycle = 405,
       cex = par()$cex.axis
     )
 
-    Pwert <- wavelet$Power
 
-    maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+    if (track_peaks==TRUE){
+      Pwert <- wavelet$Power
 
-    for (j in 1:ncol(Pwert)) {
-      for (i in 2:(nrow(maxdetect) - 1)) {
-        if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
-            (Pwert[i, j] - Pwert[(i - 1), j]  > 0))
-        {
-          maxdetect[i, j] <- 1
+      maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+
+      for (j in 1:ncol(Pwert)) {
+        for (i in 2:(nrow(maxdetect) - 1)) {
+          if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
+              (Pwert[i, j] - Pwert[(i - 1), j]  > 0))
+          {
+            maxdetect[i, j] <- 1
+          }
         }
       }
-    }
 
-    maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- melt(maxdetect)
 
-    depth <- rep(wavelet$x, each = length(wavelet$axis.2))
-    period <- rep(wavelet$axis.2, times = length(wavelet$x))
+      depth <- rep(wavelet$x, each = length(wavelet$axis.2))
+      period <- rep(wavelet$axis.2, times = length(wavelet$x))
 
-    maxdetect2 <- as.data.frame(maxdetect2)
-    maxdetect2[, 1] <- period
-    maxdetect2[, 2] <- depth
-    maxdetect2 <- maxdetect2[maxdetect2$value > 0,]
+      maxdetect2 <- as.data.frame(maxdetect2)
+      maxdetect2[, 1] <- period
+      maxdetect2[, 2] <- depth
+      maxdetect2 <- maxdetect2[maxdetect2$value > 0,]
 
-    colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
+      colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
 
-    points(
-      x = maxdetect2$x_val,
-      y = maxdetect2$y_val,
-      type = "p",
-      pch = 1,
-      col = "black",
-      lwd = "0.5"
-    )
+      points(
+        x = maxdetect2$x_val,
+        y = maxdetect2$y_val,
+        type = "p",
+        pch = 1,
+        col = "black",
+        lwd = "0.5"
+      )
 
 
-    x = maxdetect2$x_val
-    y = maxdetect2$y_val
+      x = maxdetect2$x_val
+      y = maxdetect2$y_val
+    }else {
+      x  <- rep(wavelet$x, each = length(wavelet$axis.2))
+      y  <- rep(wavelet$axis.2, times = length(wavelet$x))}
+
+
+
 
     defaultW <- getOption("warn")
     options(warn = -1)
@@ -421,6 +435,9 @@ track_period_wavelet <- function(astro_cycle = 405,
 
     return(out)
   }
+
+
+
 
   if (plot_horizontal == FALSE){
     dev.new(width = 7,
@@ -555,44 +572,52 @@ track_period_wavelet <- function(astro_cycle = 405,
       cex = par()$cex.axis
     )
 
-    Pwert <- wavelet$Power
 
-    maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
-    for (j in 1:ncol(Pwert)) {
-      for (i in 2:(nrow(maxdetect) - 1)) {
-        if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
-            (Pwert[i, j] - Pwert[(i - 1), j]  > 0))
-        {
-          maxdetect[i, j] <- 1
+    if (track_peaks==TRUE){
+      Pwert <- wavelet$Power
+
+      maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+
+      for (j in 1:ncol(Pwert)) {
+        for (i in 2:(nrow(maxdetect) - 1)) {
+          if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
+              (Pwert[i, j] - Pwert[(i - 1), j]  > 0))
+          {
+            maxdetect[i, j] <- 1
+          }
         }
       }
-    }
 
-    maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- melt(maxdetect)
 
-    depth <- rep(wavelet$x, each = length(wavelet$axis.2))
-    period <- rep(wavelet$axis.2, times = length(wavelet$x))
+      depth <- rep(wavelet$x, each = length(wavelet$axis.2))
+      period <- rep(wavelet$axis.2, times = length(wavelet$x))
 
-    maxdetect2 <- as.data.frame(maxdetect2)
-    maxdetect2[, 2] <- period
-    maxdetect2[, 1] <- depth
-    maxdetect2 <- maxdetect2[maxdetect2$value > 0,]
+      maxdetect2 <- as.data.frame(maxdetect2)
+      maxdetect2[, 2] <- period
+      maxdetect2[, 1] <- depth
+      maxdetect2 <- maxdetect2[maxdetect2$value > 0,]
 
-    colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
+      colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
 
-    points(
-      x = maxdetect2$x_val,
-      y = maxdetect2$y_val,
-      type = "p",
-      pch = 1,
-      col = "black",
-      lwd = "0.5"
-    )
+      points(
+        x = maxdetect2$x_val,
+        y = maxdetect2$y_val,
+        type = "p",
+        pch = 1,
+        col = "black",
+        lwd = "0.5"
+      )
 
+      n <- nrow(maxdetect2)
+      x = maxdetect2$x_val
+      y = maxdetect2$y_val
+    }else {
+      y  <- rep(wavelet$x, each = length(wavelet$axis.2))
+      x  <- rep(wavelet$axis.2, times = length(wavelet$x))
+      n <- length(wavelet$x)}
 
-    x = maxdetect2$x_val
-    y = maxdetect2$y_val
 
     defaultW <- getOption("warn")
     options(warn = -1)
@@ -600,7 +625,6 @@ track_period_wavelet <- function(astro_cycle = 405,
     y <- xy$y
     x <- xy$x
     sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-    n <- nrow(maxdetect2)
 
     while (sum(sel) < n) {
       ans <- identify(x,

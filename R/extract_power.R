@@ -43,7 +43,7 @@
 #'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 #'
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+#'time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 #'
 #'@examples
 #'#Extract the power of the 405 kyr eccentricity cycle from the the magnetic

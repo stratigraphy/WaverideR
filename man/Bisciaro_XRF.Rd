@@ -6,8 +6,8 @@
 \description{
 XRF proxy records from the early Miocene Bisciaro Formation
 in the Contessa Valley (Northern Italy)
-
-#'@details
+}
+\details{
 Column 1: depth proxy record\cr
 Column 2-71: XRF proxy records
 }

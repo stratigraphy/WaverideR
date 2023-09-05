@@ -26,7 +26,7 @@
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+#'time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 #'
 #'@return
 #'The output depends on the output setting

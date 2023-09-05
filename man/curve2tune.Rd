@@ -90,7 +90,7 @@ mag_track_time<- curve2tune(data=mag,
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 Part of the code is based on the \link[astrochron]{sedrate2time}

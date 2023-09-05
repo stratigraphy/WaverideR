@@ -18,4 +18,3 @@ You can install the development version of WaverideR from [GitHub](https://githu
 devtools::install_github("stratigraphy/WaverideR")
 ```
 
-

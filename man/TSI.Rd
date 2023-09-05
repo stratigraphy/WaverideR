@@ -18,5 +18,5 @@ Hiroko & Oerter, Hans & Wilhelms, Frank. (2012).
 9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
 Proceedings of the National Academy of Sciences of the United States of America.
 109. 5967-71. 10.1073/pnas.1118965109.
-<\doi{doi:10.1073/pnas.1118965109}>
+<doi:10.1073/pnas.1118965109>
 }

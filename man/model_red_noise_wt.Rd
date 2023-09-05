@@ -44,7 +44,7 @@ omega_nr = 10)
 
 #increase n_simulations to better define the red noise spectral power curve
 mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
-n_simulations=100,
+n_simulations=10, # increase number for better constrained results
 run_multicore=FALSE,
 verbose=FALSE)
 }
@@ -66,11 +66,11 @@ Bulletin of the American Meteorological Society 79:61-78.
 Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 "Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 " Geophysics 47, no. 2 (1982): 203-221.
-<\doi{doi:10.1190/1.1441328}>
+\url{https://pubs.geoscienceworld.org/geophysics/article/47/2/203/68601/Wave-propagation-and-sampling-theory-Part-I}
 
 J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
- Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
+ Geophysics 1982 47 (2): 222–236. \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/222/68604/Wave-propagation-and-sampling-theory-Part-II}
 }
 \author{
 Code based on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package

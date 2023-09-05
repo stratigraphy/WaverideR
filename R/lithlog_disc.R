@@ -13,12 +13,12 @@
 #'@references
 #' Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X.. 2021.
 #' StratigrapheR: Concepts for Litholog Generation in R.
-#' The R Journal. <\doi{doi:10.32614/RJ-2021-039}>
+#' The R Journal. <doi:10.32614/RJ-2021-039>
 #'
 #'
 #' @param litholog litholog input matrix with 3 columns column 1 is bottom of the bed,
 #'  column 2 is top of bed, column is depth rank/proxy value
-#' @param subset_fact subset factor which is x times the greatest common divider \code{Default=100}.
+#' @param subset_fact subset factor which is x times the greatest common divider \code{Default=10}.
 #' @param lin_interp Linear interpolation of the data set \code{Default=FALSE}
 #' @param dt step size  \code{Default=NULL}.
 #' @param genplot generate plot  \code{Default=FALSE}
@@ -30,7 +30,7 @@
 #'# Convert depth rank record to a discrete proxy record to allow for further
 #'# analysis in which discrete time series are needed
 #'depth_rank_example_disc <- lithlog_disc(litholog = depth_rank_example,
-#'            subset_fact = 100,
+#'            subset_fact = 10,
 #'            genplot = FALSE,
 #'            x_lab = "rank",
 #'            y_lab = "depth (m)",
@@ -44,7 +44,7 @@
 
 
 lithlog_disc <- function(litholog = NULL,
-                         subset_fact = 100,
+                         subset_fact = 10,
                          lin_interp = FALSE,
                          dt = NULL,
                          genplot = FALSE,

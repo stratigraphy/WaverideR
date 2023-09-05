@@ -4,12 +4,15 @@
 \alias{Hilbert_transform}
 \title{Perform a Hilbert transform on a signal}
 \usage{
-Hilbert_transform(data = NULL, demean = TRUE)
+Hilbert_transform(data = NULL, demean = TRUE, nr_pad = 100)
 }
 \arguments{
 \item{data}{Input is a time series with the first column being depth or time and the second column being a proxy.}
 
 \item{demean}{Remove the mean from the time series.}
+
+\item{nr_pad}{nr of points added tot the top and bottom of the data set
+to mitigate the edging effect of the Hilbert transform.}
 }
 \value{
 Returns a matrix with 2 columns.
@@ -52,10 +55,10 @@ de_Vries_cycle_hilbert <- Hilbert_transform(data=de_Vries_cycle,demean=TRUE)
 \references{
 Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
-Earth-Science Reviews 225 (103894). <\doi{doi:10.1016/j.earscirev.2021.103894}>
+Earth-Science Reviews 225 (103894). <doi:10.1016/j.earscirev.2021.103894>
 
 Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, and Karin Blank. 2009.
-"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <\doi{doi:10.1142/S1793536909000096}>
+"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <doi:10.1142/S1793536909000096>
 }
 \author{
 Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.

@@ -19,7 +19,10 @@ dur_gaps(
   upperPeriod = 3200,
   period_max = NULL,
   period_min = NULL,
-  dur_between_pts = NULL,
+  missing_cycle_dur = NULL,
+  n_cycles_missing = 1,
+  missing_cycle_unc = NULL,
+  missing_cycle_unc_dist = "u",
   run_multicore = FALSE
 )
 }
@@ -78,7 +81,15 @@ parameters allows to analyze the signal for a specific range of cycles.
 
 \item{period_min}{Minimum period (lower boundary) to be used to extract a cycle.}
 
-\item{dur_between_pts}{duration in time between the minima or maxima}
+\item{missing_cycle_dur}{duration of the missing cycles}
+
+\item{n_cycles_missing}{number of missing cycles \code{Default=1}}
+
+\item{missing_cycle_unc}{duration uncertainty of the missing cycle}
+
+\item{missing_cycle_unc_dist}{distribution of the uncertainty of the
+tracked cycle value need to be either "u" for uniform distribution or
+"n" for normal distribution  \code{Default="u"}}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 }

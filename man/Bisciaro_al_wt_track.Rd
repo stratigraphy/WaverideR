@@ -8,8 +8,8 @@ Data points which give the period (in meters) of the short kyr eccentricity cycl
 in the wavelet scalogram of the aluminium (XRF) record of the Bisciaro Formation \cr
 The period was tracked using the \code{\link{track_period_wavelet}} function\cr
 The tracking is based on a reinterpretation of Arts (2014)\cr
-
-#'@details
+}
+\details{
 Column 1: depth proxy record\cr
 Column 2: period tracked in the wavelet scalogram of the Aluminium (XRF) record
 }

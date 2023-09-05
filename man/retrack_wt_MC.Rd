@@ -131,14 +131,14 @@ directory}
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 
 \item{output}{#'If output = 1, output is a list which contain 3 objects.
-object 1 is a matrix with the x-axis and the mean tracked period and + and
-- standard deviation. #'object 2 is a matrix with all the tracked periods.
+object 1 is a matrix with the x-axis and the mean tracked frequency and
+standard deviation. #'object 2 is a matrix with all the tracked periods.
 Object 3 is a GIF in which #'all the tracked periods are plotted.
 If output = 2, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked period and + and - standard deviation.
+with the x-axis and the mean tracked frequency and standard deviation.
 object 2 is a matrix with all the tracked periods.
 If output = 3, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked period and + and - standard deviation.
+with the x-axis and the mean tracked frequency and standard deviation.
 Object 2 is a GIF in which
 all the tracked periods are plotted.
 If output = 4, output is a list which contain 3 objects. Object 1 is a matrix
@@ -147,8 +147,8 @@ periods are plotted.
 If output = 4 output is a list which contain 3 objects. Object 1 is a matrix
 with all the tracked periods. Object 2 is a GIF in which  all the tracked
 periods are plotted.
-If output = 5 a matrix with the x-axis and the mean tracked period and + and
-- standard deviation is returned.
+If output = 5 a matrix with the x-axis and the mean tracked frequency and
+standard deviation is returned.
 If output = 6, a matrix with all the tracked periods is returned.
 If output = 7, a GIF in which all the tracked periods are plotted is returned.
 \code{Default=1}}
@@ -164,19 +164,19 @@ this function are saved \code{Default=FALSE}}
 }
 \value{
 The output depends on the output setting
-If genplot = TRUE a plot will be generated in which the mean period and + and
-- standard deviation is plotted
+If genplot = TRUE a plot will be generated in which the mean period and
+standard deviation is plotted
 if plot_GIF = TRUE a GIF with n number of n_imgs will be plotted in which the
 retraced curve is plotted in a wavelet scalogram
 If output = 1, output is a list which contain 3 objects. object 1 is a matrix
-with the x-axis and the mean tracked period and + and - standard deviation.
+with the x-axis and the mean tracked frequency and standard deviation.
 object 2 is a matrix with all the tracked periods. Object 3 is a GIF in which
 all the tracked periods are plotted.
 If output = 2, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked period and + and - standard deviation.
+with the x-axis and the mean tracked frequency and standard deviation.
 object 2 is a matrix with all the tracked periods.
 If output = 3, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked period and + and - standard deviation.
+with the x-axis and the mean tracked frequency and standard deviation.
 Object 2 is a GIF in which
 all the tracked periods are plotted.
 If output = 4, output is a list which contain 3 objects. Object 1 is a matrix
@@ -185,8 +185,8 @@ periods are plotted.
 If output = 4 output is a list which contain 3 objects. Object 1 is a matrix
 with all the tracked periods. Object 2 is a GIF in which  all the tracked
 periods are plotted.
-If output = 5 a matrix with the x-axis and the mean tracked period and + and
-- standard deviation is returned.
+If output = 5 a matrix with the x-axis and the mean tracked period and
+standard deviation is returned.
 If output = 6, a matrix with all the tracked periods is returned.
 If output = 7, a GIF in which all the tracked periods are plotted is returned
 }
@@ -465,7 +465,7 @@ x_axis_bisc <- Bisciaro_al_wt_track[,1]
 bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
              data_track = data_track_bisc,
              x_axis = x_axis_bisc,
-             nr_simulations = 50,
+             nr_simulations = 20,
              seed_nr = 1337,
              verbose = FALSE,
              genplot = FALSE,

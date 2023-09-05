@@ -10,8 +10,8 @@ Zeeden et al., (2013) and anchored to the code{\link{astrosignal_example}} \cr
 astronomical solution which is a pre-generated ETP (eccentricity-tilt-precession) \cr
 solution(p-0.5t based on the la2004 solution) based on Laskar et al., (20004) \cr
 astronomical solution.
-
-#'@details
+}
+\details{
 Column 1: depth proxy record\cr
 Column 2: time astronomical solution  \cr
 Column 3: y-scale value proxy record\cr
@@ -21,9 +21,9 @@ Column 4: y-scale value astronomical solution  \cr
 Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-<\doi{doi:10.1016/j.palaeo.2012.11.009}>
+<doi:10.1016/j.palaeo.2012.11.009>
 
 J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}>
+Volume 428, 261-285. <doi:10.1051/0004-6361:20041335>
 }

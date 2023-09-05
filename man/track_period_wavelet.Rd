@@ -8,6 +8,7 @@ track_period_wavelet(
   astro_cycle = 405,
   wavelet = NULL,
   n.levels = 100,
+  track_peaks = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   palette_name = "rainbow",
@@ -21,6 +22,10 @@ track_period_wavelet(
 \item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
 
 \item{n.levels}{Number of color levels \code{Default=100}.}
+
+\item{track_peaks}{Setting which indicates whether tracking is restricted
+to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
+spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}.}
 
 \item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
 
@@ -83,6 +88,7 @@ omega_nr = 10)
 mag_track <- track_period_wavelet(astro_cycle = 405,
                                   wavelet=mag_wt,
                                   n.levels = 100,
+                                  track_peaks=TRUE,
                                   periodlab = "Period (metres)",
                                   x_lab = "depth (metres)",
                                  palette_name = "rainbow",
@@ -93,7 +99,7 @@ mag_track <- track_period_wavelet(astro_cycle = 405,
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 The function is based/inspired on the \link[astrochron]{traceFreq}

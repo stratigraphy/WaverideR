@@ -54,17 +54,17 @@
 #'
 #'@references
 #'Routines for astrochronologic testing, astronomical time scale construction, and
-#'time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+#'time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 #'
 #'Acycle: Time-series analysis software for paleoclimate research and education,
 #'Mingsong Li, Linda Hinnov, Lee Kump,
 #'Computers & Geosciences,Volume 127,2019,Pages 12-22,ISSN 0098-3004,
-#'<\doi{doi:10.1016/j.cageo.2019.02.011}>
+#'<doi:10.1016/j.cageo.2019.02.011>
 #'
 #'Tracking variable sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy series with evolutionary correlation coefficients and hypothesis testing,
 #'Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael E. Mann,
 #'Earth and Planetary Science Letters,Volume 501,
-#'T2018,Pages 165-179,ISSN 0012-821X,<\doi{doi:10.1016/j.epsl.2018.08.041}>
+#'T2018,Pages 165-179,ISSN 0012-821X,<doi:10.1016/j.epsl.2018.08.041>
 #'
 #'@examples
 #'\donttest{
@@ -80,7 +80,7 @@
 #'
 #'#increase n_simulations to better define the red noise spectral power curve
 #'mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
-#'n_simulations=100,
+#'n_simulations=10,
 #'run_multicore=FALSE,
 #'verbose=FALSE)
 #'

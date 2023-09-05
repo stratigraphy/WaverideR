@@ -120,32 +120,32 @@
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 #'A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-#' Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
+#' Volume 428, 261-285. <doi:10.1051/0004-6361:20041335> \cr
 #'
 #'Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
 #' La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,
-#' Volume 532, A89 <\doi{doi:10.1051/0004-6361/201116836}> \cr
+#' Volume 532, A89 <doi:10.1051/0004-6361/201116836> \cr
 #'
 #'Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
 #'2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys.,
-#'Volume 532, L4.  <\doi{doi.org/10.1051/0004-6361/201117504}>\cr
+#'Volume 532, L4.  <doi:10.1051/0004-6361/201117504>\cr
 #'
 #'J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-#' <\doi{doi:10.1016/B978-0-12-824360-2.00004-8}> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
+#' <doi:10.1016/B978-0-12-824360-2.00004-8> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
 #'
 #'Zeebe, R. E. and Lourens, L. J.
 #'Geologically constrained astronomical solutions for the Cenozoic era,
 #'Earth and Planetary Science Letters, 2022 <\doi{doi:10.1016/j.epsl.2022.117595}>\cr
 #'
 #'Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the Paleocene–Eocene boundary age constrained by geology and astronomy.Science365,926-929(2019)
-#'<\doi{doi:10.1126/science.aax0612}>\cr
+#'<doi:10.1126/science.aax0612>\cr
 #'
 #'Zeebe, Richard E. "Numerical solutions for the orbital motion of the Solar System over the past 100 Myr: limits and new results."
-#'The Astronomical Journal 154, no. 5 (2017): 193. <\doi{doi:10.3847/1538-3881/aa8cce}> \cr
+#'The Astronomical Journal 154, no. 5 (2017): 193. <doi:10.3847/1538-3881/aa8cce> \cr
 #'
 #'Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 #'Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-#'<\doi{doi:10.1016/j.earscirev.2018.11.015}>
+#'<doi:10.1016/j.earscirev.2018.11.015>
 #'
 #' @return
 #'The output is a matrix with the 4 columns.

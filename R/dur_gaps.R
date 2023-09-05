@@ -44,7 +44,12 @@
 #'  scaling is done using power 2 so for the best plotting results select a value to the power or 2.
 #' @param period_max Maximum period (upper boundary) to be used to extract a cycle.
 #' @param period_min Minimum period (lower boundary) to be used to extract a cycle.
-#'@param dur_between_pts duration in time between the minima or maxima
+#'@param missing_cycle_dur duration of the missing cycles
+#'@param n_cycles_missing number of missing cycles \code{Default=1}
+#'@param missing_cycle_unc duration uncertainty of the missing cycle
+#'@param missing_cycle_unc_dist distribution of the uncertainty of the
+#'tracked cycle value need to be either "u" for uniform distribution or
+#'"n" for normal distribution  \code{Default="u"}
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
 #'
 #'@return
@@ -64,13 +69,15 @@
 
 
 
+
+
 dur_gaps <- function(proxies = NULL,
                      retracked_period_1 = NULL,
                      retracked_period_2 = NULL,
                      min_max =  NULL,
                      n_simulations = 10,
                      tracked_cycle_period = NULL,
-                     tracked_cycle_period_unc =NULL,
+                     tracked_cycle_period_unc = NULL,
                      tracked_cycle_period_unc_dist = "u",
                      pts = 5,
                      dj = 1 / 200,
@@ -78,7 +85,10 @@ dur_gaps <- function(proxies = NULL,
                      upperPeriod = 3200,
                      period_max = NULL,
                      period_min = NULL,
-                     dur_between_pts = NULL,
+                     missing_cycle_dur = NULL,
+                     n_cycles_missing = 1,
+                     missing_cycle_unc = NULL,
+                     missing_cycle_unc_dist = "u",
                      run_multicore = FALSE) {
   if (run_multicore == TRUE) {
     j <- 1
@@ -120,19 +130,20 @@ dur_gaps <- function(proxies = NULL,
 
         val_1 <-
           rnorm(1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3])
-        pnorm_val_1 <-pnorm(val_1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3])
+        pnorm_val_1 <-
+          pnorm(val_1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3],lower.tail = FALSE)
         for (k in 1:nrow(new_curve_1)) {
           new_curve_1[k, 2] <-
-            qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3])
+            1/(qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3]))
         }
 
         val_2 <-
           rnorm(1, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3])
         pnorm_val_2 <-
-          pnorm(val_2, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3])
+          1-pnorm(val_2, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3],lower.tail = FALSE)
         for (k in 1:nrow(new_curve_2)) {
           new_curve_2[k, 2] <-
-            qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3])
+            1/(qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3]))
         }
 
 
@@ -147,13 +158,36 @@ dur_gaps <- function(proxies = NULL,
           proxy_2[proxy_2[, 1] <= new_curve_2[nrow(new_curve_2), 1], ]
 
 
-        if (tracked_cycle_period_unc_dist == "u"){
-          tracked_cycle_period_new <- runif(1, min = tracked_cycle_period-tracked_cycle_period_unc, max = tracked_cycle_period+tracked_cycle_period_unc)
+        if (tracked_cycle_period_unc_dist == "u") {
+          tracked_cycle_period_new <-
+            runif(
+              1,
+              min = tracked_cycle_period - tracked_cycle_period_unc,
+              max = tracked_cycle_period + tracked_cycle_period_unc
+            )
         }
 
-        if (tracked_cycle_period_unc_dist == "n"){
-          tracked_cycle_period_new <- rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
+        if (tracked_cycle_period_unc_dist == "n") {
+          tracked_cycle_period_new <-
+            rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
         }
+
+        if (tracked_cycle_period == missing_cycle_dur) {
+          missing_cycle_dur_new <- tracked_cycle_period_new
+        } else{
+          if (missing_cycle_unc_dist == "u") {
+            missing_cycle_dur_new <-
+              runif(1,
+                    min = missing_cycle_dur - missing_cycle_unc,
+                    max = tracked_cycle_period + missing_cycle_unc)
+          }
+          if (missing_cycle_unc_dist == "n") {
+            missing_cycle_dur_new <-
+              rnorm(1, mean = missing_cycle_dur, sd = missing_cycle_unc)
+          }
+        }
+
+
 
         tuned_1 <- WaverideR::curve2tune(
           data = proxy_1,
@@ -206,21 +240,24 @@ dur_gaps <- function(proxies = NULL,
         peak_opt <- min_max[[proxy_nr]]
 
         if (peak_opt == "min") {
-          pts_tuned_1_wt_cycle <- min_detect(data = tuned_1_wt_cycle, pts = pts)
+          pts_tuned_1_wt_cycle <-
+            min_detect(data = tuned_1_wt_cycle, pts = pts)
           pts_tuned_2_wt_cycle <-
             min_detect(data = tuned_2_wt_cycle, pts = pts)
         }
 
         if (peak_opt == "max") {
-          pts_tuned_1_wt_cycle <- max_detect(data = tuned_1_wt_cycle, pts = pts)
+          pts_tuned_1_wt_cycle <-
+            max_detect(data = tuned_1_wt_cycle, pts = pts)
           pts_tuned_2_wt_cycle <-
             max_detect(data = tuned_2_wt_cycle, pts = pts)
         }
 
 
+
         dur_gap <-
-          (dur_between_pts) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
-                                 max(pts_tuned_1_wt_cycle[, 1]))
+          (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
+                                                          max(pts_tuned_1_wt_cycle[, 1]))
       }
   } else {
     dur_gaps <- NA
@@ -246,19 +283,19 @@ dur_gaps <- function(proxies = NULL,
       val_1 <-
         rnorm(1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3])
       pnorm_val_1 <-
-        pnorm(val_1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3])
+        1-pnorm(val_1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3],lower.tail = FALSE)
       for (k in 1:nrow(new_curve_1)) {
         new_curve_1[k, 2] <-
-          qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3])
+          1/(qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3]))
       }
 
       val_2 <-
         rnorm(1, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3])
       pnorm_val_2 <-
-        pnorm(val_2, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3])
+        1-pnorm(val_2, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3],lower.tail = FALSE)
       for (k in 1:nrow(new_curve_2)) {
         new_curve_2[k, 2] <-
-          qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3])
+          1/(qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3]))
       }
 
 
@@ -273,13 +310,36 @@ dur_gaps <- function(proxies = NULL,
         proxy_2[proxy_2[, 1] <= new_curve_2[nrow(new_curve_2), 1], ]
 
 
-      if (tracked_cycle_period_unc_dist == "u"){
-        tracked_cycle_period_new <- runif(1, min = tracked_cycle_period-tracked_cycle_period_unc, max = tracked_cycle_period+tracked_cycle_period_unc)
+      if (tracked_cycle_period_unc_dist == "u") {
+        tracked_cycle_period_new <-
+          runif(
+            1,
+            min = tracked_cycle_period - tracked_cycle_period_unc,
+            max = tracked_cycle_period + tracked_cycle_period_unc
+          )
       }
 
-      if (tracked_cycle_period_unc_dist == "n"){
-        tracked_cycle_period_new <- rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
+      if (tracked_cycle_period_unc_dist == "n") {
+        tracked_cycle_period_new <-
+          rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
       }
+
+      if (tracked_cycle_period == missing_cycle_dur) {
+        missing_cycle_dur_new <- tracked_cycle_period_new
+      } else{
+        if (missing_cycle_unc_dist == "u") {
+          missing_cycle_dur_new <-
+            runif(1,
+                  min = missing_cycle_dur - missing_cycle_unc,
+                  max = tracked_cycle_period + missing_cycle_unc)
+        }
+        if (missing_cycle_unc_dist == "n") {
+          missing_cycle_dur_new <-
+            rnorm(1, mean = missing_cycle_dur, sd = missing_cycle_unc)
+        }
+      }
+
+
 
       tuned_1 <- WaverideR::curve2tune(
         data = proxy_1,
@@ -332,21 +392,24 @@ dur_gaps <- function(proxies = NULL,
       peak_opt <- min_max[[proxy_nr]]
 
       if (peak_opt == "min") {
-        pts_tuned_1_wt_cycle <- min_detect(data = tuned_1_wt_cycle, pts = pts)
+        pts_tuned_1_wt_cycle <-
+          min_detect(data = tuned_1_wt_cycle, pts = pts)
         pts_tuned_2_wt_cycle <-
           min_detect(data = tuned_2_wt_cycle, pts = pts)
       }
 
       if (peak_opt == "max") {
-        pts_tuned_1_wt_cycle <- max_detect(data = tuned_1_wt_cycle, pts = pts)
+        pts_tuned_1_wt_cycle <-
+          max_detect(data = tuned_1_wt_cycle, pts = pts)
         pts_tuned_2_wt_cycle <-
           max_detect(data = tuned_2_wt_cycle, pts = pts)
       }
 
 
+
       dur_gap <-
-        (dur_between_pts) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
-                               max(pts_tuned_1_wt_cycle[, 1]))
+        (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
+                                                        max(pts_tuned_1_wt_cycle[, 1]))
 
 
       dur_gaps <- c(dur_gaps, dur_gap)

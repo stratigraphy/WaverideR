@@ -2,7 +2,8 @@
 % Please edit documentation in R/curve2time_unc.R
 \name{curve2time_unc}
 \alias{curve2time_unc}
-\title{Convert the tracked curve to a depth time space with uncertainty}
+\title{Convert the re-tracked curve results to a
+ depth time space with uncertainty}
 \usage{
 curve2time_unc(
   tracked_cycle_curve = NULL,
@@ -15,9 +16,10 @@ curve2time_unc(
 }
 \arguments{
 \item{tracked_cycle_curve}{Curve of the cycle tracked using the
-\code{\link{track_period_wavelet}} function \cr
-Any input (matrix or data frame) in which the first column is depth in
- meters and the second column is period in meters can be used.}
+\code{\link{retrack_wt_MC}} function \cr
+Any input (matrix or data frame) with 3 columns in which column 1 is the
+x-axis, column 2 is the  mean tracked frequency (in cycles/metres) column 3
+1 standard deviation}
 
 \item{tracked_cycle_period}{Period of the tracked curve in kyr.}
 
@@ -32,69 +34,309 @@ tracked cycle value need to be either "u" for uniform distribution or
 \item{output}{If output = 1 a matrix with the predicted ages given the input for each run
 is given. If output = 2 a matrix with 6 columns is generated,
 the first column is depth/height, the other columns are the quantile
-(0.025,0.373,0.5,0.6827,0.975) age values of the runs}
+(0.025,0.373,0.5,0.6827,0.975) age values of the runs
+if output = 3 a matrix with 4 columns is generated with the first column
+being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
+is mean duration + 1 standard deviation and column 4  is mean duration -  1
+standard deviation}
 }
 \value{
 If output = 1 a matrix with the predicted ages given the input for each run
 is given
 If output = 2 a matrix with 6 columns is generated, the first column is
 depth/height, the other columns are the quantile
-(0.025,0.373,0.5,0.6827,0.975) age values of the runs
+(0.02275, 0.373, 0.5, 0.6827, 0.97725) age values of the runs
+if output = 3 a matrix with 4 columns is generated with the first column
+being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
+is mean duration + 1 standard deviation and column 4  is mean duration -  1
+standard deviation
 }
 \description{
-Converts the tracked curve to a depth time space while also
+Converts the re-tracked curve results from
+\code{\link{retrack_wt_MC}} function to a depth time space while also
 taking into account the uncertainty of the tracked astronomical cycle
 }
 \examples{
 \donttest{
-#Convert a tracked curve to a depth time space. The examples uses the
-#magnetic susceptibility data set of Pas et al., (2018).
+# Re-track the 110kyr eccentricity cycle in the wavelet scalogram
+# from the XRF record of the Bisciaro data set of Arts (2014) and then
+# add generate and age model including uncertainty
 
-# perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
-dj = 1/100,
-lowerPeriod = 0.1,
-upperPeriod = 254,
-verbose = FALSE,
-omega_nr = 10)
+Bisciaro_al <- Bisciaro_XRF[, c(1, 61)]
+Bisciaro_al <- astrochron::sortNave(Bisciaro_al,verbose=FALSE,genplot=FALSE)
+Bisciaro_al <- astrochron::linterp(Bisciaro_al, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 
-#Track the 405 kyr eccentricity cycle in a wavelet spectra
+Bisciaro_al_wt <-
+ analyze_wavelet(
+   data = Bisciaro_al,
+   dj = 1 /200 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
 
-#mag_track <- track_period_wavelet(astro_cycle = 405,
-#                                   wavelet=mag_wt,
-#                                   n.levels = 100,
-#                                   periodlab = "Period (metres)",
-#                                   x_lab = "depth (metres)")
+# Bisciaro_al_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_al_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+# Bisciaro_al_wt_track <- completed_series(
+#   wavelet = Bisciaro_al_wt,
+#   tracked_curve = Bisciaro_al_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_al_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_al_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
 
-#Instead of tracking, the tracked solution data set mag_track_solution is used
-mag_track <- mag_track_solution
+Bisciaro_ca <- Bisciaro_XRF[, c(1, 55)]
+Bisciaro_ca <- astrochron::sortNave(Bisciaro_ca,verbose=FALSE,genplot=FALSE)
+Bisciaro_ca <- astrochron::linterp(Bisciaro_ca, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 
-mag_track_complete <- completed_series(
-  wavelet = mag_wt,
-  tracked_curve = mag_track,
-  period_up = 1.2,
-  period_down = 0.8,
-  extrapolate = TRUE,
-  genplot = FALSE
-)
+Bisciaro_ca_wt <-
+ analyze_wavelet(
+   data = Bisciaro_ca,
+   dj = 1 /200 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
 
-# smooth the tracking of the 405 kyr eccentricity cycle
-mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = FALSE, print_span = FALSE)
+# Bisciaro_ca_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_ca_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+# Bisciaro_ca_wt_track <- completed_series(
+#   wavelet = Bisciaro_ca_wt,
+#   tracked_curve = Bisciaro_ca_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_ca_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_ca_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE)
 
-#convert period in meters to sedrate depth vs time
-mag_track_time<- curve2time_unc(tracked_cycle_curve = mag_track_complete,
-tracked_cycle_period = 405,
-tracked_cycle_period_unc = 2.4,
+Bisciaro_sial <- Bisciaro_XRF[,c(1,64)]
+Bisciaro_sial <- astrochron::sortNave(Bisciaro_sial,verbose=FALSE,genplot=FALSE)
+Bisciaro_sial <- astrochron::linterp(Bisciaro_sial, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
+
+Bisciaro_sial_wt <-
+ analyze_wavelet(
+   data = Bisciaro_sial,
+   dj = 1 /200 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_sial_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_sial_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_sial_wt_track <- completed_series(
+#   wavelet = Bisciaro_sial_wt,
+#   tracked_curve = Bisciaro_sial_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_sial_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_sial_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
+
+
+Bisciaro_Mn <- Bisciaro_XRF[,c(1,46)]
+Bisciaro_Mn <- astrochron::sortNave(Bisciaro_Mn,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mn <- astrochron::linterp(Bisciaro_Mn, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
+
+Bisciaro_Mn_wt <-
+ analyze_wavelet(
+   data = Bisciaro_Mn,
+   dj = 1 /200 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_Mn_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_Mn_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_Mn_wt_track <- completed_series(
+#   wavelet = Bisciaro_Mn_wt,
+#   tracked_curve = Bisciaro_Mn_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+# Bisciaro_Mn_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_Mn_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
+
+Bisciaro_Mg <- Bisciaro_XRF[,c(1,71)]
+Bisciaro_Mg <- astrochron::sortNave(Bisciaro_Mg,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mg <- astrochron::linterp(Bisciaro_Mg, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
+
+Bisciaro_Mg_wt <-
+ analyze_wavelet(
+   data = Bisciaro_Mg,
+   dj = 1 /200 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_Mg_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_Mg_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_Mg_wt_track <- completed_series(
+#   wavelet = Bisciaro_Mg_wt,
+#   tracked_curve = Bisciaro_Mg_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_Mg_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_Mg_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE)
+
+
+
+
+wt_list_bisc <- list(Bisciaro_al_wt,
+               Bisciaro_ca_wt,
+               Bisciaro_sial_wt,
+               Bisciaro_Mn_wt,
+               Bisciaro_Mg_wt)
+
+#Instead of tracking, the tracked solution data sets Bisciaro_al_wt_track,
+#Bisciaro_ca_wt_track, Bisciaro_sial_wt_track, Bisciaro_Mn_wt_track,
+# Bisciaro_Mn_wt_track and Bisciaro_Mg_wt_track are used
+
+data_track_bisc <- cbind(Bisciaro_al_wt_track[,2],
+                     Bisciaro_ca_wt_track[,2],
+                     Bisciaro_sial_wt_track[,2],
+                     Bisciaro_Mn_wt_track[,2],
+                     Bisciaro_Mg_wt_track[,2])
+
+x_axis_bisc <- Bisciaro_al_wt_track[,1]
+
+
+bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
+             data_track = data_track_bisc,
+             x_axis = x_axis_bisc,
+             nr_simulations = 20,
+             seed_nr = 1337,
+             verbose = FALSE,
+             genplot = FALSE,
+             keep_editable = FALSE,
+             create_GIF = FALSE,
+             plot_GIF = FALSE,
+             width_plt =  600,
+             height_plt = 450,
+            period_up  =  1.5,
+             period_down = 0.5,
+             plot.COI = TRUE,
+             n.levels = 100,
+             palette_name = "rainbow",
+             color_brewer = "grDevices",
+             periodlab = "Period (metres)",
+             x_lab = "depth (metres)",
+             add_avg = FALSE,
+             time_dir = TRUE,
+             file_name = NULL,
+             run_multicore = FALSE,
+             output = 5,
+             n_imgs = 50,
+             plot_horizontal = TRUE,
+             empty_folder = FALSE)
+
+bisc_retrack_age_incl_unc <- curve2time_unc(tracked_cycle_curve = bisc_retrack,
+tracked_cycle_period = 110,
+tracked_cycle_period_unc = ((135-110)+(110-95))/2,
 tracked_cycle_period_unc_dist = "n",
-n_simulations = 25,
-output=1 )
+n_simulations = 20,
+output = 1)
+
 
 }
 }
 \references{
 Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 Based on the \link[astrochron]{sedrate2time}

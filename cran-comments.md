@@ -1,8 +1,133 @@
+# Changes in version 0.3.3
+
+fixed and error in: track_period_wavelet
+
+
 # Changes in version 0.3.2
 
-added functions;
+since submission:
+## CRAN package check 
+Kurt Hornik writes:
 
-updated functions;
+Still open ...
+
+Please fix before 2023-09-10 to safely retain your package on CRAN.
+
+Dear maintainer,
+
+R-devel will soon find
+
+Found the following (possibly) invalid DOIs:
+  DOI: 1016/j.epsl.2018.02.010
+    From: man/mag.Rd
+    Status: 404
+    Message: Not Found
+  DOI: <doi:10.1190/1.1441328>
+    From: man/analyze_wavelet.Rd
+          man/plot_wavelet.Rd
+    Status: 404
+    Message: Not Found
+  DOI: <doi:10.1190/1.1441329>
+    From: man/analyze_wavelet.Rd
+    Status: 404
+    Message: Not Found
+  DOI: doi.org/10.1051/0004-6361/201117504
+    From: man/astro_anchor.Rd
+    Status: 404
+    Message: Not Found
+
+for you package: previously DOIs in Rd files were missed in the CRAN
+submission checks.
+
+Please fix.
+
+When doing so, please note that for the valid DOIs you do things like
+
+#win_fft.Rd:time series analysis <\doi{doi:10.1016/j.earscirev.2018.11.015}>
+
+#where you enclose the \doi{} inside <...>: please don't do this (and
+#drop the extra doi:).  One needs to do e.g.
+
+ <doi:10.1016/j.earscirev.2018.11.015>
+
+ in the package DESCRIPTION Description, but should do
+
+ \doi{10.1016/j.earscirev.2018.11.015}
+
+in Rd.
+
+Please fix before 2023-08-23.
+
+Best
+-k
+
+The (possibly) invalid links were fixed
+The way links should be written in the documentation and documentation
+is also adjusted to be inline with CRAN guidelines
+
+
+added functions:
+
+add_wavelet
+adds a wavelet plot to a larger plot
+
+add_wavelet_avg
+adds the average wavelet power to a larger plot
+
+curve2time_unc
+converts a tracked period curve to time taking the uncertainty of the curve 
+into account
+
+curve2time_unc_anchor
+converts a tracked period curve to time by taking the uncertainty of the curve 
+and anchored radiometric date into account 
+
+dur_gaps
+calculates the duration off a hiatus based on the missing part of an astronomical
+cycle
+
+geo_col
+generate standard color codes for the Geological Time Scale
+
+geo_loc
+generates ages for the boundaries of a geochronological subdivision
+
+geo_mid
+generate the mean age of a geological subdivision
+
+lithlog_disc
+discriticizes lithologs from a block pattern to a continous signal which
+allows it to analyzed using spectral analysis techniques
+
+minimal_tuning
+Creates an age model using the minimal tuning technique.
+This means that the distance between 2 peaks of an extracted cycle is 
+set to duration of the interpreted astronomical cycle
+
+retrack_wt_MC
+Re-track cycles using a Monte-Carlo simulation
+Then input is an already tracked period of an astronomical cycle and the wavelet
+in which it was tracked. the already tracked periods are combined to create a 
+pseudo-curve which is then re-tracked in one of the wavelets (randomly selected)
+the result is a bunch of retracked curves 
+
+sedrate2tune
+converts a data set using the sedimentation rate to a tuned age-model
+
+updated functions: 
+
+Hilbert_transform
+added side padding to avoid edge effects
+
+plot_wavelet
+added additional color plotting option 
+
+plot_win_fft
+added additional color plotting option 
+
+track_period_wavelet
+added additional color plotting option 
+added the option to select any point within the plot
 
 #Changes in version 0.3.1
 

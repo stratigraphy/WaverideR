@@ -17,7 +17,7 @@ plot_wavelet(
   x_lab = "depth (metres)",
   keep_editable = FALSE,
   dev_new = TRUE,
-  time_dir = TRUE,
+  plot_dir = TRUE,
   add_lines = NULL,
   add_points = NULL,
   add_abline_h = NULL,
@@ -81,10 +81,10 @@ WARNING plotting as a vector image is computationally intensive.}
 \item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
 document the plot might not plot  \code{Default=TRUE}}
 
-\item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
+\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
+(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
 if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then time_dir should be set to FALSE \code{time_dir=TRUE}}
+then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
 
 \item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
 should be period values  \code{Default=NULL}}
@@ -151,7 +151,7 @@ color_brewer= "grDevices",
  x_lab = "depth (metres)",
  keep_editable = FALSE,
  dev_new=TRUE,
- time_dir = TRUE,
+ plot_dir = TRUE,
  add_lines = NULL,
  add_points= NULL,
  add_abline_h = NULL,
@@ -192,7 +192,7 @@ periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
 dev_new=TRUE,
-time_dir = TRUE,
+plot_dir = TRUE,
 add_lines= NULL,
 add_points= NULL,
 add_abline_h = NULL,
@@ -234,7 +234,7 @@ periodlab = "Period (metres)",
 x_lab = "depth (metres)",
 keep_editable = FALSE,
 dev_new=TRUE,
-time_dir = TRUE,
+plot_dir = TRUE,
 add_lines = NULL,
 add_points= NULL,
 add_abline_h = NULL,
@@ -268,14 +268,14 @@ Bulletin of the American Meteorological Society 79:61-78.
 Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 "Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 " Geophysics 47, no. 2 (1982): 203-221.
-\doi{<doi:10.1190/1.1441328>}
+\url{https://pubs.geoscienceworld.org/geophysics/article/47/2/203/68601/Wave-propagation-and-sampling-theory-Part-I}
 
 J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
- Geophysics 1982 47 (2): 222–236. <\doi{doi:10.1190/1.1441329}>
+ Geophysics 1982 47 (2): 222–236. \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/222/68604/Wave-propagation-and-sampling-theory-Part-II}
 
 S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
-Astrochronology: Paleoceanography, 27, PA3228, <\doi{doi:10.1029/2012PA002307}>
+Astrochronology: Paleoceanography, 27, PA3228, <doi:10.1029/2012PA002307>
 }
 \author{
 Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package

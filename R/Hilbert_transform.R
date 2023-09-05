@@ -4,16 +4,19 @@
 #'
 #'@param data Input is a time series with the first column being depth or time and the second column being a proxy.
 #'@param demean Remove the mean from the time series.
+#'@param nr_pad nr of points added tot the top and bottom of the data set
+#'to mitigate the edging effect of the Hilbert transform.
+#'
 #'
 #'@author
 #'Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.
 #'@references
 #'Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 #'Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
-#'Earth-Science Reviews 225 (103894). <\doi{doi:10.1016/j.earscirev.2021.103894}>
+#'Earth-Science Reviews 225 (103894). <doi:10.1016/j.earscirev.2021.103894>
 #'
 #'Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, and Karin Blank. 2009.
-#'"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <\doi{doi:10.1142/S1793536909000096}>
+#'"On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <doi:10.1142/S1793536909000096>
 #'
 #'@examples
 #'#Example in which the Hilbert transform (eg. amplitude modulation) of the ~210yr
@@ -54,12 +57,30 @@
 
 
 Hilbert_transform <- function(data = NULL,
-                              demean = TRUE) {
-  my.data <- data
+                              demean = TRUE,
+                              nr_pad = 100) {
+
+  mean_dat <- mean(data[, 2])
+  data[, 2] <- data[, 2] - mean_dat
+
+  step <- (data[2, 1] - data[1, 1])
+  top <- seq(from = data[1, 1] - (nr_pad * step),
+             by = step ,
+             length.out = nr_pad)
+  top_dat <- rep(data[1, 2], times = nr_pad)
+  top <- cbind(top, top_dat)
+  colnames(top) <- colnames(data)
+
+  bottom <- seq(from = data[nrow(data), 1] + step ,
+                by = step ,
+                length.out = nr_pad)
+  bottom_dat <- rep(data[nrow(data), 2], times = nr_pad)
+  bottom <- cbind(bottom, bottom_dat)
+  colnames(bottom) <- colnames(data)
+
+  my.data <- rbind(top, data, bottom)
   my.hilbert <- as.data.frame(my.data)
-  my.data <- as.data.frame(my.data)
-  mean_dat <- mean(my.data[, 2])
-  my.data[, 2] <- my.data[, 2] - mean_dat
+
 
   hilb_result <-
     inst.pulse(
@@ -73,6 +94,9 @@ Hilbert_transform <- function(data = NULL,
 
   if (demean != TRUE) {
     my.hilbert[, 2] <- my.hilbert[, 2]+mean_dat
-    }
-  return(my.hilbert)
+  }
+
+  dat_2 <- my.hilbert[c((nr_pad + 1):(nrow(data) + nr_pad)),]
+
+  return(dat_2)
 }

@@ -73,9 +73,9 @@ genplot = FALSE, print_span = FALSE,keep_editable=FALSE)
 }
 }
 \references{
-Cleveland, W. S. (1979) Robust locally weighted regression and smoothing scatter plots. Journal of the American Statistical Association. 74, 829–836. <\doi{doi:10.1080/01621459.1979.10481038}>
-Hurvich, C.M., Simonoff, J.S., and Tsai, C.L. (1998), Smoothing Parameter Selection in Nonparametric Regression Using an Improved Akaike Information Criterion. Journal of the Royal Statistical Society B. 60, 271–293 <\doi{doi:10.1111/1467-9868.00125}>
-Golub, G., Heath, M. and Wahba, G. (1979). Generalized cross validation as a method for choosing a good ridge parameter. Technometrics. 21, 215–224. <\doi{doi:10.2307/1268518}>
+Cleveland, W. S. (1979) Robust locally weighted regression and smoothing scatter plots. Journal of the American Statistical Association. 74, 829–836. <doi:10.1080/01621459.1979.10481038>
+Hurvich, C.M., Simonoff, J.S., and Tsai, C.L. (1998), Smoothing Parameter Selection in Nonparametric Regression Using an Improved Akaike Information Criterion. Journal of the Royal Statistical Society B. 60, 271–293 <doi:10.1111/1467-9868.00125>
+Golub, G., Heath, M. and Wahba, G. (1979). Generalized cross validation as a method for choosing a good ridge parameter. Technometrics. 21, 215–224. <doi:10.2307/1268518>
 }
 \author{
 Based on the the \code{\link{loess.as}} function of the 'fANCOVA' R package.

@@ -104,14 +104,14 @@
 #'directory
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
 #'@param output #'If output = 1, output is a list which contain 3 objects.
-#'object 1 is a matrix with the x-axis and the mean tracked period and + and
-#'- standard deviation. #'object 2 is a matrix with all the tracked periods.
+#'object 1 is a matrix with the x-axis and the mean tracked frequency and
+#'standard deviation. #'object 2 is a matrix with all the tracked periods.
 #'Object 3 is a GIF in which #'all the tracked periods are plotted.
 #'If output = 2, output is a list which contain 2 objects. object 1 is a matrix
-#'with the x-axis and the mean tracked period and + and - standard deviation.
+#'with the x-axis and the mean tracked frequency and standard deviation.
 #'object 2 is a matrix with all the tracked periods.
 #'If output = 3, output is a list which contain 2 objects. object 1 is a matrix
-#'with the x-axis and the mean tracked period and + and - standard deviation.
+#'with the x-axis and the mean tracked frequency and standard deviation.
 #'Object 2 is a GIF in which
 #'all the tracked periods are plotted.
 #'If output = 4, output is a list which contain 3 objects. Object 1 is a matrix
@@ -120,8 +120,8 @@
 #'If output = 4 output is a list which contain 3 objects. Object 1 is a matrix
 #'with all the tracked periods. Object 2 is a GIF in which  all the tracked
 #'periods are plotted.
-#'If output = 5 a matrix with the x-axis and the mean tracked period and + and
-#'- standard deviation is returned.
+#'If output = 5 a matrix with the x-axis and the mean tracked frequency and
+#'standard deviation is returned.
 #'If output = 6, a matrix with all the tracked periods is returned.
 #'If output = 7, a GIF in which all the tracked periods are plotted is returned.
 #'\code{Default=1}
@@ -135,19 +135,19 @@
 #'
 #'@return
 #'The output depends on the output setting
-#'If genplot = TRUE a plot will be generated in which the mean period and + and
-#'- standard deviation is plotted
+#'If genplot = TRUE a plot will be generated in which the mean period and
+#'standard deviation is plotted
 #'if plot_GIF = TRUE a GIF with n number of n_imgs will be plotted in which the
 #'retraced curve is plotted in a wavelet scalogram
 #'If output = 1, output is a list which contain 3 objects. object 1 is a matrix
-#'with the x-axis and the mean tracked period and + and - standard deviation.
+#'with the x-axis and the mean tracked frequency and standard deviation.
 #'object 2 is a matrix with all the tracked periods. Object 3 is a GIF in which
 #'all the tracked periods are plotted.
 #'If output = 2, output is a list which contain 2 objects. object 1 is a matrix
-#'with the x-axis and the mean tracked period and + and - standard deviation.
+#'with the x-axis and the mean tracked frequency and standard deviation.
 #'object 2 is a matrix with all the tracked periods.
 #'If output = 3, output is a list which contain 2 objects. object 1 is a matrix
-#'with the x-axis and the mean tracked period and + and - standard deviation.
+#'with the x-axis and the mean tracked frequency and standard deviation.
 #'Object 2 is a GIF in which
 #'all the tracked periods are plotted.
 #'If output = 4, output is a list which contain 3 objects. Object 1 is a matrix
@@ -156,8 +156,8 @@
 #'If output = 4 output is a list which contain 3 objects. Object 1 is a matrix
 #'with all the tracked periods. Object 2 is a GIF in which  all the tracked
 #'periods are plotted.
-#'If output = 5 a matrix with the x-axis and the mean tracked period and + and
-#'- standard deviation is returned.
+#'If output = 5 a matrix with the x-axis and the mean tracked period and
+#'standard deviation is returned.
 #'If output = 6, a matrix with all the tracked periods is returned.
 #'If output = 7, a GIF in which all the tracked periods are plotted is returned
 #'
@@ -402,7 +402,7 @@
 #'bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
 #'              data_track = data_track_bisc,
 #'              x_axis = x_axis_bisc,
-#'              nr_simulations = 50,
+#'              nr_simulations = 20,
 #'              seed_nr = 1337,
 #'              verbose = FALSE,
 #'              genplot = FALSE,
@@ -549,12 +549,7 @@ retrack_wt_MC <- function(wt_list = NULL,
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
     registerDoSNOW(cl)
-  } else{
-    numCores <- 1
-    cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
   }
-
 
   if (empty_folder==TRUE & create_GIF==TRUE){
     f <- list.files(file_name, include.dirs = F, full.names = T, recursive = T)
@@ -573,70 +568,129 @@ retrack_wt_MC <- function(wt_list = NULL,
 
   n_curves <- ncol(data_track)
 
-  j <- 1 # needed to assign 1 to ijk to avoid note
-  set.seed(seed_nr)
 
 
-  fit <-  foreach (j = 1:simulations, .options.snow = opts, .combine = 'cbind') %dopar% {
+  if (run_multicore == TRUE) {
+    j <- 1 # needed to assign 1 to ijk to avoid note
+    set.seed(seed_nr)
+    fit <-  foreach (j = 1:simulations, .options.snow = opts, .combine = 'cbind') %dopar% {
 
-    sel_curve <- sample(1:n_curves, 1, replace=F)
-    n <- n_curves
-    x <- runif(n, 0, 1)
-    y <- x / sum(x)
-
-
-    vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
-    fractions <- data_track*vals
-    fractions <- rowSums(fractions)
-    fractions <- cbind(x_axis,fractions)
-
-    wt_sel <- rlist::list.extract(wt_list, sel_curve)
-
-    completed_curve <- WaverideR::completed_series(
-      wavelet =  wt_sel,
-      tracked_curve =  fractions[,c(1,2)],
-      period_up  = period_up,
-      period_down  = period_down,
-      extrapolate = TRUE,
-      genplot = FALSE
-    )
-
-    completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
-    completed_curve <- completed_curve[1:length(x_axis),]
-    completed_curve <- WaverideR::loess_auto(completed_curve)
-    completed_curve <- completed_curve[,c(1,2)]
+      sel_curve <- sample(1:n_curves, 1, replace=F)
+      n <- n_curves
+      x <- runif(n, 0, 1)
+      y <- x / sum(x)
 
 
-    if (create_GIF==TRUE){
-      png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
+      vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
+      fractions <- data_track*vals
+      fractions <- rowSums(fractions)
+      fractions <- cbind(x_axis,fractions)
 
-      WaverideR::plot_wavelet(wavelet = wt_sel,
-                              plot.COI = plot.COI,
-                              n.levels = n.levels,
-                              useRaster = TRUE,
-                              palette_name = palette_name,
-                              color_brewer = color_brewer,
-                              periodlab = periodlab,
-                              x_lab = x_lab,
-                              add_lines=completed_curve,
-                              add_avg= add_avg,
-                              dev_new = FALSE,
-                              time_dir = time_dir,
-                              plot_horizontal = plot_horizontal)
-      dev.off()
+      wt_sel <- rlist::list.extract(wt_list, sel_curve)
+
+      completed_curve <- WaverideR::completed_series(
+        wavelet =  wt_sel,
+        tracked_curve =  fractions[,c(1,2)],
+        period_up  = period_up,
+        period_down  = period_down,
+        extrapolate = TRUE,
+        genplot = FALSE
+      )
+
+      completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
+      completed_curve <- completed_curve[1:length(x_axis),]
+      completed_curve <- WaverideR::loess_auto(completed_curve)
+      completed_curve <- completed_curve[,c(1,2)]
+
+
+      if (create_GIF==TRUE){
+        png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
+
+        WaverideR::plot_wavelet(wavelet = wt_sel,
+                                plot.COI = plot.COI,
+                                n.levels = n.levels,
+                                useRaster = TRUE,
+                                palette_name = palette_name,
+                                color_brewer = color_brewer,
+                                periodlab = periodlab,
+                                x_lab = x_lab,
+                                add_lines=completed_curve,
+                                add_avg= add_avg,
+                                dev_new = FALSE,
+                                time_dir = time_dir,
+                                plot_horizontal = plot_horizontal)
+        dev.off()
+      }
+      completed_curve <- completed_curve[,2]
+
     }
-    completed_curve <- completed_curve[,2]
 
+    stopCluster(cl)
   }
 
-  stopCluster(cl)
+  if (run_multicore == FALSE) {
 
-  sims_2 <- fit
+  fit <- matrix(data=NA,nrow=length(x_axis),ncol=simulations)
+
+  for (j in 1:simulations){
+  sel_curve <- sample(1:n_curves, 1, replace=F)
+  n <- n_curves
+  x <- runif(n, 0, 1)
+  y <- x / sum(x)
+
+
+  vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
+  fractions <- data_track*vals
+  fractions <- rowSums(fractions)
+  fractions <- cbind(x_axis,fractions)
+
+  wt_sel <- rlist::list.extract(wt_list, sel_curve)
+
+  completed_curve <- WaverideR::completed_series(
+    wavelet =  wt_sel,
+    tracked_curve =  fractions[,c(1,2)],
+    period_up  = period_up,
+    period_down  = period_down,
+    extrapolate = TRUE,
+    genplot = FALSE
+  )
+
+  completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
+  completed_curve <- completed_curve[1:length(x_axis),]
+  completed_curve <- WaverideR::loess_auto(completed_curve)
+  completed_curve <- completed_curve[,c(1,2)]
+
+
+  if (create_GIF==TRUE){
+    png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
+
+    WaverideR::plot_wavelet(wavelet = wt_sel,
+                            plot.COI = plot.COI,
+                            n.levels = n.levels,
+                            useRaster = TRUE,
+                            palette_name = palette_name,
+                            color_brewer = color_brewer,
+                            periodlab = periodlab,
+                            x_lab = x_lab,
+                            add_lines=completed_curve,
+                            add_avg= add_avg,
+                            dev_new = FALSE,
+                            time_dir = time_dir,
+                            plot_horizontal = plot_horizontal)
+    dev.off()
+  }
+  fit[,j] <- completed_curve[,2]
+
+}
+}
+
+
+  sims_2 <- 1/fit
   sims_mean_2 <- rowMeans(sims_2)
   sims_2 <-  as.matrix(sims_2)
   sims_sd_2 <- matrixStats::rowSds(sims_2)
 
-  sed_run <- cbind(x_axis,sims_mean_2,sims_mean_2-sims_sd_2,sims_mean_2+sims_sd_2)
+  sed_run <- cbind(x_axis,sims_mean_2,sims_sd_2)
 
   if (genplot == TRUE) {
     if (keep_editable == FALSE) {
@@ -649,11 +703,11 @@ retrack_wt_MC <- function(wt_list = NULL,
                      # Heights of the two rows
                      widths = c(1))
     par(mar = c(4, 4, 1, 1))
-    plot(x=sed_run[,1],y=sed_run[,2],type="l",ylim=c(min(sed_run[,3]),
-                                                     max(sed_run[,4])),col="green",lwd=2,
+    plot(x=sed_run[,1],y=1/sed_run[,2],type="l",ylim=c(min(1/(sed_run[,2]-sed_run[,3])),
+                                                     max(1/(sed_run[,2]+sed_run[,3]))),col="green",lwd=2,
          xlab=x_lab,ylab=periodlab)
-    lines(x=sed_run[,1],y=sed_run[,3],col="red",lwd=2)
-    lines(x=sed_run[,1],y=sed_run[,4],col="blue",lwd=2)
+    lines(x=sed_run[,1],y=1/(sed_run[,2]-sed_run[,3]),col="red",lwd=2)
+    lines(x=sed_run[,1],y=1/(sed_run[,2]+sed_run[,3]),col="blue",lwd=2)
   }
 
   if (create_GIF==TRUE){
@@ -677,11 +731,7 @@ retrack_wt_MC <- function(wt_list = NULL,
                 path =paste0(file_name,"/",file_name,".gif"))
   }
 
-
-  sed_run[,3] <- sed_run[,2]-sed_run[,3]
-  sed_run <- sed_run[,c(1:3)]
-  colnames(sed_run) <- c("depth","mean_period","sd")
-
+  colnames(sed_run) <- c("depth","mean_freq","sd")
 
   if (output == 1) {
     res <- list(sed_run,fit,img_animated)

@@ -43,13 +43,21 @@ cycle tracked in the wavelet scalogram of the Silicon/Aluminum (XRF) record of A
 \cr
 The \code{Bisciaro_XRF} is the XRF data set of Arts (2014)\cr
 \cr
+
+The \code{anchor_points_Bisciaro_al} data set consist of the tie points between the
+Bisciaro_al record of Arts (2014) and the la2011 solution of laskar et al., (20111)\cr
+\cr
+
+The \code{GTS_info} data set contains the color coding and ages and uncertainties
+of Geologic Time Scale 2020 of Ogg (et al., 2021)\cr
+\cr
 }
 \references{
 Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
 Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
 Earth and Planetary Science Letters,
 Volume 488,2018,Pages 102-114,ISSN 0012-821X,
-<\doi{doi:10.1016/j.epsl.2018.02.010}>
+<doi:10.1016/j.epsl.2018.02.010>
 
 Steinhilber, Friedhelm & Abreu, Jacksiel & Beer, Juerg & Brunner,
 Irene & Christl, Marcus & Fischer, Hubertus & Heikkilä, U. & Kubik,
@@ -58,22 +66,30 @@ Hiroko & Oerter, Hans & Wilhelms, Frank. (2012).
 9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
 Proceedings of the National Academy of Sciences of the United States of America.
 109. 5967-71. 10.1073/pnas.1118965109.
-<\doi{doi:10.1073/pnas.1118965109}>
+<doi:10.1073/pnas.1118965109>
 
 Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
 Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
 Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-<\doi{doi:10.1016/j.palaeo.2012.11.009}>
+<doi:10.1016/j.palaeo.2012.11.009>
 
 Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic testing,
 Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
-<\doi{doi:10.1016/j.earscirev.2018.11.015}>
+<doi:10.1016/j.earscirev.2018.11.015>
 
 J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
 A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-Volume 428, 261-285. <\doi{doi:10.1051/0004-6361:20041335}> \cr
+Volume 428, 261-285. <doi:10.1051/0004-6361:20041335> \cr
+
+Laskar, J., M. Gastineau, J. B. Delisle, A. Farrés, and A. Fienga (2011b),
+Strong chaos induced by close encounters with Ceres and Vesta, Astron. Astrophys.,
+532, L4,<doi:10.1051/0004-6361/201117504> \cr
 
 M.C.M. Arts, 2014,
 Magnetostratigrpahy and geochemical analysis of the early Miocene Bisciaro Formation
 in the Contessa Valley (Northern Italy). Unpublished Bsc. thesis \cr
+
+Ogg, Gabi & Ogg, James & Gradstein, Felix. (2021).
+Recommended color coding of stages - Appendix 1
+from Geologic Time Scale 2020.
 }
