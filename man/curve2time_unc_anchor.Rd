@@ -2,27 +2,34 @@
 % Please edit documentation in R/curve2time_unc_anchor.R
 \name{curve2time_unc_anchor}
 \alias{curve2time_unc_anchor}
-\title{Anchor an age model including its uncertainty to a single radiometric data}
+\title{Convert the re-tracked curve results to a
+ depth time space with uncertainty}
 \usage{
 curve2time_unc_anchor(
+  age_constraints = NULL,
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
   tracked_cycle_period_unc = NULL,
   tracked_cycle_period_unc_dist = "n",
-  achor_age = NULL,
-  achor_SD = NULL,
-  achor_depth = NULL,
-  achor_depth_unc = NULL,
-  achor_depth_unc_dist = "u",
-  gap_depth = NULL,
-  gap_dur = NULL,
-  gap_unc = NULL,
-  gap_unc_dist = "n",
-  n_simulations = NULL,
-  output = 1
+  n_simulations = 20,
+  gap_constraints = NULL,
+  max_runs = 1000,
+  run_multicore = FALSE,
+  verbose = FALSE,
+  genplot = FALSE,
+  keep_nr = 2,
+  keep_all_time_curves = FALSE
 )
 }
 \arguments{
+\item{age_constraints}{age constraints for the modelling run
+Input should be a data frame with 7 columns, the first columns are the ID names
+the second column are the ages (usually in kyr) the third column is the uncertainty (usually in kyr) given as
+the fourth column is the distribution which is either "n" for a normal distribution or "u" for a uniform
+distribution. The fifth column is the location in the depth domain of the age constraint. the sixth column is the
+location/thickness uncertainty of the age_constraint in the depth domain. The seventh column is the uncertainty distribution of the
+age_constrain in the depth domain}
+
 \item{tracked_cycle_curve}{Curve of the cycle tracked using the
 \code{\link{retrack_wt_MC}} function \cr
 Any input (matrix or data frame) with 3 columns in which column 1 is the
@@ -37,78 +44,69 @@ x-axis, column 2 is the  mean tracked frequency (in cycles/metres) column 3
 tracked cycle value need to be either "u" for uniform distribution or
 "n" for normal distribution  \code{Default="n"}}
 
-\item{achor_age}{age (in kyr) of the anchor}
+\item{n_simulations}{number of time series to be modeled \code{Default=20}}
 
-\item{achor_SD}{uncertainty given as 1 sd (in kyr) of the anchor}
+\item{gap_constraints}{gap parameters for the modelling run
+input should be a data frame with}
 
-\item{achor_depth}{depth in (m) of the anchor}
+\item{max_runs}{maximum runs before one of the  age constraints is dropped \code{Default=1000}}
 
-\item{achor_depth_unc}{uncertainty in (m) of the anchor}
+\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 
-\item{achor_depth_unc_dist}{distribution of the uncertainty of the
-anchor age, value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="n"}}
+\item{verbose}{Print text \code{Default=FALSE}.}
 
-\item{gap_depth}{depth(s) at which a gap is present}
+\item{genplot}{generate plot code{Default=FALSE}}
 
-\item{gap_dur}{duration in  (kyr) of the gap}
+\item{keep_nr}{minimal number of age constraints to be kept \code{Default=2}}
 
-\item{gap_unc}{uncertainty in the duration (kyr) of the gap}
-
-\item{gap_unc_dist}{distribution of the uncertainty of the
-duration of the value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="n"}}
-
-\item{n_simulations}{number of time series to be modeled}
-
-\item{output}{if output = 1 a matrix with the predicted ages given the input for each run
-is given
-If output = 2 a matrix with 6 columns is generated, the first column is
-depth/height, the other columns are the quantile
-(0.025,0.373,0.5,0.6827,0.975) age values of the runs
-if output = 3 a matrix with 4 columns is generated with the first column
-being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
-is mean duration + 1 standard deviation and column 4  is mean duration -  1
-standard deviation}
+\item{keep_all_time_curves}{weather to keep all the generated age curves
+including the ones rejected from the modelling run code{Default=FALSE}}
 }
 \value{
-If output = 1 a matrix with the predicted ages given the input for each run
-is given
-If output = 2 a matrix with 6 columns is generated, the first column is
-depth/height, the other columns are the quantile
-(0.025,0.373,0.5,0.6827,0.975) age values of the runs
-if output = 3 a matrix with 4 columns is generated with the first column
-being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
-is mean duration + 1 standard deviation and column 4  is mean duration -  1
-standard deviation
+The output is a list of 3 or 4 elements
+if keep_all_time_curves is set to TRUE
+then the list consist of the x-axis, all the fitted curves in a matrix format,
+the astrochronologically fitted age of the anchor, all the generated depth time curves
+if keep_all_time_curves is set to TRUE then the list consists of the x-axis,
+all the fitted curves in a matrix format and the astrochronologically fitted age of the anchor
+If \code{genplot=TRUE} then 3 plots stacked on top of each other will be plotted.
+Plot 1: the original data set.
+Plot 2: the depth time plot.
+Plot 3: the data set in the time domain.
+#'
 }
 \description{
-Anchor an age model including its uncertainty to a single radiometric which has a known uncertainty
-and a known uncertainty in bed location. the model also allows for the addition of gap(s) in the
-record with a known durations. if no single radiometric date is specified then the gap(s) will be added
-to the original age-model
+Converts the re-tracked curve results from
+\code{\link{retrack_wt_MC}} function to a depth time space unsing anchor dates
+while also taking into account the uncertainty of the tracked astronomical cycle
 }
-\examples{
+\references{
+Routines for astrochronologic testing, astronomical time scale construction, and
+time series analysis <doi:10.1016/j.earscirev.2018.11.015>
+
+'@examples
 \donttest{
-# Re-track the 110kyr eccentricity cycle in the wavelet scalogram
-# from the XRF record of the Bisciaro data set of Arts (2014) and then
-# add anchor it a U/Pb date of an ash bed and generate and anchored age model including uncertainty
+
 
 Bisciaro_al <- Bisciaro_XRF[, c(1, 61)]
-Bisciaro_al <- astrochron::sortNave(Bisciaro_al,verbose=FALSE,genplot=FALSE)
-Bisciaro_al <- astrochron::linterp(Bisciaro_al, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_al <-
+ astrochron::sortNave(Bisciaro_al, verbose = FALSE, genplot = FALSE)
+Bisciaro_al <-
+ astrochron::linterp(Bisciaro_al,
+                     dt = 0.01,
+                     verbose = FALSE,
+                     genplot = FALSE)
 Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 
 Bisciaro_al_wt <-
  analyze_wavelet(
    data = Bisciaro_al,
-   dj = 1 /200 ,
+   dj = 1 / 200 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
    omega_nr = 8
  )
-
 # Bisciaro_al_wt_track <-
 #   track_period_wavelet(
 #     astro_cycle = 110,
@@ -136,21 +134,30 @@ Bisciaro_al_wt <-
 #     keep_editable = FALSE
 #   )
 
+
+
 Bisciaro_ca <- Bisciaro_XRF[, c(1, 55)]
-Bisciaro_ca <- astrochron::sortNave(Bisciaro_ca,verbose=FALSE,genplot=FALSE)
-Bisciaro_ca <- astrochron::linterp(Bisciaro_ca, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_ca <-
+ astrochron::sortNave(Bisciaro_ca, verbose = FALSE, genplot = FALSE)
+Bisciaro_ca <-
+ astrochron::linterp(Bisciaro_ca,
+                     dt = 0.01,
+                     verbose = FALSE,
+                     genplot = FALSE)
 Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 
 Bisciaro_ca_wt <-
  analyze_wavelet(
    data = Bisciaro_ca,
-   dj = 1 /200 ,
+   dj = 1 / 200 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
    omega_nr = 8
  )
 
+
+#
 # Bisciaro_ca_wt_track <-
 #   track_period_wavelet(
 #     astro_cycle = 110,
@@ -175,24 +182,31 @@ Bisciaro_ca_wt <-
 #     time_series = Bisciaro_ca_wt_track,
 #     genplot = FALSE,
 #     print_span = FALSE,
-#     keep_editable = FALSE)
+#     keep_editable = FALSE
+#   )
 
-Bisciaro_sial <- Bisciaro_XRF[,c(1,64)]
-Bisciaro_sial <- astrochron::sortNave(Bisciaro_sial,verbose=FALSE,genplot=FALSE)
-Bisciaro_sial <- astrochron::linterp(Bisciaro_sial, dt = 0.01,verbose=FALSE,genplot=FALSE)
+
+Bisciaro_sial <- Bisciaro_XRF[, c(1, 64)]
+Bisciaro_sial <-
+ astrochron::sortNave(Bisciaro_sial, verbose = FALSE, genplot = FALSE)
+Bisciaro_sial <-
+ astrochron::linterp(Bisciaro_sial,
+                     dt = 0.01,
+                     verbose = FALSE,
+                     genplot = FALSE)
 Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 
 Bisciaro_sial_wt <-
  analyze_wavelet(
    data = Bisciaro_sial,
-   dj = 1 /200 ,
+   dj = 1 / 200 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
    omega_nr = 8
  )
 
-# Bisciaro_sial_wt_track <-
+#Bisciaro_sial_wt_track <-
 #   track_period_wavelet(
 #     astro_cycle = 110,
 #     wavelet = Bisciaro_sial_wt,
@@ -221,15 +235,20 @@ Bisciaro_sial_wt <-
 #   )
 
 
-Bisciaro_Mn <- Bisciaro_XRF[,c(1,46)]
-Bisciaro_Mn <- astrochron::sortNave(Bisciaro_Mn,verbose=FALSE,genplot=FALSE)
-Bisciaro_Mn <- astrochron::linterp(Bisciaro_Mn, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mn <- Bisciaro_XRF[, c(1, 46)]
+Bisciaro_Mn <-
+ astrochron::sortNave(Bisciaro_Mn, verbose = FALSE, genplot = FALSE)
+Bisciaro_Mn <-
+ astrochron::linterp(Bisciaro_Mn,
+                     dt = 0.01,
+                     verbose = FALSE,
+                     genplot = FALSE)
 Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 
 Bisciaro_Mn_wt <-
  analyze_wavelet(
    data = Bisciaro_Mn,
-   dj = 1 /200 ,
+   dj = 1 / 200 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -263,15 +282,20 @@ Bisciaro_Mn_wt <-
 #     keep_editable = FALSE
 #   )
 
-Bisciaro_Mg <- Bisciaro_XRF[,c(1,71)]
-Bisciaro_Mg <- astrochron::sortNave(Bisciaro_Mg,verbose=FALSE,genplot=FALSE)
-Bisciaro_Mg <- astrochron::linterp(Bisciaro_Mg, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mg <- Bisciaro_XRF[, c(1, 71)]
+Bisciaro_Mg <-
+ astrochron::sortNave(Bisciaro_Mg, verbose = FALSE, genplot = FALSE)
+Bisciaro_Mg <-
+ astrochron::linterp(Bisciaro_Mg,
+                     dt = 0.01,
+                     verbose = FALSE,
+                     genplot = FALSE)
 Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 
 Bisciaro_Mg_wt <-
  analyze_wavelet(
    data = Bisciaro_Mg,
-   dj = 1 /200 ,
+   dj = 1 / 200 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -303,80 +327,108 @@ Bisciaro_Mg_wt <-
 #     time_series = Bisciaro_Mg_wt_track,
 #     genplot = FALSE,
 #     print_span = FALSE,
-#     keep_editable = FALSE)
+#     keep_editable = FALSE
+#   )
 
 
 
 
 wt_list_bisc <- list(Bisciaro_al_wt,
-               Bisciaro_ca_wt,
-               Bisciaro_sial_wt,
-               Bisciaro_Mn_wt,
-               Bisciaro_Mg_wt)
-
-#Instead of tracking, the tracked solution data sets Bisciaro_al_wt_track,
-#Bisciaro_ca_wt_track, Bisciaro_sial_wt_track, Bisciaro_Mn_wt_track,
-# Bisciaro_Mn_wt_track and Bisciaro_Mg_wt_track are used
-
-data_track_bisc <- cbind(Bisciaro_al_wt_track[,2],
-                     Bisciaro_ca_wt_track[,2],
-                     Bisciaro_sial_wt_track[,2],
-                     Bisciaro_Mn_wt_track[,2],
-                     Bisciaro_Mg_wt_track[,2])
-
-x_axis_bisc <- Bisciaro_al_wt_track[,1]
+                    Bisciaro_ca_wt,
+                    Bisciaro_sial_wt,
+                    Bisciaro_Mn_wt,
+                    Bisciaro_Mg_wt)
 
 
-bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
-             data_track = data_track_bisc,
-             x_axis = x_axis_bisc,
-             nr_simulations = 20,
-             seed_nr = 1337,
-             verbose = FALSE,
-             genplot = FALSE,
-             keep_editable = FALSE,
-             create_GIF = FALSE,
-             plot_GIF = FALSE,
-             width_plt =  600,
-             height_plt = 450,
-            period_up  =  1.5,
-             period_down = 0.5,
-             plot.COI = TRUE,
-             n.levels = 100,
-             palette_name = "rainbow",
-             color_brewer = "grDevices",
-             periodlab = "Period (metres)",
-             x_lab = "depth (metres)",
-             add_avg = FALSE,
-             time_dir = TRUE,
-             file_name = NULL,
-             run_multicore = FALSE,
-             output = 5,
-             n_imgs = 50,
-             plot_horizontal = TRUE,
-             empty_folder = FALSE)
+data_track_bisc <- cbind(
+ Bisciaro_al_wt_track[, 2],
+ Bisciaro_ca_wt_track[, 2],
+Bisciaro_sial_wt_track[, 2],
+ Bisciaro_Mn_wt_track[, 2],
+ Bisciaro_Mg_wt_track[, 2]
+)
 
-bisc_retrack_age_incl_unc <- curve2time_unc_anchor(tracked_cycle_curve = bisc_retrack,
-tracked_cycle_period = 110,
-tracked_cycle_period_unc = ((135-110)+(110-95))/2,
-tracked_cycle_period_unc_dist = "n",
-achor_age = 20609,
-achor_SD = 40,
-achor_depth = 7.25,
-achor_depth_unc = 0.25,
-achor_depth_unc_dist = "n",
-gap_depth = NULL,
-gap_dur = NULL,
-gap_unc =  NULL,
-gap_unc_dist = "n",
-n_simulations = 20,
-output = 1)
+x_axis_bisc <- Bisciaro_al_wt_track[, 1]
+
+bisc_retrack <- retrack_wt_MC(
+wt_list = wt_list_bisc,
+ data_track = data_track_bisc,
+ x_axis = x_axis_bisc,
+ nr_simulations = 500,
+ seed_nr = 1337,
+ verbose = TRUE,
+ genplot = FALSE,
+ keep_editable = FALSE,
+ create_GIF = FALSE,
+ plot_GIF = FALSE,
+ width_plt =  600,
+ height_plt = 450,
+ period_up  =  1.5,
+ period_down = 0.5,
+ plot.COI = TRUE,
+ n.levels = 100,
+ palette_name = "rainbow",
+ color_brewer = "grDevices",
+periodlab = "Period (metres)",
+x_lab = "depth (metres)",
+add_avg = FALSE,
+time_dir = TRUE,
+file_name = "TEST",
+run_multicore = TRUE,
+output = 5,
+ n_imgs = 50,
+ plot_horizontal = TRUE,
+ empty_folder = FALSE
+)
+
+id <- c("CCT18_322", "CCT18_315", "CCT18_311")
+ages <- c(20158, 20575, 20857)
+ageSds <- c(28, 40, 34)
+ages_unc_dist <- c("n", "n", "n")
+position <- c(13.3, 7.25, 3.2)
+anchor_thick <- c(0.2, 0.1, 0.1)
+anchor_thick_unc_dist <- c("u", "u", "u")
+
+ash_Bisc <-
+ as.data.frame(
+   cbind(
+     id,
+     ages,
+     ageSds,
+     ages_unc_dist,
+     position,
+     anchor_thick,
+     anchor_thick_unc_dist
+   )
+ )
+
+gap_dur = c(10, 20)
+gap_unc = c(3, 10)
+gap_depth = c(2.5, 9)
+gap_unc_dist = c("n", "n")
+
+
+gap_constraints_Bisc <-
+ as.data.frame(cbind(gap_dur, gap_unc, gap_depth, gap_unc_dist))
+
+
+curve2time_unc_anchor_res <-
+ curve2time_unc_anchor(
+  tracked_cycle_curve =  bisc_retrack,
+  tracked_cycle_period = 110,
+   tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,
+  tracked_cycle_period_unc_dist = "n",
+   n_simulations = 20,
+   gap_constraints = gap_constraints_Bisc,
+  max_runs = 1000,
+   run_multicore = FALSE,
+   verbose = FALSE,
+   genplot = FALSE,
+   keep_nr = 2,
+   keep_all_time_curves = FALSE
+ )
 
 }
-}
-\references{
-Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 Part of the code is based on the \link[astrochron]{sedrate2time}

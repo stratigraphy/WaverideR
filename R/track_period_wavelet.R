@@ -121,7 +121,6 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 
-
 track_period_wavelet <- function(astro_cycle = 405,
                                  wavelet = NULL,
                                  n.levels = 100,
@@ -340,6 +339,13 @@ track_period_wavelet <- function(astro_cycle = 405,
     if (track_peaks==TRUE){
       Pwert <- wavelet$Power
 
+      for(j in 1: ncol(Pwert)){
+        data  <- cbind(log2(wavelet$Period),Pwert[,j])
+        data_dif <- data[1:(nrow(data)-1),2]-data[2:(nrow(data)),2]
+        data_dif_v2 <- data_dif[1:(length(data_dif)-1)]-data_dif[2:(length(data_dif))]
+        Pwert[,j] <- c(data_dif_v2,data_dif_v2[length(data_dif_v2)],data_dif_v2[length(data_dif_v2)])*-1
+      }
+
       maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
       for (j in 1:ncol(Pwert)) {
@@ -373,12 +379,13 @@ track_period_wavelet <- function(astro_cycle = 405,
         lwd = "0.5"
       )
 
-
+      n <- nrow(maxdetect2)
       x = maxdetect2$x_val
       y = maxdetect2$y_val
     }else {
       x  <- rep(wavelet$x, each = length(wavelet$axis.2))
-      y  <- rep(wavelet$axis.2, times = length(wavelet$x))}
+      y  <- rep(wavelet$axis.2, times = length(wavelet$x))
+      n <- length(wavelet$x)}
 
 
 
@@ -389,7 +396,7 @@ track_period_wavelet <- function(astro_cycle = 405,
     x <- xy$x
     y <- xy$y
     sel <- cbind(rep(FALSE, length(x)), rep(FALSE, length(x)))
-    n <- nrow(maxdetect2)
+
 
     while (sum(sel) < n) {
       ans <- identify(x,
@@ -416,8 +423,17 @@ track_period_wavelet <- function(astro_cycle = 405,
 
     pts <- sel[, 1]
 
-    out <- data.frame(cbind(maxdetect2[pts, 2], maxdetect2[pts, 1]))
-    out <- na.omit(out)
+
+
+
+    if (track_peaks==TRUE){
+      out <- data.frame(cbind(maxdetect2[pts, 2], maxdetect2[pts, 1]))
+      out <- na.omit(out)}
+
+    if (track_peaks==FALSE){
+      out <- data.frame(x[sel[,1]], y[sel[,1]])
+      out <- na.omit(out)}
+
 
     if (nrow(out) != 0) {
       out <- na.omit(out)
@@ -435,8 +451,6 @@ track_period_wavelet <- function(astro_cycle = 405,
 
     return(out)
   }
-
-
 
 
   if (plot_horizontal == FALSE){
@@ -650,9 +664,14 @@ track_period_wavelet <- function(astro_cycle = 405,
     }
 
     pts <- sel[, 1]
+    if (track_peaks==TRUE){
+      out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts, 2]))
+      out <- na.omit(out)}
 
-    out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts, 2]))
-    out <- na.omit(out)
+
+    if (track_peaks==FALSE){
+      out <- data.frame(y[sel[,1]], x[sel[,1]])
+      out <- na.omit(out)}
 
     if (nrow(out) != 0) {
       out <- na.omit(out)
@@ -673,4 +692,3 @@ track_period_wavelet <- function(astro_cycle = 405,
 
 
 }
-
