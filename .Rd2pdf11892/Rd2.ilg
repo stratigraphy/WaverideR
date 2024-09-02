@@ -1,0 +1,54 @@
+This is makeindex, version 2.16 [MiKTeX 23.4].
+Scanning input file Rd2.idx....done (227 entries accepted, 0 rejected).
+Sorting entries.....done (1904 comparisons).
+Generating output file Rd2.ind....
+## Warning (input = Rd2.idx, line = 32; output = Rd2.ind, line = 35):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 23; output = Rd2.ind, line = 39):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 54; output = Rd2.ind, line = 52):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 78; output = Rd2.ind, line = 63):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 88; output = Rd2.ind, line = 68):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 125; output = Rd2.ind, line = 90):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 143; output = Rd2.ind, line = 129):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 147; output = Rd2.ind, line = 131):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 149; output = Rd2.ind, line = 136):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 154; output = Rd2.ind, line = 143):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 165; output = Rd2.ind, line = 147):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 181; output = Rd2.ind, line = 150):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 188; output = Rd2.ind, line = 176):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 196; output = Rd2.ind, line = 191):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 203; output = Rd2.ind, line = 198):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+
+## Warning (input = Rd2.idx, line = 225; output = Rd2.ind, line = 202):
+   -- Conflicting entries: multiple encaps for the same page under same key.
+done (213 lines written, 16 warnings).
+Output written in Rd2.ind.
+Transcript written in Rd2.ilg.

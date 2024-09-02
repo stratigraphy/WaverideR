@@ -1,0 +1,213 @@
+\begin{theindex}
+
+  \item \texttt  {add\_wavelet}, \hyperpage{4}
+  \item \texttt  {add\_wavelet\_avg}, \hyperpage{8}
+  \item \texttt  {age\_model\_zeeden}, \hyperpage{12}
+  \item \texttt  {analyze.wavelet}, \hyperindexformat{\textit}{5}, 
+		\hyperindexformat{\textit}{9}, 
+		\hyperindexformat{\textit}{14}, 
+		\hyperindexformat{\textit}{90}, 
+		\hyperindexformat{\textit}{101}, 
+		\hyperindexformat{\textit}{122}
+  \item \texttt  {analyze\_wavelet}, \hyperindexformat{\textit}{4}, 
+		\hyperindexformat{\textit}{9}, \hyperpage{13}, 
+		\hyperindexformat{\textit}{28}, 
+		\hyperindexformat{\textit}{42}, 
+		\hyperindexformat{\textit}{44}, 
+		\hyperindexformat{\textit}{46}, 
+		\hyperindexformat{\textit}{48}, 
+		\hyperindexformat{\textit}{53}, 
+		\hyperindexformat{\textit}{55, 56}, 
+		\hyperindexformat{\textit}{58}, 
+		\hyperindexformat{\textit}{60}, 
+		\hyperindexformat{\textit}{62}, 
+		\hyperindexformat{\textit}{65}, 
+		\hyperindexformat{\textit}{90, 91}, 
+		\hyperindexformat{\textit}{95}, 
+		\hyperindexformat{\textit}{97--100}, 
+		\hyperindexformat{\textit}{116}, 
+		\hyperindexformat{\textit}{119}, 
+		\hyperindexformat{\textit}{121}
+  \item \texttt  {anchor2time}, \hyperpage{15}
+  \item \texttt  {anchor\_points\_Bisciaro\_al}, \hyperpage{16}
+  \item \texttt  {anchor\_points\_grey}, \hyperpage{17}
+  \item \texttt  {asm}, \hyperindexformat{\textit}{117}
+  \item \texttt  {astro\_anchor}, \hyperindexformat{\textit}{16--18}, 
+		\hyperpage{18}, \hyperindexformat{\textit}{92}
+  \item \texttt  {astrochron-package}, \hyperindexformat{\textit}{18}
+  \item \texttt  {astrosignal\_example}, 
+		\hyperindexformat{\textit}{17, 18}, \hyperpage{18}
+
+  \indexspace
+
+  \item \texttt  {Bisciaro\_al\_wt\_track}, \hyperpage{25}
+  \item \texttt  {Bisciaro\_ca\_wt\_track}, \hyperpage{25}
+  \item \texttt  {Bisciaro\_Mg\_wt\_track}, \hyperpage{26}
+  \item \texttt  {Bisciaro\_Mn\_wt\_track}, \hyperpage{26}
+  \item \texttt  {Bisciaro\_sial\_wt\_track}, \hyperpage{27}
+  \item \texttt  {Bisciaro\_XRF}, \hyperpage{27}
+
+  \indexspace
+
+  \item \texttt  {completed\_series}, \hyperindexformat{\textit}{28}, 
+		\hyperpage{28}, \hyperindexformat{\textit}{53}
+  \item \texttt  {curve2sedrate}, \hyperpage{29}
+  \item \texttt  {curve2time}, \hyperpage{31}
+  \item \texttt  {curve2time\_unc}, \hyperpage{32}
+  \item \texttt  {curve2time\_unc\_anchor}, \hyperpage{38}
+  \item \texttt  {curve2tune}, \hyperpage{42}
+
+  \indexspace
+
+  \item \texttt  {delpts\_tracked\_period\_wt}, 
+		\hyperindexformat{\textit}{44}, \hyperpage{44}, 
+		\hyperindexformat{\textit}{118}
+  \item \texttt  {depth\_rank\_example}, \hyperpage{45}, 
+		\hyperindexformat{\textit}{46}
+  \item \texttt  {dur\_gaps}, \hyperpage{46}
+  \item \texttt  {dynamic\_extraction}, \hyperindexformat{\textit}{48}, 
+		\hyperpage{48}
+
+  \indexspace
+
+  \item \texttt  {eAsm}, \hyperindexformat{\textit}{66}, 
+		\hyperindexformat{\textit}{117}
+  \item \texttt  {etp}, \hyperindexformat{\textit}{18}, 
+		\hyperindexformat{\textit}{21}, 
+		\hyperindexformat{\textit}{128}
+  \item \texttt  {extract\_amplitude}, \hyperpage{50}, 
+		\hyperindexformat{\textit}{51}, 
+		\hyperindexformat{\textit}{125}
+  \item \texttt  {extract\_power}, \hyperpage{52}
+  \item \texttt  {extract\_power\_stable}, \hyperpage{55}
+  \item \texttt  {extract\_signal}, \hyperpage{56}
+  \item \texttt  {extract\_signal\_stable}, \hyperpage{58}
+  \item \texttt  {extract\_signal\_stable\_V2}, \hyperpage{60}
+  \item \texttt  {extract\_signal\_standard\_deviation}, \hyperpage{61}
+
+  \indexspace
+
+  \item \texttt  {flmw}, \hyperindexformat{\textit}{64}, \hyperpage{64}, 
+		\hyperindexformat{\textit}{96, 97}, 
+		\hyperindexformat{\textit}{125}
+
+  \indexspace
+
+  \item \texttt  {geo\_col}, \hyperpage{67}
+  \item \texttt  {geo\_loc}, \hyperpage{71}
+  \item \texttt  {geo\_mid}, \hyperpage{75}
+  \item \texttt  {getLaskar}, \hyperindexformat{\textit}{18, 19}
+  \item \texttt  {grey}, \hyperindexformat{\textit}{17, 18}, 
+		\hyperpage{79}
+  \item \texttt  {grey\_track}, \hyperpage{79}
+  \item \texttt  {GTS\_info}, \hyperpage{80}
+
+  \indexspace
+
+  \item \texttt  {Hilbert\_transform}, \hyperindexformat{\textit}{51}, 
+		\hyperpage{80}, \hyperindexformat{\textit}{125}
+
+  \indexspace
+
+  \item \texttt  {inst.pulse}, \hyperindexformat{\textit}{81}, 
+		\hyperindexformat{\textit}{125, 126}
+  \item \texttt  {integratePower}, \hyperindexformat{\textit}{53}, 
+		\hyperindexformat{\textit}{55}
+
+  \indexspace
+
+  \item \texttt  {lithlog\_disc}, \hyperindexformat{\textit}{46}, 
+		\hyperpage{81}, \hyperindexformat{\textit}{125}
+  \item \texttt  {loess.as}, \hyperindexformat{\textit}{83}
+  \item \texttt  {loess\_auto}, \hyperindexformat{\textit}{53}, 
+		\hyperpage{83}, \hyperindexformat{\textit}{126}
+
+  \indexspace
+
+  \item \texttt  {mag}, \hyperpage{84}
+  \item \texttt  {mag\_track\_solution}, \hyperpage{85}
+  \item \texttt  {max\_detect}, \hyperindexformat{\textit}{86}, 
+		\hyperpage{86}
+  \item \texttt  {min\_detect}, \hyperindexformat{\textit}{88}, 
+		\hyperpage{88}
+  \item \texttt  {minimal\_tuning}, \hyperindexformat{\textit}{48}, 
+		\hyperpage{87}
+  \item \texttt  {model\_red\_noise\_wt}, 
+		\hyperindexformat{\textit}{89}, \hyperpage{89}, 
+		\hyperindexformat{\textit}{91}, 
+		\hyperindexformat{\textit}{115, 116}
+
+  \indexspace
+
+  \item \texttt  {percentile\_from\_red\_noise}, 
+		\hyperindexformat{\textit}{91}, \hyperpage{91}
+  \item \texttt  {periodogram}, \hyperindexformat{\textit}{131}
+  \item \texttt  {plot\_astro\_anchor}, \hyperpage{92}
+  \item \texttt  {plot\_avg\_wavelet}, \hyperpage{95}
+  \item \texttt  {plot\_sed\_model}, \hyperindexformat{\textit}{96}, 
+		\hyperpage{96}
+  \item \texttt  {plot\_wavelet}, \hyperpage{98}
+  \item \texttt  {plot\_win\_fft}, \hyperindexformat{\textit}{104}, 
+		\hyperpage{104}
+
+  \indexspace
+
+  \item \texttt  {reconstruct}, \hyperindexformat{\textit}{51}, 
+		\hyperindexformat{\textit}{53}, 
+		\hyperindexformat{\textit}{55}, 
+		\hyperindexformat{\textit}{57}, 
+		\hyperindexformat{\textit}{59, 60}, 
+		\hyperindexformat{\textit}{63}
+  \item \texttt  {retrack\_wt\_MC}, \hyperindexformat{\textit}{32, 33}, 
+		\hyperindexformat{\textit}{39}, \hyperpage{106}
+
+  \indexspace
+
+  \item \texttt  {sedrate2time}, \hyperindexformat{\textit}{31}, 
+		\hyperindexformat{\textit}{33}, 
+		\hyperindexformat{\textit}{40}, 
+		\hyperindexformat{\textit}{43}, 
+		\hyperindexformat{\textit}{88}, 
+		\hyperindexformat{\textit}{114}
+  \item \texttt  {sedrate2tune}, \hyperpage{114}
+  \item \texttt  {StratigrapheR}, \hyperindexformat{\textit}{125}
+  \item \texttt  {sum\_power\_sedrate}, 
+		\hyperindexformat{\textit}{96, 97}, 
+		\hyperindexformat{\textit}{115}, \hyperpage{115}, 
+		\hyperindexformat{\textit}{125}
+
+  \indexspace
+
+  \item \texttt  {traceFreq}, \hyperindexformat{\textit}{49}, 
+		\hyperindexformat{\textit}{119}
+  \item \texttt  {track\_period\_wavelet}, 
+		\hyperindexformat{\textit}{25--28}, 
+		\hyperindexformat{\textit}{30, 31}, 
+		\hyperindexformat{\textit}{42}, 
+		\hyperindexformat{\textit}{44}, 
+		\hyperindexformat{\textit}{53}, 
+		\hyperindexformat{\textit}{62}, 
+		\hyperindexformat{\textit}{85}, 
+		\hyperindexformat{\textit}{118}, \hyperpage{118}, 
+		\hyperindexformat{\textit}{121}
+  \item \texttt  {TSI}, \hyperpage{120}
+
+  \indexspace
+
+  \item \texttt  {wavelet\_uncertainty}, 
+		\hyperindexformat{\textit}{120}, \hyperpage{120}
+  \item \texttt  {WaverideR}, \hyperpage{124}
+  \item \texttt  {WaverideR\_Datasets}, \hyperpage{128}
+  \item \texttt  {win\_fft}, \hyperindexformat{\textit}{104}, 
+		\hyperindexformat{\textit}{130}, \hyperpage{130}
+  \item \texttt  {wt}, \hyperindexformat{\textit}{5}, 
+		\hyperindexformat{\textit}{9}, 
+		\hyperindexformat{\textit}{14}, 
+		\hyperindexformat{\textit}{90}, 
+		\hyperindexformat{\textit}{101}, 
+		\hyperindexformat{\textit}{122}
+  \item \texttt  {wt.image}, \hyperindexformat{\textit}{5}, 
+		\hyperindexformat{\textit}{9}, 
+		\hyperindexformat{\textit}{101}
+
+\end{theindex}
