@@ -301,14 +301,14 @@
 #'
 #'data_track_bisc <- cbind(
 #'  Bisciaro_al_wt_track[, 2],
-  #'  Bisciaro_ca_wt_track[, 2],
-  #' Bisciaro_sial_wt_track[, 2],
-  #'  Bisciaro_Mn_wt_track[, 2],
-  #'  Bisciaro_Mg_wt_track[, 2]
-  #')
-  #'
-  #'x_axis_bisc <- Bisciaro_al_wt_track[, 1]
-  #'
+#'  Bisciaro_ca_wt_track[, 2],
+#' Bisciaro_sial_wt_track[, 2],
+#'  Bisciaro_Mn_wt_track[, 2],
+#'  Bisciaro_Mg_wt_track[, 2]
+#')
+#'
+#'x_axis_bisc <- Bisciaro_al_wt_track[, 1]
+#'
 #'bisc_retrack <- retrack_wt_MC(
 #'wt_list = wt_list_bisc,
 #'  data_track = data_track_bisc,
@@ -326,19 +326,28 @@
 #'  period_down = 0.5,
 #'  plot.COI = TRUE,
 #'  n.levels = 100,
-  #'  palette_name = "rainbow",
+#'  palette_name = "rainbow",
 #'  color_brewer = "grDevices",
-  #'periodlab = "Period (metres)",
-  #'x_lab = "depth (metres)",
-  #'add_avg = FALSE,
-  #'time_dir = TRUE,
-  #'file_name = "TEST",
-  #'run_multicore = TRUE,
-  #'output = 5,
-  #'  n_imgs = 50,
-  #'  plot_horizontal = TRUE,
-  #'  empty_folder = FALSE
-  #')
+#'periodlab = "Period (metres)",
+#'x_lab = "depth (metres)",
+#'add_avg = FALSE,
+#'time_dir = TRUE,
+#'file_name = "TEST",
+#'run_multicore = TRUE,
+#'output = 5,
+#'  n_imgs = 50,
+#'  plot_horizontal = TRUE,
+#'  empty_folder = FALSE
+#')
+#'
+#'proxy_list_bisc <- list(Bisciaro_alt,
+#'                     Bisciaro_ca,
+#'                     Bisciaro_sial,
+#'                     Bisciaro_Mn,
+#'                     Bisciaro_Mg)
+#'
+#'
+#'
 #'
 #'id <- c("CCT18_322", "CCT18_315", "CCT18_311")
 #'ages <- c(20158, 20575, 20857)
@@ -368,24 +377,51 @@
 #'
 #'
 #'gap_constraints_Bisc <-
-  #'  as.data.frame(cbind(gap_dur, gap_unc, gap_depth, gap_unc_dist))
-  #'
-  #'
+#'  as.data.frame(cbind(gap_dur, gap_unc, gap_depth, gap_unc_dist))
+#'
+#'cycles_checks <- c(110,40,22)
+#'uncer_cycles_checks <- c(20,5,7)
+#'
 #'curve2time_unc_anchor_res <-
-  #'  curve2time_unc_anchor(
-  #'   tracked_cycle_curve =  bisc_retrack,
-    #'   tracked_cycle_period = 110,
-    #'    tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,
-    #'   tracked_cycle_period_unc_dist = "n",
-    #'    n_simulations = 20,
-    #'    gap_constraints = gap_constraints_Bisc,
-    #'   max_runs = 1000,
-    #'    run_multicore = FALSE,
-    #'    verbose = FALSE,
-    #'    genplot = FALSE,
-    #'    keep_nr = 2,
-    #'    keep_all_time_curves = FALSE
+#'  curve2time_unc_anchor(
+#'  age_constraints =  ash_Bisc,
+#'   tracked_cycle_curve =  bisc_retrack,
+#'   tracked_cycle_period = 110,
+#'    tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,
+#'   tracked_cycle_period_unc_dist = "n",
+#'    n_simulations = 20,
+#'    gap_constraints = gap_constraints_Bisc,
+#'    proxy_data = proxy_list_bisc,
+#'    cycles_check = NULL,
+#'    uncer_cycles_check = NULL,
+#'    cycles_check = cycles_checks,
+#'    uncer_cycles_check = uncer_cycles_checks,
+#'   max_runs = 1000,
+#'    run_multicore = FALSE,
+#'    verbose = FALSE,
+#'    genplot = FALSE,
+#'    keep_nr = 2,
+#'    keep_all_time_curves = FALSE,
+#'    dj = 1/200,
+#'    lowerPeriod =1,
+#'    upperPeriod =2500,
+#'    omega_nr = 6,
+#'    seed_nr=1337,
+#'    dir=TRUE
 #'  )
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
+#'
 #'
 #'}
 #' @return
@@ -411,7 +447,33 @@
 #' @importFrom DescTools Closest
 #' @importFrom stats pnorm
 #' @importFrom rlist list.append
-
+#' @importFrom rlist list.extract
+#' @importFrom astrochron linterp
+#' @importFrom stats quantile
+#' @importFrom graphics par
+#' @importFrom graphics image
+#' @importFrom graphics axis
+#' @importFrom graphics mtext
+#' @importFrom graphics text
+#' @importFrom graphics box
+#' @importFrom graphics polygon
+#' @importFrom graphics title
+#' @importFrom grDevices rgb
+#' @importFrom WaveletComp analyze.wavelet
+#' @importFrom WaveletComp wt.image
+#' @importFrom biwavelet wt
+#' @importFrom astrochron mtm
+#' @importFrom DescTools Closest
+#' @importFrom parallel stopCluster
+#' @importFrom parallel detectCores
+#' @importFrom parallel makeCluster
+#' @importFrom doSNOW registerDoSNOW
+#' @importFrom utils txtProgressBar
+#' @importFrom utils setTxtProgressBar
+#' @importFrom tcltk setTkProgressBar
+#' @importFrom tcltk setTkProgressBar
+#' @importFrom foreach foreach
+#' @importFrom stats runif
 
 
 curve2time_unc_anchor <- function(age_constraints =  NULL,
@@ -421,17 +483,25 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                                   tracked_cycle_period_unc_dist = "n",
                                   n_simulations = 20,
                                   gap_constraints = NULL,
+                                  proxy_data = NULL,
+                                  cycles_check = NULL,
+                                  uncer_cycles_check = NULL,
                                   max_runs = 1000,
                                   run_multicore = FALSE,
                                   verbose = FALSE,
                                   genplot = FALSE,
                                   keep_nr = 2,
-                                  keep_all_time_curves = FALSE) {
+                                  keep_all_time_curves = FALSE,
+                                  dj = 1/200,
+                                  lowerPeriod =1,
+                                  upperPeriod =4600,
+                                  omega_nr = 6,
+                                  seed_nr=1337,
+                                  dir=TRUE) {
 
-
-  dat <- as.matrix(tracked_cycle_curve[,])
+  dat <- as.matrix(tracked_cycle_curve[, ])
   dat <- na.omit(dat)
-  dat <- dat[order(dat[, 1], na.last = NA, decreasing = F),]
+  dat <- dat[order(dat[, 1], na.last = NA, decreasing = F), ]
   npts <- length(dat[, 1])
   start <- dat[1, 1]
   end <- dat[length(dat[, 1]), 1]
@@ -472,196 +542,11 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
   } else{
     opts = NULL
   }
-  if (nrow(age_constraints) == 1) {
-    res_list <- list()
+  set.seed(seed_nr)
 
-    for (i in 1:n_simulations) {
-      validator <- 1
-      while (validator == 1) {
-        new_curve <- multi_tracked[, c(1, 2)]
-        val <-
-          rnorm(1, mean = multi_tracked[1, 2], sd = multi_tracked[1, 3])
-        pnorm_val <- 1 - pnorm(val,
-                               mean = multi_tracked[1, 2],
-                               sd = multi_tracked[1, 3],
-                               lower.tail = FALSE)
+  ###  ash bed #####
 
-        for (j in 1:nrow(new_curve)) {
-          new_curve[j, 2] <-
-            1 / (qnorm(pnorm_val, mean = multi_tracked[j, 2], sd = multi_tracked[j, 3]))
-        }
-
-
-        if (tracked_cycle_period_unc_dist == "u") {
-          tracked_cycle_period_new <-
-            runif(
-              1,
-              min = tracked_cycle_period - tracked_cycle_period_unc,
-              max = tracked_cycle_period + tracked_cycle_period_unc
-            )
-        }
-
-        if (tracked_cycle_period_unc_dist == "n") {
-          tracked_cycle_period_new <-
-            rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
-        }
-
-        time_curve <- WaverideR::curve2time(
-          tracked_cycle_curve = new_curve,
-          tracked_cycle_period = tracked_cycle_period_new,
-          genplot = FALSE,
-          keep_editable = FALSE
-        )
-
-        dif_mat <-
-          time_curve[2:(nrow(time_curve)), 2] - time_curve[1:(nrow(time_curve) -
-                                                                1), 2]
-        dif_mat_min <- min(dif_mat)
-
-        if (dif_mat_min > 0) {
-          validator <- 0
-        }
-      }
-
-      gaps_dur <- 0
-
-      if (is.null(gap_constraints) == FALSE) {
-        gaps_dur <- matrix(
-          data = NA,
-          nrow = nrow(gap_constraints[,]),
-          ncol = 1
-        )
-
-        for (qx in 1:nrow(gap_constraints)) {
-          if (gap_constraints[qx, 4] == "u") {
-            if (as.numeric(gap_constraints[qx, 1]) - as.numeric(gap_constraints[qx, 2] < 0)) {
-              a <- 0
-            } else{
-              a <-
-                as.numeric(gap_constraints[qx, 1]) - as.numeric(gap_constraints[qx, 2])
-            }
-            gap_dur_new <- runif(
-              1,
-              min = a,
-              max = as.numeric(gap_constraints[qx, 1]) + as.numeric(gap_constraints[qx, 2])
-            )
-          }
-
-
-          if (gap_constraints[qx, 4] == "n") {
-            gap_dur_new <-
-              rnorm(
-                1,
-                mean = as.numeric(gap_constraints[qx, 1]),
-                sd = as.numeric(gap_constraints[qx, 2])
-              )
-
-            if (gap_dur_new < 0) {
-              gap_dur_new <- 0
-            }
-            gaps_dur[qx, 1] <- gap_dur_new
-
-
-          }
-
-          row_nr <-
-            DescTools::Closest(time_curve[, 1], as.numeric(gap_constraints[qx, 3]), which = TRUE)
-          out_3 <- time_curve[, 2]
-          out_4 <- out_3[row_nr:length(out_3)]
-          out_4 <- out_4 + gap_dur_new
-          time_curve[, 2] <-
-            c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] + gap_dur_new))
-
-
-        }
-      }
-
-
-      if (age_constraints[1, 7] == "u") {
-        anchor_depth <-
-          runif(
-            1,
-            min = as.numeric(age_constraints[1, 5]) - as.numeric(age_constraints[1, 6]) /
-              2,
-            max = as.numeric(age_constraints[1, 5]) + as.numeric(age_constraints[1, 6]) /
-              2
-          )
-      }
-
-      if (age_constraints[1, 7] == "n") {
-        anchor_depth <-
-          rnorm(1,
-                mean = as.numeric(age_constraints[1, 4]),
-                sd = as.numeric(age_constraints[1, 4]))
-      }
-
-      if (age_constraints_2[1, 7] == "t") {
-        trap_par <-
-          as.numeric(unlist(strsplit(age_constraints_2[1, 5], " +")))
-
-        anchor_depth_new <-
-          rtrapezoid(
-            1,
-            min = trap_par[1],
-            mode1 = trap_par[2],
-            mode2 = trap_par[3],
-            max = trap_par[3],
-            n1 = 2,
-            n3 = 2,
-            alpha = 1
-          )
-
-      }
-
-      if (age_constraints[1, 4] == "u") {
-        anchor_age <-
-          runif(
-            1,
-            min = as.numeric(age_constraints[1, 2]) - as.numeric(age_constraints[1, 3]) /
-              2,
-            max = as.numeric(age_constraints[1, 2]) + as.numeric(age_constraints[1, 3]) /
-              2
-          )
-      }
-
-      if (age_constraints[1, 4] == "n") {
-        anchor_age <-
-          rnorm(1,
-                mean = as.numeric(age_constraints[1, 2]),
-                sd = as.numeric(age_constraints[1, 3]))
-      }
-
-
-      row_nr <-
-        DescTools::Closest(time_curve[, 1], anchor_depth, which = TRUE)
-      anchor_astro_age <- time_curve[row_nr, 2]
-      out_3 <- (0 - time_curve[, 2])
-      out_3 <- (out_3 - out_3[row_nr[1]]) + anchor_age
-
-      time_curve_anchored <- out_3
-
-      if (keep_all_time_curves == TRUE) {
-        result <-
-          list(time_curve_anchored,
-               cbind(anchor_astro_age,anchor_age),
-               gaps_dur,
-               time_curve)
-      } else
-        (result <-
-           list(time_curve_anchored,
-                cbind(anchor_astro_age,anchor_age),
-                gaps_dur))
-
-
-      res_list <- list.append(res_list, result)
-      if (verbose == TRUE) {
-        setTxtProgressBar(pb, i)
-      }
-    }
-
-
-  }
-  if (nrow(age_constraints) > 1) {
+  if (nrow(age_constraints) > 0) {
     if (run_multicore == FALSE) {
       res_list <- list()
       for (i in 1:n_simulations) {
@@ -724,10 +609,10 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                               nrow = length(sel_rws))
 
         while (anchor_astr > anchor_radio) {
-          age_constraints_2 <- age_constraints[c(sel_rws),]
-          check_astro_age_2 <- check_astro_age[c(sel_rws),]
-          anchor_depth_2 <- anchor_depth[c(sel_rws),]
-          anchor_age_2 <- anchor_age[c(sel_rws),]
+          age_constraints_2 <- age_constraints[c(sel_rws), ]
+          check_astro_age_2 <- check_astro_age[c(sel_rws), ]
+          anchor_depth_2 <- anchor_depth[c(sel_rws), ]
+          anchor_age_2 <- anchor_age[c(sel_rws), ]
 
           validator <- 1
           while (validator == 1) {
@@ -768,6 +653,9 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
               keep_editable = FALSE
             )
 
+
+
+
             dif_mat <-
               time_curve[2:(nrow(time_curve)), 2] - time_curve[1:(nrow(time_curve) -
                                                                     1), 2]
@@ -779,12 +667,18 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
           }
 
 
+          if (dir == FALSE){
+            time_curve[,2] <- max(time_curve[,2])-time_curve[,2]
+
+          }
+
+
           gaps_dur <- 0
 
           if (is.null(gap_constraints) == FALSE) {
             gaps_dur <- matrix(
               data = NA,
-              nrow = nrow(gap_constraints[,]),
+              nrow = nrow(gap_constraints[, ]),
               ncol = 1
             )
 
@@ -826,13 +720,28 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                                    which = TRUE)
               out_3 <- time_curve[, 2]
               out_4 <- out_3[row_nr:length(out_3)]
-              out_4 <- out_4 + gap_dur_new
-              time_curve[, 2] <-
-                c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] + gap_dur_new))
+              if (dir == FALSE){
+                out_4 <- out_4 - gap_dur_new
+                time_curve[, 2] <-c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] - gap_dur_new))
+
+              }else{out_4 <- (out_4 + gap_dur_new)
+
+              time_curve[, 2] <-c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] + gap_dur_new))
+
+              }
+
 
 
             }
           }
+
+
+
+
+
+
+
+
 
           if (keep_all_time_curves == TRUE) {
             time_curve_comb <-
@@ -921,8 +830,6 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
               DescTools::Closest(time_curve[, 1], anchor_depth_2[klm], which = TRUE)
             anchor_astro_age[klm] <- time_curve[row_nr, 2]
 
-
-
           }
 
 
@@ -931,7 +838,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
           ages_astro_anchored <- ages_astro
 
           ages_sim <- cbind(ages_radio, ages_astro)
-          ages_sim <- ages_sim[order(ages_sim[, 1]),]
+          ages_sim <- ages_sim[order(ages_sim[, 1]), ]
           check_astro_age_2 <-
             check_astro_age_2[order(check_astro_age_2)]
           time_curve_anchored <- time_curve
@@ -952,7 +859,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
           rown_nr <- order(dif_astro, decreasing = TRUE)[1]
           dif_astro_2 <- dif_astro
-          dif_astro_2[,] <- 0
+          dif_astro_2[, ] <- 0
           dif_astro_2[rown_nr] <- 1
 
 
@@ -1006,8 +913,9 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
         res_list <- list.append(res_list, result)
 
-        if (verbose==TRUE){
-          setTxtProgressBar(pb, i)}
+        if (verbose == TRUE) {
+          setTxtProgressBar(pb, i)
+        }
 
 
       }
@@ -1017,10 +925,11 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
       cl <- parallel::makeCluster(numCores - 2)
       registerDoSNOW(cl)
 
-
       i <- 1 # needed to assign 1 to i to avoid note
       fit <-
         foreach (i = 1:n_simulations, .options.snow = opts) %dopar% {
+
+          # generate matrices to be filled with data
           check_astro_age <-
             matrix(
               data = NA,
@@ -1083,10 +992,10 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                                 nrow = length(sel_rws))
 
           while (anchor_astr > anchor_radio) {
-            age_constraints_2 <- age_constraints[c(sel_rws),]
-            check_astro_age_2 <- check_astro_age[c(sel_rws),]
-            anchor_depth_2 <- anchor_depth[c(sel_rws),]
-            anchor_age_2 <- anchor_age[c(sel_rws),]
+            age_constraints_2 <- age_constraints[c(sel_rws), ]
+            check_astro_age_2 <- check_astro_age[c(sel_rws), ]
+            anchor_depth_2 <- anchor_depth[c(sel_rws), ]
+            anchor_age_2 <- anchor_age[c(sel_rws), ]
 
             validator <- 1
             while (validator == 1) {
@@ -1127,6 +1036,8 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                 keep_editable = FALSE
               )
 
+
+
               dif_mat <-
                 time_curve[2:(nrow(time_curve)), 2] - time_curve[1:(nrow(time_curve) -
                                                                       1), 2]
@@ -1137,13 +1048,18 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
               }
             }
 
+            if (dir == FALSE){
+              time_curve[,2] <- max(time_curve[,2])-time_curve[,2]
+
+            }
+
 
             gaps_dur <- 0
 
             if (is.null(gap_constraints) == FALSE) {
               gaps_dur <- matrix(
                 data = NA,
-                nrow = nrow(gap_constraints[,]),
+                nrow = nrow(gap_constraints[, ]),
                 ncol = 1
               )
 
@@ -1185,10 +1101,15 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                                      which = TRUE)
                 out_3 <- time_curve[, 2]
                 out_4 <- out_3[row_nr:length(out_3)]
-                out_4 <- out_4 + gap_dur_new
-                time_curve[, 2] <-
-                  c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] + gap_dur_new))
+                if (dir == FALSE){
+                  out_4 <- out_4 - gap_dur_new
+                  time_curve[, 2] <-c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] - gap_dur_new))
 
+                }else{out_4 <- (out_4 + gap_dur_new)
+
+                time_curve[, 2] <-c(out_3[1:(row_nr - 1)], (out_3[row_nr:length(out_3)] + gap_dur_new))
+
+                }
 
               }
             }
@@ -1289,8 +1210,8 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
             ages_astro <- anchor_astro_age
             ages_astro_anchored <- ages_astro
 
-            ages_sim <- cbind(ages_radio, ages_astro)
-            ages_sim <- ages_sim[order(ages_sim[, 1]),]
+            ages_sim <- as.data.frame(cbind(ages_radio, ages_astro))
+            ages_sim <- ages_sim[order(ages_sim[, 1]), ]
             check_astro_age_2 <-
               check_astro_age_2[order(check_astro_age_2)]
             time_curve_anchored <- time_curve
@@ -1311,23 +1232,116 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
             rown_nr <- order(dif_astro, decreasing = TRUE)[1]
             dif_astro_2 <- dif_astro
-            dif_astro_2[,] <- 0
+            dif_astro_2[, ] <- 0
             dif_astro_2[rown_nr] <- 1
-
 
             anchor_diff <-  cbind(anchor_diff, dif_astro_2)
 
+            sel_proxy_nr <-
+              round(runif(
+                n = 1,
+                min = 1,
+                max = length(proxy_data)
+              ), 0)
+
+            my.data <- proxy_data[[sel_proxy_nr]]
+
+            out <- time_curve_anchored
+            completed_series <- na.omit(out)
+
+            yleft_comp <- completed_series[1, 2]
+
+            yright_com <-
+              completed_series[nrow(completed_series), 2]
+            app <- approx(
+              x = out[, 1],
+              y = out[, 2],
+              xout = my.data[, 1],
+              method = "linear",
+              yleft = yleft_comp,
+              yright = yright_com
+            )
+
+            completed_series <-
+              as.data.frame(cbind(app$y, my.data[, 2]))
+
+            dat <- as.matrix(completed_series)
+            dat <- na.omit(dat)
+            dat <- dat[order(dat[, 1], na.last = NA, decreasing = F),]
+            npts <- length(dat[, 1])
+            start <- dat[1, 1]
+            end <- dat[length(dat[, 1]), 1]
+            x1 <- dat[1:(npts - 1), 1]
+            x2 <- dat[2:(npts), 1]
+            dx = x2 - x1
+            dt = median(dx)
+            xout <- seq(start, end, by = dt)
+            npts <- length(xout)
+            interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
+                             n = npts)
+            completed_series <- as.data.frame(interp)
+
+            #plot(completed_series,type="l")
+            wt_res <- WaverideR::analyze_wavelet(data =completed_series, dj = dj,
+                                                 lowerPeriod = lowerPeriod,
+                                                 upperPeriod = upperPeriod,
+                                                 verbose = FALSE,
+                                                 omega_nr = omega_nr
+            )
+
+            avg_wt <- cbind(wt_res$Period,wt_res$Power.avg)
+            avg_wt <- WaverideR::max_detect(data=avg_wt,pts=5)
+
+            # mtm_res <-
+            #   astrochron::mtm(
+            #     completed_series,
+            #     padfac = 5,
+            #     siglevel = 0.95,
+            #     genplot = FALSE,
+            #     tbw = 4,
+            #     output = 2,
+            #     verbose = FALSE
+            #   )
+
+            mtm_res_test <- is.na(avg_wt)
+            mtm_res_test <- mtm_res_test[1]
 
 
-            if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraints_2)) {
-              anchor_astro_age <-
-                cbind(age_constraints[c(sel_rws), 1], ages_astro_anchored)
-              anchor_astr <- -1
 
-            } else{
+            if (mtm_res_test == TRUE) {
+              runs <- runs + 1
+            } else if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraints_2) | nrow(age_constraints_2)==1 ) {
+              mtm_per <- avg_wt[,1]
+              high_vals <- cycles_check + uncer_cycles_check
+              low_vals <- cycles_check - uncer_cycles_check
+
+              check <-
+                matrix(
+                  data = NA,
+                  nrow = length(cycles_check),
+                  ncol = 1
+                )
+
+              for (i  in 1:length(cycles_check)) {
+                check[i, 1] <- any(mtm_per < high_vals[i] & mtm_per > low_vals[i])
+              }
+
+
+              if (sum(check) == length(cycles_check)) {
+                anchor_astro_age <-
+                  cbind(age_constraints[c(sel_rws), 1], ages_astro_anchored)
+                anchor_astr <- -1
+              } else{
+                runs <- runs + 1
+                print(runs)
+              }
+
+            }
+            else {
               runs <- runs + 1
               print(runs)
             }
+
             if (runs == max_runs) {
               anchor_diff_rw_sum <- matrixStats::rowSums2(as.matrix(anchor_diff))
               row_nr <-
@@ -1355,18 +1369,17 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
           time_curve_anchored <- time_curve_anchored[, 2]
 
 
-          if (keep_all_time_curves == TRUE) {
+          if (keep_all_time_curves == TRUE){
             result <-
               list(time_curve_anchored,
                    anchor_astro_age,
                    gaps_dur,
                    time_curve_comb)
-          } else
-            (
-              result <-
-                list(time_curve_anchored,
-                     anchor_astro_age,
-                     gaps_dur))
+          }else {
+            (result <-
+               list(time_curve_anchored,
+                    anchor_astro_age,
+                    gaps_dur))}
 
         }
       res_list <- fit
@@ -1374,6 +1387,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
     }
   }
+
 
 
   result_matrix <- matrix(data = NA,
@@ -1498,15 +1512,19 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
   }
 
 
+
+  graphics.off()
+
   if (genplot == TRUE) {
+
     plot(
       age_constraints[, 5],
       age_constraints[, 2],
       col = "black",
       cex = 2,
       type = "p",
-      ylim = c(19500, 22000),
-      xlim = c(2.2, 16)
+      ylim = c(min(result[[2]]), max(result[[2]])),
+      xlim = c(max(x_axis), min(x_axis))
     )
     points(
       age_constraints[, 5],
@@ -1523,7 +1541,15 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
       pch = 2
     )
 
+    res <- result[[2]]
 
+    # for (i in 1:ncol(res)){
+    #   lines(x_axis, res[,i], col = "black")
+    #
+    # }
+
+
+    sds <- rowSds(result[[2]])
     lines(x_axis, rowMeans(result[[2]]), col = "black")
     lines(x_axis, rowMeans(result[[2]]) + 2 * sds, col = "red")
     lines(x_axis, rowMeans(result[[2]]) - 2 * sds, col = "blue")

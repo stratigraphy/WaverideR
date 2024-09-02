@@ -304,7 +304,6 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
     }
     plot_wavelet(
       wavelet = wavelet,
-      plot.COI = TRUE,
       n.levels = 100,
       palette_name = palette_name,
       color_brewer= color_brewer,
@@ -393,7 +392,6 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
     plot_wavelet(
       wavelet = data_set_time_wt,
-      plot.COI = TRUE,
       n.levels = 100,
       palette_name = "rainbow",
       color_brewer= "grDevices",

@@ -8,7 +8,6 @@ plot_wavelet(
   wavelet = NULL,
   lowerPeriod = NULL,
   upperPeriod = NULL,
-  plot.COI = TRUE,
   n.levels = 100,
   palette_name = "rainbow",
   color_brewer = "grDevices",
@@ -25,8 +24,10 @@ plot_wavelet(
   add_MTM_peaks = FALSE,
   add_data = TRUE,
   add_avg = FALSE,
+  add_pval = FALSE,
+  pval_abline = c(0.1, 0.05),
+  pval_cutoff = c(0.1),
   add_MTM = FALSE,
-  siglvl = 0.95,
   demean_mtm = TRUE,
   detrend_mtm = TRUE,
   padfac_mtm = 5,
@@ -40,8 +41,6 @@ plot_wavelet(
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
 \item{upperPeriod}{Highest period value which will be plotted}
-
-\item{plot.COI}{Option to plot the cone of influence \code{Default=TRUE}.}
 
 \item{n.levels}{Number of color levels \code{Default=100}.}
 
@@ -100,11 +99,26 @@ should be period values \code{Default=NULL}}
 
 \item{add_data}{Plot the data on top of the wavelet \code{Default=TRUE}}
 
-\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
+#'@param add_pval add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
+average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyze_wavelet}} function.
+The p-value is based on Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise)
+the calculated using a windowed (the window is half the size of the data set) temporal autocorrelation
+and on shuffling the data set resulting in a random data sets which has similar spectral characteristics
+to the original data set.The shuffling of the data set creates white noise which ensures that high amplitude high frequency/short
+period cycles do not result in statistical significant peaks. The part of the data generated using the  autocorrelated noise (red noise)
+based on the windowed  (the window is half the size of the data set) temporal autocorrelation represent a spectral signature similar to
+to that of the original data. The original data might include spectral peaks which are the result of astronomical
+forcing. The result is that the spectral power profile is biased towards rejecting the 0-hypothesis (e.g. no astronomical forcing).
+By combining the shuffling of the data set with autocorrelated noise a surrogate data set is created which rejects
+high amplitude high frequency/short period cycles and a reduced biased towards towards rejecting the 0-hypothesis if the data was
+solely the result of autocorrelated noise. \code{Default=FALSE}}
+
+\item{pval_abline}{add ab-lines to the average spectral power plot which indicate certain p-values \code{Default=c(0.1,0.5)}}
+
+\item{pval_cutoff}{cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}}
 
 \item{add_MTM}{Add the MTM  plot next to the wavelet plot \code{Default=FALSE}}
-
-\item{siglvl}{Set the significance level for the MTM analysis (0-1) \code{Default=0.95}}
 
 \item{demean_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
 
@@ -142,7 +156,6 @@ plot_wavelet(
  wavelet = TSI_wt,
  lowerPeriod = NULL,
  upperPeriod = NULL,
- plot.COI = TRUE,
  n.levels = 100,
  palette_name = "rainbow",
 color_brewer= "grDevices",
@@ -159,8 +172,11 @@ color_brewer= "grDevices",
  add_MTM_peaks = FALSE,
  add_data = TRUE,
  add_avg = TRUE,
+ add_pval = FALSE,
+ pval_abline = c(0.1,0.05),
+ pval_cutoff = c(0.1),
  add_MTM = FALSE,
- siglvl = 0.95,
+ mtm_siglvl = 0.95,
  demean_mtm = TRUE,
  detrend_mtm = TRUE,
  padfac_mtm = 5,
@@ -183,7 +199,6 @@ plot_wavelet(
 wavelet = mag_wt,
 lowerPeriod = NULL,
 upperPeriod = NULL,
-plot.COI = TRUE,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer= "grDevices",
@@ -200,8 +215,11 @@ add_abline_v = NULL,
 add_MTM_peaks = FALSE,
 add_data = TRUE,
 add_avg = TRUE,
+add_pval = FALSE,
+pval_abline = c(0.1,0.05),
+pval_cutoff = c(0.1),
 add_MTM = FALSE,
-siglvl = 0.95,
+mtm_siglvl = 0.95,
 demean_mtm = TRUE,
 detrend_mtm = TRUE,
 padfac_mtm = 5,
@@ -225,7 +243,6 @@ plot_wavelet(
 wavelet = grey_wt,
 lowerPeriod = NULL,
 upperPeriod = NULL,
-plot.COI = TRUE,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer= "grDevices",
@@ -242,8 +259,11 @@ add_abline_v = NULL,
 add_MTM_peaks = FALSE,
 add_data = TRUE,
 add_avg = TRUE,
+add_pval = FALSE,
+pval_abline = c(0.1,0.05),
+pval_cutoff = c(0.1),
 add_MTM = FALSE,
-siglvl = 0.95,
+mtm_siglvl = 0.95,
 demean_mtm = TRUE,
 detrend_mtm = TRUE,
 padfac_mtm = 5,

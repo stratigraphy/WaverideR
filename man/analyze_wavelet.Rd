@@ -6,11 +6,14 @@
 \usage{
 analyze_wavelet(
   data = NULL,
-  dj = 1/20,
+  dj = 1/100,
   lowerPeriod = 2,
   upperPeriod = 1024,
   verbose = FALSE,
-  omega_nr = 6
+  omega_nr = 8,
+  pval = FALSE,
+  n_simulations = 10,
+  run_multicore = FALSE
 )
 }
 \arguments{
@@ -36,9 +39,26 @@ parameters allows to analyze the signal for a specific range of cycles.
 \item{verbose}{Print text \code{Default=FALSE}.}
 
 \item{omega_nr}{Number of cycles contained within the Morlet wavelet}
+
+\item{pval}{calculate the P-value  \code{Default=FALSE}. The p-value is based on
+Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise) the calculated using a windowed
+(the window is half the size of the data set) temporal autocorrelation
+and on shuffling the data set resulting in a random data sets which has similar spectral characteristics
+to the original data set.The shuffling of the data set creates white noise which ensures that high amplitude high frequency/short
+period cycles do not result in statistical significant peaks. The part of the data generated using the  autocorrelated noise (red noise)
+based on the windowed  (the window is half the size of the data set) temporal autocorrelation represent a spectral signature similar to
+to that of the original data. The original data might include spectral peaks which are the result of astronomical
+forcing. The result is that the spectral power profile is biased towards rejecting the 0-hypothesis (e.g. no astronomical forcing).
+By combining the shuffling of the data set with autocorrelated noise a surrogate data set is created which rejects
+high amplitude high frequency/short period cycles and a reduced biased towards towards rejecting the 0-hypothesis if the data was
+solely the result of autocorrelated noise}
+
+\item{n_simulations}{Number of simulation to be ran to generate the p-value}
+
+\item{run_multicore}{Run p-value calculation with one core or multiple cores}
 }
 \value{
-The output is a list (wavelet object) which contain 18 objects which are the result of the continuous wavelet transform (CWT).
+The output is a list (wavelet object) which contain 20 objects which are the result of the continuous wavelet transform (CWT).
 Object 1: Wave - Wave values of the wavelet
 Object 2: Phase - Phase of the wavelet
 Object 3: Ampl - Amplitude values of the wavelet
@@ -57,6 +77,8 @@ Object 15: axis.2 - axis values 2
 Object 16: omega_nr - Number of cycles in the wavelet
 Object 17: x - x values of the data set
 Object 18: y - y values of the data set
+Object 19: average p value of the spectral power
+Object 20: p value of spectral power
 }
 \description{
 Compute the continuous wavelet transform (CWT) using a Morlet wavelet
@@ -71,7 +93,10 @@ TSI_wt <-
    lowerPeriod = 16,
    upperPeriod = 8192,
    verbose = FALSE,
-   omega_nr = 6
+   omega_nr = 6,
+   pval=FALSE,
+   n_simulations=10,
+   run_multicore = FALSE
  )
 
 
@@ -83,7 +108,10 @@ dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
 verbose = FALSE,
-omega_nr = 10
+omega_nr = 10,
+pval=FALSE,
+n_simulations=10,
+run_multicore = FALSE
 )
 
 #Example 3. Using the greyscale data set of Zeeden et al., (2013)
@@ -94,7 +122,10 @@ grey_wt <-
    lowerPeriod = 0.02,
    upperPeriod = 256,
    verbose = FALSE,
-   omega_nr = 8
+   omega_nr = 8,
+   pval=FALSE,
+   n_simulations=10,
+   run_multicore = FALSE
  )
 
 }

@@ -600,6 +600,9 @@ retrack_wt_MC <- function(wt_list = NULL,
       completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
       completed_curve <- completed_curve[1:length(x_axis),]
       completed_curve <- WaverideR::loess_auto(completed_curve)
+      interp <- approx(completed_curve[, 1],
+                       completed_curve[, 2], x_axis, method = "linear")
+      completed_curve <- cbind(interp$x, interp$y)
       completed_curve <- completed_curve[,c(1,2)]
 
 
@@ -655,9 +658,14 @@ retrack_wt_MC <- function(wt_list = NULL,
     genplot = FALSE
   )
 
+
   completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
   completed_curve <- completed_curve[1:length(x_axis),]
   completed_curve <- WaverideR::loess_auto(completed_curve)
+  interp <- approx(completed_curve[, 1],
+                   completed_curve[, 2], x_axis, method = "linear")
+  completed_curve <- cbind(interp$x, interp$y)
+
   completed_curve <- completed_curve[,c(1,2)]
 
 
@@ -686,9 +694,9 @@ retrack_wt_MC <- function(wt_list = NULL,
 
 
   sims_2 <- 1/fit
-  sims_mean_2 <- rowMeans(sims_2)
+  sims_mean_2 <- rowMeans(sims_2,na.rm = TRUE)
   sims_2 <-  as.matrix(sims_2)
-  sims_sd_2 <- matrixStats::rowSds(sims_2)
+  sims_sd_2 <- matrixStats::rowSds(sims_2,na.rm = TRUE)
 
   sed_run <- cbind(x_axis,sims_mean_2,sims_sd_2)
 

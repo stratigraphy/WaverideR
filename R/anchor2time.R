@@ -21,7 +21,7 @@
 #'# Use the age_model_zeeden example anchor points of Zeeden et al., (2013)
 #'#to anchor the grey data set of Zeeden et al., (2013) in the time domain.
 #'
-#'anchored2time <- anchor2time(anchor_points=age_model_zeeden,
+#'grey_time <- anchor2time(anchor_points=age_model_zeeden,
 #' data=grey,
 #' genplot=FALSE,
 #' keep_editable=FALSE)
@@ -45,21 +45,47 @@ anchor2time <- function(anchor_points = NULL,
                        data = NULL,
                        genplot = FALSE,
                        keep_editable = FALSE) {
-  my.data <- cbind(data)
+
+  my.data <-  cbind(data)
   completed_series <- cbind(anchor_points[, 1], anchor_points[, 2])
-  yleft_comp <- completed_series[1, 2]
-  yright_com <- completed_series[nrow(completed_series), 2]
   out <- completed_series
-  app <-
-    approx(
-      x = out[, 1],
-      y = out[, 2],
-      xout = my.data[, 1],
-      method = "linear",
-      yleft = yleft_comp,
-      yright = yright_com
-    )
+
+  if (my.data[1,1] < completed_series[1,1] ){
+    m_begin <- completed_series[1,1]-my.data[1,1]
+    sedrate_begin <- (completed_series[2,2]-completed_series[1,2])/(completed_series[2,1]-completed_series[1,1])
+    topvals <- c(my.data[1,1],completed_series[1,2]-(sedrate_begin*m_begin))
+  }
+
+
+  if (my.data[nrow(my.data),1] > completed_series[nrow(completed_series),1] ){
+    m_end <- my.data[nrow(my.data),1]-completed_series[nrow(completed_series),1]
+    sedrate_end <- (completed_series[nrow(completed_series),2]-completed_series[nrow(completed_series)-1,2])/(completed_series[nrow(completed_series),1]-completed_series[nrow(completed_series)-1,1])
+    bottomvals <- c(my.data[nrow(my.data),1],completed_series[nrow(completed_series),2]+(sedrate_end*m_end))
+  }
+
+
+  if ((my.data[1,1] < completed_series[1,1] )&(my.data[nrow(my.data),1] > completed_series[nrow(completed_series),1]) ){
+    out <- rbind(topvals,out,bottomvals)
+  }
+
+
+  if ((my.data[1,1] > completed_series[1,1] )&(my.data[nrow(my.data),1] > completed_series[nrow(completed_series),1]) ){
+    out <- rbind(out,bottomvals)
+  }
+
+  if ((my.data[1,1] < completed_series[1,1] )&(my.data[nrow(my.data),1] < completed_series[nrow(completed_series),1]) ){
+    out <- rbind(topvals,out)
+  }
+
+
+  app <- approx(
+    x = out[, 1],
+    y = out[, 2],
+    xout = my.data[, 1])
+
+
   completed_series <- as.data.frame(cbind(app$y, my.data[, 2]))
+
 
   if (genplot == TRUE) {
     if (keep_editable == FALSE) {
@@ -97,7 +123,7 @@ anchor2time <- function(anchor_points = NULL,
       completed_series[, 2],
       type = "l",
       xlab = "Time (ka)",
-      ylab = "prxoy",
+      ylab = "proxy",
       main = "Data time domain"
     )
   }

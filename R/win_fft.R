@@ -285,12 +285,12 @@ win_fft <- function(data = NULL,
     fft.out <- fft.out[fft.out[, 1] <= Nyq ,]
     fft.out <- fft.out[fft.out[, 1] > 0,]
 
-
+    fft.out[,5] <-   uncertainty_freq <- freq/(2*pi*(window_size/(1/freq)))
 
 
 
     colnames(fft.out) <- c("Frequency", "Amplitude", "Power",
-                           "Phase")
+                           "Phase","uncertainty")
 
     lag0 <- d[1:(npts - 1), 2]
     lag1 <- d[2:npts, 2]
@@ -324,6 +324,7 @@ win_fft <- function(data = NULL,
       "Amplitude",
       "Power",
       "Phase",
+      "uncertainty",
       "AR1_CL",
       "AR1_Fit",
       "AR1_90_power",
@@ -353,6 +354,11 @@ win_fft <- function(data = NULL,
     matrix(data = NA,
            ncol = nrow(dat),
            nrow = nrow(fit2[[1]]))
+  uncer_mat <-
+    matrix(data = NA,
+           ncol = nrow(dat),
+           nrow = nrow(fit2[[1]]))
+
 
   AR1_CL_mat <-
     matrix(data = NA,
@@ -385,11 +391,12 @@ win_fft <- function(data = NULL,
     Amplitude_mat[, kk] <- extract[, 2]
     Power_mat[, kk] <- extract[, 3]
     Phase_mat[, kk] <- extract[, 4]
-    AR1_CL_mat[, kk] <- extract[, 5]
-    AR1_Fit_mat[, kk] <- extract[, 6]
-    AR1_90_power_mat[, kk] <- extract[, 7]
-    AR1_95_power_mat[, kk] <- extract[, 8]
-    AR1_99_power_mat[, kk] <- extract[, 9]
+    uncer_mat[,kk] <- extract[, 5]
+    AR1_CL_mat[, kk] <- extract[, 6]
+    AR1_Fit_mat[, kk] <- extract[, 7]
+    AR1_90_power_mat[, kk] <- extract[, 8]
+    AR1_95_power_mat[, kk] <- extract[, 9]
+    AR1_99_power_mat[, kk] <- extract[, 10]
   }
 
 
@@ -400,6 +407,7 @@ win_fft <- function(data = NULL,
     Amplitude_mat = Amplitude_mat,
     Power_mat = Power_mat,
     Phase_mat = Phase_mat,
+    uncer_mat = uncer_mat,
     AR1_CL_mat = AR1_CL_mat,
     AR1_Fit_mat = AR1_Fit_mat,
     AR1_90_power_mat = AR1_90_power_mat,

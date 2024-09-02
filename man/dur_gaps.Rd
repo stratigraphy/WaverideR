@@ -23,6 +23,7 @@ dur_gaps(
   n_cycles_missing = 1,
   missing_cycle_unc = NULL,
   missing_cycle_unc_dist = "u",
+  seed_nr = 1337,
   run_multicore = FALSE
 )
 }
@@ -90,6 +91,9 @@ parameters allows to analyze the signal for a specific range of cycles.
 \item{missing_cycle_unc_dist}{distribution of the uncertainty of the
 tracked cycle value need to be either "u" for uniform distribution or
 "n" for normal distribution  \code{Default="u"}}
+
+\item{seed_nr}{The seed number of the Monte-Carlo simulations.
+\code{Default=1337}}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 }

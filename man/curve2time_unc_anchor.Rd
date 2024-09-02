@@ -13,12 +13,21 @@ curve2time_unc_anchor(
   tracked_cycle_period_unc_dist = "n",
   n_simulations = 20,
   gap_constraints = NULL,
+  proxy_data = NULL,
+  cycles_check = NULL,
+  uncer_cycles_check = NULL,
   max_runs = 1000,
   run_multicore = FALSE,
   verbose = FALSE,
   genplot = FALSE,
   keep_nr = 2,
-  keep_all_time_curves = FALSE
+  keep_all_time_curves = FALSE,
+  dj = 1/200,
+  lowerPeriod = 1,
+  upperPeriod = 4600,
+  omega_nr = 6,
+  seed_nr = 1337,
+  dir = TRUE
 )
 }
 \arguments{
@@ -381,6 +390,15 @@ output = 5,
  empty_folder = FALSE
 )
 
+proxy_list_bisc <- list(Bisciaro_alt,
+                    Bisciaro_ca,
+                    Bisciaro_sial,
+                    Bisciaro_Mn,
+                    Bisciaro_Mg)
+
+
+
+
 id <- c("CCT18_322", "CCT18_315", "CCT18_311")
 ages <- c(20158, 20575, 20857)
 ageSds <- c(28, 40, 34)
@@ -411,22 +429,49 @@ gap_unc_dist = c("n", "n")
 gap_constraints_Bisc <-
  as.data.frame(cbind(gap_dur, gap_unc, gap_depth, gap_unc_dist))
 
+cycles_checks <- c(110,40,22)
+uncer_cycles_checks <- c(20,5,7)
 
 curve2time_unc_anchor_res <-
  curve2time_unc_anchor(
+ age_constraints =  ash_Bisc,
   tracked_cycle_curve =  bisc_retrack,
   tracked_cycle_period = 110,
    tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,
   tracked_cycle_period_unc_dist = "n",
    n_simulations = 20,
    gap_constraints = gap_constraints_Bisc,
+   proxy_data = proxy_list_bisc,
+   cycles_check = NULL,
+   uncer_cycles_check = NULL,
+   cycles_check = cycles_checks,
+   uncer_cycles_check = uncer_cycles_checks,
   max_runs = 1000,
    run_multicore = FALSE,
    verbose = FALSE,
    genplot = FALSE,
    keep_nr = 2,
-   keep_all_time_curves = FALSE
+   keep_all_time_curves = FALSE,
+   dj = 1/200,
+   lowerPeriod =1,
+   upperPeriod =2500,
+   omega_nr = 6,
+   seed_nr=1337,
+   dir=TRUE
  )
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 }

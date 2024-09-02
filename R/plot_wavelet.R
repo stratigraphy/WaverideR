@@ -5,7 +5,6 @@
 #'@param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
-#'@param plot.COI Option to plot the cone of influence \code{Default=TRUE}.
 #'@param n.levels  Number of color levels \code{Default=100}.
 #'@param palette_name Name of the color palette which is used for plotting.
 #'The color palettes than can be chosen depends on which the R package is specified in
@@ -49,8 +48,22 @@
 #'@param add_MTM_peaks Add the MTM peak periods as horizontal lines \code{Default=FALSE}
 #'@param add_data Plot the data on top of the wavelet \code{Default=TRUE}
 #'@param add_avg Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
+#'#'@param add_pval add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
+#'average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyze_wavelet}} function.
+#'The p-value is based on Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise)
+#'the calculated using a windowed (the window is half the size of the data set) temporal autocorrelation
+#' and on shuffling the data set resulting in a random data sets which has similar spectral characteristics
+#' to the original data set.The shuffling of the data set creates white noise which ensures that high amplitude high frequency/short
+#' period cycles do not result in statistical significant peaks. The part of the data generated using the  autocorrelated noise (red noise)
+#' based on the windowed  (the window is half the size of the data set) temporal autocorrelation represent a spectral signature similar to
+#' to that of the original data. The original data might include spectral peaks which are the result of astronomical
+#' forcing. The result is that the spectral power profile is biased towards rejecting the 0-hypothesis (e.g. no astronomical forcing).
+#' By combining the shuffling of the data set with autocorrelated noise a surrogate data set is created which rejects
+#' high amplitude high frequency/short period cycles and a reduced biased towards towards rejecting the 0-hypothesis if the data was
+#' solely the result of autocorrelated noise. \code{Default=FALSE}
+#'@param pval_abline add ab-lines to the average spectral power plot which indicate certain p-values \code{Default=c(0.1,0.5)}
+#'@param pval_cutoff cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}
 #'@param add_MTM Add the MTM  plot next to the wavelet plot \code{Default=FALSE}
-#'@param siglvl Set the significance level for the MTM analysis (0-1) \code{Default=0.95}
 #'@param demean_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}
 #'@param detrend_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}
 #'@param padfac_mtm Pad factor for the MTM analysis \code{Default=5}
@@ -111,7 +124,6 @@
 #'  wavelet = TSI_wt,
 #'  lowerPeriod = NULL,
 #'  upperPeriod = NULL,
-#'  plot.COI = TRUE,
 #'  n.levels = 100,
 #'  palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -128,8 +140,11 @@
 #'  add_MTM_peaks = FALSE,
 #'  add_data = TRUE,
 #'  add_avg = TRUE,
+#'  add_pval = FALSE,
+#'  pval_abline = c(0.1,0.05),
+#'  pval_cutoff = c(0.1),
 #'  add_MTM = FALSE,
-#'  siglvl = 0.95,
+#'  mtm_siglvl = 0.95,
 #'  demean_mtm = TRUE,
 #'  detrend_mtm = TRUE,
 #'  padfac_mtm = 5,
@@ -152,7 +167,6 @@
 #'wavelet = mag_wt,
 #'lowerPeriod = NULL,
 #'upperPeriod = NULL,
-#'plot.COI = TRUE,
 #'n.levels = 100,
 #' palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -169,8 +183,11 @@
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = TRUE,
+#'add_pval = FALSE,
+#'pval_abline = c(0.1,0.05),
+#'pval_cutoff = c(0.1),
 #'add_MTM = FALSE,
-#'siglvl = 0.95,
+#'mtm_siglvl = 0.95,
 #'demean_mtm = TRUE,
 #'detrend_mtm = TRUE,
 #'padfac_mtm = 5,
@@ -194,7 +211,6 @@
 #'wavelet = grey_wt,
 #'lowerPeriod = NULL,
 #'upperPeriod = NULL,
-#'plot.COI = TRUE,
 #'n.levels = 100,
 #' palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -211,8 +227,11 @@
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = TRUE,
+#'add_pval = FALSE,
+#'pval_abline = c(0.1,0.05),
+#'pval_cutoff = c(0.1),
 #'add_MTM = FALSE,
-#'siglvl = 0.95,
+#'mtm_siglvl = 0.95,
 #'demean_mtm = TRUE,
 #'detrend_mtm = TRUE,
 #'padfac_mtm = 5,
@@ -298,7 +317,6 @@
 plot_wavelet <- function(wavelet = NULL,
                          lowerPeriod = NULL,
                          upperPeriod = NULL,
-                         plot.COI = TRUE,
                          n.levels = 100,
                          palette_name = "rainbow",
                          color_brewer= "grDevices",
@@ -315,13 +333,16 @@ plot_wavelet <- function(wavelet = NULL,
                          add_MTM_peaks = FALSE,
                          add_data = TRUE,
                          add_avg = FALSE,
+                         add_pval = FALSE,
+                         pval_abline = c(0.1,0.05),
+                         pval_cutoff = c(0.1),
                          add_MTM = FALSE,
-                         siglvl = 0.95,
                          demean_mtm = TRUE,
                          detrend_mtm = TRUE,
                          padfac_mtm = 5,
                          tbw_mtm = 3,
                          plot_horizontal = TRUE) {
+
 
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
@@ -421,7 +442,7 @@ plot_wavelet <- function(wavelet = NULL,
       tbw = tbw_mtm,
       padfac = padfac_mtm,
       output = 1,
-      siglevel = siglvl,
+      siglevel = mtm_siglvl,
       genplot = FALSE,
       verbose = FALSE,
       demean = demean_mtm,
@@ -433,7 +454,7 @@ plot_wavelet <- function(wavelet = NULL,
         tbw = tbw_mtm,
         padfac = padfac_mtm,
         output = 3,
-        siglevel = siglvl,
+        siglevel = mtm_siglvl,
         genplot = FALSE,
         verbose = FALSE,
         demean = demean_mtm,
@@ -526,8 +547,7 @@ plot_wavelet <- function(wavelet = NULL,
       yaxt = "n",
       xaxt = "n",
       xlab = "",
-      ylab = "",
-    )
+      ylab = "")
 
 
     axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
@@ -560,14 +580,35 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 0, 2, 2))
+
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = main,
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)
@@ -700,14 +741,37 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+    par(new = TRUE, mar = c(4, 4, 2, 3))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        #yaxt = "n" ,
+        xaxt = "n" ,
+        main = main,
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
+
+
+
+
 
 
     box(lwd = lwd.axis)
@@ -930,14 +994,34 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        #yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
+
 
 
     box(lwd = lwd.axis)
@@ -1150,7 +1234,13 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = ylim_vals
     )
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
 
+      plot(x = wavelet$Period,y=wavelet$Power.avg.pval,col="red", xlim = ylim_vals,ylim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "x", xaxs = "i", xaxt = "n",yaxs="i")
+      axis(side=4, at = pretty(c(0,1)))
+      abline(h = pval_abline,col="grey",lwd=2,lty=2)}
 
 
 
@@ -1173,15 +1263,33 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = log2(ylim_vals)
     )
 
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        #yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
 
-    polygon(
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)
@@ -1402,6 +1510,13 @@ plot_wavelet <- function(wavelet = NULL,
 
     title(ylab="Wt. power",xpd=NA)
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+      plot(x = wavelet$Period,y=wavelet$Power.avg.pval,col="red", xlim = ylim_vals,ylim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "x", xaxs = "i", xaxt = "n",yaxs="i")
+      axis(side=4, at = pretty(c(0,1)))
+      abline(h = pval_abline,col="grey",lwd=2,lty=2)}
+
 
     par( mar = c(4, 4, 0, 0),xpd=FALSE)
 
@@ -1440,14 +1555,36 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 0, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
+
+
+
 
 
     box(lwd = lwd.axis)
@@ -1583,6 +1720,13 @@ plot_wavelet <- function(wavelet = NULL,
 
     title(ylab="Wt. power",xpd=NA)
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+      plot(x = wavelet$Period,y=wavelet$Power.avg.pval,col="red", xlim = ylim_vals,ylim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "x", xaxs = "i", xaxt = "n",yaxs="i")
+      axis(side=4, at = pretty(c(0,1)))
+      abline(h = pval_abline,col="grey",lwd=2,lty=2,xpd=TRUE)}
+
 
     par(mar = c(4, 4, 0, 0),xpd=TRUE)
 
@@ -1621,14 +1765,34 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 0, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        #yaxt = "n" ,
+        xaxt = "n",
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
+
 
 
     box(lwd = lwd.axis)
@@ -1874,14 +2038,33 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
-    polygon(
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 0, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
+
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)
@@ -2009,6 +2192,16 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = ylim_vals
     )
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+      plot(x = wavelet$Period,y=wavelet$Power.avg.pval,col="red", xlim = ylim_vals,ylim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "x", xaxs = "i", xaxt = "n",yaxs="i")
+      axis(side=4, at = pretty(c(0,1)))
+      abline(h = pval_abline,col="grey",lwd=2,lty=2)}
+
+
+
+
 
     if (is.null(add_abline_v) != TRUE) {
       abline(v = (add_abline_v))
@@ -2034,15 +2227,33 @@ plot_wavelet <- function(wavelet = NULL,
       xlim = log2(ylim_vals)
     )
 
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 2))
+      image(
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
+      )
 
-    polygon(
+    }else{polygon(
       y=wavelet$coi.1 ,
       x=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)
@@ -2194,14 +2405,37 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
+
+
+
 
 
     box(lwd = lwd.axis)
@@ -2419,6 +2653,13 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = ylim_vals
     )
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+      plot(y = wavelet$Period,x=wavelet$Power.avg.pval,col="red", ylim = ylim_vals,xlim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "y", xaxs = "i", yaxt = "n",yaxs="i")
+      axis(side=3, at = pretty(c(0,1)))
+      abline(v = pval_abline,col="grey",lwd=2,lty=2)}
+
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1,2]) == FALSE) {
       abline(h = 1 / MTM_res_2[, 1],
              col = "black",
@@ -2450,14 +2691,39 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
+
+
+
+
+
+
 
 
     box(lwd = lwd.axis)
@@ -2603,16 +2869,33 @@ plot_wavelet <- function(wavelet = NULL,
     )
 
 
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 2))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
-
+    )}
 
     box(lwd = lwd.axis)
     period.tick = unique(trunc(wavelet$axis.2))
@@ -2758,14 +3041,34 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 0, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)
@@ -2840,6 +3143,17 @@ plot_wavelet <- function(wavelet = NULL,
       xaxs = "i",
       ylim = ylim_vals
     )
+
+    if(add_pval == TRUE){
+      par(new = TRUE)
+
+      plot(y = wavelet$Period,x=wavelet$Power.avg.pval,col="red", ylim = ylim_vals,xlim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "y", yaxs = "i", yaxt = "n",xaxs="i")
+      axis(side=3, at = pretty(c(0,1)))
+      abline(v = pval_abline,col="grey",lwd=2,lty=2)}
+
+
+
 
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1,2]) == FALSE) {
       abline(h = 1 / MTM_res_2[, 1],
@@ -2989,6 +3303,15 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = ylim_vals
     )
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+
+      plot(y = wavelet$Period,x=wavelet$Power.avg.pval,col="red", ylim = ylim_vals,xlim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "y", yaxs = "i", yaxt = "n",xaxs="i")
+      axis(side=3, at = pretty(c(0,1)))
+      abline(v = pval_abline,col="grey",lwd=2,lty=2)}
+
+
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1,2]) == FALSE) {
       abline(h = 1 / MTM_res_2[, 1],
              col = "black",
@@ -3021,14 +3344,35 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 2, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
+
+
 
 
     box(lwd = lwd.axis)
@@ -3235,6 +3579,16 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = ylim_vals
     )
 
+    if(add_pval == TRUE){
+      par(new = TRUE)
+
+      plot(y = wavelet$Period,x=wavelet$Power.avg.pval,col="red", ylim = ylim_vals,xlim=c(0,1),axes=FALSE,type="l",xlab="", ylab="",
+           log = "y", yaxs = "i", yaxt = "n",xaxs="i")
+      axis(side=3, at = pretty(c(0,1)))
+      abline(v = pval_abline,col="grey",lwd=2,lty=2)}
+
+
+
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1,2]) == FALSE) {
       abline(h = 1 / MTM_res_2[, 1],
              col = "black",
@@ -3266,14 +3620,34 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 2, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
+
 
 
     box(lwd = lwd.axis)
@@ -3484,14 +3858,35 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 2, 0))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
+
 
 
     box(lwd = lwd.axis)
@@ -3616,14 +4011,34 @@ plot_wavelet <- function(wavelet = NULL,
       ylim = log2(ylim_vals)
     )
 
-    polygon(
-      wavelet$coi.1 ,
-      wavelet$coi.2,
+
+    if(add_pval == TRUE & is.null(wavelet$Power.pval) != TRUE){
+      par(new = TRUE, mar = c(4, 4, 2, 0.5))
+      image(
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power.pval<pval_cutoff)*1,
+        col = c(rgb(red=255, green=255, blue=255, alpha = 125,maxColorValue = 255),
+                rgb(red=255, green=255, blue=255, alpha = 0,maxColorValue = 255)),
+        useRaster = TRUE,
+        xlab = "",
+        ylab = "",
+        #axes = FALSE,
+        yaxt = "n" ,
+        xaxt = "n" ,
+        main = "",
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
+      )
+
+    }else{polygon(
+      x=wavelet$coi.1 ,
+      y=wavelet$coi.2,
       border = NA,
       col = rgb(1, 1, 1, 0.5),
       xlim = xlim_vals,
       ylim = log2(ylim_vals)
-    )
+    )}
 
 
     box(lwd = lwd.axis)

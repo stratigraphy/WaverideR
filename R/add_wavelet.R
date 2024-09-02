@@ -319,12 +319,12 @@ add_wavelet <- function(wavelet = NULL,
                         yaxt = "s",
                         xaxt = "s",
                         depth_time_lab = "depth (m)"){
-
- power_max_mat.levels = quantile(wavelet$Power, probs = seq(
+  levels = quantile(wavelet$Power, probs = seq(
     from = 0,
     to = 1,
     length.out = n.levels + 1
   ))
+
 
   if (is.null(lower_depth_time) == TRUE) {
     lower_depth_time <- min(wavelet$x)
@@ -335,11 +335,12 @@ add_wavelet <- function(wavelet = NULL,
 
   xlim_vals <- c(lower_depth_time, upper_depth_time)
 
+
   if (is.null(lowerPeriod) == TRUE) {
-    lowerPeriod <- min(upperPeriod$Period)
+    lowerPeriod <- min(wavelet$Period)
   }
   if (is.null(upperPeriod) == TRUE) {
-    upperPeriod <- max(upperPeriod$Period)
+    upperPeriod <- max(wavelet$Period)
   }
 
   ylim_vals <- c(lowerPeriod, upperPeriod)
@@ -395,7 +396,7 @@ add_wavelet <- function(wavelet = NULL,
     key.cols = rev(eval(parse(text = color_brewer_Sel)))
   }
 
-  if (plot_horizontal == TRUE) {
+  if (plot_horizontal == FALSE) {
     image(
       y = wavelet$x,
       x = wavelet$axis.2,
@@ -485,9 +486,7 @@ add_wavelet <- function(wavelet = NULL,
 
 
 
-
-
-  if (plot_horizontal == FALSE) {
+  if (plot_horizontal == TRUE) {
     image(
       x = wavelet$x,
       y = wavelet$axis.2,
@@ -497,12 +496,13 @@ add_wavelet <- function(wavelet = NULL,
       useRaster = TRUE,
       xlab = depth_time_lab,
       ylab = periodlab,
-      xaxt = "n",
-      yaxt = yaxt ,
+      xaxt = "s",
+      yaxt = "n" ,
       main = main,
       xlim = xlim_vals,
       ylim = log2(c(lowerPeriod, upperPeriod))
     )
+
 
     if (plot.COI == TRUE) {
       polygon(

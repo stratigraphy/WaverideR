@@ -210,12 +210,15 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
   b <- (2 * sqrt(2 * log(2)))
   a <- ((8 * log(2) / (2 * pi)))
   k <- (ncycles / (8 * log(2))) * 2
+
   data$f0 <- (1 / data[, 2])
   data$df <- (a * data$f0) / k
   data$sd_morlet <- data$df / b
 
   sedrate_min <- 1 / (data$f0 - data$sd_morlet * multi)
   sedrate_plus <-  1 / (data$f0 + data$sd_morlet * multi)
+
+
 
 
   sedrate_min <- cbind(data[, 1], sedrate_min)
@@ -311,7 +314,6 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
 
  res <- plot_wavelet(
       wavelet = wavelet,
-      plot.COI = TRUE,
       n.levels = 100,
       palette_name = palette_name,
       color_brewer= color_brewer,
@@ -327,7 +329,6 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       add_data = TRUE,
       add_avg = FALSE,
       add_MTM = FALSE,
-      siglvl = 0.95,
       demean_mtm = TRUE,
       detrend_mtm = TRUE,
       padfac_mtm = 5,

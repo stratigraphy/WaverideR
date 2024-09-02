@@ -13,7 +13,7 @@ track_period_wavelet(
   x_lab = "depth (metres)",
   palette_name = "rainbow",
   color_brewer = "grDevices",
-  plot_horizontal = FALSE
+  plot_horizontal = TRUE
 )
 }
 \arguments{
