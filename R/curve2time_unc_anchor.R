@@ -6,7 +6,7 @@
 #' while also taking into account the uncertainty of the tracked astronomical cycle
 #'
 #'
-#'@param age_constraints age constraints for the modelling run
+#'@param age_constraint age constrains for the modelling run
 #'Input should be a data frame with 7 columns, the first columns are the ID names
 #'the second column are the ages (usually in kyr) the third column is the uncertainty (usually in kyr) given as
 #'the fourth column is the distribution which is either "n" for a normal distribution or "u" for a uniform
@@ -403,7 +403,7 @@
 #'
 #'curve2time_unc_anchor_res <-
 #'  curve2time_unc_anchor(
-#'  age_constraints =  ash_Bisc,
+#'  age_constraint =  ash_Bisc,
 #'   tracked_cycle_curve =  bisc_retrack,
 #'   tracked_cycle_period = 110,
 #'    tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,
@@ -483,7 +483,7 @@
 #' @importFrom trapezoid rtrapezoid
 
 
-curve2time_unc_anchor <- function(age_constraints =  NULL,
+curve2time_unc_anchor <- function(age_constraint =  NULL,
                                   tracked_cycle_curve =  NULL,
                                   tracked_cycle_period = NULL,
                                   tracked_cycle_period_unc = NULL,
@@ -553,7 +553,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
   ###  ash bed #####
 
-  if (nrow(age_constraints) > 0) {
+  if (nrow(age_constraint) > 0) {
     if (run_multicore == FALSE) {
       res_list <- list()
       for (i in 1:n_simulations) {
@@ -561,18 +561,18 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
           matrix(
             data = NA,
             ncol = 1,
-            nrow = nrow(age_constraints)
+            nrow = nrow(age_constraint)
           )
         anchor_depth <-
           matrix(
             data = NA,
             ncol = 1,
-            nrow = nrow(age_constraints)
+            nrow = nrow(age_constraint)
           )
         anchor_age <- matrix(
           data = NA,
           ncol = 1,
-          nrow = nrow(age_constraints)
+          nrow = nrow(age_constraint)
         )
 
         if (keep_all_time_curves == TRUE) {
@@ -582,8 +582,8 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
         }
 
 
-        for (klm in 1:nrow(age_constraints)) {
-          if (age_constraints[klm, 4] == "u") {
+        for (klm in 1:nrow(age_constraint)) {
+          if (age_constraint[klm, 4] == "u") {
             check_astro_age[klm] <-
               runif(
                 1,
@@ -592,12 +592,12 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
               )
           }
 
-          if (age_constraints[klm, 4] == "n") {
+          if (age_constraint[klm, 4] == "n") {
             check_astro_age[klm] <-
               rnorm(
                 1,
-                mean = as.numeric(age_constraints[klm, 2]),
-                sd = as.numeric(age_constraints[klm, 3])
+                mean = as.numeric(age_constraint[klm, 2]),
+                sd = as.numeric(age_constraint[klm, 3])
               )
           }
 
@@ -608,7 +608,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
         anchor_astr <- 1
         anchor_radio <- 0
         sel_rws <- seq(from = 1,
-                       to = nrow(age_constraints),
+                       to = nrow(age_constraint),
                        by = 1)
         runs <- 0
         anchor_diff <- matrix(data = NA,
@@ -616,7 +616,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                               nrow = length(sel_rws))
 
         while (anchor_astr > anchor_radio) {
-          age_constraints_2 <- age_constraints[c(sel_rws), ]
+          age_constraint_2 <- age_constraint[c(sel_rws), ]
           check_astro_age_2 <- check_astro_age[c(sel_rws), ]
           anchor_depth_2 <- anchor_depth[c(sel_rws), ]
           anchor_age_2 <- anchor_age[c(sel_rws), ]
@@ -770,30 +770,30 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                    nrow = length(sel_rws))
 
 
-          for (klm in 1:nrow(age_constraints_2)) {
-            if (age_constraints_2[klm, 7] == "u") {
+          for (klm in 1:nrow(age_constraint_2)) {
+            if (age_constraint_2[klm, 7] == "u") {
               anchor_depth_new <-
                 runif(
                   1,
-                  min = as.numeric(age_constraints_2[klm, 5]) - as.numeric(age_constraints_2[klm, 6]) /
+                  min = as.numeric(age_constraint_2[klm, 5]) - as.numeric(age_constraint_2[klm, 6]) /
                     2,
-                  max = as.numeric(age_constraints_2[klm, 5]) + as.numeric(age_constraints_2[klm, 6]) /
+                  max = as.numeric(age_constraint_2[klm, 5]) + as.numeric(age_constraint_2[klm, 6]) /
                     2
                 )
             }
 
-            if (age_constraints_2[klm, 7] == "n") {
+            if (age_constraint_2[klm, 7] == "n") {
               anchor_depth_new <-
                 rnorm(
                   1,
-                  mean = as.numeric(age_constraints_2[klm, 4]),
-                  sd = as.numeric(age_constraints_2[klm, 4])
+                  mean = as.numeric(age_constraint_2[klm, 4]),
+                  sd = as.numeric(age_constraint_2[klm, 4])
                 )
             }
 
-            if (age_constraints_2[klm, 7] == "t") {
+            if (age_constraint_2[klm, 7] == "t") {
               trap_par <-
-                as.numeric(unlist(strsplit(age_constraints_2[klm, 5], " +")))
+                as.numeric(unlist(strsplit(age_constraint_2[klm, 5], " +")))
 
               anchor_depth_new <-
                 trapezoid::rtrapezoid(
@@ -809,23 +809,23 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
             }
 
-            if (age_constraints_2[klm, 4] == "u") {
+            if (age_constraint_2[klm, 4] == "u") {
               anchor_age_new <-
                 runif(
                   1,
-                  min = as.numeric(age_constraints_2[klm, 2]) - as.numeric(age_constraints_2[klm, 3]) /
+                  min = as.numeric(age_constraint_2[klm, 2]) - as.numeric(age_constraint_2[klm, 3]) /
                     2,
-                  max = as.numeric(age_constraints_2[klm, 2]) + as.numeric(age_constraints_2[klm, 3]) /
+                  max = as.numeric(age_constraint_2[klm, 2]) + as.numeric(age_constraint_2[klm, 3]) /
                     2
                 )
             }
 
-            if (age_constraints_2[klm, 4] == "n") {
+            if (age_constraint_2[klm, 4] == "n") {
               anchor_age_new <-
                 rnorm(
                   1,
-                  mean = as.numeric(age_constraints_2[klm, 2]),
-                  sd = as.numeric(age_constraints_2[klm, 3])
+                  mean = as.numeric(age_constraint_2[klm, 2]),
+                  sd = as.numeric(age_constraint_2[klm, 3])
                 )
             }
 
@@ -874,9 +874,9 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
 
 
-          if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraints_2)) {
+          if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraint_2)) {
             anchor_astro_age <-
-              cbind(age_constraints[c(sel_rws), 1], ages_astro_anchored)
+              cbind(age_constraint[c(sel_rws), 1], ages_astro_anchored)
             anchor_astr <- -1
 
           } else{
@@ -942,19 +942,19 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
             matrix(
               data = NA,
               ncol = 1,
-              nrow = nrow(age_constraints)
+              nrow = nrow(age_constraint)
             )
           anchor_depth <-
             matrix(
               data = NA,
               ncol = 1,
-              nrow = nrow(age_constraints)
+              nrow = nrow(age_constraint)
             )
           anchor_age <-
             matrix(
               data = NA,
               ncol = 1,
-              nrow = nrow(age_constraints)
+              nrow = nrow(age_constraint)
             )
 
           if (keep_all_time_curves == TRUE) {
@@ -965,8 +965,8 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
 
 
-          for (klm in 1:nrow(age_constraints)) {
-            if (age_constraints[klm, 4] == "u") {
+          for (klm in 1:nrow(age_constraint)) {
+            if (age_constraint[klm, 4] == "u") {
               check_astro_age[klm] <-
                 runif(
                   1,
@@ -975,12 +975,12 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                 )
             }
 
-            if (age_constraints[klm, 4] == "n") {
+            if (age_constraint[klm, 4] == "n") {
               check_astro_age[klm] <-
                 rnorm(
                   1,
-                  mean = as.numeric(age_constraints[klm, 2]),
-                  sd = as.numeric(age_constraints[klm, 3])
+                  mean = as.numeric(age_constraint[klm, 2]),
+                  sd = as.numeric(age_constraint[klm, 3])
                 )
             }
 
@@ -992,7 +992,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
           anchor_astr <- 1
           anchor_radio <- 0
           sel_rws <- seq(from = 1,
-                         to = nrow(age_constraints),
+                         to = nrow(age_constraint),
                          by = 1)
           runs <- 0
           anchor_diff <- matrix(data = NA,
@@ -1000,7 +1000,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                                 nrow = length(sel_rws))
 
           while (anchor_astr > anchor_radio) {
-            age_constraints_2 <- age_constraints[c(sel_rws), ]
+            age_constraint_2 <- age_constraint[c(sel_rws), ]
             check_astro_age_2 <- check_astro_age[c(sel_rws), ]
             anchor_depth_2 <- anchor_depth[c(sel_rws), ]
             anchor_age_2 <- anchor_age[c(sel_rws), ]
@@ -1142,30 +1142,30 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
                      nrow = length(sel_rws))
 
 
-            for (klm in 1:nrow(age_constraints_2)) {
-              if (age_constraints_2[klm, 7] == "u") {
+            for (klm in 1:nrow(age_constraint_2)) {
+              if (age_constraint_2[klm, 7] == "u") {
                 anchor_depth_new <-
                   runif(
                     1,
-                    min = as.numeric(age_constraints_2[klm, 5]) - as.numeric(age_constraints_2[klm, 6]) /
+                    min = as.numeric(age_constraint_2[klm, 5]) - as.numeric(age_constraint_2[klm, 6]) /
                       2,
-                    max = as.numeric(age_constraints_2[klm, 5]) + as.numeric(age_constraints_2[klm, 6]) /
+                    max = as.numeric(age_constraint_2[klm, 5]) + as.numeric(age_constraint_2[klm, 6]) /
                       2
                   )
               }
 
-              if (age_constraints_2[klm, 7] == "n") {
+              if (age_constraint_2[klm, 7] == "n") {
                 anchor_depth_new <-
                   rnorm(
                     1,
-                    mean = as.numeric(age_constraints_2[klm, 4]),
-                    sd = as.numeric(age_constraints_2[klm, 4])
+                    mean = as.numeric(age_constraint_2[klm, 4]),
+                    sd = as.numeric(age_constraint_2[klm, 4])
                   )
               }
 
-              if (age_constraints_2[klm, 7] == "t") {
+              if (age_constraint_2[klm, 7] == "t") {
                 trap_par <-
-                  as.numeric(unlist(strsplit(age_constraints_2[klm, 5], " +")))
+                  as.numeric(unlist(strsplit(age_constraint_2[klm, 5], " +")))
 
                 anchor_depth_new <-
                   trapezoid::rtrapezoid(
@@ -1181,23 +1181,23 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
               }
 
-              if (age_constraints_2[klm, 4] == "u") {
+              if (age_constraint_2[klm, 4] == "u") {
                 anchor_age_new <-
                   runif(
                     1,
-                    min = as.numeric(age_constraints_2[klm, 2]) - as.numeric(age_constraints_2[klm, 3]) /
+                    min = as.numeric(age_constraint_2[klm, 2]) - as.numeric(age_constraint_2[klm, 3]) /
                       2,
-                    max = as.numeric(age_constraints_2[klm, 2]) + as.numeric(age_constraints_2[klm, 3]) /
+                    max = as.numeric(age_constraint_2[klm, 2]) + as.numeric(age_constraint_2[klm, 3]) /
                       2
                   )
               }
 
-              if (age_constraints_2[klm, 4] == "n") {
+              if (age_constraint_2[klm, 4] == "n") {
                 anchor_age_new <-
                   rnorm(
                     1,
-                    mean = as.numeric(age_constraints_2[klm, 2]),
-                    sd = as.numeric(age_constraints_2[klm, 3])
+                    mean = as.numeric(age_constraint_2[klm, 2]),
+                    sd = as.numeric(age_constraint_2[klm, 3])
                   )
               }
 
@@ -1316,7 +1316,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
             if (mtm_res_test == TRUE) {
               runs <- runs + 1
-            } else if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraints_2) | nrow(age_constraints_2)==1 ) {
+            } else if ((sum(sign(dif_astro - dif_radio)) * -1) == nrow(age_constraint_2) | nrow(age_constraint_2)==1 ) {
               mtm_per <- avg_wt[,1]
               high_vals <- cycles_check + uncer_cycles_check
               low_vals <- cycles_check - uncer_cycles_check
@@ -1335,7 +1335,7 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
 
               if (sum(check) == length(cycles_check)) {
                 anchor_astro_age <-
-                  cbind(age_constraints[c(sel_rws), 1], ages_astro_anchored)
+                  cbind(age_constraint[c(sel_rws), 1], ages_astro_anchored)
                 anchor_astr <- -1
               } else{
                 runs <- runs + 1
@@ -1524,8 +1524,8 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
   if (genplot == TRUE) {
 
     plot(
-      age_constraints[, 5],
-      age_constraints[, 2],
+      age_constraint[, 5],
+      age_constraint[, 2],
       col = "black",
       cex = 2,
       type = "p",
@@ -1533,15 +1533,15 @@ curve2time_unc_anchor <- function(age_constraints =  NULL,
       xlim = c(max(x_axis), min(x_axis))
     )
     points(
-      age_constraints[, 5],
-      as.numeric(age_constraints[, 2]) + 2 * as.numeric(age_constraints[, 3]),
+      age_constraint[, 5],
+      as.numeric(age_constraint[, 2]) + 2 * as.numeric(age_constraint[, 3]),
       col = "red",
       cex = 1,
       pch = 6
     )
     points(
-      age_constraints[, 5],
-      as.numeric(age_constraints[, 2]) - 2 * as.numeric(age_constraints[, 3]),
+      age_constraint[, 5],
+      as.numeric(age_constraint[, 2]) - 2 * as.numeric(age_constraint[, 3]),
       col = "blue",
       cex = 1,
       pch = 2
