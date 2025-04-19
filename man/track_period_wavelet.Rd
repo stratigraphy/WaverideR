@@ -5,21 +5,28 @@
 \title{Track the period of a cycle in a wavelet spectra}
 \usage{
 track_period_wavelet(
-  astro_cycle = 405,
   wavelet = NULL,
+  astro_cycle = 405,
   n.levels = 100,
   track_peaks = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   palette_name = "rainbow",
   color_brewer = "grDevices",
-  plot_horizontal = TRUE
+  plot_horizontal = TRUE,
+  plot_dir = TRUE,
+  lowerPeriod = NULL,
+  upperPeriod = NULL,
+  add_lines = NULL,
+  add_points = NULL,
+  add_abline_h = NULL,
+  add_abline_v = NULL
 )
 }
 \arguments{
-\item{astro_cycle}{Duration (in kyr) of the cycle which traced.}
-
 \item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+
+\item{astro_cycle}{Duration (in kyr) of the cycle which traced.}
 
 \item{n.levels}{Number of color levels \code{Default=100}.}
 
@@ -56,6 +63,25 @@ There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
+
+\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
+(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
+if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
+then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
+
+\item{lowerPeriod}{Lowest period value which will be plotted}
+
+\item{upperPeriod}{Highest period value which will be plotted}
+
+\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
+should be period values  \code{Default=NULL}}
+
+\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
+should be period values \code{Default=NULL}}
+
+\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+
+\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
 }
 \value{
 Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
@@ -85,15 +111,22 @@ upperPeriod = 254,
 verbose = FALSE,
 omega_nr = 10)
 
-mag_track <- track_period_wavelet(astro_cycle = 405,
-                                  wavelet=mag_wt,
-                                  n.levels = 100,
-                                  track_peaks=TRUE,
-                                  periodlab = "Period (metres)",
-                                  x_lab = "depth (metres)",
-                                 palette_name = "rainbow",
-                                 color_brewer="grDevices",
-                                 plot_horizontal=TRUE)
+mag_track <- track_period_wavelet(wavelet = mag_wt,
+astro_cycle = 405,
+n.levels = 100,
+track_peaks = TRUE,
+periodlab =  "Period (metres)",
+x_lab = "depth (metres)",
+palette_name = "rainbow",
+color_brewer = "grDevices",
+plot_horizontal = TRUE,
+plot_dir = TRUE,
+lowerPeriod = NULL,
+upperPeriod = NULL,
+add_lines = NULL,
+add_points = NULL,
+add_abline_h = NULL,
+add_abline_v = NULL)
 }
 
 }

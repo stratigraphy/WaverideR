@@ -7,7 +7,7 @@
 #'connected by a black line. When one wants to deselect a point the white dots can be re-clicked/re-selected and will turn red which
 #'indicates that the previously selected point is deselected. Deselecting points can be quite tricky.
 #'After tracking the lower and upper boundaries of the cycle the \code{\link{dynamic_extraction}} function
-#'will extract the signal inbetween the boundaries. the output can then used as input for the
+#'will extract the signal in between the boundaries. the output can then used as input for the
 #'\code{\link{minimal_tuning}} function to create an age model.
 #' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
 #' @param n.levels Number of color levels \code{Default=100}.
@@ -55,9 +55,9 @@
 #'time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 #'
 #'@examples
-#'\donttest{
+#'\dontrun{
 #'#Track the 405kyr upper and lower periods of the eccentricity cycle in the
-#'magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
+#'#magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 #'
 #'mag_wt <- analyze_wavelet(
 #'  data = mag,

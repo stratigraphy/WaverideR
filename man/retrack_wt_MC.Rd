@@ -8,6 +8,7 @@ retrack_wt_MC(
   wt_list = NULL,
   data_track = NULL,
   x_axis = NULL,
+  smoothing = c("auto"),
   nr_simulations = 50,
   seed_nr = 1337,
   verbose = FALSE,
@@ -47,6 +48,14 @@ tracked period values make sure that all curves have a similar depth
 spacing.}
 
 \item{x_axis}{The x-axis of the tracked period values}
+
+\item{smoothing}{setting the smoothing parameter and value to either "auto" which uses
+a automatic loess smoother,"loess" where one can specify Lowess smoothing
+parameter. or "window" where one can specific the window length of the moving
+average. one should specify the parameter and its value as vector
+#'@param wt_list a list containing all the wavelet objects created using the
+link[WaverideR]{analyze_wavelet} wavelet function
+To create a list use the link[base]{list} function}
 
 \item{nr_simulations}{The number of Monte-Carlo simulations which are to be
 conducted\code{Default=50}}

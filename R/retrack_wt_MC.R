@@ -42,6 +42,14 @@
 #'tracked period values make sure that all curves have a similar depth
 #'spacing.
 #'@param x_axis The x-axis of the tracked period values
+#'
+#'@param smoothing setting the smoothing parameter and value to either "auto" which uses
+#'a automatic loess smoother,"loess" where one can specify Lowess smoothing
+#' parameter. or "window" where one can specific the window length of the moving
+#' average. one should specify the parameter and its value as vector
+#'#'@param wt_list a list containing all the wavelet objects created using the
+#'link[WaverideR]{analyze_wavelet} wavelet function
+#'To create a list use the link[base]{list} function
 #'@param nr_simulations The number of Monte-Carlo simulations which are to be
 #' conducted\code{Default=50}
 #'@param seed_nr The seed number of the Monte-Carlo simulations.
@@ -516,6 +524,7 @@
 retrack_wt_MC <- function(wt_list = NULL,
                           data_track = NULL,
                           x_axis = NULL,
+                          smoothing = c("auto"),
                           nr_simulations = 50,
                           seed_nr = 1337,
                           verbose = FALSE,
@@ -599,7 +608,23 @@ retrack_wt_MC <- function(wt_list = NULL,
 
       completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
       completed_curve <- completed_curve[1:length(x_axis),]
-      completed_curve <- WaverideR::loess_auto(completed_curve)
+
+      if(smoothing[1]=="auto"){
+      completed_curve <- WaverideR::loess_auto(completed_curve)}
+
+      if(smoothing[1]=="loess"){
+        completed_curve <- noLow(completed_curve,smooth=smoothing[2],output=2,genplot=F,verbose=F)
+
+      }
+      if(smoothing[1]=="window"){
+        completed_curve <- mwStats(completed_curve,win=smoothing[2],conv=1,ends=T,CI=0,output=T,genplot=F,verbose=F)}
+
+
+
+
+
+
+
       interp <- approx(completed_curve[, 1],
                        completed_curve[, 2], x_axis, method = "linear")
       completed_curve <- cbind(interp$x, interp$y)

@@ -148,6 +148,7 @@
 #' @importFrom foreach %dopar%
 #' @importFrom parallel stopCluster
 #' @importFrom zoo rollapply
+#' @importFrom stats acf
 
 
 analyze_wavelet <-

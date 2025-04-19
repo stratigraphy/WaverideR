@@ -9,7 +9,8 @@ lag_1(
   n_sim = 10,
   run_multicore = FALSE,
   win_max = NULL,
-  win_min = NULL
+  win_min = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ lag_1(
 \item{win_max}{maximum window size}
 
 \item{win_min}{minimum window size}
+
+\item{verbose}{print text}
 }
 \value{
 Returns a matrix which contains 3 columns
@@ -34,7 +37,7 @@ The \code{\link{lag_1}} function calculates the lag-1 autocorrelation coefficien
 monte carlo analysis
 }
 \examples{
-#' \donttest{
+\donttest{
 #The example uses the magnetic susceptibility data set of Pas et al., (2018).
 # perform the CWT
 mag_wt <- analyze_wavelet(data = mag,
@@ -67,7 +70,7 @@ mag_track_complete <- completed_series(
 # smooth the tracking of the 405 kyr eccentricity cycle
 mag_track_complete <- loess_auto(time_series = mag_track_complete,
 genplot = FALSE, print_span = FALSE)
-
+#convert period in meters to sedrate depth vs time
 mag_track_time<- curve2tune(data=mag,
                            tracked_cycle_curve=mag_track_complete,
                            tracked_cycle_period=405,
@@ -77,7 +80,8 @@ mag_track_time<- curve2tune(data=mag,
 mag_win_fft <- lag_1(data = mag_track_time,n_sim = 10,
 run_multicore = FALSE,
 win_max = 505,
-win_min = 150)
+win_min = 150,
+verbose=FALSE)
 
 }
 }

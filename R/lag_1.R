@@ -8,11 +8,12 @@
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
 #'@param win_max maximum window size
 #'@param win_min minimum window size
+#'@param verbose print text
 #' @author
 #'Michiel Arts
 #'
 #'@examples
-#'#' \donttest{
+#'\donttest{
 #'#The example uses the magnetic susceptibility data set of Pas et al., (2018).
 #'# perform the CWT
 #'mag_wt <- analyze_wavelet(data = mag,
@@ -45,8 +46,7 @@
 #'# smooth the tracking of the 405 kyr eccentricity cycle
 #' mag_track_complete <- loess_auto(time_series = mag_track_complete,
 #' genplot = FALSE, print_span = FALSE)
-#'
-#convert period in meters to sedrate depth vs time
+#'#convert period in meters to sedrate depth vs time
 #'mag_track_time<- curve2tune(data=mag,
 #'                            tracked_cycle_curve=mag_track_complete,
 #'                            tracked_cycle_period=405,
@@ -56,7 +56,8 @@
 #'mag_win_fft <- lag_1(data = mag_track_time,n_sim = 10,
 #'run_multicore = FALSE,
 #'win_max = 505,
-#'win_min = 150)
+#'win_min = 150,
+#'verbose=FALSE)
 #'
 #'}
 #' @return
@@ -83,13 +84,23 @@
 #' @importFrom stats approx
 #' @importFrom DescTools Closest
 #' @importFrom matrixStats rowSds
+#' @importFrom stats acf
 
 
 lag_1 <- function(data = NULL,
                   n_sim = 10,
                   run_multicore = FALSE,
                   win_max = NULL,
-                  win_min = NULL) {
+                  win_min = NULL,
+                  verbose = FALSE) {
+
+#
+#   n_sim = 1000
+#   run_multicore = TRUE
+#   win_max = 500
+#   win_min = 100
+#   verbose = TRUE
+
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
@@ -109,8 +120,6 @@ lag_1 <- function(data = NULL,
   } else{
     opts = NULL
   }
-
-
 
 
   dat <- data.frame(data)
@@ -144,7 +153,7 @@ lag_1 <- function(data = NULL,
   xout_vals <- d[, 1]
 
   i <- 1 # needed to assign 1 to ijk to avoid note
-  npts <- round(((window_size / dt)), 0)
+  npts <- length(xout_vals)
   new_sampling_rate <- NULL
 
 
@@ -152,6 +161,8 @@ lag_1 <- function(data = NULL,
     foreach (i = 1:n_sim,
              .combine = 'cbind',
              .options.snow = opts) %dopar% {
+
+               i <- 1
                if ((dt - (2 * sdt)) > 0) {
                  new_sampling_rate <-
                    truncnorm::rtruncnorm(
@@ -172,8 +183,7 @@ lag_1 <- function(data = NULL,
                      sd = sdt
                    )
                }
-               win_size <- runif(n = 1, min = win_min, max = win_max)
-
+               win_size <- stats::runif(n = 1, min = min(c(win_min,win_max)), max = max(c(win_min,win_max)))
                dt_new = new_sampling_rate
                xout_new <- seq(start, end, by = dt_new)
                npts_new <- length(xout_new)
@@ -183,20 +193,23 @@ lag_1 <- function(data = NULL,
                d_new <- as.data.frame(interp_new)
                d_new[, 3] <- NA
 
-
                for (k in 1:nrow(d_new)) {
                  row_nr_1 <-
-                   DescTools::Closest(d_new[k, 1] - (win_size / 2), d_new[, 1], which = TRUE)
-                 row_nr_2 <-
-                   DescTools::Closest(d_new[k, 1] + (win_size / 2), d_new[, 1], which = TRUE)
+                   DescTools::Closest(d_new[, 1],d_new[k, 1] - (win_size / 2), which = TRUE)
 
-                 data_sel <- d_new[row_nr_1:row_nr_2,]
+                 row_nr_2 <-
+                   DescTools::Closest( d_new[, 1],d_new[k, 1] + (win_size / 2), which = TRUE)
+
+                 data_sel <- d_new[row_nr_1[1]:row_nr_2[1],]
                  corr <- acf(data_sel[, 2], plot = F)
 
                  a <- as.numeric(unlist(corr[1])[1])
 
                  d_new[k, 3] <- a
                }
+
+
+
 
                yleft_comp <- d_new[1, 3]
                yright_com <- d_new[nrow(d_new), 3]
@@ -207,13 +220,13 @@ lag_1 <- function(data = NULL,
                    d_new[, 3],
                    xout_vals,
                    method = "linear",
-                   n = nptsm,
+                   n = npts,
                    yleft = yleft_comp,
                    yright = yright_com
                  )
 
 
-               app_res <- cbind(app$x, app$y)
+               app_res <- cbind(app$y)
 
                return(app_res)
              }
@@ -227,3 +240,4 @@ lag_1 <- function(data = NULL,
 
   return(results)
 }
+

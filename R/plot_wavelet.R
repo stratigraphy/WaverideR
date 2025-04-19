@@ -48,7 +48,7 @@
 #'@param add_MTM_peaks Add the MTM peak periods as horizontal lines \code{Default=FALSE}
 #'@param add_data Plot the data on top of the wavelet \code{Default=TRUE}
 #'@param add_avg Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
-#'#'@param add_pval add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
+#'@param add_pval add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
 #'average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyze_wavelet}} function.
 #'The p-value is based on Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise)
 #'the calculated using a windowed (the window is half the size of the data set) temporal autocorrelation
@@ -64,6 +64,7 @@
 #'@param pval_abline add ab-lines to the average spectral power plot which indicate certain p-values \code{Default=c(0.1,0.5)}
 #'@param pval_cutoff cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}
 #'@param add_MTM Add the MTM  plot next to the wavelet plot \code{Default=FALSE}
+#'@param mtm_siglvl select the significance level  (0-1) for the MTM spectrum \code{Default=0.95}
 #'@param demean_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}
 #'@param detrend_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}
 #'@param padfac_mtm Pad factor for the MTM analysis \code{Default=5}
@@ -105,7 +106,7 @@
 #'S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise Estimation for
 #'Astrochronology: Paleoceanography, 27, PA3228, <doi:10.1029/2012PA002307>
 #'
-#' @examples
+#'@examples
 #' \donttest{
 #'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 #'# data set of Steinhilber et al., (2012)
@@ -337,6 +338,7 @@ plot_wavelet <- function(wavelet = NULL,
                          pval_abline = c(0.1,0.05),
                          pval_cutoff = c(0.1),
                          add_MTM = FALSE,
+                         mtm_siglvl = 0.95,
                          demean_mtm = TRUE,
                          detrend_mtm = TRUE,
                          padfac_mtm = 5,
@@ -419,13 +421,13 @@ plot_wavelet <- function(wavelet = NULL,
             noRStudioGD = TRUE)}
 
   if(dev_new==TRUE & plot_horizontal==FALSE){
-    dev.new(width = 7,
+     dev.new(width = 7,
             height = 10,
             noRStudioGD = TRUE)}
 
 
 
-  y_axis <- as.numeric(unlist(wavelet$Period))
+  # y_axis <- as.numeric(unlist(wavelet$Period))
   pmax_avg_sel <- t(wavelet$Power)
 
   depth <-  wavelet$x

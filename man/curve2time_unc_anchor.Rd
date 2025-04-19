@@ -58,6 +58,12 @@ tracked cycle value need to be either "u" for uniform distribution or
 \item{gap_constraints}{gap parameters for the modelling run
 input should be a data frame with}
 
+\item{proxy_data}{proxy data to be tune and check preservation of astronomical cycles}
+
+\item{cycles_check}{astronomical cycles which are checked for their presence after tuning}
+
+\item{uncer_cycles_check}{uncertainty of astronomical cycles to be check for after tunning}
+
 \item{max_runs}{maximum runs before one of the  age constraints is dropped \code{Default=1000}}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
@@ -70,6 +76,29 @@ input should be a data frame with}
 
 \item{keep_all_time_curves}{weather to keep all the generated age curves
 including the ones rejected from the modelling run code{Default=FALSE}}
+
+\item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
+which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
+in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
+the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
+Increasing the increases the computational time of the CWT \code{Default=1/200}.}
+
+\item{lowerPeriod}{Lowest period to be analyzed \code{Default=2}.
+The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
+parameters allows to analyze the signal for a specific range of cycles.
+scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+
+\item{upperPeriod}{Upper period to be analyzed \code{Default=1024}.
+The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
+parameters allows to analyze the signal for a specific range of cycles.
+ scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+
+\item{omega_nr}{Number of cycles contained within the Morlet wavelet}
+
+\item{seed_nr}{The seed number of the Monte-Carlo simulations.
+\code{Default=1337}}
+
+\item{dir}{time direction of tuning e.g. does time increase or decrease with depth}
 }
 \value{
 The output is a list of 3 or 4 elements
@@ -89,12 +118,8 @@ Converts the re-tracked curve results from
 \code{\link{retrack_wt_MC}} function to a depth time space unsing anchor dates
 while also taking into account the uncertainty of the tracked astronomical cycle
 }
-\references{
-Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <doi:10.1016/j.earscirev.2018.11.015>
-
-'@examples
-\donttest{
+\examples{
+\dontrun{
 
 
 Bisciaro_al <- Bisciaro_XRF[, c(1, 61)]
@@ -390,7 +415,7 @@ output = 5,
  empty_folder = FALSE
 )
 
-proxy_list_bisc <- list(Bisciaro_alt,
+proxy_list_bisc <- list(Bisciaro_al,
                     Bisciaro_ca,
                     Bisciaro_sial,
                     Bisciaro_Mn,
@@ -460,20 +485,11 @@ curve2time_unc_anchor_res <-
    dir=TRUE
  )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
+}
+\references{
+Routines for astrochronologic testing, astronomical time scale construction, and
+time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 Part of the code is based on the \link[astrochron]{sedrate2time}

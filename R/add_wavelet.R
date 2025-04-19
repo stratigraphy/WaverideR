@@ -396,6 +396,11 @@ add_wavelet <- function(wavelet = NULL,
     key.cols = rev(eval(parse(text = color_brewer_Sel)))
   }
 
+
+  maximum.level = max(wavelet$Power)
+  power_max_mat.levels = quantile(wavelet$Power, probs = seq(from = 0,
+                                                             to = 1, length.out = n.levels + 1))
+
   if (plot_horizontal == FALSE) {
     image(
       y = wavelet$x,

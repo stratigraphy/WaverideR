@@ -28,6 +28,7 @@ plot_wavelet(
   pval_abline = c(0.1, 0.05),
   pval_cutoff = c(0.1),
   add_MTM = FALSE,
+  mtm_siglvl = 0.95,
   demean_mtm = TRUE,
   detrend_mtm = TRUE,
   padfac_mtm = 5,
@@ -99,8 +100,9 @@ should be period values \code{Default=NULL}}
 
 \item{add_data}{Plot the data on top of the wavelet \code{Default=TRUE}}
 
-\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
-#'@param add_pval add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
+\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+
+\item{add_pval}{add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
 average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyze_wavelet}} function.
 The p-value is based on Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise)
 the calculated using a windowed (the window is half the size of the data set) temporal autocorrelation
@@ -119,6 +121,8 @@ solely the result of autocorrelated noise. \code{Default=FALSE}}
 \item{pval_cutoff}{cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}}
 
 \item{add_MTM}{Add the MTM  plot next to the wavelet plot \code{Default=FALSE}}
+
+\item{mtm_siglvl}{select the significance level  (0-1) for the MTM spectrum \code{Default=0.95}}
 
 \item{demean_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
 
