@@ -77,7 +77,7 @@ mag_track_time<- curve2tune(data=mag,
                            genplot = FALSE,
                            keep_editable=FALSE)
 
-mag_win_fft <- lag_1(data = mag_track_time,n_sim = 10,
+mag_lag_1 <- lag_1(data = mag_track_time,n_sim = 10,
 run_multicore = FALSE,
 win_max = 505,
 win_min = 150,

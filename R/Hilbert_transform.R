@@ -9,7 +9,7 @@
 #'
 #'
 #'@author
-#'Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.
+#'Based on the the inst.pulse function of the 'DecomposeR' R package.
 #'@references
 #'Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C., Zivanovic, M., Boulvain, F.,
 #'Devleeschouwer, X., 2022, "A decomposition approach to cyclostratigraphic signal processing".
@@ -53,7 +53,7 @@
 #'The second column is the Hilbert transform of the signal.
 #'
 #'@export
-#'@importFrom DecomposeR inst.pulse
+#' @importFrom DecomposeR inst.pulse
 
 
 Hilbert_transform <- function(data = NULL,

@@ -13,7 +13,7 @@
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #'@author
-#'Based on the the \code{\link{loess.as}} function of the 'fANCOVA' R package.
+#'Based on the the loess.as function of the 'fANCOVA' R package.
 #'
 #'@references
 #'Cleveland, W. S. (1979) Robust locally weighted regression and smoothing scatter plots. Journal of the American Statistical Association. 74, 829–836. <doi:10.1080/01621459.1979.10481038>
@@ -66,9 +66,9 @@
 #'The third column is difference between the original curve and the smoothed curve.
 #'
 #' @export
-#' @importFrom fANCOVA loess.as
 #' @importFrom stats loess
 #' @importFrom stats predict
+#' @importFrom fANCOVA loess.as
 
 
 loess_auto <-

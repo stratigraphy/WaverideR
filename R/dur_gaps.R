@@ -61,7 +61,7 @@
 #' @importFrom stats quantile
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -98,7 +98,7 @@ dur_gaps <- function(proxies = NULL,
     j <- 1
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
 
     pb <- txtProgressBar(max = n_simulations, style = 3)
     progress <- function(n)
@@ -108,7 +108,7 @@ dur_gaps <- function(proxies = NULL,
     dur_gaps <-
       foreach::foreach (
         j = 1:(n_simulations),
-        .options.snow = opts,
+        .options.parallel   = opts,
         .errorhandling = "remove",
         .packages = c("WaverideR", "stats"),
         .combine = "cbind"

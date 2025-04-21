@@ -146,13 +146,13 @@ curve2tune <- function(data = NULL,
       # Heights of the two rows
       widths = c(1, 1, 1)
     ) # Widths of the two columns
-    par(mar = c(4, 2, 1, 1))
+    par(mar = c(4, 4, 2, 2))
     plot(
       x = data[, 1],
       y = data[, 2],
       type = "l",
       main = "Data depth domain",
-      xlab = "meters",
+      xlab = "meters",ylab = "proxy value "
     )
 
     plot(
@@ -169,8 +169,8 @@ curve2tune <- function(data = NULL,
       completed_series[, 1],
       completed_series[, 2],
       type = "l",
-      xlab = "meters",
-      ylab = "Time (ka)",
+      xlab = "Time (ka)",
+      ylab = "proxy value",
       main = "Data time domain"
     )
   }

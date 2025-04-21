@@ -277,7 +277,7 @@ Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
 Volume 532, L4.  <doi:10.1051/0004-6361/201117504>\cr
 
 J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-<doi:10.1016/B978-0-12-824360-2.00004-8> or \url{https://www.sciencedirect.com/science/article/pii/B9780128243602000048} \cr
+<doi:10.1016/B978-0-12-824360-2.00004-8>\cr
 
 Zeebe, R. E. and Lourens, L. J.
 Geologically constrained astronomical solutions for the Cenozoic era,

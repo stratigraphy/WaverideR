@@ -1,6 +1,11 @@
+# Changes in version 0.4.0
+
+maintained code
+added functions
+
 # Changes in version 0.3.3
 
-fixed and error in: track_period_wavelet
+fixed an error in: track_period_wavelet
 
 
 # Changes in version 0.3.2

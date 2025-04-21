@@ -10,7 +10,7 @@
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #'
 #' @author
-#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 
 #'
@@ -56,7 +56,6 @@
 #' @importFrom graphics par
 #' @importFrom graphics hist
 #' @importFrom graphics lines
-#' @importFrom WaveletComp reconstruct
 
 
 extract_signal_stable_V2 <- function(wavelet = NULL,

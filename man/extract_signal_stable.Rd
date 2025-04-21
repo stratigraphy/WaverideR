@@ -76,6 +76,6 @@ Bulletin of the American Meteorological Society 79:61-78.
 \url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 }
 \author{
-Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+Code based on the reconstruct function of the 'WaveletComp' R package
 which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 }

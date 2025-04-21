@@ -11,8 +11,8 @@
 #'@param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
-#' Code based on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
-#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+#' Code based on the "analyze.wavelet" function of the 'WaveletComp' R package
+#' and "wt" function of the 'biwavelet' R package which are based on the
 #' wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 #'
 #' @references
@@ -30,11 +30,10 @@
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 #'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 #'" Geophysics 47, no. 2 (1982): 203-221.
-#' \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/203/68601/Wave-propagation-and-sampling-theory-Part-I}
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/222/68604/Wave-propagation-and-sampling-theory-Part-II}
+#'  Geophysics 1982 47 (2): 222–236.
 #'
 #'@examples
 #'\donttest{
@@ -63,7 +62,7 @@
 #' @export
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -77,8 +76,6 @@
 #' @importFrom foreach %dopar%
 #' @importFrom parallel stopCluster
 #' @importFrom truncnorm  rtruncnorm
-#' @importFrom WaveletComp analyze.wavelet
-#' @importFrom biwavelet wt
 
 
 model_red_noise_wt <- function(wavelet = NULL,
@@ -120,12 +117,12 @@ model_red_noise_wt <- function(wavelet = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- makeCluster(numCores - 2)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
   else{
     numCores <- 1
     cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
 
   if (verbose==TRUE){
@@ -167,7 +164,7 @@ model_red_noise_wt <- function(wavelet = NULL,
     foreach (
       j = 1:n_simulations,
       .combine = 'cbind',
-      .options.snow = opts
+      .options.parallel   = opts
     ) %dopar% {
       phi_data_2 <- truncnorm::rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5) #old option
       x <-

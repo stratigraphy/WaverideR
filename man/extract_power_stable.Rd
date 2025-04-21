@@ -73,7 +73,7 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
-Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+Code based on the reconstruct function of the 'WaveletComp' R package
 which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 The functionality of this function is is inspired by the
 \link[astrochron]{integratePower} function of the 'astrochron' R package

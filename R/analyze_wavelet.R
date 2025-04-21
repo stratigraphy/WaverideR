@@ -61,8 +61,8 @@
 #'Object 20: p value of spectral power
 #'
 #' @author
-#' Code based on on the \link[WaveletComp]{analyze.wavelet} function of the 'WaveletComp' R package
-#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+#' Code based on on the "WaveletComp" function of the 'WaveletComp' R package
+#' and "wt" function of the 'biwavelet' R package which are based on the
 #' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo.
 #'
 #' @references
@@ -80,11 +80,10 @@
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 #'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 #'" Geophysics 47, no. 2 (1982): 203-221.
-#' \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/203/68601/Wave-propagation-and-sampling-theory-Part-I}
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/222/68604/Wave-propagation-and-sampling-theory-Part-II}
+#'  Geophysics 1982 47 (2): 222–236.
 #'
 #' @examples
 #' \donttest{
@@ -136,19 +135,17 @@
 #' @importFrom stats sd
 #' @importFrom stats median
 #' @importFrom stats fft
-#' @importFrom WaveletComp analyze.wavelet
-#' @importFrom biwavelet wt
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 #' @importFrom parallel stopCluster
-#' @importFrom zoo rollapply
 #' @importFrom stats acf
+
 
 
 analyze_wavelet <-
@@ -292,11 +289,11 @@ analyze_wavelet <-
         }
 
         cl <- parallel::makeCluster(numCores)
-        registerDoSNOW(cl)
+        registerDoParallel(cl)
       }else{
         numCores <- 1
         cl <- parallel::makeCluster(numCores)
-        registerDoSNOW(cl)
+        registerDoParallel(cl)
       }
 
 
@@ -318,20 +315,36 @@ analyze_wavelet <-
       # )
 
       #calc sd_phi
-      result <- zoo::rollapply(data[,2], width = length(data[,2])/2, FUN=acf,
-                               lag.max = 1,type = "correlation",plot = FALSE)
 
+      # Define window size (half the length of the data)
+      window_size <- floor(length(data[, 2]) / 2)
+      n <- length(data[, 2])
 
-      acf_result <-   matrix(data=0,nrow= length(result),ncol=1)
+      # Initialize result vector
+      acf_vals <- numeric(n - window_size + 1)
 
-      for (i in 1:length(result)){
-        acf_res <- unlist(result[i])
-
-        if( is.null(acf_res) != TRUE){
-          acf_result[i,1]  <- as.numeric(acf_res[2])
-        }else{acf_result[i,1]  <- NA}
-
+      # Loop over the data with a sliding window
+      for (i in 1:(n - window_size + 1)) {
+        window_data <- data[i:(i + window_size - 1), 2]
+        acf_result <- acf(window_data, lag.max = 1, plot = FALSE, type = "correlation")
+        acf_vals[i] <- acf_result$acf[2]  # lag 1 is at position 2
       }
+
+
+      # result <- zoo::rollapply(data[,2], width = length(data[,2])/2, FUN=acf,
+      #                          lag.max = 1,type = "correlation",plot = FALSE)
+      #
+      #
+      # acf_result <-   matrix(data=0,nrow= length(result),ncol=1)
+
+      # for (i in 1:length(result)){
+      #   acf_res <- unlist(result[i])
+      #
+      #   if( is.null(acf_res) != TRUE){
+      #     acf_result[i,1]  <- as.numeric(acf_res[2])
+      #   }else{acf_result[i,1]  <- NA}
+      #
+      # }
       acf_result<- na.omit(acf_result)
       acf_result <- acf_result[acf_result<1]
 
@@ -348,7 +361,7 @@ analyze_wavelet <-
       fits <- foreach(
         i = 1:n_simulations,
         .combine = "+",
-        .options.snow = opts,
+        .options.parallel = opts,
         .errorhandling = "pass"
       ) %dopar% {
         #i <- 1

@@ -6,7 +6,7 @@
 \description{
 An example of anchor points generated using \code{\link{astro_anchor}} function \cr
 The anchor points were generated for the \code{\link{grey}} grey data set of \cr
-Zeeden et al., (2013) and anchored to the code{\link{astrosignal_example}} \cr
+Zeeden et al. (2013) and anchored to the \code{\link{astrosignal_example}} \cr
 astronomical solution which is a pre-generated ETP (eccentricity-tilt-precession) \cr
 solution(p-0.5t based on the la2004 solution) based on Laskar et al., (20004) \cr
 astronomical solution.

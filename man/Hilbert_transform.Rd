@@ -61,5 +61,5 @@ Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen, a
 "On Instantaneous Frequency". Advances in Adaptive Data Analysis 01 (02): 177–229. <doi:10.1142/S1793536909000096>
 }
 \author{
-Based on the the \link[DecomposeR]{inst.pulse} function of the 'DecomposeR' R package.
+Based on the the inst.pulse function of the 'DecomposeR' R package.
 }

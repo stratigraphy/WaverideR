@@ -53,7 +53,7 @@
 #'                            genplot = FALSE,
 #'                            keep_editable=FALSE)
 #'
-#'mag_win_fft <- lag_1(data = mag_track_time,n_sim = 10,
+#'mag_lag_1 <- lag_1(data = mag_track_time,n_sim = 10,
 #'run_multicore = FALSE,
 #'win_max = 505,
 #'win_min = 150,
@@ -70,7 +70,7 @@
 #' @importFrom Matrix rowMeans
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -94,21 +94,14 @@ lag_1 <- function(data = NULL,
                   win_min = NULL,
                   verbose = FALSE) {
 
-#
-#   n_sim = 1000
-#   run_multicore = TRUE
-#   win_max = 500
-#   win_min = 100
-#   verbose = TRUE
-
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   } else{
     numCores <- 1
     cl <- parallel::makeCluster(numCores)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
 
 
@@ -138,8 +131,7 @@ lag_1 <- function(data = NULL,
 
   xout <- seq(start, end, by = dt)
   npts <- length(xout)
-  interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                   n = npts)
+  interp <- approx(dat[, 1], dat[, 2], xout, method = "linear", n = npts)
   d <- as.data.frame(interp)
 
 
@@ -160,9 +152,8 @@ lag_1 <- function(data = NULL,
   fit <-
     foreach (i = 1:n_sim,
              .combine = 'cbind',
-             .options.snow = opts) %dopar% {
-
-               i <- 1
+             .options.parallel = opts) %dopar% {
+               #i <- 1
                if ((dt - (2 * sdt)) > 0) {
                  new_sampling_rate <-
                    truncnorm::rtruncnorm(
@@ -183,24 +174,28 @@ lag_1 <- function(data = NULL,
                      sd = sdt
                    )
                }
-               win_size <- stats::runif(n = 1, min = min(c(win_min,win_max)), max = max(c(win_min,win_max)))
-               dt_new = new_sampling_rate
-               xout_new <- seq(start, end, by = dt_new)
+               win_size <- stats::runif(n = 1,
+                                        min = min(c(win_min, win_max)),
+                                        max = max(c(win_min, win_max)))
+               dt_new <- new_sampling_rate
+               new_sampling_rate
+
+
+               xout_new <- seq(from=start, to=end, by = dt_new)
                npts_new <- length(xout_new)
                interp_new <-
-                 approx(dat[, 1], dat[, 2], xout_new, method = "linear",
-                        n = npts)
+                 approx(dat[, 1], dat[, 2], xout_new, method = "linear", n = npts)
                d_new <- as.data.frame(interp_new)
                d_new[, 3] <- NA
 
                for (k in 1:nrow(d_new)) {
                  row_nr_1 <-
-                   DescTools::Closest(d_new[, 1],d_new[k, 1] - (win_size / 2), which = TRUE)
+                   DescTools::Closest(d_new[, 1], d_new[k, 1] - (win_size / 2), which = TRUE)
 
                  row_nr_2 <-
-                   DescTools::Closest( d_new[, 1],d_new[k, 1] + (win_size / 2), which = TRUE)
+                   DescTools::Closest(d_new[, 1], d_new[k, 1] + (win_size / 2), which = TRUE)
 
-                 data_sel <- d_new[row_nr_1[1]:row_nr_2[1],]
+                 data_sel <- d_new[row_nr_1[1]:row_nr_2[1], ]
                  corr <- acf(data_sel[, 2], plot = F)
 
                  a <- as.numeric(unlist(corr[1])[1])
@@ -240,4 +235,3 @@ lag_1 <- function(data = NULL,
 
   return(results)
 }
-

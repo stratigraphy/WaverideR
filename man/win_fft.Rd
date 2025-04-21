@@ -24,7 +24,8 @@ win_fft(
 )
 }
 \arguments{
-\item{data}{Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy}
+\item{data}{Input data set  should consist of a matrix with 2 columns with
+first column being depth and the second column being a proxy}
 
 \item{padfac}{Pad record with zero, zero padding smooths out the spectra}
 
@@ -81,7 +82,8 @@ read the documentation of these packages. "\code{Default=grDevices}}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+\item{dev_new}{Opens a new plotting window to plot the plot, this
+guarantees  a "nice" looking plot however when plotting in an R markdown
 document the plot might not plot  \code{Default=FALSE}}
 }
 \value{

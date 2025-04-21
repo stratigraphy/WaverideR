@@ -124,7 +124,7 @@
 #' @importFrom stats quantile
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -246,11 +246,11 @@ sum_power_sedrate  <- function(red_noise = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    doSNOW::registerDoSNOW(cl)
+    registerDoParallel(cl)
   }else{
     numCores <- 1
     cl <- parallel::makeCluster(numCores)
-    doSNOW::registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
 
 
@@ -267,7 +267,7 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
 
   fit <-
-    foreach (ijk = 1:simulations, .options.snow = opts) %dopar% {
+    foreach (ijk = 1:simulations, .options.parallel   = opts) %dopar% {
       fits <- matrix(data = NA,
                      nrow = nrow(testsedrates),
                      ncol = 2)

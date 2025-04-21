@@ -386,6 +386,7 @@ dynamic_extraction <- function(wavelet = NULL,
         }
       }
 
+
       maxdetect2 <- melt(maxdetect)
 
       depth <- rep(wavelet$x, each = length(wavelet$axis.2))

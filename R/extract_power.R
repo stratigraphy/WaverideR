@@ -23,7 +23,7 @@
 #'\code{tracked_cycle_period}) are of the same unit (either depth or time domain).
 #'
 #' @author
-#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
 #' The assignment of the standard deviation of the uncertainty of the wavelet
 #' is based on the work of Gabor (1946) and Russell et al., (2016)
@@ -102,7 +102,6 @@
 #' @export
 #' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
-#' @importFrom WaveletComp reconstruct
 
 extract_power <- function(completed_series = NULL,
                           wavelet = NULL,

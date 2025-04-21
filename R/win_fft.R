@@ -2,7 +2,8 @@
 #'
 #' @description The \code{\link{win_fft}} function for conducts a windowed spectral analysis based on the fft
 #'
-#'@param data Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy
+#'@param data Input data set  should consist of a matrix with 2 columns with
+#'first column being depth and the second column being a proxy
 #'@param padfac Pad record with zero, zero padding smooths out the spectra
 #'@param window_size size of the running window
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
@@ -44,7 +45,8 @@
 #'read the documentation of these packages. "\code{Default=grDevices}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #' @param verbose Print text \code{Default=FALSE}.
-#' @param dev_new Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
+#' @param dev_new Opens a new plotting window to plot the plot, this
+#' guarantees  a "nice" looking plot however when plotting in an R markdown
 #'document the plot might not plot  \code{Default=FALSE}
 #'
 #' @author
@@ -98,7 +100,7 @@
 #' @importFrom stats quantile
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -227,11 +229,11 @@ win_fft <- function(data = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   } else{
     numCores <- 1
     cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
 
 
@@ -248,7 +250,7 @@ win_fft <- function(data = NULL,
   i <- 1 # needed to assign 1 to ijk to avoid note
   npts <- round(((window_size / dt)), 0)
 
-  fit <-  foreach (i = 1:simulations, .options.snow = opts) %dopar% {
+  fit <-  foreach (i = 1:simulations, .options.parallel   = opts) %dopar% {
     d_subsel <- d[i:(i + (window_size / dt - 1)),]
 
     demean = TRUE
@@ -282,11 +284,11 @@ win_fft <- function(data = NULL,
 
     fft.out <- data.frame(cbind(freq, amp, pwr, phase))
 
-    fft.out <- fft.out[fft.out[, 1] <= Nyq ,]
-    fft.out <- fft.out[fft.out[, 1] > 0,]
 
     fft.out[,5] <-   uncertainty_freq <- freq/(2*pi*(window_size/(1/freq)))
 
+    fft.out <- fft.out[fft.out[, 1] <= Nyq ,]
+    fft.out <- fft.out[fft.out[, 1] > 0,]
 
 
     colnames(fft.out) <- c("Frequency", "Amplitude", "Power",
@@ -312,6 +314,7 @@ win_fft <- function(data = NULL,
                 2],
         fft.out[, 3],
         fft.out[, 4],
+        fft.out[, 5],
         chiCLAR * 100,
         AR,
         AR1_90,

@@ -53,8 +53,8 @@
 #'@param depth_time_lab lable for the the depth/time column
 #'
 #' @author
-#' Code based on the \link[WaveletComp]{analyze.wavelet} and \link[WaveletComp]{wt.image} functions of the 'WaveletComp' R package
-#' and \link[biwavelet]{wt} function of the 'biwavelet' R package which are based on the
+#' Code based on the "analyze.wavelet" and "wt.image" functions of the 'WaveletComp' R package
+#' and  the "wt" function of the 'biwavelet' R package which are based on the
 #' wavelet MATLAB code written by Christopher Torrence and Gibert P. Compo (1998).
 #' The MTM analysis is from the astrochron R package of Meyers et al., (2012)
 #'@references
@@ -72,11 +72,10 @@
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
 #'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
 #'" Geophysics 47, no. 2 (1982): 203-221.
-#'\url{https://pubs.geoscienceworld.org/geophysics/article/47/2/203/68601/Wave-propagation-and-sampling-theory-Part-I}
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236. \url{https://pubs.geoscienceworld.org/geophysics/article/47/2/222/68604/Wave-propagation-and-sampling-theory-Part-II}
+#'  Geophysics 1982 47 (2): 222–236.
 #'
 #' @examples
 #' \donttest{
@@ -237,9 +236,6 @@
 #' @importFrom graphics layout
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
-#' @importFrom WaveletComp analyze.wavelet
-#' @importFrom WaveletComp wt.image
-#' @importFrom biwavelet wt
 #' @importFrom astrochron mtm
 #' @importFrom DescTools Closest
 #' @importFrom graphics abline

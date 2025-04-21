@@ -15,7 +15,7 @@
 #'@param period_down specifies the lower period of the to be extracted power \code{Default=0.8}.
 #'
 #' @author
-#' Code based on the \link[WaveletComp]{reconstruct} function of the 'WaveletComp' R package
+#' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
 #' The functionality of this function is is inspired by the
 #' \link[astrochron]{integratePower} function of the 'astrochron' R package
@@ -64,7 +64,6 @@
 #'
 #' @export
 #' @importFrom DescTools Closest
-#' @importFrom WaveletComp reconstruct
 
 extract_power_stable <- function(wavelet = NULL,
                                  cycle = NULL,

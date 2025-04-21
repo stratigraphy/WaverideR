@@ -6,7 +6,7 @@
  depth time space with uncertainty}
 \usage{
 curve2time_unc_anchor(
-  age_constraints = NULL,
+  age_constraint = NULL,
   tracked_cycle_curve = NULL,
   tracked_cycle_period = NULL,
   tracked_cycle_period_unc = NULL,
@@ -31,7 +31,7 @@ curve2time_unc_anchor(
 )
 }
 \arguments{
-\item{age_constraints}{age constraints for the modelling run
+\item{age_constraint}{age constrains for the modelling run
 Input should be a data frame with 7 columns, the first columns are the ID names
 the second column are the ages (usually in kyr) the third column is the uncertainty (usually in kyr) given as
 the fourth column is the distribution which is either "n" for a normal distribution or "u" for a uniform
@@ -70,12 +70,12 @@ input should be a data frame with}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
 
-\item{genplot}{generate plot code{Default=FALSE}}
+\item{genplot}{generate plot code\code{Default=FALSE}}
 
 \item{keep_nr}{minimal number of age constraints to be kept \code{Default=2}}
 
 \item{keep_all_time_curves}{weather to keep all the generated age curves
-including the ones rejected from the modelling run code{Default=FALSE}}
+including the ones rejected from the modelling run \code{Default=FALSE}}
 
 \item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
 which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
@@ -115,7 +115,7 @@ Plot 3: the data set in the time domain.
 }
 \description{
 Converts the re-tracked curve results from
-\code{\link{retrack_wt_MC}} function to a depth time space unsing anchor dates
+\code{\link{retrack_wt_MC}} function to a depth time space using an anchor date
 while also taking into account the uncertainty of the tracked astronomical cycle
 }
 \examples{
@@ -459,7 +459,7 @@ uncer_cycles_checks <- c(20,5,7)
 
 curve2time_unc_anchor_res <-
  curve2time_unc_anchor(
- age_constraints =  ash_Bisc,
+ age_constraint =  ash_Bisc,
   tracked_cycle_curve =  bisc_retrack,
   tracked_cycle_period = 110,
    tracked_cycle_period_unc = ((135 - 110) + (110 - 95)) / 2,

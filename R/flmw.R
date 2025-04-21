@@ -112,7 +112,7 @@
 #' @importFrom stats quantile
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
+#' @importFrom doParallel registerDoParallel
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom tcltk setTkProgressBar
@@ -200,11 +200,11 @@ flmw  <- function(wavelet = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   } else{
     numCores <- 1
     cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
+    registerDoParallel(cl)
   }
 
 
@@ -236,7 +236,7 @@ flmw  <- function(wavelet = NULL,
 
 
   fit <-
-    foreach (ijk = 1:simulations, .options.snow = opts) %dopar% {
+    foreach (ijk = 1:simulations, .options.parallel   = opts) %dopar% {
       fits <- matrix(data = NA,
                      nrow = nrow(testsedrates),
                      ncol = 8)

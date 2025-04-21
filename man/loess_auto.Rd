@@ -78,5 +78,5 @@ Hurvich, C.M., Simonoff, J.S., and Tsai, C.L. (1998), Smoothing Parameter Select
 Golub, G., Heath, M. and Wahba, G. (1979). Generalized cross validation as a method for choosing a good ridge parameter. Technometrics. 21, 215–224. <doi:10.2307/1268518>
 }
 \author{
-Based on the the \code{\link{loess.as}} function of the 'fANCOVA' R package.
+Based on the the loess.as function of the 'fANCOVA' R package.
 }

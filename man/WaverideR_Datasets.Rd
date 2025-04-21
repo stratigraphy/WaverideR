@@ -6,7 +6,7 @@
 \description{
 Data sets for testing the 'WaverideR' R package:\cr
 The \code{age_model_zeeden} data set is and age model (anchor points) for\cr
-the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)\cr
+the IODP 926 grey scale (154-174m) record of Zeeden et al. (2013)\cr
 \cr
 The \code{astrosignal_example} data set consists of pre-generated ETP (eccentricity-tilt-precession)\cr
 data set based on the p-0.5t  la2004 solution and was generated using \cr
@@ -14,17 +14,17 @@ the \link[astrochron]{etp} function of the 'astrochron' R package \cr
 \cr
 The \code{depth_rank_example} data set is synthetic succession of sedimentary\cr
 The \code{grey} data set is the grey scale record of IODP 926 for the interval (154-174m) which originates\cr from
- Zeeden et al., (2013) \cr
+ Zeeden et al. (2013) \cr
  \cr
 The \code{grey_track} data set consists of tracking points of the\cr
- precession (22 kyr cycle) in the IODP 926 grey scale (154-174m) record of Zeeden et al., (2013)\cr
+ precession (22 kyr cycle) in the IODP 926 grey scale (154-174m) record of Zeeden et al. (2013)\cr
  \cr
-The \code{mag} data set is the magnetic susceptibility record of Pas et al., (2018)\cr
+The \code{mag} data set is the magnetic susceptibility record of Pas et al. (2018)\cr
 \cr
 The \code{mag_track_solution} is the period of the 405 kyr eccentricity cycle in\cr
-the magnetic susceptibility record of from Pas et al., (2018)\cr
+the magnetic susceptibility record of from Pas et al. (2018)\cr
 \cr
-The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al., (2012)\cr
+The \code{TSI} data set is the Total Solar Irradiance record of Steinhilber et al. (2012)\cr
 \cr
 The \code{Bisciaro_Mg_wt_track} data set is the 110-kyr (short eccentricity) \cr
 cycle tracked in the wavelet scalogram of the Magnesium (XRF) record of Arts (2014)\cr
@@ -45,11 +45,11 @@ The \code{Bisciaro_XRF} is the XRF data set of Arts (2014)\cr
 \cr
 
 The \code{anchor_points_Bisciaro_al} data set consist of the tie points between the
-Bisciaro_al record of Arts (2014) and the la2011 solution of laskar et al., (20111)\cr
+Bisciaro_al record of Arts (2014) and the la2011 solution of laskar et al. (20111)\cr
 \cr
 
 The \code{GTS_info} data set contains the color coding and ages and uncertainties
-of Geologic Time Scale 2020 of Ogg (et al., 2021)\cr
+of Geologic Time Scale 2020 of Ogg et al. (2021)\cr
 \cr
 }
 \references{
