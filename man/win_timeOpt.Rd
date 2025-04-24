@@ -10,18 +10,19 @@ win_timeOpt(
   sedmin = 0.5,
   sedmax = 2,
   numsed = 100,
-  limit = F,
+  limit = FALSE,
   fit = 2,
-  fitModPwr = T,
+  fitModPwr = TRUE,
   flow = NULL,
   fhigh = NULL,
   roll = 10^6,
   targetE = c(405.7, 130.7, 123.8, 98.9, 94.9),
   targetP = c(20.9, 19.9, 17.1, 17.2),
-  detrend = T,
+  detrend = TRUE,
   normalize = TRUE,
   linLog = 1,
-  run_multicore = TRUE
+  run_multicore = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -38,13 +39,13 @@ first column being depth and the second column being a proxy \code{Default=NULL}
 in optimization grid. \code{Default=100}}
 
 \item{limit}{Limit evaluated sedimentation rates to region in which full
-target signal can be recovered? (T or F).\code{Default=FALSE}}
+target signal can be recovered? .\code{Default=FALSE}}
 
 \item{fit}{Test for (1) precession amplitude modulation or (2) short
 eccentricity amplitude modulation? \code{Default=2}}
 
 \item{fitModPwr}{Include the modulation periods
-in the spectral fit? (T or F) \code{Default=TRUE}}
+in the spectral fit? \code{Default=TRUE}}
 
 \item{flow}{Low frequency cut-off for
 Taner bandpass (half power point in cycles/ka) \code{Default=TRUE}}
@@ -61,14 +62,16 @@ These must be in order of decreasing period, with a first value of 405 ka.
 \item{targetP}{A vector of precession periods to evaluate (in ka).
 These must be in order of decreasing period. \code{Default=c(20.9, 19.9, 17.1, 17.2)}}
 
-\item{detrend}{Remove linear trend from data series? (T or F) \code{Default=TRUE}}
+\item{detrend}{Remove linear trend from data series? \code{Default=TRUE}}
 
-\item{normalize}{normalize the r2 curves of individual TimeOpt runs \code{Default=TRUE}}
+\item{normalize}{normalize the r2 curves of individual timeOpt runs \code{Default=TRUE}}
 
 \item{linLog}{Use linear or logarithmic scaling for sedimentation
 rate grid spacing? (0=linear, 1=log; default value is 1) \code{Default=1}}
 
-\item{run_multicore}{Run function using multiple cores \code{Default=FALS}}
+\item{run_multicore}{Run function using multiple cores \code{Default=FALSE}}
+
+\item{verbose}{print text \code{Default=FALSE}}
 }
 \value{
 Returns a list which contains 10 elements
@@ -84,7 +87,7 @@ element 8: linLog value
 \description{
 The \code{\link{win_timeOpt}} function for conducts a widowed
 timeOpt sedimentation rate estimation
-This function is based on the \link[astrochron]{eTimeOpt} but allows for
+This function is based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}} but allows for
 multithreaded analysis speeding up the
 process of conducting a Windowed timeOpt sedimentation rate estimation
 }
@@ -92,25 +95,25 @@ process of conducting a Windowed timeOpt sedimentation rate estimation
 \donttest{
 #Conduct a windowed timeOpt on the magnetic susceptibility record
 #of the Sullivan core of Pas et al., (2018).
-
 mag_win_timeOpt <-win_timeOpt(
-proxy = mag,
+data = mag,
 window_size = 15,
 sedmin = 0.1,
 sedmax = 1,
 numsed = 100,
-limit = F,
+limit = FALSE,
 fit = 2,
-fitModPwr = T,
+fitModPwr = TRUE,
 flow = NULL,
 fhigh = NULL,
 roll = 10 ^ 6,
 targetE = c(405.7, 130.7, 123.8, 98.9, 94.9),
 targetP = c(20.9, 19.9, 17.1, 17.2),
-detrend = T,
+detrend = TRUE,
 normalize =TRUE,
 linLog = 1,
-run_multicore =FALSE)
+run_multicore =FALSE,
+verbose=FALSE)
 }
 
 }
@@ -119,6 +122,6 @@ Routines for astrochronologic testing, astronomical time scale construction, and
 time series analysis <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
-Based on the \link[astrochron]{eTimeOpt}
+Based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}
 function of the 'astrochron' R package.
 }

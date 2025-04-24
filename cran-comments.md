@@ -1,3 +1,6 @@
+# Changes in version 0.4.1
+fixed errors in 0.4.0
+
 # Changes in version 0.4.0
 
 maintained code

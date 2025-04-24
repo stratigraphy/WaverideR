@@ -520,7 +520,7 @@
 #' @importFrom parallel makeCluster
 #' @importFrom astrochron noLow
 #' @importFrom astrochron mwStats
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 
 
 retrack_wt_MC <- function(wt_list = NULL,
@@ -562,7 +562,7 @@ retrack_wt_MC <- function(wt_list = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
   }
 
   if (empty_folder==TRUE & create_GIF==TRUE){

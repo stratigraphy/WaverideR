@@ -70,11 +70,9 @@
 #' @importFrom Matrix rowMeans
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom tcltk setTkProgressBar
-#' @importFrom tcltk setTkProgressBar
 #' @importFrom foreach foreach
 #' @importFrom stats runif
 #' @importFrom stats sd
@@ -97,11 +95,11 @@ lag_1 <- function(data = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
   } else{
     numCores <- 1
     cl <- parallel::makeCluster(numCores)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
   }
 
 

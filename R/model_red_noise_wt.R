@@ -62,11 +62,9 @@
 #' @export
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom tcltk setTkProgressBar
-#' @importFrom tcltk setTkProgressBar
 #' @importFrom foreach foreach
 #' @importFrom colorednoise colored_noise
 #' @importFrom colorednoise autocorrelation
@@ -117,12 +115,12 @@ model_red_noise_wt <- function(wavelet = NULL,
   if (run_multicore == TRUE) {
     numCores <- detectCores()
     cl <- makeCluster(numCores - 2)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
   }
   else{
     numCores <- 1
     cl <- makeCluster(numCores)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
   }
 
   if (verbose==TRUE){

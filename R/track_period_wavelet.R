@@ -575,7 +575,7 @@ track_period_wavelet <- function(wavelet = NULL,
   }
 
 
-  if (plot_horizontal == TRUE) {
+  if (plot_horizontal == FALSE) {
     dev.new(width = 7,
             height = 10,
             noRStudioGD = TRUE)

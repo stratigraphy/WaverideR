@@ -188,9 +188,6 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 
-
-
-
 wavelet_uncertainty <- function(tracked_cycle = NULL,
                                 period_of_tracked_cycle = NULL,
                                 wavelet = NULL,

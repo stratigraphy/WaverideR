@@ -470,11 +470,9 @@
 #' @importFrom parallel stopCluster
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom tcltk setTkProgressBar
-#' @importFrom tcltk setTkProgressBar
 #' @importFrom foreach foreach
 #' @importFrom stats runif
 #' @importFrom trapezoid rtrapezoid
@@ -777,7 +775,7 @@ curve2time_unc_anchor <- function(age_constraint =  NULL,
     if (run_multicore == TRUE) {
       numCores <- detectCores()
       cl <- parallel::makeCluster(numCores - 2)
-      registerDoParallel(cl)
+      registerDoSNOW(cl)
       i <- 1
       fit <- foreach(i = 1:n_simulations, .options.parallel   = opts) %dopar%
         {

@@ -1,9 +1,9 @@
 #' @title plot the windowed timeOpt sedimentation rate estimation
 #'
-#' @description The \code{\link{plot_win_timeopt}} function plots a widowed
+#' @description The \code{\link{plot_win_timeOpt}} function plots a widowed
 #'  timeOpt sedimentation rate estimation
-#'This function is based on the \link[astrochron]{eTimeOpt} function
-#'@param win_timeopt_result result of the \code{\link{win_timeopt}}function
+#'This function is based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}function
+#'@param win_timeOpt_result result of the \code{\link{win_timeOpt}}function
 #'that needs to be used as input \code{Default=NULL}
 #'@param proxy_name the name of the used proxy record \code{Default=NULL}
 #'@param  abline_h Add horizontal lines to the plot. Specify the lines as a
@@ -17,14 +17,14 @@
 #'@param  xlab add a label to x-axis \code{Default="depth (m)"}
 #'@param  ylab add a label to y-axis  \code{Default="sedrate (cm/kyr)"}
 #'@param  sel_parameter select one of the three returns of the
-#' \code{\link{win_timeopt}}function
+#' \code{\link{win_timeOpt}}function
 #'element 1: r_2_envelope matrix
 #'element 2: r_2_power matrix
 #'element 3: r_2_opt matrix	 \code{Default=3}
 #'@param n.levels  Number of color levels \code{Default=100}.
 #'
 #' @author
-#'Based on the \link[astrochron]{eTimeOpt}
+#'Based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}
 #'function of the 'astrochron' R package.
 #'
 #'@references
@@ -36,27 +36,27 @@
 #'\donttest{
 #'#plot the windowed timeOpt of the magnetic susceptibility record
 #'#of the Sullivan core of Pas et al., (2018).
-#'
 #'mag_win_timeOpt <-win_timeOpt(
-#'proxy = mag,
+#'data = mag,
 #'window_size = 15,
 #'sedmin = 0.1,
 #'sedmax = 1,
 #'numsed = 100,
-#'limit = F,
+#'limit = FALSE,
 #'fit = 2,
-#'fitModPwr = T,
+#'fitModPwr = TRUE,
 #'flow = NULL,
 #'fhigh = NULL,
 #'roll = 10 ^ 6,
 #'targetE = c(405.7, 130.7, 123.8, 98.9, 94.9),
 #'targetP = c(20.9, 19.9, 17.1, 17.2),
-#'detrend = T,
+#'detrend = TRUE,
 #'normalize =TRUE,
 #'linLog = 1,
-#'run_multicore =FALSE)
+#'run_multicore = FALSE,
+#'verbose=FALSE)
 #'
-#'plot_win_timeopt(win_timeopt_result = mag_win_timeOpt,
+#'plot_win_timeOpt(win_timeOpt_result = mag_win_timeOpt,
 #'proxy_name= "mag",
 #'abline_h=NULL,
 #'abline_v = NULL,
@@ -71,6 +71,7 @@
 #' @return
 #'The output is a plot of the average spectral power of a windowed timeOpt
 #'
+#' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom graphics image
@@ -139,7 +140,7 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 
-plot_win_timeopt <- function(win_timeopt_result = NULL,
+plot_win_timeOpt <- function(win_timeOpt_result = NULL,
                              proxy_name= NULL,
                              abline_h=NULL,
                              abline_v = NULL,
@@ -150,13 +151,13 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
                              sel_parameter=3,
                              n.levels=100){
   plot.new()
-  win_timeopt_res <- win_timeopt_result
-  proxy <- cbind(win_timeopt_result$x,win_timeopt_result$y)
-  win_timeOpt_means <- win_timeopt_result[[sel_parameter+3]]
-  win_timeopt_result <- win_timeopt_result[[sel_parameter]]
+  win_timeOpt_res <- win_timeOpt_result
+  proxy <- cbind(win_timeOpt_result$x,win_timeOpt_result$y)
+  win_timeOpt_means <- win_timeOpt_result[[sel_parameter+3]]
+  win_timeOpt_result <- win_timeOpt_result[[sel_parameter]]
 
-  maximum.level = max(win_timeopt_result)
-  power_max_mat.levels = quantile(as.matrix(win_timeopt_result), probs = seq(from = 0,
+  maximum.level = max(win_timeOpt_result)
+  power_max_mat.levels = quantile(as.matrix(win_timeOpt_result), probs = seq(from = 0,
                                                                              to = 1, length.out = n.levels + 1))
   color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
   key.cols <- rev(eval(parse(text = color_brewer_Sel)))
@@ -173,9 +174,9 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
 
-  sedrate <- win_timeopt_res[[7]]
-  y_axis <- win_timeopt_res[[7]]
-  pmax_avg_sel <- as.matrix(win_timeopt_result)
+  sedrate <- win_timeOpt_res[[7]]
+  y_axis <- win_timeOpt_res[[7]]
+  pmax_avg_sel <- as.matrix(win_timeOpt_result)
   depth <- proxy[,1]
   xlim_vals = c(min(depth), max(depth))
 
@@ -216,7 +217,7 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
   par(new = FALSE, mar = c(4, 0, 0, 0.5))
 
 
-  if(win_timeopt_res$linLog==1){
+  if(win_timeOpt_res$linLog==1){
     plot(x = win_timeOpt_means, y = sedrate, log = "y",
          type = "l", yaxs = "i", yaxt = "n", xlab = "avg. R^2",
          xaxs = "i", ylim = ylim_vals)}else{
@@ -228,11 +229,11 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
   par(new = FALSE, mar = c(4, 4, 0, 0), xpd = FALSE)
 
 
-  if(win_timeopt_res$linLog==1){
+  if(win_timeOpt_res$linLog==1){
     image(
       x = proxy[,1],
       y = log10(sedrate),
-      z = t(win_timeopt_result),
+      z = t(win_timeOpt_result),
       col = key.cols, breaks = power_max_mat.levels,
       useRaster = TRUE, yaxt = "n", xlab = xlab,
       ylab = ylab)
@@ -258,7 +259,7 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
     image(
       x = proxy[,1],
       y = sedrate,
-      z = t(win_timeopt_result),
+      z = t(win_timeOpt_result),
       col = key.cols, breaks = power_max_mat.levels,
       useRaster = TRUE, yaxt = "n", xlab = "depth(m)",
       ylab = "")
@@ -285,3 +286,19 @@ plot_win_timeopt <- function(win_timeopt_result = NULL,
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

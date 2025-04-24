@@ -137,10 +137,9 @@
 #' @importFrom stats fft
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom tcltk setTkProgressBar
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 #' @importFrom parallel stopCluster
@@ -289,11 +288,11 @@ analyze_wavelet <-
         }
 
         cl <- parallel::makeCluster(numCores)
-        registerDoParallel(cl)
+        registerDoSNOW(cl)
       }else{
         numCores <- 1
         cl <- parallel::makeCluster(numCores)
-        registerDoParallel(cl)
+        registerDoSNOW(cl)
       }
 
 

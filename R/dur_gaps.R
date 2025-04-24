@@ -61,11 +61,9 @@
 #' @importFrom stats quantile
 #' @importFrom parallel detectCores
 #' @importFrom parallel makeCluster
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom tcltk setTkProgressBar
-#' @importFrom tcltk setTkProgressBar
 #' @importFrom stats runif
 #' @importFrom stats rnorm
 
@@ -98,7 +96,7 @@ dur_gaps <- function(proxies = NULL,
     j <- 1
     numCores <- detectCores()
     cl <- parallel::makeCluster(numCores - 2)
-    registerDoParallel(cl)
+    registerDoSNOW(cl)
 
     pb <- txtProgressBar(max = n_simulations, style = 3)
     progress <- function(n)
