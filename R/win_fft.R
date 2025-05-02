@@ -248,7 +248,7 @@ win_fft <- function(data = NULL,
   i <- 1 # needed to assign 1 to ijk to avoid note
   npts <- round(((window_size / dt)), 0)
 
-  fit <-  foreach (i = 1:simulations, .options.parallel   = opts) %dopar% {
+  fit <-  foreach (i = 1:simulations, .options.snow   = opts) %dopar% {
     d_subsel <- d[i:(i + (window_size / dt - 1)),]
 
     demean = TRUE

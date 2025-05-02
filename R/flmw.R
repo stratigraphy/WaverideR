@@ -234,7 +234,7 @@ flmw  <- function(wavelet = NULL,
 
 
   fit <-
-    foreach (ijk = 1:simulations, .options.parallel   = opts) %dopar% {
+    foreach (ijk = 1:simulations, .options.snow   = opts) %dopar% {
       fits <- matrix(data = NA,
                      nrow = nrow(testsedrates),
                      ncol = 8)

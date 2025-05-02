@@ -585,7 +585,7 @@ retrack_wt_MC <- function(wt_list = NULL,
   if (run_multicore == TRUE) {
     j <- 1 # needed to assign 1 to ijk to avoid note
     set.seed(seed_nr)
-    fit <-  foreach (j = 1:simulations, .options.parallel  = opts, .combine = 'cbind') %dopar% {
+    fit <-  foreach (j = 1:simulations, .options.snow  = opts, .combine = 'cbind') %dopar% {
 
       sel_curve <- sample(1:n_curves, 1, replace=F)
       n <- n_curves

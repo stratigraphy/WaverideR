@@ -162,7 +162,7 @@ model_red_noise_wt <- function(wavelet = NULL,
     foreach (
       j = 1:n_simulations,
       .combine = 'cbind',
-      .options.parallel   = opts
+      .options.snow   = opts
     ) %dopar% {
       phi_data_2 <- truncnorm::rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5) #old option
       x <-

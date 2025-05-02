@@ -777,7 +777,7 @@ curve2time_unc_anchor <- function(age_constraint =  NULL,
       cl <- parallel::makeCluster(numCores - 2)
       registerDoSNOW(cl)
       i <- 1
-      fit <- foreach(i = 1:n_simulations, .options.parallel   = opts) %dopar%
+      fit <- foreach(i = 1:n_simulations, .options.snow   = opts) %dopar%
         {
           check_astro_age <- matrix(data = NA, ncol = 1,
                                     nrow = nrow(age_constraint))

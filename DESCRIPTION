@@ -1,7 +1,7 @@
 Package: WaverideR
 Type: Package
 Title: Extracting Signals from Wavelet Spectra
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: 
     person(given = "Michiel",
            family = "Arts",

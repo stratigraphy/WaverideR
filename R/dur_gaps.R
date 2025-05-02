@@ -106,7 +106,7 @@ dur_gaps <- function(proxies = NULL,
     dur_gaps <-
       foreach::foreach (
         j = 1:(n_simulations),
-        .options.parallel   = opts,
+        .options.snow   = opts,
         .errorhandling = "remove",
         .packages = c("WaverideR", "stats"),
         .combine = "cbind"

@@ -265,7 +265,7 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
 
   fit <-
-    foreach (ijk = 1:simulations, .options.parallel   = opts) %dopar% {
+    foreach (ijk = 1:simulations, .options.snow = opts) %dopar% {
       fits <- matrix(data = NA,
                      nrow = nrow(testsedrates),
                      ncol = 2)

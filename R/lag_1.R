@@ -150,7 +150,7 @@ lag_1 <- function(data = NULL,
   fit <-
     foreach (i = 1:n_sim,
              .combine = 'cbind',
-             .options.parallel = opts) %dopar% {
+             .options.snow = opts) %dopar% {
                #i <- 1
                if ((dt - (2 * sdt)) > 0) {
                  new_sampling_rate <-

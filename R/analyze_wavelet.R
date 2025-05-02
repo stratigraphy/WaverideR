@@ -360,7 +360,7 @@ analyze_wavelet <-
       fits <- foreach(
         i = 1:n_simulations,
         .combine = "+",
-        .options.parallel = opts,
+        .options.snow = opts,
         .errorhandling = "pass"
       ) %dopar% {
         #i <- 1
