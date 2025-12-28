@@ -9,6 +9,8 @@ These results can then be visualized and interpreted enabling one to identify/in
 cyclicity in the geological record, which can be used to construct astrochronological
 age-models and identify and interpret cyclicity in past en present climate systems.
 
+This tool is particularly useful for detecting Milankovitch cycles (e.g., 405 kyr eccentricity) in sedimentary records, similar to the methods used by Walter Alvarez in the Apennine sections to identify the K-Pg boundary.
+
 ## Installation
 
 You can install the development version of WaverideR from [GitHub](https://github.com/stratigraphy/WaverideR) with:
@@ -17,4 +19,3 @@ You can install the development version of WaverideR from [GitHub](https://githu
 # install.packages("devtools")
 devtools::install_github("stratigraphy/WaverideR")
 ```
-
