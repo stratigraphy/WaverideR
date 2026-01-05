@@ -2,22 +2,25 @@
 % Please edit documentation in R/completed_series.R
 \name{completed_series}
 \alias{completed_series}
-\title{Complete the tracking of cycle in a wavelet spectra}
+\title{Complete the tracking of the period a cycle in a scalogram}
 \usage{
 completed_series(
-  wavelet = NULL,
+  scalogram = NULL,
   tracked_curve = NULL,
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
   genplot = FALSE,
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  ...
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+or \code{\link{track_period}} function.}
 
-\item{tracked_curve}{Traced period result from the \code{track_period_wavelet} function.}
+\item{tracked_curve}{Tracked period result from the \code{track_period_wavelet} or
+or \code{\link{track_period}} function.}
 
 \item{period_up}{The period_up parameter is the factor with which the linear interpolated tracked_curve
 curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_up factor is
@@ -38,6 +41,9 @@ value is used instead. between spectral peaks \code{Default=0.8},}
 the black curve is the original curve.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{...}{Optional named arguments
+Currently supports \code{wavelet} as an alias for \code{scalogram} for backwards compatabillity.}
 }
 \value{
 Returns a matrix with 2 columns
@@ -45,14 +51,16 @@ The first column is the depth axis
 The second column is the completed tracking of the period a cycle of the wavelet spectra
 }
 \description{
-Use the traced series and the existing wavelet
-spectra to complete the tracking of a cycle of the wavelet spectra.
-The selected points using the \code{\link{track_period_wavelet}} function form a incomplete line
-unless every point is tracked. However clicking every individual point along a wavelet ridge is time
-intensive and error prone.
+Use the traced series and the existing wavelet or superlet scalogram
+to complete the tracking of a cycle in scalogram.
+The selected points using the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
+function form a incomplete line unless every point is tracked. However
+clicking every individual point along a wavelet ridge is time intensive and error prone.
 To avoid errors and save time the \code{\link{completed_series}} function can be used to
-complete the tracing of a cycle in a wavelet spectra.The \code{\link{completed_series}} function interpolates the
-data points selected using the \code{\link{track_period_wavelet}}. A a search a algorithm then looks up and replaces
+complete the tracing of a cycle in a wavelet spectra.
+The \code{\link{completed_series}} function interpolates the
+data points selected using the \code{\link{track_period_wavelet}}
+or \code{\link{track_period}}. A a search a algorithm then looks up and replaces
 the interpolated curve values with the values of the nearest spectral peak in the wavelet spectra.
 }
 \examples{
@@ -95,6 +103,5 @@ grey_track <- completed_series(
 genplot = FALSE,
 keep_editable=FALSE
 )
-
 }
 }

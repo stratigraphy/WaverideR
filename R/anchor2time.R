@@ -38,9 +38,6 @@
 #'
 #' @export
 #' @importFrom stats approx
-
-
-
 anchor2time <- function(anchor_points = NULL,
                        data = NULL,
                        genplot = FALSE,

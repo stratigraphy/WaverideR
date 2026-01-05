@@ -89,17 +89,17 @@
 #'Bulletin of the American Meteorological Society 79:61-78.
 #'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 #'
-#'Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
+#'Gabor, Dennis. Theory of communication. Part 1: The analysis of information.
 #' Journal of the Institution of Electrical Engineers-part III: radio and
 #' communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
 #'
-#'Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
-#'" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
+#'Russell, Brian, and Jiajun Han.Jean Morlet and the continuous wavelet transform.
+#'CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
 #'
 #'
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
-#'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
-#'" Geophysics 47, no. 2 (1982): 203-221.
+#'Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+#'Geophysics 47, no. 2 (1982): 203-221.
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.

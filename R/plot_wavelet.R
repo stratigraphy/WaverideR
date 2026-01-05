@@ -1,6 +1,6 @@
-#' @title Plots a wavelet power spectra
+#' @title Plots a wavelet scalogram
 #'
-#' @description Plot wavelet spectra using the outcome of the \code{\link{analyze_wavelet}} function.
+#' @description Plot wavelet scalogram using the outcome of the \code{\link{analyze_wavelet}} function.
 #'
 #'@param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
@@ -95,8 +95,8 @@
 #'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
 #'
 #'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
-#'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
-#'" Geophysics 47, no. 2 (1982): 203-221.
+#'Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
+#'Geophysics 47, no. 2 (1982): 203-221.
 #'
 #'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
 #' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
