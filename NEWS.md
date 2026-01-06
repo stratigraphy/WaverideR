@@ -1,3 +1,8 @@
+# Changes in version 0.5.0
+
+maintained code
+added functions
+
 # Changes in version 0.4.0
 
 maintained code
