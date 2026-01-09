@@ -330,24 +330,12 @@ analyze_superlet <- function(data,
 
   ## 11. Assemble output object
 
-
-  Periods_phys <- (1 / Freqs) / dt
-
-  output <- list(
-    Power = t(wtresult / Nbuffers),
-    dt = dt,
-    dj = Nf,
-    Power.avg = rev(rowMeans(wtresult / Nbuffers)),
-    Period = Periods_phys,
-    nc = length(x),
-    nr = Nf,
-    axis.1 = x_axis,
-    axis.2 = rev(log2(Periods_phys)),
-    c1 = c1,
-    x = dat[, 1],
-    y = dat[, 2]
-  )
-
+  wtresult <- wtresult[nrow(wtresult):1, ]
+  Periods_phys <- 1/(Freqs/dt)
+  output <- list(Power = t(wtresult/Nbuffers), dt = dt, dj = Nf,
+                 Power.avg = rev(rowMeans(wtresult/Nbuffers)), Period = Periods_phys,
+                 nc = length(x), nr = Nf, axis.1 = x_axis, axis.2 = rev(log2(Periods_phys)),
+                 c1 = c1, x = dat[, 1], y = dat[, 2])
   class(output) <- "analyze.superlet"
   return(invisible(output))
 }

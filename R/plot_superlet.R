@@ -270,11 +270,11 @@ plot_superlet <- function (superlet = NULL,
                            add_data = TRUE,
                            add_avg = FALSE,
                            plot_horizontal = TRUE)
-{ if (keep_editable == FALSE) {
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
-}
-  maximum.level = max(superlet$Power)
+{if (keep_editable == FALSE) {
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
+  }
+  maximum.level = max(superlet$Power,na.rm=TRUE)
   power_max_mat.levels = quantile(superlet$Power, probs = seq(
     from = 0,
     to = 1,
@@ -444,7 +444,7 @@ plot_superlet <- function (superlet = NULL,
       xaxt = "n",
       main = main,
       ylim = xlim_vals,
-      xlim = log2(rev(ylim_vals))
+      xlim = log2(sort(ylim_vals))
     )
 
     box(lwd = lwd.axis)
@@ -552,7 +552,7 @@ plot_superlet <- function (superlet = NULL,
       xaxt = "n",
       main = main,
       ylim = xlim_vals,
-      xlim = log2(rev(ylim_vals))
+      xlim = log2(sort(ylim_vals))
     )
 
     box(lwd = lwd.axis)
@@ -653,7 +653,7 @@ plot_superlet <- function (superlet = NULL,
       xaxt = "n",
       ylab = "Wt. power",
       xaxs = "i",
-      xlim = rev(ylim_vals)
+      xlim = sort(ylim_vals)
     )
     if (is.null(add_abline_v) != TRUE) {
       abline(v = (add_abline_v))
@@ -671,7 +671,7 @@ plot_superlet <- function (superlet = NULL,
       xaxt = "n",
       main = main,
       ylim = xlim_vals,
-      xlim = log2(rev(ylim_vals))
+      xlim = log2(sort(ylim_vals))
     )
     box(lwd = lwd.axis)
     period.tick = unique(trunc(superlet$axis.2))
@@ -731,7 +731,7 @@ plot_superlet <- function (superlet = NULL,
     par(mar = c(0, 0, 2, 2))
     plot(y = superlet$Power.avg, x = superlet$Period, log = "x",
          type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
-         xlab = "", xaxs = "i", xlim = rev(ylim_vals))
+         xlab = "", xaxs = "i", xlim = sort(ylim_vals))
     if (is.null(add_abline_v) != TRUE) {
       abline(v = (add_abline_v), xpd = FALSE)
     }
@@ -743,7 +743,7 @@ plot_superlet <- function (superlet = NULL,
     image(y = superlet$x, x = superlet$axis.2, z = t(superlet$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           xlab = periodlab, ylab = "", xaxt = "n", yaxt = "n",
-          main = main, ylim = xlim_vals, xlim = log2(rev(ylim_vals)))
+          main = main, ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
 
     box(lwd = lwd.axis)
     period.tick = unique(trunc(superlet$axis.2))
@@ -767,8 +767,6 @@ plot_superlet <- function (superlet = NULL,
     if (is.null(add_abline_h) != TRUE) {
       abline(h = (add_abline_h))
     }
-    abline(h=log2(20))
-
 
     if (is.null(add_abline_v) != TRUE) {
       abline(v = log2(add_abline_v))
@@ -839,7 +837,7 @@ plot_superlet <- function (superlet = NULL,
       #yaxt = "n",
       xlab = "Wt. power",
       xaxs = "i",
-      ylim = rev(ylim_vals)
+      ylim = sort(ylim_vals)
     )
 
     if (is.null(add_abline_h) != TRUE) {
@@ -862,8 +860,9 @@ plot_superlet <- function (superlet = NULL,
       yaxt = "n",
       main = main,
       xlim = xlim_vals,
-      ylim = log2(rev(ylim_vals))
+      ylim = log2(sort(ylim_vals))
     )
+
     box(lwd = lwd.axis)
     period.tick = unique(trunc(superlet$axis.2))
     period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
@@ -987,7 +986,7 @@ plot_superlet <- function (superlet = NULL,
       yaxt = "n",
       main = main,
       xlim = xlim_vals,
-      ylim = log2(rev(ylim_vals))
+      ylim = log2(sort(ylim_vals))
     )
 
     box(lwd = lwd.axis)
@@ -1096,7 +1095,7 @@ plot_superlet <- function (superlet = NULL,
       yaxt = "n",
       xlab = "Wt. power",
       xaxs = "i",
-      ylim = rev(ylim_vals)
+      ylim = sort(ylim_vals)
     )
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
@@ -1117,7 +1116,7 @@ plot_superlet <- function (superlet = NULL,
       yaxt = "n",
       main = main,
       xlim = xlim_vals,
-      ylim = log2(rev(ylim_vals))
+      ylim = log2(sort(ylim_vals))
     )
 
     box(lwd = lwd.axis)
@@ -1229,7 +1228,7 @@ plot_superlet <- function (superlet = NULL,
       yaxt = "n",
       main = main,
       xlim = xlim_vals,
-      ylim = log2(rev(ylim_vals))
+      ylim = log2(sort(ylim_vals))
     )
 
     box(lwd = lwd.axis)
