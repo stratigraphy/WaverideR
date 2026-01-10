@@ -101,7 +101,7 @@ element 10: y_axis
 If genplot is \code{Default=TRUE} then a plot of one of the elements 1:8 is plotted
 }
 \description{
-The \code{\link{win_fft}} function for conducts a windowed spectral analysis based on the fft
+The \code{\link{win_fft}} function conducts a windowed spectral analysis based using the fft
 }
 \examples{
 \donttest{

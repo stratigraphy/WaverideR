@@ -2,25 +2,31 @@
 % Please edit documentation in R/WaverideR.R
 \name{WaverideR}
 \alias{WaverideR}
-\title{Extracting Signals from Wavelet Spectra}
+\title{An R package for cyclostratigraphic analysis}
 \description{
-The continuous wavelet transform enables the observation of
-transient/non-stationary cyclicity in time-series. The goal of
-cyclostratigraphic studies is to define frequency/period in the
-depth/time domain. By conducting the continuous wavelet transform
-on cyclostratigraphic data series one can observe and extract cyclic
-signals/signatures from signals. These results can then be visualized
-and interpreted enabling one to identify/interpret cyclicity in the
-geological record, which can be used to construct astrochronological
-age-models and identify and interpret cyclicity in past and present
-climate systems.
+WaverideR is an R package for advanced cyclostratigraphic
+analysis of stratigraphic data sets. It provides a comprehensive suite
+of spectral tools for detecting, visualising, and tracking non-stationary
+astronomical cycles, including continuous wavelet and superlet transform (CWT),
+the superlet transform, windowed FFT, and evolutionary harmonic
+analysis (EHA) (wrapper). These methods allow both manual and automated
+tracking of orbital cycles in spectra and scalograms, even in records
+affected by large changes in sedimentation rate.Building on this
+spectral framework, WaverideR supports multi-proxy integration and
+Monte Carlo–based uncertainty propagation to construct statistically
+robust floating and absolute astrochronological age models. The package
+includes dedicated tools to quantify analytical wavelet uncertainty,
+estimate the duration of stratigraphic gaps and hiatuses, and integrate
+external radioisotopic age constraints. Designed for complex and
+incomplete stratigraphic records, WaverideR enables investigation
+of the imprint of astronomical forcing even in suboptimal datasets.
 }
 \details{
 Package: 'WaverideR'
 
 Type: R package
 
-Version: 0.3.2 (begin of 2023)
+Version: 0.5.0 (1st quarter 2026)
 
 License: GPL (= 2)
 }
@@ -41,206 +47,114 @@ be grouped in four subjects: (1) Cyclostratigraphic data analysis, (2)
 example data sets, (3) the (continuous) wavelet transform and (4)
 astronomical solutions). For each of these categories the
 relevance of set articles will be explained in the framework of
-the 'WaverideR' R package.
+the 'WaverideR' R package. \cr
 
-# 1. Cyclostratigraphic data analysis
+# 1. Cyclostratigraphic data analysis \cr
 
-Stephen R. Meyers, Cyclostratigraphy and the problem of astrochronologic
-testing, Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN 0012-8252
+Meyers, S. R. (2019). Cyclostratigraphy and the problem of astrochronologic
+testing. Earth-Science Reviews, 190, 190--223.
 \doi{10.1016/j.earscirev.2018.11.015} \cr
-The 'astrochron' R package is the most extensive R package with regards to
-cyclostratigraphic analysis. As such many of the functionalities of the
-'WaverideR' R package are #' inspired/based on the 'astrochron' R package.
-The major difference between #' the 'astrochron' R package and the 'WaverideR'
-package is that the #' astrochron' R package relies on the Fast Fourier Transform whereas
 
-S.R. Meyers, 2012, Seeing Red in Cyclic Stratigraphy: Spectral Noise
-Estimation for Astrochronology: Paleoceanography, 27, PA3228,
+Meyers, S. R. (2012). Seeing red in cyclic stratigraphy: Spectral noise
+estimation for astrochronology. Paleoceanography, 27, PA3228.
 \doi{10.1029/2012PA002307} \cr
-The article of Meyers (2012) explains how the (Multitaper method) MTM technique
-implemented into The 'astrochron' R package The MTM method can be used
-to assign confidence levels to spectral peaks and distinguish spectral peaks
-from harmonic spectral peaks.
 
-Acycle: Time-series analysis software for paleoclimate research and education,
-Mingsong Li, Linda Hinnov, Lee Kump, Computers & Geosciences,Volume 127,2019,
-Pages 12-22,ISSN 0098-3004, \doi{10.1016/j.cageo.2019.02.011} \cr
-The 'Acycle' software package is a 'Matlab' based program, which is used for
-cyclostratigraphic studies. Acycle relies mostly on the Fast Fourier Transform.
-The 'Coco' and 'eCoco' functions from Acycle formed the inspiration for the
-\link[WaverideR]{flmw} \link[WaverideR]{sum_power_sedrate} functions of the
-‘Waverider’ R package.
+Li, M., Hinnov, L. A., and Kump, L. R. (2019). Acycle: Time-series analysis
+software for paleoclimate research and education. Computers and Geosciences,
+127, 12--22. \doi{10.1016/j.cageo.2019.02.011} \cr
 
-Tracking variable sedimentation rates and astronomical forcing in Phanerozoic
- paleoclimate proxy series with evolutionary correlation coefficients and
- hypothesis testing, Mingsong Li, Lee R. Kump, Linda A. Hinnov, Michael
- E. Mann, Earth and Planetary Science Letters,Volume 501, 2018,Pages 165-179,
- ISSN 0012-821X, \doi{10.1016/j.epsl.2018.08.041} \cr
- Li et al., (2019) introduces the Coco and eCoco functions of the Acycle
- software package. the 'Coco' and 'eCoco' function of the 'Acycle' software
- are able to estimate the sedimentation rate based on spectral
- characteristics of astronomical cycles. The 'Coco' and 'eCoco' function and
- form the inspiration for the  \link[WaverideR]{flmw} and  \link[WaverideR]{sum_power_sedrate}
- functions of the 'WaverideR' Package.
+Li, M., Kump, L. R., Hinnov, L. A., and Mann, M. E. (2018). Tracking variable
+sedimentation rates and astronomical forcing in Phanerozoic paleoclimate proxy
+series with evolutionary correlation coefficients and hypothesis testing.
+Earth and Planetary Science Letters, 501, 165--179.
+\doi{10.1016/j.epsl.2018.08.041} \cr
 
+Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.-C., Zeeden, C.,
+Zivanovic, M., Boulvain, F., and Devleeschouwer, X. (2022). A decomposition
+approach to cyclostratigraphic signal processing. Earth-Science Reviews, 225,
+103894. \doi{10.1016/j.earscirev.2021.103894} \cr
 
- Wouters, S., Crucifix, M., Sinnesael, M., Da Silva, A.C., Zeeden, C.,
- Zivanovic, M., Boulvain, F., Devleeschouwer, X., 2022,
- "A decomposition approach to cyclostratigraphic signal processing".
- Earth-Science Reviews 225 (103894).\doi{10.1016/j.earscirev.2021.103894} \cr
- Wouters et al., (2022) introduces the Empirical Mode Decomposition (EMD) as
- part of the 'DecomposeR' R package. EMD is a non-Fast Fourier Transform
- based spectral analysis technique. The Hilbert transform function
- \link[DecomposeR]{inst.pulse} of this package is used in WaverideR
- functions \link[WaverideR]{extract_amplitude} and \link[WaverideR]{Hilbert_transform}.
-
-Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X.. 2021.
-StratigrapheR: Concepts for Litholog Generation in R. The R Journal.
+Wouters, S., Da Silva, A.-C., Boulvain, F., and Devleeschouwer, X. (2021).
+StratigrapheR: Concepts for litholog generation in R. The R Journal, 13.
 \doi{10.32614/RJ-2021-039} \cr
-Wouters et al., (2021) introduces the \link[StratigrapheR]{StratigrapheR} R
-package. This package contains functions which format, process, and plot lithologs.
-The litholog format of Wouters et al., (2021) is used as the standardized input
-format to convert lithologs to a time series format using the \link[WaverideR]{lithlog_disc}
-function. The time series can then be analysed for the imprint of cycles.
 
-#'Huang, Norden E., Zhaohua Wu, Steven R. Long, Kenneth C. Arnold, Xianyao Chen,
-and Karin Blank. 2009. "On Instantaneous Frequency". Advances in Adaptive
-Data Analysis 01 (02): 177–229. \doi{10.1142/S1793536909000096} \cr
-The Hilbert transform function \link[DecomposeR]{inst.pulse} of the 'DecomposeR'
-R package is based on the work of Huang et al., (2009).
+Huang, N. E., Wu, Z., Long, S. R., Arnold, K. C., Chen, X., and Blank, K.
+(2009).On instantaneous frequency. Advances in Adaptive Data Analysis,
+1, 177--229. \doi{10.1142/S1793536909000096} \cr
 
-Cleveland, W. S. (1979) Robust locally weighted regression and smoothing scatter plots.
-Journal of the American Statistical Association. 74, 829–836. \doi{10.1080/01621459.1979.10481038} \cr
-Cleveland (1979) explains how the robust locally weighted regression works
-and how it can be used to smooth data sets. This theory is applied in the
-\link[WaverideR]{loess_auto} function of the ‘WaverideR’ package.
+Cleveland, W. S. (1979). Robust locally weighted regression and smoothing
+scatterplots. Journal of the American Statistical Association, 74, 829--836.
+\doi{10.1080/01621459.1979.10481038} \cr
 
-#'Hurvich, C.M., Simonoff, J.S., and Tsai, C.L. (1998), Smoothing Parameter
-Selection in Nonparametric Regression Using an Improved Akaike Information
-Criterion. Journal of the Royal Statistical Society B. 60, 271–293
+Hurvich, C. M., Simonoff, J. S., and Tsai, C.-L. (1998). Smoothing parameter
+selection in nonparametric regression using an improved Akaike information
+criterion. Journal of the Royal Statistical Society: Series B, 60, 271--293.
 \doi{10.1111/1467-9868.00125} \cr
-Hurvich et al., (1998) explains how
-the Improved Akaike Information Criterion can be used to optimally smooth data sets
-This theory is applied in the \link[WaverideR]{loess_auto} function of the ‘WaverideR’ package.
 
-#'Golub, G., Heath, M. and Wahba, G. (1979). Generalized cross validation as
-a method for choosing a good ridge parameter. Technometrics. 21, 215–224. \doi{10.2307/1268518}\cr
-Golub et al., (1979) explains how the Generalized cross validation can be
-used to optimally smooth data sets. This theory is applied in the \link[WaverideR]{loess_auto}
-function of the ‘WaverideR’ package.
+Golub, G. H., Heath, M., and Wahba, G. (1979). Generalized cross-validation
+as a method for choosing a good ridge parameter. Technometrics, 21, 215--224.
+\doi{10.2307/1268518} \cr
 
-# 2. Example data sets
+#2. Example data sets \cr
 
-Damien Pas, Linda Hinnov, James E. (Jed) Day, Kenneth Kodama, Matthias Sinnesael, Wei Liu,
-Cyclostratigraphic calibration of the Famennian stage (Late Devonian, Illinois Basin, USA),
-Earth and Planetary Science Letters,
-Volume 488,2018,Pages 102-114,ISSN 0012-821X,
-\doi{10.1016/j.epsl.2018.02.010} \cr
-The data set of Pas et al, (2018) is a
-magnetic susceptibility data measured on the Fammennian aged shales of
-the from the Illinois basin in the USA. The data set contains the imprint of
-astronomical cycles in the a Paleozoic succession making it a good example for
-times (250Ma) when no astronomical solutions are available.
+Pas, D., Hinnov, L. A., Day, J. E., Kodama, K., Sinnesael, M., and Liu, W.
+(2018). Cyclostratigraphic calibration of the Famennian Stage
+(Late Devonian, Illinois Basin, USA). Earth and Planetary Science Letters,
+488, 102--114. \doi{10.1016/j.epsl.2018.02.010} \cr
 
-
-Steinhilber, Friedhelm & Abreu, Jacksiel & Beer, Juerg & Brunner,
-Irene & Christl, Marcus & Fischer, Hubertus & Heikkilä, U. & Kubik,
-Peter & Mann, Mathias & Mccracken, K. & Miller, Heinrich & Miyahara,
-Hiroko & Oerter, Hans & Wilhelms, Frank. (2012).
-9,400 Years of cosmic radiation and solar activity from ice cores and tree rings.
-Proceedings of the National Academy of Sciences of the United States of America.
-109. 5967-71. 10.1073/pnas.1118965109.
+Steinhilber, F., Abreu, J., Beer, J., Brunner, I., Christl, M., Fischer, H.,
+Heikkilä, U., Kubik, P. W., Mann, M. E., McCracken, K. G., Miller, H., Miyahara,
+H., Oerter, H., and Wilhelms, F. (2012). 9400 years of cosmic radiation and solar
+activity from ice cores and tree rings. Proceedings of the National Academy of
+Sciences of the United States of America, 109, 5967--5971.
 \doi{10.1073/pnas.1118965109} \cr
-The Total Solar Irradiance record of Steinhilber et al., (2012) is a Holocene record of normalized
-Total Solar Irradiance in the time domain. The data set is a good example for
-studying/extracting sub-Milankovitch 5000yr from a relatively (geologically) speaking young record.
 
-Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens, Ursula Röhl, Torsten Bickert,
-Revised Miocene splice, astronomical tuning and calcareous plankton biochronology of ODP Site 926 between 5 and 14.4Ma,
-Palaeogeography, Palaeoclimatology, Palaeoecology,Volume 369,2013,Pages 430-451,ISSN 0031-0182,
-10.1016/j.palaeo.2012.11.009\cr
-The record of Zeeden et al., (2013) consists of a grey scale record from Miocene sediment cores from offshore
-Brazil. The record contains a clear imprint of astronomical cycles as such it is a good Neogene example data set
-to demonstrate the functionalities of the 'WaverideR' R package
+Zeeden, C., Hilgen, F. J., Westerhold, T., Lourens, L. J., Röhl, U., and
+Bickert, T. (2013). Revised Miocene splice, astronomical tuning and calcareous
+plankton biochronology of ODP Site 926 between 5 and 14.4 Ma.
+Palaeogeography, Palaeoclimatology, Palaeoecology, 369, 430--451.
+\doi{10.1016/j.palaeo.2012.11.009} \cr
 
-# 3. The (continuous) wavelet transform
+#3. Continuous wavelet and superlet transform\cr
 
-Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
-"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
-" Geophysics 47, no. 2 (1982): 203-221.
-Morlet et al., (1982a) together with Morlet et al., (1982b) are the original publications which explain the
-use of the wavelet to analyse signal.
+Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
+Time-frequency super-resolution with superlets. Nature Communications, 12, 337.
+\doi{10.1038/s41467-020-20539-9} \cr
 
-J. Morlet, G. Arens, E. Fourgeau, D. Giard;
-Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-Geophysics 1982 47 (2): 222–236. '
-Morlet et al., (1982a) together with Morlet et al., (1982b) are the original publications which explain the
-use of the wavelet to analyse signal.
+Morlet, J., Arens, G., Fourgeau, E., and Giard, D. (1982a). Wave propagation and
+sampling theory. Part I: Complex signal and scattering in multilayered media.
+Geophysics, 47, 203--221. \cr
 
-Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
-Bulletin of the American Meteorological Society 79:61-78.
-\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf} \cr
-'Torrence and Compo (1998) shows how the continuous wavelet transform can be used to analyse
-cyclicity in paleo-climatic data-sets. The equations in this publication forms the basis for many
-wavelet based packages/software applications.
+Morlet, J., Arens, G., Fourgeau, E., and Giard, D. (1982b). Wave propagation and
+sampling theory. Part II: Sampling theory and complex waves. Geophysics, 47,
+222--236. \cr
 
-Gouhier TC, Grinsted A, Simko V (2021).
-R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
-\url{https://github.com/tgouhier/biwavelet}\cr
-Gouhier et al., (2021) is the implementation of equations of Torrence and Compo (1998) in the form of the
-'biwavelet' R package
+Torrence, C., and Compo, G. P. (1998). A practical guide to wavelet analysis.
+Bulletin of the American Meteorological Society, 79, 61--78. \cr
 
-Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-Wavelet Analysis. R package version 1.1.
-\url{https://CRAN.R-project.org/package=WaveletComp}\cr
-Roesch and Schmidbauer et al., (2018) is the article of the 'WaveletComp' R package which
-is a built upon the functionalities of the 'biwavelet' R package
+Gouhier, T. C., Grinsted, A., and Simko, V. (2021). biwavelet: Conduct univariate
+and bivariate wavelet analyses. R package version 0.20.21. \cr
 
-Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
-" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}\cr
-Russell and Han (2016) gives a concise summary of the work of Morlet et al., (1982a) and Morlet et al., (1982b) and the
-developments since then. The publication also describes how the Gabor uncertainty principle (Gabor 1946) affects the frequency
-uncertainty of the wavelet which can be used to calculate the analytical uncertainty of a given wavelet spectra.
+Roesch, A., and Schmidbauer, H. (2018). WaveletComp: Computational wavelet
+analysis. R package version 1.1. \cr
 
-Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
-Journal of the Institution of Electrical Engineers-part III: radio and
-communication engineering 93, no. 26 (1946): 429-441. \url{http://genesis.eecg.toronto.edu/gabor1946.pdf}\cr
-Gabor (1946) describes the Gabor uncertainty principle which states how the uncertainty in time and frequency are related
-in time series analysis.
+Gabor, D. (1946). Theory of communication. Part I: The analysis of information.
+Journal of the Institution of Electrical Engineers, Part III, 93, 429--441. \cr
 
-# 4. Astronomical solutions
+#4. Astronomical solutions \cr
 
-J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
-A long term numerical solution for the insolation quantities of the Earth: Astron. Astrophys.,
-Volume 428, 261-285. \doi{10.1051/0004-6361:20041335}\cr
-Laskar et al., (2004) is an astronomical solution which can be used to anchor geological data to absolute ages.
+Laskar, J., Robutel, P., Joutel, F., Gastineau, M., Correia, A. C. M., and
+Levrard, B. (2004). A long-term numerical solution for the insolation quantities
+of the Earth. Astronomy and Astrophysics, 428, 261--285.
+\doi{10.1051/0004-6361:20041335} \cr
 
-Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a,
-La2010: A new orbital solution for the long-term motion of the Earth: Astron. Astrophys.,
-Volume 532, A89 \doi{10.1051/0004-6361/201116836}\cr
-Laskar et al., (2011a) is an astronomical solution which can be used to anchor geological data to absolute ages.
+Laskar, J., Fienga, A., Gastineau, M., and Manche, H. (2011a). La2010: A new
+orbital solution for the long-term motion of the Earth. Astronomy and
+Astrophysics, 532, A89. \doi{10.1051/0004-6361/201116836} \cr
 
-Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
-2011b, Strong chaos induced by close encounters with Ceres and Vesta, Astron: Astrophys.,
-Volume 532, L4.  \doi{10.1051/0004-6361/201117504}\cr
-Laskar et al., (2011b) is an astronomical solution which can be used to anchor geological data to absolute ages.
-
-J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein, James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale 2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
-'\doi{10.1016/B978-0-12-824360-2.00004-8}\cr
-Laskar et al., (2019) explains how astronomical solutions are created and how they should/can be used
-
-Zeebe, Richard E. "Numerical solutions for the orbital motion of the Solar System over the past 100 Myr: limits and new results."
-The Astronomical Journal 154, no. 5 (2017): 193. \doi{10.3847/1538-3881/aa8cce} \cr
-Zeebe (2017) is an astronomical solution which can be used to anchor geological data to absolute ages.
-
-Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the Paleocene–Eocene boundary age constrained by geology and astronomy.Science365,926-929(2019)
-\doi{10.1126/science.aax0612}\cr
-Zeebe and Lourens (2019) is an astronomical solution which can be used to anchor geological data to absolute ages.
-
-Zeebe, R. E. and Lourens, L. J.
-Geologically constrained astronomical solutions for the Cenozoic era,
-Earth and Planetary Science Letters, 2022 \doi{10.1016/j.epsl.2022.117595} \cr
-Zeebe and Lourens (2022) is an astronomical solution which can be used to anchor geological data to absolute ages.
+Zeebe, R. E., and Lourens, L. J. (2019). Solar System chaos and the
+Paleocene--Eocene boundary age constrained by geology and astronomy.
+Science, 365, 926--929. \doi{10.1126/science.aax0612}
 }
 \author{
 Michiel Arts

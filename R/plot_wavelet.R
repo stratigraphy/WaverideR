@@ -61,8 +61,8 @@
 #' By combining the shuffling of the data set with autocorrelated noise a surrogate data set is created which rejects
 #' high amplitude high frequency/short period cycles and a reduced biased towards towards rejecting the 0-hypothesis if the data was
 #' solely the result of autocorrelated noise. \code{Default=FALSE}
-#'@param pval_abline add ab-lines to the average spectral power plot which indicate certain p-values \code{Default=c(0.1,0.5)}
-#'@param pval_cutoff cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}
+#'@param pval_abline Add straight lines to the average spectral power plot which indicate certain p-values \code{Default=c(0.1,0.5)}
+#'@param pval_cutoff Cutoff p-value to be used in the transparent overlay of the wavelet scalogram \code{Default=c(0.1)}
 #'@param add_MTM Add the MTM  plot next to the wavelet plot \code{Default=FALSE}
 #'@param mtm_siglvl select the significance level  (0-1) for the MTM spectrum \code{Default=0.95}
 #'@param demean_mtm Remove mean from data before conducting the MTM analysis \code{Default=TRUE}

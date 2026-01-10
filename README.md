@@ -1,13 +1,17 @@
 # WaverideR
 
-The 'Waverider' R package uses the continuous wavelet transform to analyze cyclostratigraphic data.
-The continuous wavelet transform enables the observation of transient/non-stationary
-cyclicity in time-series. The goal of cyclostratigraphic studies is to define frequency/period
-in the depth/time domain. By conducting the continuous wavelet transform on cyclostratigraphic
-data series one can observe and extract cyclic signals/signatures from signals.
-These results can then be visualized and interpreted enabling one to identify/interpret
-cyclicity in the geological record, which can be used to construct astrochronological
-age-models and identify and interpret cyclicity in past en present climate systems.
+WaverideR is an R package for advanced cyclostratigraphic analysis of stratigraphic data sets.
+It provides a comprehensive suite of spectral tools for detecting, visualising, and tracking
+non-stationary astronomical cycles, including continuous wavelet transforms (CWT),
+the superlet transform, windowed FFT, and evolutionary harmonic analysis (EHA) (wrapper).
+These methods allow both manual and automated tracking of orbital cycles in spectra and
+scalograms, even in records affected by large changes in sedimentation rate.Building on
+this spectral framework, WaverideR supports multi-proxy integration and Monte Carlo–based
+uncertainty propagation to construct statistically robust floating and absolute astrochronological
+age models. The package includes dedicated tools to quantify analytical wavelet uncertainty,
+estimate the duration of stratigraphic gaps and hiatuses, and integrate external radioisotopic
+age constraints. Designed for complex and incomplete stratigraphic records, WaverideR enables
+investigation of the imprint of astronomical forcing even in suboptimal datasets.
 
 ## Installation
 

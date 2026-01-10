@@ -1,6 +1,6 @@
 #' @title Windowed fft based spectral analysis
 #'
-#' @description The \code{\link{win_fft}} function for conducts a windowed spectral analysis based on the fft
+#' @description The \code{\link{win_fft}} function conducts a windowed spectral analysis based using the fft
 #'
 #'@param data Input data set  should consist of a matrix with 2 columns with
 #'first column being depth and the second column being a proxy
