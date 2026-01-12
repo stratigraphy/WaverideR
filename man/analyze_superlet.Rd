@@ -32,7 +32,7 @@ Frequencies are logarithmically spaced between the limits defined by
 \item{c1}{Base number of cycles of the Morlet wavelet. Acts as the
 fundamental wavelet width.}
 
-\item{o}{Optional numeric vector of length two defining the minimum and
+\item{o}{numeric vector of length two defining the minimum and
 maximum superlet order. If NULL, all frequencies are analysed using
 order one.}
 
@@ -55,6 +55,9 @@ nr: number of frequency levels
 axis.1: x axis values (time or depth)
 axis.2: y axis values (log2 scaled periods)
 c1: base number of wavelet cycles
+o: numeric vector of length two defining the minimum and
+maximum superlet order. If NULL, all frequencies are analysed using
+order one.
 x: interpolated x values
 y: interpolated signal values
 }

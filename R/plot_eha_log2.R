@@ -82,7 +82,7 @@
 #'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 #'# data set of Steinhilber et al., (2012)
 #'
-#'TSI_eha_log2 <- function(data = TSI,
+#'TSI_eha_log2 <- eha_log2(data = TSI,
 #'win =  8192,
 #'tbw = 4,
 #'demean = TRUE,
@@ -92,7 +92,7 @@
 #'pad = NULL,
 #'padding = "noise")
 #'
-#'plot_wavelet(
+#'plot_eha_log2(
 #'eha_log2 = TSI_eha_log2,
 #'plot_opt = "Amplitude",
 #'lowerPeriod = 16,
@@ -113,8 +113,6 @@
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = FALSE,
-#'pval_abline = c(0.1, 0.05),
-#'pval_cutoff = c(0.1),
 #'add_MTM = FALSE,
 #'mtm_siglvl = 0.95,
 #'demean_mtm = TRUE,
@@ -125,7 +123,7 @@
 #'
 #'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #'#data set of Pas et al., (2018)
-#'mag_eha_log2 <- function(data = mag,
+#'mag_eha_log2 <- eha_log2(data = mag,
 #'win =  254,
 #'tbw = 4,
 #'demean = TRUE,
@@ -135,7 +133,7 @@
 #'pad = NULL,
 #'padding = "noise")
 #'
-#'plot_wavelet(
+#'plot_eha_log2(
 #'eha_log2 = mag_eha_log2,
 #'plot_opt = "Amplitude",
 #'lowerPeriod = 0.1,
@@ -156,8 +154,6 @@
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = FALSE,
-#'pval_abline = c(0.1, 0.05),
-#'pval_cutoff = c(0.1),
 #'add_MTM = FALSE,
 #'mtm_siglvl = 0.95,
 #'demean_mtm = TRUE,
@@ -169,7 +165,7 @@
 #'
 #'#Example 3. A plot of a wavelet spectra using the greyscale
 #'# data set of Zeeden et al., (2013)
-#'grey_eha_log2 <- function(data = grey,
+#'grey_eha_log2 <- eha_log2(data = grey,
 #'win =  256,
 #'tbw = 4,
 #'demean = TRUE,
@@ -180,7 +176,7 @@
 #'padding = "noise")
 #'
 #'
-#'plot_wavelet(
+#'plot_eha_log2(
 #'eha_log2 = grey_eha_log2,
 #'plot_opt = "Amplitude",
 #'lowerPeriod = 0.02,
@@ -201,8 +197,6 @@
 #'add_MTM_peaks = FALSE,
 #'add_data = TRUE,
 #'add_avg = FALSE,
-#'pval_abline = c(0.1, 0.05),
-#'pval_cutoff = c(0.1),
 #'add_MTM = FALSE,
 #'mtm_siglvl = 0.95,
 #'demean_mtm = TRUE,

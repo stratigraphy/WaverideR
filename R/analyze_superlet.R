@@ -22,7 +22,7 @@
 #' @param c1 Base number of cycles of the Morlet wavelet. Acts as the
 #' fundamental wavelet width.
 #'
-#' @param o Optional numeric vector of length two defining the minimum and
+#' @param o numeric vector of length two defining the minimum and
 #' maximum superlet order. If NULL, all frequencies are analysed using
 #' order one.
 #'
@@ -45,6 +45,9 @@
 #'axis.1: x axis values (time or depth)
 #'axis.2: y axis values (log2 scaled periods)
 #'c1: base number of wavelet cycles
+#'o: numeric vector of length two defining the minimum and
+#' maximum superlet order. If NULL, all frequencies are analysed using
+#' order one.
 #'x: interpolated x values
 #'y: interpolated signal values
 #'
@@ -326,16 +329,12 @@ analyze_superlet <- function(data,
 
   wtresult <- wtresult[nrow(wtresult):1, ]
 
-
-
   ## 11. Assemble output object
-
-  wtresult <- wtresult[nrow(wtresult):1, ]
   Periods_phys <- 1/(Freqs/dt)
   output <- list(Power = t(wtresult/Nbuffers), dt = dt, dj = Nf,
                  Power.avg = rev(rowMeans(wtresult/Nbuffers)), Period = Periods_phys,
                  nc = length(x), nr = Nf, axis.1 = x_axis, axis.2 = rev(log2(Periods_phys)),
-                 c1 = c1, x = dat[, 1], y = dat[, 2])
+                 c1 = c1,o=o, x = dat[, 1], y = dat[, 2])
   class(output) <- "analyze.superlet"
   return(invisible(output))
 }

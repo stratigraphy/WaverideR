@@ -6,7 +6,7 @@
 #'This is a wrapper function for the "eha" function of the 'astrochron' R package
 #' @param data Input data, should be a matrix or data frame in which
 #' the first column is depth or time and the second column is proxy record.
-#' @param data Window size for EHA, in units of space or time.
+#' @param win Window size for EHA, in units of space or time.
 #' @param demean	Remove mean from data series? (T or F)
 #' @param detrend	Remove linear trend from data series? (T or F)
 #' @param tbw  MTM time-bandwidth product (<=10)
@@ -41,7 +41,8 @@
 #'Object 9: prob.avg - Average probability value
 #'Object 10: f_test.avg - Average f test values
 #'Object 11: x - x values of the data set
-#'Object 2: y - y values of the data set
+#'Object 12: y - y values of the data set
+#'Object 13: window size
 #'
 #' @author
 #' Code based on on the "eha" function of the 'astrochron' R package
@@ -60,7 +61,7 @@
 #'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 #'# data set of Steinhilber et al., (2012)
 #'
-#'TSI_eha_log2 <- function(data = TSI,
+#'TSI_eha_log2 <- eha_log2(data = TSI,
 #'win =  8192,
 #'tbw = 4,
 #'demean = TRUE,
@@ -72,7 +73,7 @@
 #'
 #'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #'#data set of Pas et al., (2018)
-#'mag_eha_log2 <- function(data = mag,
+#'mag_eha_log2 <- eha_log2(data = mag,
 #'win =  254,
 #'tbw = 4,
 #'demean = TRUE,
@@ -84,7 +85,7 @@
 #'
 #'#Example 3. A plot of a wavelet spectra using the greyscale
 #'# data set of Zeeden et al., (2013)
-#'grey_eha_log2 <- function(data = grey,
+#'grey_eha_log2 <- eha_log2(data = grey,
 #'win =  256,
 #'tbw = 4,
 #'demean = TRUE,
@@ -400,7 +401,8 @@ eha_log2 <- function(data = NULL,
     prob.avg = prob.avg,
     f_test.avg = f_test.avg,
     x= data[,1],
-    y= data[,2]
+    y= data[,2],
+    win=win
   )
 
   class(output) <- "analyze.eha"

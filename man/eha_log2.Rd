@@ -17,7 +17,10 @@ eha_log2(
 )
 }
 \arguments{
-\item{data}{Window size for EHA, in units of space or time.}
+\item{data}{Input data, should be a matrix or data frame in which
+the first column is depth or time and the second column is proxy record.}
+
+\item{win}{Window size for EHA, in units of space or time.}
 
 \item{tbw}{MTM time-bandwidth product (<=10)}
 
@@ -59,7 +62,8 @@ Object 8: amp.avg -  Average amplitude values
 Object 9: prob.avg - Average probability value
 Object 10: f_test.avg - Average f test values
 Object 11: x - x values of the data set
-Object 2: y - y values of the data set
+Object 12: y - y values of the data set
+Object 13: window size
 }
 \description{
 Compute a log2 spaced Evolutive Harmonic Analysis (EHA) & Evolutive Power
