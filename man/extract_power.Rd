@@ -5,20 +5,22 @@
 \title{Extract power from a wavelet spectra}
 \usage{
 extract_power(
-  completed_series = NULL,
-  wavelet = NULL,
+  tracked_period_curve = NULL,
+  scalogram = NULL,
   period_up = 1.2,
   period_down = 0.8,
   tracked_cycle_period = NULL,
-  extract_cycle_power = NULL
+  extract_cycle_power = NULL,
+  ...
 )
 }
 \arguments{
-\item{completed_series}{Traced period result from the \code{\link{track_period_wavelet}}
+\item{tracked_period_curve}{Traced period result from the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
 function completed using the \code{\link{completed_series}}.
 The input can be pre-smoothed using the the \code{\link{loess_auto}} function.}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+or \code{\link{track_period}} function.}
 
 \item{period_up}{Upper period as a factor of the to be extracted power \code{Default=1.2}.}
 
@@ -31,6 +33,8 @@ unit (either depth or time domain).}
 \item{extract_cycle_power}{Period of the cycle for which the power will be
 extracted (make sure that \code{extract_cycle_power}) and
 \code{tracked_cycle_period}) are of the same unit (either depth or time domain).}
+
+\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
 }
 \value{
 Returns a matrix with 3 columns.
@@ -74,7 +78,7 @@ mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
   wavelet = mag_wt,
-  tracked_curve = mag_track,
+  tracked_period_curve = mag_track,
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,
@@ -88,8 +92,8 @@ genplot = FALSE, print_span = FALSE)
 
 #extract the spectral power of the 405 kyr eccentricity cycle
 mag_power <- extract_power(
-completed_series = mag_track_complete,
-wavelet = mag_wt,
+tracked_period_curve = mag_track_complete,
+scalogram = mag_wt,
 period_up = 1.2,
 period_down = 0.8,
 tracked_cycle_period = 405,

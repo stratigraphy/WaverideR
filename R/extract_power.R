@@ -9,10 +9,11 @@
 #'The traced period result from the \code{\link{track_period_wavelet}}
 #'function with boundaries is used to extract spectral power in the depth domain from a wavelet spectra.
 #'
-#'@param completed_series Traced period result from the \code{\link{track_period_wavelet}}
+#'@param tracked_period_curve Traced period result from the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
 #'function completed using the \code{\link{completed_series}}.
 #'The input can be pre-smoothed using the the \code{\link{loess_auto}} function.
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param scalogram Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+#'or \code{\link{track_period}} function.
 #'@param period_up Upper period as a factor of the to be extracted power \code{Default=1.2}.
 #'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
 #'@param tracked_cycle_period Period of the tracked cycle (make sure that
@@ -71,7 +72,7 @@
 #'
 #' mag_track_complete <- completed_series(
 #'   wavelet = mag_wt,
-#'   tracked_curve = mag_track,
+#'   tracked_period_curve = mag_track,
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
@@ -85,8 +86,8 @@
 #'
 #'#extract the spectral power of the 405 kyr eccentricity cycle
 #'mag_power <- extract_power(
-#'completed_series = mag_track_complete,
-#'wavelet = mag_wt,
+#'tracked_period_curve = mag_track_complete,
+#'scalogram = mag_wt,
 #'period_up = 1.2,
 #'period_down = 0.8,
 #'tracked_cycle_period = 405,
@@ -103,33 +104,62 @@
 #' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
 
-extract_power <- function(completed_series = NULL,
-                          wavelet = NULL,
+#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+
+
+
+
+
+extract_power <- function(tracked_period_curve = NULL,
+                          scalogram = NULL,
                           period_up = 1.2,
                           period_down = 0.8,
                           tracked_cycle_period = NULL,
-                          extract_cycle_power = NULL) {
-  my.data <- cbind(wavelet$x, wavelet$y)
-  my.w <- wavelet
+                          extract_cycle_power = NULL,...) {
+
+  dots <- list(...)
+
+
+  # Alias: wavelet -> scalogram
+  if (is.null(scalogram) && !is.null(dots$wavelet)) {
+    scalogram <- dots$wavelet
+  }
+
+  # Alias: completed_series -> tracked_period_curve
+  if (is.null(tracked_period_curve) && !is.null(dots$completed_series)) {
+    tracked_period_curve <- dots$completed_series
+  }
+
+
+  my.w <- scalogram
+  my.data <- cbind(scalogram$x, scalogram$y)
+
+  if(inherits(scalogram,"analyze.superlet") == TRUE){
+    Power <- t(my.w$Power)}
+  if(inherits(scalogram,"analyze.wavelet") == TRUE ){
+    Power <- my.w$Power}
+
+
+  my.data <- cbind(scalogram$x, scalogram$y)
+  my.w <- scalogram
   filtered_power <- my.data[, 1]
   filtered_power <- as.data.frame(filtered_power)
   filtered_power$value <- NA
 
 
-  completed_series[, 2] <-
-    completed_series[, 2] * (extract_cycle_power / tracked_cycle_period)
-  completed_series <- na.omit(completed_series)
+  tracked_period_curve[, 2] <-
+    tracked_period_curve[, 2] * (extract_cycle_power / tracked_cycle_period)
+  tracked_period_curve <- na.omit(tracked_period_curve)
 
   app <-
     approxExtrap(
-      x = completed_series[, 1],
-      y = completed_series[, 2],
+      x = tracked_period_curve[, 1],
+      y = tracked_period_curve[, 2],
       xout = my.data[, 1],
       method = "linear"
     )
   interpolated <- cbind(app$x, app$y)
 
-  Power = my.w$Power
   Period = my.w$Period
 
 
@@ -156,5 +186,15 @@ extract_power <- function(completed_series = NULL,
   filtered_power$pwr_div_total <-
     filtered_power[, 2] / filtered_power[, 3]
 
+  colnames(filtered_power) <- c("x_axis","sum_pwr","total_pwr","pwr_div_total")
+
   return(filtered_power)
 }
+
+
+
+
+
+
+
+

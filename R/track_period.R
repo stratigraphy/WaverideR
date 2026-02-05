@@ -266,7 +266,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       abline(h = add_abline_h)
     }
     par(new = FALSE, mar = c(4, 4, 0, 0), xpd = FALSE)
-    if (inherits(scalogram) == "analyze.wavelet"){
+    if (inherits(scalogram,"analyze.wavelet") == TRUE ){
       image(x = scalogram$x, y = scalogram$axis.2, z = t(scalogram$Power),
             col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
             ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
@@ -375,7 +375,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     }
   }
 
-  if(inherits(scalogram) == "analyze.superlet"){
+  if(inherits(scalogram,"analyze.superlet") == TRUE){
     image(x = scalogram$x, y = scalogram$axis.2, z = (scalogram$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
@@ -518,7 +518,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     }
 
     par(new = FALSE, mar = c(4, 0, 0, 2), xpd = FALSE)
-    if(inherits(scalogram) == "analyze.wavelet"){
+    if(inherits(scalogram, "analyze.wavelet") == TRUE){
 
       image(y = scalogram$x, x = scalogram$axis.2, z = (scalogram$Power),
             col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
@@ -541,7 +541,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
 
 
     }
-    if(inherits(scalogram) == "analyze.superlet"){
+    if(inherits(scalogram, "analyze.superlet") == TRUE){
       image(
         y = scalogram$x,
         x = scalogram$axis.2,
@@ -586,9 +586,9 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       abline(v = log2(add_abline_v))
     }
     if (track_peaks == TRUE) {
-      if(inherits(scalogram) == "analyze.superlet"){
+      if(inherits(scalogram,"analyze.superlet") == TRUE ){
         Pwert <- t(scalogram$Power)}
-      if(inherits(scalogram) == "analyze.wavelet"){
+      if(inherits(scalogram,"analyze.wavelet") == TRUE){
         Pwert <- scalogram$Power
 
 

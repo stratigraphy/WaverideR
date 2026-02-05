@@ -41,9 +41,6 @@ value is used instead. between spectral peaks \code{Default=0.8},}
 the black curve is the original curve.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
-
-\item{...}{Optional named arguments
-Currently supports \code{wavelet} as an alias for \code{scalogram} for backwards compatabillity.}
 }
 \value{
 Returns a matrix with 2 columns

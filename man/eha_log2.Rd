@@ -75,7 +75,7 @@ This is a wrapper function for the "eha" function of the 'astrochron' R package
 #Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
 # data set of Steinhilber et al., (2012)
 
-TSI_eha_log2 <- function(data = TSI,
+TSI_eha_log2 <- eha_log2(data = TSI,
 win =  8192,
 tbw = 4,
 demean = TRUE,
@@ -87,7 +87,7 @@ padding = "noise")
 
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
-mag_eha_log2 <- function(data = mag,
+mag_eha_log2 <- eha_log2(data = mag,
 win =  254,
 tbw = 4,
 demean = TRUE,
@@ -99,7 +99,7 @@ padding = "noise")
 
 #Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
-grey_eha_log2 <- function(data = grey,
+grey_eha_log2 <- eha_log2(data = grey,
 win =  256,
 tbw = 4,
 demean = TRUE,

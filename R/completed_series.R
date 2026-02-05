@@ -31,8 +31,6 @@
 #'@param genplot Generate a plot \code{Default=TRUE}. The red curve is the completed curve,
 #'the black curve is the original curve.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param ... Optional named arguments
-#' Currently supports \code{wavelet} as an alias for \code{scalogram} for backwards compatabillity.
 #'@examples
 #'\donttest{
 #'#Use the grey_track example points to complete the tracking of the
@@ -97,9 +95,9 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
   my.w <- scalogram
   my.data <- cbind(scalogram$x, scalogram$y)
 
-  if(inherits(scalogram) == "analyze.superlet"){
+  if(inherits(scalogram,"analyze.superlet") == TRUE){
     Pwert <- t(my.w$Power)}
-  if(inherits(scalogram) == "analyze.wavelet"){
+  if(inherits(scalogram,"analyze.wavelet") == TRUE ){
     Pwert <- my.w$Power}
 
   maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
@@ -132,9 +130,9 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
   app <- as.data.frame(cbind(app$x, app$y))
 
 
-  if(inherits(scalogram) == "analyze.superlet"){
+  if(inherits(scalogram,"analyze.superlet") == TRUE){
     periods <- as.data.frame(rev(my.w$Period))}
-  if(inherits(scalogram) == "analyze.wavelet"){
+  if(inherits(scalogram,"analyze.wavelet") == TRUE ){
     periods <- as.data.frame(my.w$Period)}
   completed_series <- matrix(data = NA,
                              nrow = nrow(app[, ]),

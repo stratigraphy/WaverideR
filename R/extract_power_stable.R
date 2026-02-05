@@ -9,7 +9,8 @@
 #'function for a given, \code{cycle}, \code{period_up} and \code{period_down}
 #'
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param scalogram Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+#'or \code{\link{track_period}} function
 #'@param cycle Period of cycle for which the power will be extracted from the record.
 #'@param period_up Species the upper period of the to be extracted power \code{Default=1.2}.
 #'@param period_down specifies the lower period of the to be extracted power \code{Default=0.8}.
@@ -49,7 +50,7 @@
 #'    omega_nr = 6
 #'  )
 #'TSI_wt_pwr_de_Vries_cycle <-  extract_power_stable(
-#'  wavelet = TSI_wt,
+#'  scalogram = TSI_wt,
 #'  cycle = 210,
 #'  period_up = 1.2,
 #'  period_down = 0.8
@@ -65,25 +66,41 @@
 #' @export
 #' @importFrom DescTools Closest
 
-extract_power_stable <- function(wavelet = NULL,
+extract_power_stable <- function(scalogram = NULL,
                                  cycle = NULL,
                                  period_up = 1.2,
-                                 period_down = 0.8) {
-  Period <- as.data.frame(wavelet$Period)
+                                 period_down = 0.8,...) {
+  # Alias: wavelet -> scalogram
+  if (is.null(scalogram) && !is.null(dots$wavelet)) {
+    scalogram <- dots$wavelet
+  }
+
+  my.w <- scalogram
+  my.data <- cbind(scalogram$x, scalogram$y)
+
+  Period <- as.data.frame(my.w$Period)
   extract_power_high <- cycle * period_up
   extract_power_low <- cycle * period_down
   low_rownr <- Closest(Period[, 1], extract_power_low, which = TRUE)
   high_rownr <-
     Closest(Period[, 1], extract_power_high, which = TRUE)
-  Power <- as.data.frame(wavelet$Power)
+
+  if(inherits(scalogram,"analyze.superlet") == TRUE){
+    Power <- t(my.w$Power)}
+  if(inherits(scalogram,"analyze.wavelet") == TRUE ){
+    Power <- my.w$Power}
+
   Power_sel <- Power[(low_rownr:high_rownr),]
   Power_sel <- as.data.frame(colSums(Power_sel))
-  filtered_power <- cbind(wavelet$axis.1 , Power_sel)
+  filtered_power <- cbind(my.w$axis.1 , Power_sel)
   filtered_power <- as.data.frame(filtered_power)
   total_pwr <- colSums(Power, na.rm = TRUE)
   filtered_power$total <- total_pwr
   filtered_power$pwr_div_total <-
     filtered_power[, 2] / filtered_power[, 3]
+
+  colnames(filtered_power) <- c("x_axis","sum_pwr","total_pwr","pwr_div_total")
+
   return(filtered_power)
 
 }

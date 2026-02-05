@@ -5,14 +5,16 @@
 \title{Extract power from a wavelet spectra by using a constant period/duration}
 \usage{
 extract_power_stable(
-  wavelet = NULL,
+  scalogram = NULL,
   cycle = NULL,
   period_up = 1.2,
-  period_down = 0.8
+  period_down = 0.8,
+  ...
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+or \code{\link{track_period}} function}
 
 \item{cycle}{Period of cycle for which the power will be extracted from the record.}
 
@@ -49,7 +51,7 @@ TSI_wt <-
    omega_nr = 6
  )
 TSI_wt_pwr_de_Vries_cycle <-  extract_power_stable(
- wavelet = TSI_wt,
+ scalogram = TSI_wt,
  cycle = 210,
  period_up = 1.2,
  period_down = 0.8
