@@ -1,4 +1,4 @@
-#' @title Conduct the superlet transform on a time series or signal
+#' @title Conduct the cross superlet transform on a time series or signal
 #'
 #' @description
 #' Compute the cross superlet transform using a complex Morlet wavelet based on

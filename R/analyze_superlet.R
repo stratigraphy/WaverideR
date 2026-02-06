@@ -4,7 +4,8 @@
 #' Compute the superlet transform using a complex Morlet wavelet following
 #' the approach of Moca et al. (2021). The superlet transform increases
 #' time frequency resolution by combining multiple wavelet orders at each
-#' frequency.
+#' frequency. Both the frequency sampling and the scaling of superlet order
+#' with frequency can be explicitly controlled.
 #'
 #' @param data Input data as a matrix or data frame. The first column must
 #' represent depth or time, and the second column the signal or proxy record.
@@ -16,19 +17,29 @@
 #' analysed frequency.
 #'
 #' @param Nf Number of frequencies used to construct the superlet spectrum.
-#' Frequencies are logarithmically spaced between the limits defined by
-#' \code{upperPeriod} and \code{lowerPeriod}.
+#'
+#' @param freq.scale Character string defining how frequencies are sampled.
+#' One of \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
+#' Default is \code{"log2"}, following the original superlet formulation.
 #'
 #' @param c1 Base number of cycles of the Morlet wavelet. Acts as the
 #' fundamental wavelet width.
 #'
 #' @param o numeric vector of length two defining the minimum and
-#' maximum superlet order. If NULL, all frequencies are analysed using
-#' order one.
+#' maximum superlet order.
 #'
 #' @param mult Logical. If TRUE, the number of cycles increases
 #' multiplicatively with superlet order. If FALSE, cycles increase
 #' additively.
+#'
+#' @param scaling Character string defining how the number of wavelet
+#' cycles varies with scale. One of
+#' \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
+#' or \code{"power"}.
+#'
+#' @param alpha Numeric. Exponent used when \code{scaling = "power"}.
+#' Values greater than one emphasize high frequency sharpening, whereas
+#' values smaller than one emphasize low frequency sharpening.
 #'
 #' @param verbose Logical. If TRUE, print progress and interpolation
 #' information.
@@ -48,6 +59,8 @@
 #'o: numeric vector of length two defining the minimum and
 #' maximum superlet order. If NULL, all frequencies are analysed using
 #' order one.
+#' freq.scale: scaling of the frequencies
+#' order.mode: order.mode ("none", "log2", "linear", "sqrt", "power")
 #'x: interpolated x values
 #'y: interpolated signal values
 #'
@@ -62,7 +75,7 @@
 #'
 #' @examples
 #' \donttest{
-#'#' ## Example 1. Using the Total Solar Irradiance data set of Steinhilber et al. (2012)
+#' ## Example 1. Using the Total Solar Irradiance data set of Steinhilber et al. (2012)
 #' TSI_sl <-
 #'   analyze_superlet(
 #'     data = TSI,
@@ -72,6 +85,8 @@
 #'     c1 = 2,
 #'     o = c(1, 5),
 #'     mult = TRUE,
+#'     order_scaling = "log2",
+#'     order_alpha = 1,
 #'     verbose = FALSE
 #'   )
 #'
@@ -86,6 +101,8 @@
 #'     c1 = 2,
 #'     o = c(1, 5),
 #'     mult = TRUE,
+#'     order_scaling = "log2",
+#'     order_alpha = 1,
 #'     verbose = FALSE
 #'   )
 #'
@@ -100,8 +117,9 @@
 #'     c1 = 2,
 #'     o = c(2,5),
 #'     mult = TRUE,
-#'     verbose = FALSE
-#'   )
+#'     order_scaling = "log2",
+#'     order_alpha = 1,
+#'     verbose = FALSE)
 #' }
 #'
 #' @export
@@ -110,11 +128,27 @@
 #' @importFrom stats fft
 #' @importFrom stats fft
 
-analyze_superlet <- function(data, upperPeriod, lowerPeriod, Nf, c1, o = NULL,
-                             mult = TRUE, verbose = FALSE) {
+analyze_superlet <- function(data,
+                             upperPeriod,
+                             lowerPeriod,
+                             Nf,
+                             c1,
+                             o = NULL,
+                             mult = TRUE,
+                             order_scaling = "log2",
+                             order_alpha = 1,
+                             verbose = FALSE) {
+
+  order_scaling <- match.arg(order_scaling)
+
+
+  ## 1. Basic setup and data preparation
+
+
   Fs <- 1
-  lower_freq <- 1/upperPeriod
-  upper_freq <- 1/lowerPeriod
+  lower_freq <- 1 / upperPeriod
+  upper_freq <- 1 / lowerPeriod
+
   dat <- as.matrix(data)
   dat <- na.omit(dat)
   dat <- dat[order(dat[, 1], na.last = NA, decreasing = FALSE), ]
@@ -122,13 +156,22 @@ analyze_superlet <- function(data, upperPeriod, lowerPeriod, Nf, c1, o = NULL,
   npts <- length(dat[, 1])
   dx <- dat[2:npts, 1] - dat[1:(npts - 1), 1]
   dt <- median(dx)
+
   xout <- seq(from = dat[1, 1], to = dat[npts, 1], by = dt)
   interp <- approx(dat[, 1], dat[, 2], xout, method = "linear")
   dat <- as.data.frame(interp)
 
+  if (verbose) {
+    cat("Dataset interpolated to spacing:", round(dt, 10), "\n")
+  }
+
   x_axis <- dat[, 1]
   input <- dat[, 2]
   Npoints <- length(input)
+
+
+  ## 2. Frequency grid
+
 
   Fi <- c(lower_freq * dt, upper_freq * dt)
   if (Fi[1] > Fi[2]) Fi <- rev(Fi)
@@ -136,63 +179,119 @@ analyze_superlet <- function(data, upperPeriod, lowerPeriod, Nf, c1, o = NULL,
   log2_Freqs <- seq(log2(Fi[1]), log2(Fi[2]), length.out = Nf)
   Freqs <- 2^log2_Freqs
 
-  if (!is.null(o)) {
-    order_frac <- seq(o[1], o[2], length.out = Nf)
-    order_int <- ceiling(order_frac)
+  ## Normalised frequency coordinate (0–1)
+  u <- (log2(Freqs) - min(log2(Freqs))) /
+    (max(log2(Freqs)) - min(log2(Freqs)))
+
+
+  ## 3. Superlet order definition with explicit scaling
+
+
+  if (is.null(o) || order_scaling == "none") {
+
+    order_frac <- rep(ifelse(is.null(o), 1, o[1]), Nf)
+
   } else {
-    order_frac <- rep(1, Nf); order_int <- rep(1, Nf)
+
+    if (order_scaling == "linear") {
+      u_eff <- (Freqs - min(Freqs)) / (max(Freqs) - min(Freqs))
+    } else {
+      u_eff <- u  # log2-based default
+    }
+
+    if (order_scaling == "sqrt") {
+      u_eff <- sqrt(u_eff)
+    }
+
+    if (order_scaling == "power") {
+      u_eff <- u_eff^order_alpha
+    }
+
+    order_frac <- o[1] + u_eff * (o[2] - o[1])
   }
 
+  order_int <- ceiling(order_frac)
+
+
+  ## 4. Complex Morlet wavelet
+
+
   cxmorlet <- function(Fc, Nc, Fs) {
-    sd <- (Nc/2) * abs(1/Fc)/2.5
-    wl <- 2 * floor((6 * sd * Fs)/2) + 1
-    off <- floor(wl/2)
-    t <- (seq_len(wl) - 1 - off)/Fs
-    g <- exp(-(t^2)/(2 * sd^2))/(sd * sqrt(2 * pi))
-    w <- g * exp((0+2i) * pi * Fc * t)
-    w/sum(g)
+    sd <- (Nc / 2) * abs(1 / Fc) / 2.5
+    wl <- 2 * floor((6 * sd * Fs) / 2) + 1
+    off <- floor(wl / 2)
+    t <- (seq_len(wl) - 1 - off) / Fs
+    g <- exp(-(t^2) / (2 * sd^2)) / (sd * sqrt(2 * pi))
+    w <- g * exp(2i * pi * Fc * t)
+    w / sum(g)
   }
+
+
+  ## 5. Precompute wavelets
+
 
   wavelets <- vector("list", Nf)
   padding <- 0
   max_wl <- 0
+
   for (i_freq in seq_len(Nf)) {
+
     wavelets[[i_freq]] <- vector("list", order_int[i_freq])
+
     for (i_ord in seq_len(order_int[i_freq])) {
+
       n_cyc <- if (mult) i_ord * c1 else i_ord + c1
       w <- cxmorlet(-Freqs[i_freq], n_cyc, Fs)
+
       wavelets[[i_freq]][[i_ord]] <- list(wlen = length(w), w = w)
-      padding <- max(padding, floor(length(w)/2))
+
+      padding <- max(padding, floor(length(w) / 2))
       max_wl <- max(max_wl, length(w))
     }
   }
 
+
+  ## 6. FFT preparation
+
+
   nfft <- 2^ceiling(log2(Npoints + 2 * padding + max_wl))
-  inv_nfft <- 1/nfft
+  inv_nfft <- 1 / nfft
 
   for (i_freq in seq_len(Nf)) {
     for (i_ord in seq_len(order_int[i_freq])) {
+
       w <- wavelets[[i_freq]][[i_ord]]$w
       hpad <- complex(nfft)
       hpad[seq_along(w)] <- rev(Conj(w))
+
       wavelets[[i_freq]][[i_ord]]$fft <- fft(hpad)
-      center <- (length(w) + 1)/2
-      wavelets[[i_freq]][[i_ord]]$idx <- (center + padding):(center + padding + Npoints - 1)
+
+      center <- (length(w) + 1) / 2
+      wavelets[[i_freq]][[i_ord]]$idx <-
+        (center + padding):(center + padding + Npoints - 1)
+
       wavelets[[i_freq]][[i_ord]]$w <- NULL
     }
   }
 
+
+  ## 7. Superlet transform
+
+
   wave_mat <- matrix(0, nrow = Nf, ncol = Npoints)
+
   xpad <- complex(nfft)
   xpad[(padding + 1):(padding + Npoints)] <- input
   X <- fft(xpad)
 
   for (i_freq in seq_len(Nf)) {
+
     n_wavelets <- floor(order_frac[i_freq])
     frac <- order_frac[i_freq] - n_wavelets
     geometric_mean <- rep(1 + 0i, Npoints)
 
     for (i_ord in seq_len(order_int[i_freq])) {
+
       wf <- wavelets[[i_freq]][[i_ord]]
       res <- fft(X * wf$fft, inverse = TRUE)[wf$idx] * inv_nfft
 
@@ -202,19 +301,42 @@ analyze_superlet <- function(data, upperPeriod, lowerPeriod, Nf, c1, o = NULL,
         geometric_mean <- geometric_mean * (res^frac)
       }
     }
-    wave_mat[i_freq, ] <- geometric_mean^(1/order_frac[i_freq])
+
+    wave_mat[i_freq, ] <- geometric_mean^(1 / order_frac[i_freq])
   }
 
+
+  ## 8. Output
+
+
   wave_mat <- wave_mat[nrow(wave_mat):1, ]
-  Periods_phys <- 1/(Freqs/dt)
+
+  Periods_phys <- 1 / (Freqs / dt)
   Periods_phys <- rev(Periods_phys)
 
-  output <- list(Wave = wave_mat, Power = t(Mod(wave_mat)^2), dt = dt, dj = 1/Nf,
-                 Scale = Periods_phys, Period = Periods_phys, nc = Npoints, nr = Nf,
-                 axis.1 = x_axis, axis.2 = log2(Periods_phys), x = x_axis, y = input)
+  output <- list(
+    Wave = wave_mat,
+    Power = t(Mod(wave_mat)^2),
+    dt = dt,
+    dj = 1 / Nf,
+    Period = Periods_phys,
+    Scale = Periods_phys,
+    nc = Npoints,
+    nr = Nf,
+    axis.1 = x_axis,
+    axis.2 = log2(Periods_phys),
+    c1 = c1,
+    o = o,
+    order_scaling = order_scaling,
+    order_alpha = order_alpha,
+    x = x_axis,
+    y = input
+  )
+
   class(output) <- "analyze.superlet"
   return(output)
 }
+
 
 
 

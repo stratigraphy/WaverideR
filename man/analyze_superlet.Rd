@@ -12,6 +12,8 @@ analyze_superlet(
   c1,
   o = NULL,
   mult = TRUE,
+  order_scaling = "log2",
+  order_alpha = 1,
   verbose = FALSE
 )
 }
@@ -25,16 +27,13 @@ analysed frequency.}
 \item{lowerPeriod}{Minimum period to be analysed. Controls the highest
 analysed frequency.}
 
-\item{Nf}{Number of frequencies used to construct the superlet spectrum.
-Frequencies are logarithmically spaced between the limits defined by
-\code{upperPeriod} and \code{lowerPeriod}.}
+\item{Nf}{Number of frequencies used to construct the superlet spectrum.}
 
 \item{c1}{Base number of cycles of the Morlet wavelet. Acts as the
 fundamental wavelet width.}
 
 \item{o}{numeric vector of length two defining the minimum and
-maximum superlet order. If NULL, all frequencies are analysed using
-order one.}
+maximum superlet order.}
 
 \item{mult}{Logical. If TRUE, the number of cycles increases
 multiplicatively with superlet order. If FALSE, cycles increase
@@ -42,6 +41,19 @@ additively.}
 
 \item{verbose}{Logical. If TRUE, print progress and interpolation
 information.}
+
+\item{freq.scale}{Character string defining how frequencies are sampled.
+One of \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
+Default is \code{"log2"}, following the original superlet formulation.}
+
+\item{scaling}{Character string defining how the number of wavelet
+cycles varies with scale. One of
+\code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
+or \code{"power"}.}
+
+\item{alpha}{Numeric. Exponent used when \code{scaling = "power"}.
+Values greater than one emphasize high frequency sharpening, whereas
+values smaller than one emphasize low frequency sharpening.}
 }
 \value{
 A list with class \code{"analyze.superlet"} containing
@@ -58,6 +70,8 @@ c1: base number of wavelet cycles
 o: numeric vector of length two defining the minimum and
 maximum superlet order. If NULL, all frequencies are analysed using
 order one.
+freq.scale: scaling of the frequencies
+order.mode: order.mode ("none", "log2", "linear", "sqrt", "power")
 x: interpolated x values
 y: interpolated signal values
 }
@@ -65,11 +79,12 @@ y: interpolated signal values
 Compute the superlet transform using a complex Morlet wavelet following
 the approach of Moca et al. (2021). The superlet transform increases
 time frequency resolution by combining multiple wavelet orders at each
-frequency.
+frequency. Both the frequency sampling and the scaling of superlet order
+with frequency can be explicitly controlled.
 }
 \examples{
 \donttest{
-#' ## Example 1. Using the Total Solar Irradiance data set of Steinhilber et al. (2012)
+## Example 1. Using the Total Solar Irradiance data set of Steinhilber et al. (2012)
 TSI_sl <-
   analyze_superlet(
     data = TSI,
@@ -79,6 +94,8 @@ TSI_sl <-
     c1 = 2,
     o = c(1, 5),
     mult = TRUE,
+    order_scaling = "log2",
+    order_alpha = 1,
     verbose = FALSE
   )
 
@@ -93,6 +110,8 @@ mag_sl <-
     c1 = 2,
     o = c(1, 5),
     mult = TRUE,
+    order_scaling = "log2",
+    order_alpha = 1,
     verbose = FALSE
   )
 
@@ -107,8 +126,9 @@ grey_sl <-
     c1 = 2,
     o = c(2,5),
     mult = TRUE,
-    verbose = FALSE
-  )
+    order_scaling = "log2",
+    order_alpha = 1,
+    verbose = FALSE)
 }
 
 }
