@@ -12,7 +12,7 @@ analyze_superlet(
   c1,
   o = NULL,
   mult = TRUE,
-  order_scaling = "log2",
+  order_scaling = c("none", "log2", "linear", "sqrt", "power"),
   order_alpha = 1,
   verbose = FALSE
 )
@@ -43,8 +43,8 @@ additively.}
 information.}
 
 \item{freq.scale}{Character string defining how frequencies are sampled.
-One of \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
-Default is \code{"log2"}, following the original superlet formulation.}
+One of  \code{"none"}, \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
+Default is \code{"log2"} , following the original superlet formulation.}
 
 \item{scaling}{Character string defining how the number of wavelet
 cycles varies with scale. One of

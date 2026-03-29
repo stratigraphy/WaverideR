@@ -13,6 +13,8 @@ analyze_Xsuperlet(
   c1 = 3,
   o = c(1, 10),
   mult = TRUE,
+  order_scaling = "log2",
+  order_alpha = 1,
   verbose = FALSE
 )
 }
@@ -46,6 +48,15 @@ additively.}
 
 \item{verbose}{Logical. If TRUE, print progress and interpolation
 information.}
+
+\item{scaling}{Character string defining how the number of wavelet
+cycles varies with scale. One of
+\code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
+or \code{"power"}.}
+
+\item{alpha}{Numeric. Exponent used when \code{scaling = "power"}.
+Values greater than one emphasize high frequency sharpening, whereas
+values smaller than one emphasize low frequency sharpening.}
 }
 \value{
 A list with class \code{"analyze.Xsuperlet"} containing
@@ -125,6 +136,8 @@ Xetp <- analyze_Xsuperlet(
  c1 = 3,
  o = c(1, 10),
  mult = TRUE,
+ order_scaling = "log2",
+ order_alpha = 1,
  verbose = FALSE
 )
 

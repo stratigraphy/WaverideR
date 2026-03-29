@@ -41,8 +41,6 @@ plot_Xsuperlet(
 
 \item{upperPeriod}{Highest period value which will be plotted}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
-
 \item{palette_name}{Name of the color palette which is used for plotting.
 The color palettes than can be chosen depends on which the R package is specified in
 the color_brewer parameter. The included R packages from which palettes can be chosen
@@ -59,11 +57,19 @@ The R package 'colorRamps' has the color palette options:"blue2green",
 The R package 'grDevices' has the built in  palette options:"rainbow",
 "heat.colors", "terrain.colors","topo.colors" and "cm.colors"
 To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+the grDevices::hcl.pals() function
+The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
+“bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
+”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
+“hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
+”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
+”vik”,”vikO”
+The R package 'Viridis' has the color palette options: “magma”, “plasma”,
+“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”}
 
 \item{color_brewer}{Name of the R package from which the color palette is chosen from.
 The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
 

@@ -33,6 +33,15 @@
 #' multiplicatively with superlet order. If FALSE, cycles increase
 #' additively.
 #'
+#' @param scaling Character string defining how the number of wavelet
+#' cycles varies with scale. One of
+#' \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
+#' or \code{"power"}.
+#'
+#' @param alpha Numeric. Exponent used when \code{scaling = "power"}.
+#' Values greater than one emphasize high frequency sharpening, whereas
+#' values smaller than one emphasize low frequency sharpening.
+#'
 #' @param verbose Logical. If TRUE, print progress and interpolation
 #' information.
 #'
@@ -117,6 +126,8 @@
 #'  c1 = 3,
 #'  o = c(1, 10),
 #'  mult = TRUE,
+#'  order_scaling = "log2",
+#'  order_alpha = 1,
 #'  verbose = FALSE
 #')
 #'
@@ -135,6 +146,8 @@ analyze_Xsuperlet <- function(data_1 = NULL,
                               c1 = 3,
                               o = c(1, 10),
                               mult = TRUE,
+                              order_scaling = "log2",
+                              order_alpha = 1,
                               verbose = FALSE) {
   data_1 <- data_1[order(data_1[, 1]), ]
   data_2 <- data_2[order(data_2[, 1]), ]

@@ -186,7 +186,7 @@ analyze_xwavelet <- function(
     Scale = Scale,
     Period = wt1$Period,
     nc = nc,
-    nr = Nf,
+    nr = nr,
     axis.1 = wt1$axis.1,
     axis.2 = wt1$axis.2,
     omega_nr = omega_nr,

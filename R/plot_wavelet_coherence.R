@@ -23,9 +23,17 @@
 #'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
 #'To see even more color palette options of the The R pacakge 'grDevices' run
 #'the grDevices::hcl.pals() function
+#'The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
+#' “bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
+#' ”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
+#' “hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
+#' ”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
+#' ”vik”,”vikO”
+#'The R package 'Viridis' has the color palette options: “magma”, “plasma”,
+#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'@param color_brewer Name of the R package from which the color palette is chosen from.
 #'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+#'are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
 #'@param useRaster Plot as a raster or vector image \code{Default=TRUE}.
@@ -208,6 +216,7 @@
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
+#' @importFrom scico scico
 
 plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upperPeriod = NULL,
                            n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
@@ -260,6 +269,19 @@ plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upper
                              alpha = NULL, rev = FALSE, fixup = TRUE)
     }
   }
+
+  if (color_brewer== "scico"){
+    color_brewer_Sel <- paste(
+      "scico::scico(n = n.levels, palette = '",
+      palette_name,
+      "', direction = -1)",
+      sep = ""
+    )
+    key.cols = rev(eval(parse(text = color_brewer_Sel)))
+  }
+
+
+
   if (color_brewer == "viridis") {
     color_brewer_Sel <- paste("viridis::", palette_name,
                               "(n=n.levels,direction = -1)")

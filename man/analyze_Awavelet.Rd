@@ -12,7 +12,7 @@ analyze_Awavelet(
   verbose = FALSE,
   omega_min = 6,
   omega_max = 12,
-  scaling = "log2",
+  scaling = c("none", "log2", "linear", "sqrt", "quadratic", "power"),
   alpha = 1,
   n_simulations = 10,
   run_multicore = FALSE

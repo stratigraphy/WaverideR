@@ -139,6 +139,7 @@
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
+#' @importFrom scico scico
 
 plot_win_timeOpt <- function(win_timeOpt_result = NULL,
                              proxy_name= NULL,

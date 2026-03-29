@@ -19,8 +19,8 @@
 #' @param Nf Number of frequencies used to construct the superlet spectrum.
 #'
 #' @param freq.scale Character string defining how frequencies are sampled.
-#' One of \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
-#' Default is \code{"log2"}, following the original superlet formulation.
+#' One of  \code{"none"}, \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
+#' Default is \code{"log2"} , following the original superlet formulation.
 #'
 #' @param c1 Base number of cycles of the Morlet wavelet. Acts as the
 #' fundamental wavelet width.
@@ -135,7 +135,7 @@ analyze_superlet <- function(data,
                              c1,
                              o = NULL,
                              mult = TRUE,
-                             order_scaling = "log2",
+                             order_scaling = c("none", "log2", "linear", "sqrt", "power"),
                              order_alpha = 1,
                              verbose = FALSE) {
 
@@ -187,30 +187,33 @@ analyze_superlet <- function(data,
   ## 3. Superlet order definition with explicit scaling
 
 
-  if (is.null(o) || order_scaling == "none") {
+  if (is.null(o)) o <- c(1, 1)  # default if o is not provided
 
-    order_frac <- rep(ifelse(is.null(o), 1, o[1]), Nf)
-
+  if (order_scaling == "none") {
+    # constant / user-defined range applied directly
+    # linearly interpolate orders from o[1] to o[2] across Nf frequencies
+    order_frac <- seq(from = o[1], to = o[2], length.out = Nf) * c1
   } else {
-
+    # adaptive scaling
     if (order_scaling == "linear") {
       u_eff <- (Freqs - min(Freqs)) / (max(Freqs) - min(Freqs))
     } else {
-      u_eff <- u  # log2-based default
+      u_eff <- (log2(Freqs) - min(log2(Freqs))) /
+        (max(log2(Freqs)) - min(log2(Freqs)))
     }
 
-    if (order_scaling == "sqrt") {
-      u_eff <- sqrt(u_eff)
-    }
-
-    if (order_scaling == "power") {
-      u_eff <- u_eff^order_alpha
-    }
+    if (order_scaling == "sqrt") u_eff <- sqrt(u_eff)
+    if (order_scaling == "power") u_eff <- u_eff^order_alpha
 
     order_frac <- o[1] + u_eff * (o[2] - o[1])
   }
 
+
   order_int <- ceiling(order_frac)
+
+  # Fc <- ifelse(Fc == 0, 1e-10, Fc)
+  # wl <- max(1, 2 * floor((6 * sd * Fs) / 2) + 1)
+  # w <- cxmorlet(abs(Freqs[i_freq]), n_cyc, Fs)
 
 
   ## 4. Complex Morlet wavelet
@@ -320,6 +323,7 @@ analyze_superlet <- function(data,
     dt = dt,
     dj = 1 / Nf,
     Period = Periods_phys,
+    Power.avg = rowMeans((Mod(wave_mat)^2)),
     Scale = Periods_phys,
     nc = Npoints,
     nr = Nf,

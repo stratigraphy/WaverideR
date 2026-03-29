@@ -24,9 +24,17 @@
 #'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
 #'To see even more color palette options of the The R pacakge 'grDevices' run
 #'the grDevices::hcl.pals() function
+#'The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
+#' “bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
+#' ”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
+#' “hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
+#' ”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
+#' ”vik”,”vikO”
+#'The R package 'Viridis' has the color palette options: “magma”, “plasma”,
+#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'@param color_brewer Name of the R package from which the color palette is chosen from.
 #'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
+#'are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
 #'@param useRaster Plot as a raster or vector image \code{Default=TRUE}.
@@ -275,66 +283,53 @@
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
+#' @importFrom scico scico
 
-plot_eha_log2 <- function (eha_log2 = NULL,
-                           plot_opt = "Amplitude",
-                           lowerPeriod = NULL,
-                           upperPeriod = NULL,
-                           n.levels = 100,
-                           palette_name = "rainbow",
-                           color_brewer = "grDevices",
-                           useRaster = TRUE,
-                           periodlab = "Period (metres)",
-                           x_lab = "depth (metres)",
-                           keep_editable = FALSE,
-                           dev_new = TRUE,
-                           plot_dir = TRUE,
-                           add_lines = NULL,
-                           add_points = NULL,
-                           add_abline_h = NULL,
-                           add_abline_v = NULL,
-                           add_MTM_peaks = FALSE,
-                           add_data = TRUE,
-                           add_avg = FALSE,
-                           pval_abline = c(0.1, 0.05),
-                           pval_cutoff = c(0.1),
-                           add_MTM = FALSE,
-                           mtm_siglvl = 0.95,
-                           demean_mtm = TRUE,
-                           detrend_mtm = TRUE,
-                           padfac_mtm = 5,
-                           tbw_mtm = 3,
-                           plot_horizontal = TRUE)
+plot_eha_log2 <- function (eha_log2 = NULL, plot_opt = "Amplitude", lowerPeriod = NULL,
+                           upperPeriod = NULL, n.levels = 100, palette_name = "rainbow",
+                           color_brewer = "grDevices", useRaster = TRUE, periodlab = "Period (metres)",
+                           x_lab = "depth (metres)", keep_editable = FALSE, dev_new = TRUE,
+                           plot_dir = TRUE, add_lines = NULL, add_points = NULL, add_abline_h = NULL,
+                           add_abline_v = NULL, add_MTM_peaks = FALSE, add_data = TRUE,
+                           add_avg = FALSE, pval_abline = c(0.1, 0.05), pval_cutoff = c(0.1),
+                           add_MTM = FALSE, mtm_siglvl = 0.95, demean_mtm = TRUE, detrend_mtm = TRUE,
+                           padfac_mtm = 5, tbw_mtm = 3, plot_horizontal = TRUE)
 {
+
   if (plot_opt == "Amplitude") {
     mat <- eha_log2$amp
-    average <- eha_log2$amp.avg} else if (plot_opt == "Power") {
-      mat <- eha_log2$pwr
-      average <- eha_log2$pwr.avg} else if (plot_opt == "Probability") {
-        mat <- eha_log2$prob
-        average <- eha_log2$prob.avg} else if (plot_opt == "F_test") {
-          mat <- eha_log2$f_test
-          average <- eha_log2$f_test.avg} else{
-            mat <- eha_log2$amp
-            average <- eha_log2$amp.avg
-          }
-
-
+    average <- eha_log2$amp.avg
+  }
+  else if (plot_opt == "Power") {
+    mat <- eha_log2$pwr
+    average <- eha_log2$pwr.avg
+  }
+  else if (plot_opt == "Probability") {
+    mat <- eha_log2$prob
+    average <- eha_log2$prob.avg
+  }
+  else if (plot_opt == "F_test") {
+    mat <- eha_log2$f_test
+    average <- eha_log2$f_test.avg
+  }
+  else {
+    mat <- eha_log2$amp
+    average <- eha_log2$amp.avg
+  }
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
-  maximum.level = max(mat,na.rm=TRUE)
-  power_max_mat.levels = quantile(mat,na.rm=TRUE, probs = seq(
-    from = 0,
-    to = 1,
-    length.out = n.levels + 1
-  ))
+  maximum.level = max(mat, na.rm = TRUE)
+  power_max_mat.levels = quantile(mat, na.rm = TRUE, probs = seq(from = 0,
+                                                                 to = 1, length.out = n.levels + 1))
   if (color_brewer == "RColorBrewer") {
-    key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
+    key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,
+                                                                1], palette_name))(n.levels))
   }
   if (color_brewer == "colorRamps") {
-    color_brewer_Sel <- paste("colorRamps::", palette_name, "(n=n.levels)")
+    color_brewer_Sel <- paste("colorRamps::", palette_name,
+                              "(n=n.levels)")
     key.cols = eval(parse(text = color_brewer_Sel))
   }
   if (color_brewer == "grDevices") {
@@ -345,23 +340,31 @@ plot_eha_log2 <- function (eha_log2 = NULL,
     else if (palette_name == "heat.colors" | palette_name ==
              "terrain.colors" | palette_name == "topo.colors" |
              palette_name == "cm.colors") {
-      color_brewer_Sel <- paste("grDevices::",
-                                palette_name,
+      color_brewer_Sel <- paste("grDevices::", palette_name,
                                 "(n=n.levels, start = 0, end = 1)")
       key.cols <- rev(eval(parse(text = color_brewer_Sel)))
     }
     else {
-      key.cols <- hcl.colors(
-        n = n.levels,
-        palette = palette_name,
-        alpha = NULL,
-        rev = FALSE,
-        fixup = TRUE
-      )
+      key.cols <- hcl.colors(n = n.levels, palette = palette_name,
+                             alpha = NULL, rev = FALSE, fixup = TRUE)
     }
   }
+
+  if (color_brewer== "scico"){
+    color_brewer_Sel <- paste(
+      "scico::scico(n = n.levels, palette = '",
+      palette_name,
+      "', direction = -1)",
+      sep = ""
+    )
+    key.cols = rev(eval(parse(text = color_brewer_Sel)))
+  }
+
+
+
   if (color_brewer == "viridis") {
-    color_brewer_Sel <- paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
+    color_brewer_Sel <- paste("viridis::", palette_name,
+                              "(n=n.levels,direction = -1)")
     key.cols = rev(eval(parse(text = color_brewer_Sel)))
   }
   periodtck = 0.02
@@ -369,73 +372,39 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   main = NULL
   lwd = 2
   lwd.axis = 1
-  legend.params = list(
-    width = 1.2,
-    shrink = 0.9,
-    mar = 5.1,
-    n.ticks = 6,
-    label.digits = 3,
-    label.format = "f",
-    lab = NULL,
-    lab.line = 2.5
-  )
-  key.marks = round(seq(
-    from = 0,
-    to = 1,
-    length.out = legend.params$n.ticks
-  ) *
-    n.levels)
-  key.labels = formatC(
-    as.numeric(power_max_mat.levels),
-    digits = legend.params$label.digits,
-    format = legend.params$label.format
-  )[key.marks + 1]
+  legend.params = list(width = 1.2, shrink = 0.9, mar = 5.1,
+                       n.ticks = 6, label.digits = 3, label.format = "f", lab = NULL,
+                       lab.line = 2.5)
+  key.marks = round(seq(from = 0, to = 1, length.out = legend.params$n.ticks) *
+                      n.levels)
+  key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
+                       format = legend.params$label.format)[key.marks + 1]
   if (dev_new == TRUE & plot_horizontal == TRUE) {
-    dev.new(width = 15,
-            height = 7,
-            noRStudioGD = TRUE)
+    dev.new(width = 15, height = 7, noRStudioGD = TRUE)
   }
   if (dev_new == TRUE & plot_horizontal == FALSE) {
-    dev.new(width = 7,
-            height = 10,
-            noRStudioGD = TRUE)
+    dev.new(width = 7, height = 10, noRStudioGD = TRUE)
   }
-
-  depth <-  eha_log2$depth
+  depth <- eha_log2$depth
   y_axis <- eha_log2$log2_period
   depth <- as.numeric(depth)
   y_axis <- as.numeric(y_axis)
-  MTM_res_2 <- matrix(data = NA,
-                      ncol = 2,
-                      nrow = 1)
+  MTM_res_2 <- matrix(data = NA, ncol = 2, nrow = 1)
   if (add_MTM == TRUE | add_MTM_peaks == TRUE) {
-    MTM_res_1 <- mtm(
-      cbind(eha_log2$x, eha_log2$y),
-      tbw = tbw_mtm,
-      padfac = padfac_mtm,
-      output = 1,
-      siglevel = mtm_siglvl,
-      genplot = FALSE,
-      verbose = FALSE,
-      demean = demean_mtm,
-      detrend = detrend_mtm
-    )
-    MTM_res_2 <- mtm(
-      cbind(eha_log2$x, eha_log2$y),
-      tbw = tbw_mtm,
-      padfac = padfac_mtm,
-      output = 3,
-      siglevel = mtm_siglvl,
-      genplot = FALSE,
-      verbose = FALSE,
-      demean = demean_mtm,
-      detrend = detrend_mtm
-    )
-    MTM_res_1$period <- 1 / MTM_res_1[, 1]
+    MTM_res_1 <- mtm(cbind(eha_log2$x, eha_log2$y), tbw = tbw_mtm,
+                     padfac = padfac_mtm, output = 1, siglevel = mtm_siglvl,
+                     genplot = FALSE, verbose = FALSE, demean = demean_mtm,
+                     detrend = detrend_mtm)
+    MTM_res_2 <- mtm(cbind(eha_log2$x, eha_log2$y), tbw = tbw_mtm,
+                     padfac = padfac_mtm, output = 3, siglevel = mtm_siglvl,
+                     genplot = FALSE, verbose = FALSE, demean = demean_mtm,
+                     detrend = detrend_mtm)
+    MTM_res_1$period <- 1/MTM_res_1[, 1]
     MTM_res_1$Peak <- 0
     if (is.na(MTM_res_2[1, 2]) == FALSE) {
       for (i in 1:nrow(MTM_res_2)) {
-        row_nr <- DescTools::Closest(MTM_res_1[, 1], MTM_res_2[i, 1], which = TRUE)
+        row_nr <- DescTools::Closest(MTM_res_1[, 1],
+                                     MTM_res_2[i, 1], which = TRUE)
         row_nr <- row_nr[1]
         MTM_res_1[row_nr, 10] <- 1
       }
@@ -444,7 +413,8 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (plot_dir != TRUE) {
     xlim_vals = rev(c(min(eha_log2$x), max(eha_log2$x)))
-  }else {
+  }
+  else {
     xlim_vals = c(min(eha_log2$x), max(eha_log2$x))
   }
   if (is.null(lowerPeriod) == TRUE) {
@@ -453,125 +423,57 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   if (is.null(upperPeriod) == TRUE) {
     upperPeriod <- max(eha_log2$Period)
   }
-
-
   ylim_vals = c(lowerPeriod, upperPeriod)
   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 3, 0, 2),
-                            nrow = 2,
-                            ncol = 2,
+    layout.matrix <- matrix(c(1, 3, 0, 2), nrow = 2, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 0.25),
-                     widths = c(1, 4))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      0.25), widths = c(1, 4))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(4, 4, 2, 0))
-    plot(
-      x = eha_log2$y,
-      y = eha_log2$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      ylim = xlim_vals
-    )
+    plot(x = eha_log2$y, y = eha_log2$x, type = "l", yaxs = "i",
+         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
     par(new = FALSE, mar = c(3, 0, 2, 2))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "")
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 2, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = "",
-      yaxt = "n",
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
-    period.tick = unique(trunc(eha_log2$log2_period))
-    #period.tick[period.tick < log2(eha_log2$Period[1])] = NA
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = "", yaxt = "n",
+          xaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
+    period.tick = unique(trunc(  as.numeric(eha_log2$log2_period)))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -581,263 +483,107 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = log2(add_abline_v))
     }
   }
-
   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE &
       plot_horizontal == FALSE) {
-    #graphics.off()
-    layout.matrix <- matrix(c(1, 2),
-                            nrow = 2,
-                            ncol = 1,
+    layout.matrix <- matrix(c(1, 2), nrow = 2, ncol = 1,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     widths = c(1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      4), widths = c(1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(2, 4, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 4, 2, 3))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = x_lab,
+          xaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
   }
   if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(
-      c(2, 1, 3, 0, 4, 0, 5, 0),
-      nrow = 4,
-      ncol = 2,
-      byrow = TRUE
-    )
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 1, 1, 4),
-                     widths = c(4, 1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(2, 1, 3, 0, 4, 0, 5, 0), nrow = 4,
+                            ncol = 2, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      1, 1, 4), widths = c(4, 1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(2, 2, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(mar = c(0, 4, 2, 2))
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 2],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "MTM power",
-      xlab = "",
-      log = "x",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 2], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "MTM power", xlab = "",
+         log = "x", xlim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        x = 1 / MTM_res_1[, 1],
-        y = MTM_res_1[, i],
-        xlim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(x = 1/MTM_res_1[, 1], y = MTM_res_1[, i],
+            xlim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(mar = c(0, 4, 0, 2))
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 4],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Ar. conf lvl",
-      xlab = "",
-      log = "x",
-      ylim = c(80, 101),
-      xaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 4], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "Ar. conf lvl", xlab = "",
+         log = "x", ylim = c(80, 101), xaxs = "i", xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 3],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Har. conf lvl",
-      xlab = "",
-      log = "xy",
-      ylim = c(80, 101),
-      yaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 3], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "Har. conf lvl",
+         xlab = "", log = "xy", ylim = c(80, 101), yaxs = "i",
+         xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = x_lab,
+          xaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
-    period.tick = unique(trunc(eha_log2$log2_period))
+    period.tick = unique(trunc(as.numeric(eha_log2$log2_period)))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -847,206 +593,84 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = log2(add_abline_v))
     }
   }
-
   if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(
-      c(2, 1, 3, 0, 4, 0, 5, 0, 6, 0),
-      nrow = 5,
-      ncol = 2,
-      byrow = TRUE
-    )
-    graphics::layout(
-      mat = layout.matrix,
-      heights = c(1, 1, 1, 1, 4),
-      widths = c(4, 1)
-    )
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(2, 1, 3, 0, 4, 0, 5, 0, 6,
+                              0), nrow = 5, ncol = 2, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      1, 1, 1, 4), widths = c(4, 1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(2, 2, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(mar = c(0, 4, 2, 2))
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 2],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "MTM power",
-      xlab = "",
-      log = "x",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 2], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "MTM power", xlab = "",
+         log = "x", xlim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        x = 1 / MTM_res_1[, 1],
-        y = MTM_res_1[, i],
-        xlim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(x = 1/MTM_res_1[, 1], y = MTM_res_1[, i],
+            xlim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(mar = c(0, 4, 0, 2))
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 4],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Ar. conf lvl",
-      xlab = "",
-      log = "x",
-      ylim = c(80, 101),
-      xaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 4], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "Ar. conf lvl", xlab = "",
+         log = "x", ylim = c(80, 101), xaxs = "i", xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 3],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Har. conf lvl",
-      xlab = "",
-      log = "xy",
-      ylim = c(80, 101),
-      yaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 3], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "Har. conf lvl",
+         xlab = "", log = "xy", ylim = c(80, 101), yaxs = "i",
+         xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-
-    plot(
-      y = average,
-      x = 2^eha_log2$log2_period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(y = average, x = 2^eha_log2$log2_period, log = "x",
+         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
+         xaxs = "i", xlim = ylim_vals)
     par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
-
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = x_lab,
+          xaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1056,219 +680,90 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = log2(add_abline_v))
     }
   }
-
   if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(
-      c(1, 2, 0, 3, 0, 4, 0, 5, 6, 7),
-      nrow = 5,
-      ncol = 2,
-      byrow = TRUE
-    )
-    graphics::layout(
-      mat = layout.matrix,
-      heights = c(1, 1, 1, 1, 4),
-      widths = c(1, 4)
-    )
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(1, 2, 0, 3, 0, 4, 0, 5, 6,
+                              7), nrow = 5, ncol = 2, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      1, 1, 1, 4), widths = c(1, 4))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 1, 2, 6), xpd = FALSE)
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 1,
-      at = mean(key.marks),
-      line = 4,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      las = 1
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = mean(key.marks), line = 4,
+          font = par()$font.axis, cex = par()$cex.axis, las = 1)
     box(lwd = lwd.axis)
     par(mar = c(0, 0, 2, 2), xpd = FALSE)
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 2],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "MTM power",
-      xlab = "",
-      log = "x",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 2], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "MTM power", xlab = "",
+         log = "x", xlim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        x = 1 / MTM_res_1[, 1],
-        y = MTM_res_1[, i],
-        xlim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(x = 1/MTM_res_1[, 1], y = MTM_res_1[, i],
+            xlim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(mar = c(0, 0, 0, 2), xpd = FALSE)
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 4],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "",
-      xlab = "",
-      log = "x",
-      ylim = c(80, 101),
-      xaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 4], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "", xlab = "", log = "x",
+         ylim = c(80, 101), xaxs = "i", xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     title(ylab = "Ar. conf lvl", xpd = NA)
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 3],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "",
-      xlab = "",
-      log = "xy",
-      ylim = c(80, 101),
-      yaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 3], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "", xlab = "", log = "xy",
+         ylim = c(80, 101), yaxs = "i", xlim = ylim_vals)
     title(ylab = "Har. conf lvl", xpd = NA)
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = average,
-      x = 2^eha_log2$log2_period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(y = average, x = 2^eha_log2$log2_period, log = "x",
+         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
+         xaxs = "i", xlim = ylim_vals)
     title(ylab = "Wt. power", xpd = NA)
     par(mar = c(4, 4, 0, 0), xpd = FALSE)
-    plot(
-      x = eha_log2$y,
-      y = eha_log2$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      ylim = xlim_vals
-    )
+    plot(x = eha_log2$y, y = eha_log2$x, type = "l", yaxs = "i",
+         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
     par(new = FALSE, mar = c(4, 0, 0, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      xaxt = "n",
-      yaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
-
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, xaxt = "n",
+          yaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
-    period.tick = unique(trunc(eha_log2$axis.2))
-    period.tick[period.tick < log2(eha_log2$Period[1])] = NA
+    period.tick = unique(trunc(as.numeric(eha_log2$log2_period)))
+    period.tick[period.tick < log2(as.numeric(eha_log2$log2_period[1]))] = NA
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1280,135 +775,57 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 2, 3, 4),
-                            nrow = 2,
-                            ncol = 2,
+    layout.matrix <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     widths = c(1, 4))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      4), widths = c(1, 4))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(2, 0.5, 2, 6), xpd = NA)
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 2,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 1,
-      at = 1,
-      line = 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      las = 1,
-      xpd = NA
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(2, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 2, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = 1, line = 0.5, font = par()$font.axis,
+          cex = par()$cex.axis, las = 1, xpd = NA)
     box(lwd = lwd.axis)
     par(mar = c(0, 0, 2, 2))
-    plot(
-      y = average,
-      x = 2^eha_log2$log2_period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xlab = "",
-      xaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(y = average, x = 2^eha_log2$log2_period, log = "x",
+         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
+         xlab = "", xaxs = "i", xlim = ylim_vals)
     title(ylab = "Wt. power", xpd = NA)
     par(mar = c(4, 4, 0, 0), xpd = TRUE)
-    plot(
-      x = eha_log2$y,
-      y = eha_log2$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      ylim = xlim_vals
-    )
-    par(new = FALSE,
-        mar = c(4, 0, 0, 2),
-        xpd = FALSE)
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = "",
-      xaxt = "n",
-      yaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+    plot(x = eha_log2$y, y = eha_log2$x, type = "l", yaxs = "i",
+         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
+    par(new = FALSE, mar = c(4, 0, 0, 2), xpd = FALSE)
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = "", xaxt = "n",
+          yaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1420,201 +837,83 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(
-      c(1, 2, 0, 3, 0, 4, 5, 6),
-      nrow = 4,
-      ncol = 2,
-      byrow = TRUE
-    )
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 1, 1, 4),
-                     widths = c(1, 4))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(1, 2, 0, 3, 0, 4, 5, 6), nrow = 4,
+                            ncol = 2, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      1, 1, 4), widths = c(1, 4))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 1, 2, 6), xpd = NA)
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 1,
-      at = mean(key.marks),
-      line = 4,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      las = 1
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = mean(key.marks), line = 4,
+          font = par()$font.axis, cex = par()$cex.axis, las = 1)
     box(lwd = lwd.axis)
     par(mar = c(0, 0, 2, 2))
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 2],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "MTM power",
-      xlab = "",
-      log = "x",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 2], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "MTM power", xlab = "",
+         log = "x", xlim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        x = 1 / MTM_res_1[, 1],
-        y = MTM_res_1[, i],
-        xlim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(x = 1/MTM_res_1[, 1], y = MTM_res_1[, i],
+            xlim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(mar = c(0, 0, 0, 2), xpd = FALSE)
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 4],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "",
-      xlab = "",
-      log = "x",
-      ylim = c(80, 101),
-      xaxs = "i",
-      xlim = ylim_vals
-    )
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 4], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "", xlab = "", log = "x",
+         ylim = c(80, 101), xaxs = "i", xlim = ylim_vals)
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     title(ylab = "Ar. conf lvl", xpd = NA)
-    plot(
-      x = 1 / MTM_res_1[, 1],
-      y = MTM_res_1[, 3],
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "",
-      xlab = "",
-      log = "xy",
-      ylim = c(80, 101),
-      yaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(x = 1/MTM_res_1[, 1], y = MTM_res_1[, 3], type = "l",
+         xaxs = "i", xaxt = "n", ylab = "", xlab = "", log = "xy",
+         ylim = c(80, 101), yaxs = "i", xlim = ylim_vals)
     title(ylab = "Har. conf lvl", xpd = NA)
-    abline(
-      h = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    abline(h = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(v = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
     par(mar = c(4, 4, 0, 0))
-    plot(
-      x = eha_log2$y,
-      y = eha_log2$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      ylim = xlim_vals
-    )
+    plot(x = eha_log2$y, y = eha_log2$x, type = "l", yaxs = "i",
+         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
     par(new = FALSE, mar = c(4, 0, 0, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      xaxt = "n",
-      yaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
-
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, xaxt = "n",
+          yaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1626,123 +925,57 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE &
       plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 2, 0, 3),
-                            nrow = 2,
-                            ncol = 2,
+    layout.matrix <- matrix(c(1, 2, 0, 3), nrow = 2, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     widths = c(1, 4))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(1,
+                                                      4), widths = c(1, 4))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(2, 2, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 1,
-      at = median(key.marks),
-      line = 3,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      xpd = NA
-    )
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 1, at = median(key.marks),
+          line = 3, las = 2, font = par()$font.axis, cex = par()$cex.axis,
+          xpd = NA)
     box(lwd = lwd.axis)
     par(mar = c(0, 4, 2, 2))
-    plot(
-      y = average,
-      x = 2^eha_log2$log2_period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xaxs = "i",
-      xlim = ylim_vals
-    )
+    plot(y = average, x = 2^eha_log2$log2_period, log = "x",
+         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
+         xaxs = "i", xlim = ylim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = (add_abline_v))
     }
     par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      y = eha_log2$depth,
-      x = eha_log2$log2_period,
-      z = (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+    image(y = eha_log2$depth, x = eha_log2$log2_period,
+          z = (mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, xlab = periodlab, ylab = x_lab,
+          xaxt = "n", main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 1, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
+                                                       1], x = log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(y = add_points[,
+                                                          1], x = log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(v = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(v = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1752,131 +985,61 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = log2(add_abline_v))
     }
   }
-
-
-
-
   if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(
-      c(1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 5, 6),
-      nrow = 2,
-      ncol = 9,
-      byrow = TRUE
-    )
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(1, 1, 1, 1, 1, 1, 2, 2, 2,
+                              3, 3, 3, 3, 3, 3, 4, 5, 6), nrow = 2, ncol = 9,
+                            byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(0.25,
+                                                      1), widths = c(1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 4, 2, 0))
-    plot(
-      y = eha_log2$y,
-      x = eha_log2$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
+    plot(y = eha_log2$y, x = eha_log2$x, type = "l", xaxs = "i",
+         xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = add_abline_v)
     }
-    par(new = FALSE,
-        mar = c(3, 2, 2, 2),
-        mgp = c(2, 1, 0))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "Power",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.2
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.1,
-      las = 2,
-      cex = 0.75
-    )
+    par(new = FALSE, mar = c(3, 2, 2, 2), mgp = c(2, 1,
+                                                  0))
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
+          ylab = "")
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.2)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex = 0.75)
     box(lwd = lwd.axis)
-    par(new = FALSE,
-        mar = c(4, 4, 0, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    par(new = FALSE, mar = c(4, 4, 0, 0), mgp = c(2, 1,
+                                                  0))
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -1886,224 +1049,99 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = add_abline_v)
     }
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 2],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "MTM power",
-      ylab = "",
-      log = "y",
-      ylim = ylim_vals
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 2], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "MTM power", ylab = "",
+         log = "y", ylim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        y = 1 / MTM_res_1[, 1],
-        x = MTM_res_1[, i],
-        ylim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(y = 1/MTM_res_1[, 1], x = MTM_res_1[, i],
+            ylim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 4],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Ar. conf lvl",
-      ylab = "",
-      log = "y",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 4], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Ar. conf lvl", ylab = "",
+         log = "y", xlim = c(80, 101), xaxs = "i", ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 3],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Har. conf lvl",
-      ylab = "",
-      log = "xy",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 3], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Har. conf lvl",
+         ylab = "", log = "xy", xlim = c(80, 101), xaxs = "i",
+         ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
   }
   if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(1, 2, 4, 3),
-                            nrow = 2,
-                            ncol = 2,
+    layout.matrix <- matrix(c(1, 2, 4, 3), nrow = 2, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(8, 2))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(0.25,
+                                                      1), widths = c(8, 2))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 4, 2, 0))
-    plot(
-      y = eha_log2$y,
-      x = eha_log2$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
+    plot(y = eha_log2$y, x = eha_log2$x, type = "l", xaxs = "i",
+         xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = add_abline_v)
     }
-    par(new = FALSE,
-        mar = c(3, 2, 2, 2),
-        mgp = c(2, 1, 0))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "Power",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.2
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.1,
-      las = 2,
-      cex = 0.75
-    )
+    par(new = FALSE, mar = c(3, 2, 2, 2), mgp = c(2, 1,
+                                                  0))
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
+          ylab = "")
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.2)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex = 0.75)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
-    plot(
-      x = average,
-      y = 2^eha_log2$log2_period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = ylim_vals
-    )
+    plot(x = average, y = 2^eha_log2$log2_period, log = "y",
+         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
+         xaxs = "i", ylim = ylim_vals)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "black",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "black", lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
-    par(new = FALSE,
-        mar = c(4, 4, 0, 0),
-        xpd = FALSE)
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    par(new = FALSE, mar = c(4, 4, 0, 0), xpd = FALSE)
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -2115,130 +1153,58 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(1, 0, 3, 2),
-                            nrow = 2,
-                            ncol = 2,
+    layout.matrix <- matrix(c(1, 0, 3, 2), nrow = 2, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(8, 2))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    graphics::layout(mat = layout.matrix, heights = c(0.25,
+                                                      1), widths = c(8, 2))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 4, 2, 2))
-    plot(
-      y = eha_log2$y,
-      x = eha_log2$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
+    plot(y = eha_log2$y, x = eha_log2$x, type = "l", xaxs = "i",
+         xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = add_abline_v)
     }
     par(new = FALSE, mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -2250,125 +1216,59 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(
-      c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 5, 6, 7),
-      nrow = 2,
-      ncol = 10,
-      byrow = TRUE
-    )
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(1, 1, 1, 1, 1, 1, 2, 2, 2,
+                              2, 3, 3, 3, 3, 3, 3, 4, 5, 6, 7), nrow = 2, ncol = 10,
+                            byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(0.25,
+                                                      1), widths = c(1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(0, 4, 2, 0))
-    plot(
-      y = eha_log2$y,
-      x = eha_log2$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
+    plot(y = eha_log2$y, x = eha_log2$x, type = "l", xaxs = "i",
+         xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = add_abline_v)
     }
-    par(new = FALSE,
-        mar = c(3, 2, 2, 2),
-        mgp = c(2, 1, 0))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "Power",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.2
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.1,
-      las = 2,
-      cex = 0.75
-    )
+    par(new = FALSE, mar = c(3, 2, 2, 2), mgp = c(2, 1,
+                                                  0))
+    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
+                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
+          ylab = "")
+    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.2)
+    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
+          las = 2, cex = 0.75)
     box(lwd = lwd.axis)
-    par(new = FALSE,
-        mar = c(4, 4, 0, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    par(new = FALSE, mar = c(4, 4, 0, 0), mgp = c(2, 1,
+                                                  0))
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -2378,240 +1278,105 @@ plot_eha_log2 <- function (eha_log2 = NULL,
       abline(v = add_abline_v)
     }
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
-    plot(
-      x = average,
-      y = 2^eha_log2$log2_period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = ylim_vals
-    )
+    plot(x = average, y = 2^eha_log2$log2_period, log = "y",
+         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
+         xaxs = "i", ylim = ylim_vals)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "black",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "black", lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 2],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "MTM power",
-      ylab = "",
-      log = "y",
-      ylim = ylim_vals
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 2], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "MTM power", ylab = "",
+         log = "y", ylim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        y = 1 / MTM_res_1[, 1],
-        x = MTM_res_1[, i],
-        ylim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(y = 1/MTM_res_1[, 1], x = MTM_res_1[, i],
+            ylim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 4],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Ar. conf lvl",
-      ylab = "",
-      log = "y",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 4], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Ar. conf lvl", ylab = "",
+         log = "y", xlim = c(80, 101), xaxs = "i", ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 3],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Har. conf lvl",
-      ylab = "",
-      log = "xy",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 3], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Har. conf lvl",
+         ylab = "", log = "xy", xlim = c(80, 101), xaxs = "i",
+         ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
   }
   if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(3, 2, 1),
-                            nrow = 1,
-                            ncol = 3,
+    layout.matrix <- matrix(c(3, 2, 1), nrow = 1, ncol = 3,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1),
+    graphics::layout(mat = layout.matrix, heights = c(1),
                      widths = c(6, 1, 1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
-    plot(
-      x = average,
-      y = 2^eha_log2$log2_period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = ylim_vals
-    )
+    plot(x = average, y = 2^eha_log2$log2_period, log = "y",
+         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
+         xaxs = "i", ylim = ylim_vals)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "black",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "black", lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
-    par(new = FALSE,
-        mar = c(4, 4, 2, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
-
+    par(new = FALSE, mar = c(4, 4, 2, 0), mgp = c(2, 1,
+                                                  0))
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -2623,218 +1388,93 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(6, 5, 4, 3, 2, 1),
-                            nrow = 1,
-                            ncol = 6,
-                            byrow = TRUE)
-    graphics::layout(
-      mat = layout.matrix,
-      heights = c(1),
-      widths = c(6, 1, 1, 1, 1, 1)
-    )
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    layout.matrix <- matrix(c(6, 5, 4, 3, 2, 1), nrow = 1,
+                            ncol = 6, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1),
+                     widths = c(6, 1, 1, 1, 1, 1))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 3],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Har. conf lvl",
-      ylab = "",
-      log = "xy",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 3], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Har. conf lvl",
+         ylab = "", log = "xy", xlim = c(80, 101), xaxs = "i",
+         ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 4],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Ar. conf lvl",
-      ylab = "",
-      log = "y",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 4], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Ar. conf lvl", ylab = "",
+         log = "y", xlim = c(80, 101), xaxs = "i", ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 2],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "MTM power",
-      ylab = "",
-      log = "y",
-      ylim = ylim_vals
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 2], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "MTM power", ylab = "",
+         log = "y", ylim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        y = 1 / MTM_res_1[, 1],
-        x = MTM_res_1[, i],
-        ylim = c(min(y_axis), max(y_axis)),
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(y = 1/MTM_res_1[, 1], x = MTM_res_1[, i],
+            ylim = c(min(y_axis), max(y_axis)), lty = 3,
+            col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      x = average,
-      y = 2^eha_log2$log2_period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = ylim_vals
-    )
+    plot(x = average, y = 2^eha_log2$log2_period, log = "y",
+         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
+         xaxs = "i", ylim = ylim_vals)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "black",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "black", lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
-    par(new = FALSE,
-        mar = c(4, 4, 2, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    par(new = FALSE, mar = c(4, 4, 2, 0), mgp = c(2, 1,
+                                                  0))
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -2846,196 +1486,82 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(5, 4, 3, 2, 1),
-                            nrow = 1,
-                            ncol = 5,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1),
+    layout.matrix <- matrix(c(5, 4, 3, 2, 1), nrow = 1,
+                            ncol = 5, byrow = TRUE)
+    graphics::layout(mat = layout.matrix, heights = c(1),
                      widths = c(7, 1, 1, 1, 1))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 2, 0.5))
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 3],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Har. conf lvl",
-      ylab = "",
-      log = "xy",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 3], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Har. conf lvl",
+         ylab = "", log = "xy", xlim = c(80, 101), xaxs = "i",
+         ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 4],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Ar. conf lvl",
-      ylab = "",
-      log = "y",
-      xlim = c(80, 101),
-      xaxs = "i",
-      ylim = ylim_vals
-    )
-    abline(
-      v = c(90, 95, 99),
-      lty = 3,
-      col = "grey",
-      lwd = 2
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 4], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "Ar. conf lvl", ylab = "",
+         log = "y", xlim = c(80, 101), xaxs = "i", ylim = ylim_vals)
+    abline(v = c(90, 95, 99), lty = 3, col = "grey", lwd = 2)
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    plot(
-      y = 1 / MTM_res_1[, 1],
-      x = MTM_res_1[, 2],
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "MTM power",
-      ylab = "",
-      log = "y",
-      ylim = ylim_vals
-    )
+    plot(y = 1/MTM_res_1[, 1], x = MTM_res_1[, 2], type = "l",
+         yaxs = "i", yaxt = "n", xlab = "MTM power", ylab = "",
+         log = "y", ylim = ylim_vals)
     for (i in 5:8) {
-      lines(
-        y = 1 / MTM_res_1[, 1],
-        x = MTM_res_1[, i],
-        ylim = ylim_vals,
-        lty = 3,
-        col = "grey",
-        lwd = 2
-      )
+      lines(y = 1/MTM_res_1[, 1], x = MTM_res_1[, i],
+            ylim = ylim_vals, lty = 3, col = "grey", lwd = 2)
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = 1 / MTM_res_2[, 1],
-             col = "red",
-             lty = 3)
+      abline(h = 1/MTM_res_2[, 1], col = "red", lty = 3)
     }
-    par(new = FALSE,
-        mar = c(4, 4, 2, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    par(new = FALSE, mar = c(4, 4, 2, 0), mgp = c(2, 1,
+                                                  0))
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -3047,116 +1573,52 @@ plot_eha_log2 <- function (eha_log2 = NULL,
   }
   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE &
       plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(2, 1),
-                            nrow = 1,
-                            ncol = 2,
+    layout.matrix <- matrix(c(2, 1), nrow = 1, ncol = 2,
                             byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1),
+    graphics::layout(mat = layout.matrix, heights = c(1),
                      widths = c(10, 2.25))
-    power_max_mat.levels = quantile(mat, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    power_max_mat.levels = quantile(mat, probs = seq(from = 0,
+                                                     to = 1, length.out = n.levels + 1))
     par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
+                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+          ylab = "", )
+    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
+         tck = 0.02, tcl = 1.24)
+    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
+          las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 4, 2, 0.5))
-    image(
-      x = eha_log2$depth,
-      y = eha_log2$log2_period,
-      z =t (mat),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+    image(x = eha_log2$depth, y = eha_log2$log2_period,
+          z = t(mat), col = key.cols, breaks = power_max_mat.levels,
+          useRaster = TRUE, ylab = periodlab, xlab = x_lab,
+          axes = TRUE, yaxt = "n", main = main, xlim = xlim_vals,
+          ylim = log2(ylim_vals))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(eha_log2$log2_period))
     period.tick = na.omit(period.tick)
     period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
+    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
+         tck = periodtck, tcl = periodtcl)
+    mtext(period.tick.label, side = 2, at = period.tick,
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
+                                         log2(add_lines[, i]))
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) points(add_points[,
+                                                      1], log2(add_points[, i]))
     }
     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
         FALSE) {
-      abline(h = log2(1 / MTM_res_2[, 1]),
-             col = "black",
+      abline(h = log2(1/MTM_res_2[, 1]), col = "black",
              lty = 3)
     }
     if (is.null(add_abline_h) != TRUE) {
@@ -3170,3 +1632,2903 @@ plot_eha_log2 <- function (eha_log2 = NULL,
     return(invisible(mtm_res))
   }
 }
+
+
+
+### old function keep for now #
+
+#
+# plot_eha_log2 <- function (eha_log2 = NULL,
+#                            plot_opt = "Amplitude",
+#                            lowerPeriod = NULL,
+#                            upperPeriod = NULL,
+#                            n.levels = 100,
+#                            palette_name = "rainbow",
+#                            color_brewer = "grDevices",
+#                            useRaster = TRUE,
+#                            periodlab = "Period (metres)",
+#                            x_lab = "depth (metres)",
+#                            keep_editable = FALSE,
+#                            dev_new = TRUE,
+#                            plot_dir = TRUE,
+#                            add_lines = NULL,
+#                            add_points = NULL,
+#                            add_abline_h = NULL,
+#                            add_abline_v = NULL,
+#                            add_MTM_peaks = FALSE,
+#                            add_data = TRUE,
+#                            add_avg = FALSE,
+#                            pval_abline = c(0.1, 0.05),
+#                            pval_cutoff = c(0.1),
+#                            add_MTM = FALSE,
+#                            mtm_siglvl = 0.95,
+#                            demean_mtm = TRUE,
+#                            detrend_mtm = TRUE,
+#                            padfac_mtm = 5,
+#                            tbw_mtm = 3,
+#                            plot_horizontal = TRUE)
+# {
+#   if (plot_opt == "Amplitude") {
+#     mat <- eha_log2$amp
+#     average <- eha_log2$amp.avg} else if (plot_opt == "Power") {
+#       mat <- eha_log2$pwr
+#       average <- eha_log2$pwr.avg} else if (plot_opt == "Probability") {
+#         mat <- eha_log2$prob
+#         average <- eha_log2$prob.avg} else if (plot_opt == "F_test") {
+#           mat <- eha_log2$f_test
+#           average <- eha_log2$f_test.avg} else{
+#             mat <- eha_log2$amp
+#             average <- eha_log2$amp.avg
+#           }
+#
+#
+#   if (keep_editable == FALSE) {
+#     oldpar <- par(no.readonly = TRUE)
+#     on.exit(par(oldpar))
+#   }
+#   maximum.level = max(mat,na.rm=TRUE)
+#   power_max_mat.levels = quantile(mat,na.rm=TRUE, probs = seq(
+#     from = 0,
+#     to = 1,
+#     length.out = n.levels + 1
+#   ))
+#   if (color_brewer == "RColorBrewer") {
+#     key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
+#   }
+#   if (color_brewer == "colorRamps") {
+#     color_brewer_Sel <- paste("colorRamps::", palette_name, "(n=n.levels)")
+#     key.cols = eval(parse(text = color_brewer_Sel))
+#   }
+#   if (color_brewer == "grDevices") {
+#     if (palette_name == "rainbow") {
+#       color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
+#       key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+#     }
+#     else if (palette_name == "heat.colors" | palette_name ==
+#              "terrain.colors" | palette_name == "topo.colors" |
+#              palette_name == "cm.colors") {
+#       color_brewer_Sel <- paste("grDevices::",
+#                                 palette_name,
+#                                 "(n=n.levels, start = 0, end = 1)")
+#       key.cols <- rev(eval(parse(text = color_brewer_Sel)))
+#     }
+#     else {
+#       key.cols <- hcl.colors(
+#         n = n.levels,
+#         palette = palette_name,
+#         alpha = NULL,
+#         rev = FALSE,
+#         fixup = TRUE
+#       )
+#     }
+#   }
+#   if (color_brewer == "viridis") {
+#     color_brewer_Sel <- paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
+#     key.cols = rev(eval(parse(text = color_brewer_Sel)))
+#   }
+#   periodtck = 0.02
+#   periodtcl = 0.5
+#   main = NULL
+#   lwd = 2
+#   lwd.axis = 1
+#   legend.params = list(
+#     width = 1.2,
+#     shrink = 0.9,
+#     mar = 5.1,
+#     n.ticks = 6,
+#     label.digits = 3,
+#     label.format = "f",
+#     lab = NULL,
+#     lab.line = 2.5
+#   )
+#   key.marks = round(seq(
+#     from = 0,
+#     to = 1,
+#     length.out = legend.params$n.ticks
+#   ) *
+#     n.levels)
+#   key.labels = formatC(
+#     as.numeric(power_max_mat.levels),
+#     digits = legend.params$label.digits,
+#     format = legend.params$label.format
+#   )[key.marks + 1]
+#   if (dev_new == TRUE & plot_horizontal == TRUE) {
+#     dev.new(width = 15,
+#             height = 7,
+#             noRStudioGD = TRUE)
+#   }
+#   if (dev_new == TRUE & plot_horizontal == FALSE) {
+#     dev.new(width = 7,
+#             height = 10,
+#             noRStudioGD = TRUE)
+#   }
+#
+#   depth <-  eha_log2$depth
+#   y_axis <- eha_log2$log2_period
+#   depth <- as.numeric(depth)
+#   y_axis <- as.numeric(y_axis)
+#   MTM_res_2 <- matrix(data = NA,
+#                       ncol = 2,
+#                       nrow = 1)
+#   if (add_MTM == TRUE | add_MTM_peaks == TRUE) {
+#     MTM_res_1 <- mtm(
+#       cbind(eha_log2$x, eha_log2$y),
+#       tbw = tbw_mtm,
+#       padfac = padfac_mtm,
+#       output = 1,
+#       siglevel = mtm_siglvl,
+#       genplot = FALSE,
+#       verbose = FALSE,
+#       demean = demean_mtm,
+#       detrend = detrend_mtm
+#     )
+#     MTM_res_2 <- mtm(
+#       cbind(eha_log2$x, eha_log2$y),
+#       tbw = tbw_mtm,
+#       padfac = padfac_mtm,
+#       output = 3,
+#       siglevel = mtm_siglvl,
+#       genplot = FALSE,
+#       verbose = FALSE,
+#       demean = demean_mtm,
+#       detrend = detrend_mtm
+#     )
+#     MTM_res_1$period <- 1 / MTM_res_1[, 1]
+#     MTM_res_1$Peak <- 0
+#     if (is.na(MTM_res_2[1, 2]) == FALSE) {
+#       for (i in 1:nrow(MTM_res_2)) {
+#         row_nr <- DescTools::Closest(MTM_res_1[, 1], MTM_res_2[i, 1], which = TRUE)
+#         row_nr <- row_nr[1]
+#         MTM_res_1[row_nr, 10] <- 1
+#       }
+#     }
+#     mtm_res <- MTM_res_1
+#   }
+#   if (plot_dir != TRUE) {
+#     xlim_vals = rev(c(min(eha_log2$x), max(eha_log2$x)))
+#   }else {
+#     xlim_vals = c(min(eha_log2$x), max(eha_log2$x))
+#   }
+#   if (is.null(lowerPeriod) == TRUE) {
+#     lowerPeriod <- min(eha_log2$Period)
+#   }
+#   if (is.null(upperPeriod) == TRUE) {
+#     upperPeriod <- max(eha_log2$Period)
+#   }
+#
+#
+#   ylim_vals = c(lowerPeriod, upperPeriod)
+#   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(c(1, 3, 0, 2),
+#                             nrow = 2,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 0.25),
+#                      widths = c(1, 4))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(4, 4, 2, 0))
+#     plot(
+#       x = eha_log2$y,
+#       y = eha_log2$x,
+#       type = "l",
+#       yaxs = "i",
+#       xlab = "proxy value",
+#       ylab = x_lab,
+#       ylim = xlim_vals
+#     )
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = add_abline_h)
+#     }
+#     par(new = FALSE, mar = c(3, 0, 2, 2))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = ""
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 2,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 0, 2, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = "",
+#       yaxt = "n",
+#       xaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     #period.tick[period.tick < log2(eha_log2$Period[1])] = NA
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#
+#   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE &
+#       plot_horizontal == FALSE) {
+#     #graphics.off()
+#     layout.matrix <- matrix(c(1, 2),
+#                             nrow = 2,
+#                             ncol = 1,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 4),
+#                      widths = c(1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(2, 4, 2, 3))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 2,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 4, 2, 3))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = x_lab,
+#       xaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#   }
+#   if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(
+#       c(2, 1, 3, 0, 4, 0, 5, 0),
+#       nrow = 4,
+#       ncol = 2,
+#       byrow = TRUE
+#     )
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 1, 1, 4),
+#                      widths = c(4, 1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(2, 2, 2, 3))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 2,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 4, 2, 2))
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 2],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "MTM power",
+#       xlab = "",
+#       log = "x",
+#       xlim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         x = 1 / MTM_res_1[, 1],
+#         y = MTM_res_1[, i],
+#         xlim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(mar = c(0, 4, 0, 2))
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 4],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Ar. conf lvl",
+#       xlab = "",
+#       log = "x",
+#       ylim = c(80, 101),
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 3],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Har. conf lvl",
+#       xlab = "",
+#       log = "xy",
+#       ylim = c(80, 101),
+#       yaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(new = FALSE, mar = c(4, 4, 0, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = x_lab,
+#       xaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#
+#   if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(
+#       c(2, 1, 3, 0, 4, 0, 5, 0, 6, 0),
+#       nrow = 5,
+#       ncol = 2,
+#       byrow = TRUE
+#     )
+#     graphics::layout(
+#       mat = layout.matrix,
+#       heights = c(1, 1, 1, 1, 4),
+#       widths = c(4, 1)
+#     )
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(2, 2, 2, 3))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 2,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 4, 2, 2))
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 2],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "MTM power",
+#       xlab = "",
+#       log = "x",
+#       xlim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         x = 1 / MTM_res_1[, 1],
+#         y = MTM_res_1[, i],
+#         xlim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(mar = c(0, 4, 0, 2))
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 4],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Ar. conf lvl",
+#       xlab = "",
+#       log = "x",
+#       ylim = c(80, 101),
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 3],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Har. conf lvl",
+#       xlab = "",
+#       log = "xy",
+#       ylim = c(80, 101),
+#       yaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#
+#     plot(
+#       y = average,
+#       x = 2^eha_log2$log2_period,
+#       log = "x",
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Wt. power",
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     par(new = FALSE, mar = c(4, 4, 0, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = x_lab,
+#       xaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#
+#   if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(
+#       c(1, 2, 0, 3, 0, 4, 0, 5, 6, 7),
+#       nrow = 5,
+#       ncol = 2,
+#       byrow = TRUE
+#     )
+#     graphics::layout(
+#       mat = layout.matrix,
+#       heights = c(1, 1, 1, 1, 4),
+#       widths = c(1, 4)
+#     )
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 1, 2, 6), xpd = FALSE)
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 1,
+#       at = mean(key.marks),
+#       line = 4,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis,
+#       las = 1
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 0, 2, 2), xpd = FALSE)
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 2],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "MTM power",
+#       xlab = "",
+#       log = "x",
+#       xlim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         x = 1 / MTM_res_1[, 1],
+#         y = MTM_res_1[, i],
+#         xlim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(mar = c(0, 0, 0, 2), xpd = FALSE)
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 4],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "",
+#       xlab = "",
+#       log = "x",
+#       ylim = c(80, 101),
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     title(ylab = "Ar. conf lvl", xpd = NA)
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 3],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "",
+#       xlab = "",
+#       log = "xy",
+#       ylim = c(80, 101),
+#       yaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     title(ylab = "Har. conf lvl", xpd = NA)
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = average,
+#       x = 2^eha_log2$log2_period,
+#       log = "x",
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Wt. power",
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     title(ylab = "Wt. power", xpd = NA)
+#     par(mar = c(4, 4, 0, 0), xpd = FALSE)
+#     plot(
+#       x = eha_log2$y,
+#       y = eha_log2$x,
+#       type = "l",
+#       yaxs = "i",
+#       xlab = "proxy value",
+#       ylab = x_lab,
+#       ylim = xlim_vals
+#     )
+#     par(new = FALSE, mar = c(4, 0, 0, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       xaxt = "n",
+#       yaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$axis.2))
+#     period.tick[period.tick < log2(eha_log2$Period[1])] = NA
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#   if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(c(1, 2, 3, 4),
+#                             nrow = 2,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 4),
+#                      widths = c(1, 4))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(2, 0.5, 2, 6), xpd = NA)
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 2,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 1,
+#       at = 1,
+#       line = 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis,
+#       las = 1,
+#       xpd = NA
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 0, 2, 2))
+#     plot(
+#       y = average,
+#       x = 2^eha_log2$log2_period,
+#       log = "x",
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Wt. power",
+#       xlab = "",
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     title(ylab = "Wt. power", xpd = NA)
+#     par(mar = c(4, 4, 0, 0), xpd = TRUE)
+#     plot(
+#       x = eha_log2$y,
+#       y = eha_log2$x,
+#       type = "l",
+#       yaxs = "i",
+#       xlab = "proxy value",
+#       ylab = x_lab,
+#       ylim = xlim_vals
+#     )
+#     par(new = FALSE,
+#         mar = c(4, 0, 0, 2),
+#         xpd = FALSE)
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = "",
+#       xaxt = "n",
+#       yaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#   if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(
+#       c(1, 2, 0, 3, 0, 4, 5, 6),
+#       nrow = 4,
+#       ncol = 2,
+#       byrow = TRUE
+#     )
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 1, 1, 4),
+#                      widths = c(1, 4))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 1, 2, 6), xpd = NA)
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 1,
+#       at = mean(key.marks),
+#       line = 4,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis,
+#       las = 1
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 0, 2, 2))
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 2],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "MTM power",
+#       xlab = "",
+#       log = "x",
+#       xlim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         x = 1 / MTM_res_1[, 1],
+#         y = MTM_res_1[, i],
+#         xlim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(mar = c(0, 0, 0, 2), xpd = FALSE)
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 4],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "",
+#       xlab = "",
+#       log = "x",
+#       ylim = c(80, 101),
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     title(ylab = "Ar. conf lvl", xpd = NA)
+#     plot(
+#       x = 1 / MTM_res_1[, 1],
+#       y = MTM_res_1[, 3],
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "",
+#       xlab = "",
+#       log = "xy",
+#       ylim = c(80, 101),
+#       yaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     title(ylab = "Har. conf lvl", xpd = NA)
+#     abline(
+#       h = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(mar = c(4, 4, 0, 0))
+#     plot(
+#       x = eha_log2$y,
+#       y = eha_log2$x,
+#       type = "l",
+#       yaxs = "i",
+#       xlab = "proxy value",
+#       ylab = x_lab,
+#       ylim = xlim_vals
+#     )
+#     par(new = FALSE, mar = c(4, 0, 0, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       xaxt = "n",
+#       yaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#   if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE &
+#       plot_horizontal == FALSE) {
+#     layout.matrix <- matrix(c(1, 2, 0, 3),
+#                             nrow = 2,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1, 4),
+#                      widths = c(1, 4))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(2, 2, 2, 3))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 1,
+#       at = median(key.marks),
+#       line = 3,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis,
+#       xpd = NA
+#     )
+#     box(lwd = lwd.axis)
+#     par(mar = c(0, 4, 2, 2))
+#     plot(
+#       y = average,
+#       x = 2^eha_log2$log2_period,
+#       log = "x",
+#       type = "l",
+#       xaxs = "i",
+#       xaxt = "n",
+#       ylab = "Wt. power",
+#       xaxs = "i",
+#       xlim = ylim_vals
+#     )
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = (add_abline_v))
+#     }
+#     par(new = FALSE, mar = c(4, 4, 0, 2))
+#     image(
+#       y = eha_log2$depth,
+#       x = eha_log2$log2_period,
+#       z = (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       xlab = periodlab,
+#       ylab = x_lab,
+#       xaxt = "n",
+#       main = main,
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 1,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(y = add_points[, 1], x = log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(v = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = (add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = log2(add_abline_v))
+#     }
+#   }
+#
+#
+#
+#
+#   if (add_data == TRUE & add_avg == FALSE & add_MTM == TRUE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(
+#       c(1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 5, 6),
+#       nrow = 2,
+#       ncol = 9,
+#       byrow = TRUE
+#     )
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(0.25, 1),
+#                      widths = c(1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 4, 2, 0))
+#     plot(
+#       y = eha_log2$y,
+#       x = eha_log2$x,
+#       type = "l",
+#       xaxs = "i",
+#       xlab = "",
+#       ylab = "proxy value",
+#       xaxt = "n",
+#       xlim = xlim_vals
+#     )
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE,
+#         mar = c(3, 2, 2, 2),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "Power",
+#       ylab = ""
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.2
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.1,
+#       las = 2,
+#       cex = 0.75
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE,
+#         mar = c(4, 4, 0, 0),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE, mar = c(4, 0, 0, 0.5))
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 2],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "MTM power",
+#       ylab = "",
+#       log = "y",
+#       ylim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         y = 1 / MTM_res_1[, 1],
+#         x = MTM_res_1[, i],
+#         ylim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 4],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Ar. conf lvl",
+#       ylab = "",
+#       log = "y",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 3],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Har. conf lvl",
+#       ylab = "",
+#       log = "xy",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#   }
+#   if (add_data == TRUE & add_avg == TRUE & add_MTM == FALSE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(1, 2, 4, 3),
+#                             nrow = 2,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(0.25, 1),
+#                      widths = c(8, 2))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 4, 2, 0))
+#     plot(
+#       y = eha_log2$y,
+#       x = eha_log2$x,
+#       type = "l",
+#       xaxs = "i",
+#       xlab = "",
+#       ylab = "proxy value",
+#       xaxt = "n",
+#       xlim = xlim_vals
+#     )
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE,
+#         mar = c(3, 2, 2, 2),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "Power",
+#       ylab = ""
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.2
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.1,
+#       las = 2,
+#       cex = 0.75
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 0, 0, 0.5))
+#     plot(
+#       x = average,
+#       y = 2^eha_log2$log2_period,
+#       log = "y",
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Wt. power",
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = add_abline_h)
+#     }
+#     par(new = FALSE,
+#         mar = c(4, 4, 0, 0),
+#         xpd = FALSE)
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_data == TRUE & add_avg == FALSE & add_MTM == FALSE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(1, 0, 3, 2),
+#                             nrow = 2,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(0.25, 1),
+#                      widths = c(8, 2))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 4, 2, 2))
+#     plot(
+#       y = eha_log2$y,
+#       x = eha_log2$x,
+#       type = "l",
+#       xaxs = "i",
+#       xlab = "",
+#       ylab = "proxy value",
+#       xaxt = "n",
+#       xlim = xlim_vals
+#     )
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE, mar = c(4, 0, 2, 5))
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 4,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 4,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 4, 0, 2))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_data == TRUE & add_avg == TRUE & add_MTM == TRUE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(
+#       c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 5, 6, 7),
+#       nrow = 2,
+#       ncol = 10,
+#       byrow = TRUE
+#     )
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(0.25, 1),
+#                      widths = c(1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(0, 4, 2, 0))
+#     plot(
+#       y = eha_log2$y,
+#       x = eha_log2$x,
+#       type = "l",
+#       xaxs = "i",
+#       xlab = "",
+#       ylab = "proxy value",
+#       xaxt = "n",
+#       xlim = xlim_vals
+#     )
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE,
+#         mar = c(3, 2, 2, 2),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = seq(from = 0, to = n.levels),
+#       y = 1,
+#       z = t(matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "Power",
+#       ylab = ""
+#     )
+#     axis(
+#       1,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.2
+#     )
+#     mtext(
+#       key.labels,
+#       side = 1,
+#       at = key.marks,
+#       line = 0.1,
+#       las = 2,
+#       cex = 0.75
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE,
+#         mar = c(4, 4, 0, 0),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#     par(new = FALSE, mar = c(4, 0, 0, 0.5))
+#     plot(
+#       x = average,
+#       y = 2^eha_log2$log2_period,
+#       log = "y",
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Wt. power",
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = add_abline_h)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 2],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "MTM power",
+#       ylab = "",
+#       log = "y",
+#       ylim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         y = 1 / MTM_res_1[, 1],
+#         x = MTM_res_1[, i],
+#         ylim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 4],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Ar. conf lvl",
+#       ylab = "",
+#       log = "y",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 3],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Har. conf lvl",
+#       ylab = "",
+#       log = "xy",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#   }
+#   if (add_data == FALSE & add_avg == TRUE & add_MTM == FALSE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(3, 2, 1),
+#                             nrow = 1,
+#                             ncol = 3,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1),
+#                      widths = c(6, 1, 1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(4, 0, 2, 5))
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 4,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 4,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 0, 2, 0.5))
+#     plot(
+#       x = average,
+#       y = 2^eha_log2$log2_period,
+#       log = "y",
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Wt. power",
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = add_abline_h)
+#     }
+#     par(new = FALSE,
+#         mar = c(4, 4, 2, 0),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_data == FALSE & add_avg == TRUE & add_MTM == TRUE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(6, 5, 4, 3, 2, 1),
+#                             nrow = 1,
+#                             ncol = 6,
+#                             byrow = TRUE)
+#     graphics::layout(
+#       mat = layout.matrix,
+#       heights = c(1),
+#       widths = c(6, 1, 1, 1, 1, 1)
+#     )
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(4, 0, 2, 5))
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 4,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 4,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 0, 2, 0.5))
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 3],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Har. conf lvl",
+#       ylab = "",
+#       log = "xy",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 4],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Ar. conf lvl",
+#       ylab = "",
+#       log = "y",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 2],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "MTM power",
+#       ylab = "",
+#       log = "y",
+#       ylim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         y = 1 / MTM_res_1[, 1],
+#         x = MTM_res_1[, i],
+#         ylim = c(min(y_axis), max(y_axis)),
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       x = average,
+#       y = 2^eha_log2$log2_period,
+#       log = "y",
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Wt. power",
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = add_abline_h)
+#     }
+#     par(new = FALSE,
+#         mar = c(4, 4, 2, 0),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_data == FALSE & add_avg == FALSE & add_MTM == TRUE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(5, 4, 3, 2, 1),
+#                             nrow = 1,
+#                             ncol = 5,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1),
+#                      widths = c(7, 1, 1, 1, 1))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(4, 0, 2, 5))
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 4,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 4,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 0, 2, 0.5))
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 3],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Har. conf lvl",
+#       ylab = "",
+#       log = "xy",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 4],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "Ar. conf lvl",
+#       ylab = "",
+#       log = "y",
+#       xlim = c(80, 101),
+#       xaxs = "i",
+#       ylim = ylim_vals
+#     )
+#     abline(
+#       v = c(90, 95, 99),
+#       lty = 3,
+#       col = "grey",
+#       lwd = 2
+#     )
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     plot(
+#       y = 1 / MTM_res_1[, 1],
+#       x = MTM_res_1[, 2],
+#       type = "l",
+#       yaxs = "i",
+#       yaxt = "n",
+#       xlab = "MTM power",
+#       ylab = "",
+#       log = "y",
+#       ylim = ylim_vals
+#     )
+#     for (i in 5:8) {
+#       lines(
+#         y = 1 / MTM_res_1[, 1],
+#         x = MTM_res_1[, i],
+#         ylim = ylim_vals,
+#         lty = 3,
+#         col = "grey",
+#         lwd = 2
+#       )
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = 1 / MTM_res_2[, 1],
+#              col = "red",
+#              lty = 3)
+#     }
+#     par(new = FALSE,
+#         mar = c(4, 4, 2, 0),
+#         mgp = c(2, 1, 0))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_data == FALSE & add_avg == FALSE & add_MTM == FALSE &
+#       plot_horizontal == TRUE) {
+#     layout.matrix <- matrix(c(2, 1),
+#                             nrow = 1,
+#                             ncol = 2,
+#                             byrow = TRUE)
+#     graphics::layout(mat = layout.matrix,
+#                      heights = c(1),
+#                      widths = c(10, 2.25))
+#     power_max_mat.levels = quantile(mat, probs = seq(
+#       from = 0,
+#       to = 1,
+#       length.out = n.levels + 1
+#     ))
+#     par(mar = c(4, 0, 2, 5))
+#     image(
+#       y = seq(from = 0, to = n.levels),
+#       x = 1,
+#       z = (matrix(power_max_mat.levels, nrow = 1)),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       yaxt = "n",
+#       xaxt = "n",
+#       xlab = "",
+#       ylab = "",
+#
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = key.marks,
+#       labels = NA,
+#       tck = 0.02,
+#       tcl = 1.24
+#     )
+#     mtext(
+#       key.labels,
+#       side = 4,
+#       at = key.marks,
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     mtext(
+#       c("Power"),
+#       side = 4,
+#       at = mean(key.marks),
+#       line = 0.5,
+#       las = 2,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     box(lwd = lwd.axis)
+#     par(new = FALSE, mar = c(4, 4, 2, 0.5))
+#     image(
+#       x = eha_log2$depth,
+#       y = eha_log2$log2_period,
+#       z =t (mat),
+#       col = key.cols,
+#       breaks = power_max_mat.levels,
+#       useRaster = TRUE,
+#       ylab = periodlab,
+#       xlab = x_lab,
+#       axes = TRUE,
+#       yaxt = "n",
+#       main = main,
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
+#     box(lwd = lwd.axis)
+#     period.tick = unique(trunc(eha_log2$log2_period))
+#     period.tick = na.omit(period.tick)
+#     period.tick.label = 2^(period.tick)
+#     axis(
+#       2,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     axis(
+#       4,
+#       lwd = lwd.axis,
+#       at = period.tick,
+#       labels = NA,
+#       tck = periodtck,
+#       tcl = periodtcl
+#     )
+#     mtext(
+#       period.tick.label,
+#       side = 2,
+#       at = period.tick,
+#       las = 2,
+#       line = par()$mgp[2] - 0.5,
+#       font = par()$font.axis,
+#       cex = par()$cex.axis
+#     )
+#     if (is.null(add_lines) != TRUE) {
+#       for (i in 2:ncol(add_lines))
+#         lines(add_lines[, 1], log2(add_lines[, i]))
+#     }
+#     if (is.null(add_points) != TRUE) {
+#       for (i in 2:ncol(add_points))
+#         points(add_points[, 1], log2(add_points[, i]))
+#     }
+#     if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) ==
+#         FALSE) {
+#       abline(h = log2(1 / MTM_res_2[, 1]),
+#              col = "black",
+#              lty = 3)
+#     }
+#     if (is.null(add_abline_h) != TRUE) {
+#       abline(h = log2(add_abline_h))
+#     }
+#     if (is.null(add_abline_v) != TRUE) {
+#       abline(v = add_abline_v)
+#     }
+#   }
+#   if (add_MTM_peaks == TRUE & is.na(MTM_res_2[1, 2]) == FALSE) {
+#     return(invisible(mtm_res))
+#   }
+# }
