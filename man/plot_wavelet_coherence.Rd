@@ -35,7 +35,7 @@ plot_wavelet_coherence(
 )
 }
 \arguments{
-\item{wavelet_coh}{wavelet_coh object created using the \code{\link{analyze_wavelet_coh}} function.}
+\item{wavelet_coh}{wavelet_coh object created using the \code{\link{analyze_wavelet_coherence}} function.}
 
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
@@ -128,14 +128,14 @@ should be period values \code{Default=NULL}}
 The output is a plot of a cross wavelet scalogram.
 }
 \description{
-Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_wavelet_coh}} function.
+Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_wavelet_coherence}} function.
 }
 \examples{
 \donttest{
 #Example 1. A cross superlet plot of two etp solutions with noise overprint
 
 
-etp_1 <- etp(
+etp_1 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -148,7 +148,7 @@ etp_1 <- etp(
  verbose = FALSE
 )
 
-etp_2 <- etp(
+etp_2 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -174,13 +174,13 @@ etp_2[, 2] <- etp_2[, 2] + colorednoise::colored_noise(
  phi = 0.9
 )
 
-coh_etp <- analyze_wavelet_coh(
+coh_etp <- analyze_wavelet_coherence(
  data_1 = etp_1,
  data_2  = etp_2,
  upperPeriod = 1024,
  lowerPeriod = 2
 )
-plot_wavelet_coh(wavelet_coh = coh_etp, lowerPeriod = 2, upperPeriod = 1024,
+plot_wavelet_coherence(wavelet_coh = coh_etp, lowerPeriod = 2, upperPeriod = 1024,
               n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
               useRaster = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
               keep_editable = FALSE, dev_new = TRUE, plot_dir = TRUE,

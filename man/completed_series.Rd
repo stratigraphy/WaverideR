@@ -41,6 +41,8 @@ value is used instead. between spectral peaks \code{Default=0.8},}
 the black curve is the original curve.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+
+\item{...}{older inputs from previous version}
 }
 \value{
 Returns a matrix with 2 columns
@@ -92,7 +94,7 @@ grey_wt <-
 
 
 grey_track <- completed_series(
- wavelet = grey_wt,
+ scalogram = grey_wt,
  tracked_curve  = grey_track,
  period_up  = 1.25,
  period_down  = 0.75,

@@ -21,6 +21,8 @@ or \code{\link{track_period}} function}
 \item{period_up}{Species the upper period of the to be extracted power \code{Default=1.2}.}
 
 \item{period_down}{specifies the lower period of the to be extracted power \code{Default=0.8}.}
+
+\item{...}{additional input parameters from older versions}
 }
 \value{
 Returns a matrix with 3 columns.

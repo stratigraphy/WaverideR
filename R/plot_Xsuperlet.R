@@ -5,6 +5,7 @@
 #'@param Xsuperlet Xsuperlet object created using the \code{\link{analyze_Xsuperlet}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
+#'@param n.levels  Number of color levels \code{Default=100}.
 #'@param palette_name Name of the color palette which is used for plotting.
 #'The color palettes than can be chosen depends on which the R package is specified in
 #'the color_brewer parameter. The included R packages from which palettes can be chosen
@@ -74,21 +75,21 @@
 #' is based on the matlab code in Moca et al. (2021) and the the "analyze.coherency" function of the  'WaveletComp' R package
 #'
 #' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
+#' Wavelet Analysis. R package version 1.1.
+#' \url{https://CRAN.R-project.org/package=WaveletComp}
 #'
-#'Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
-#'Time-frequency super-resolution with superlets.
-#'Nature communications 12, no. 1 (2021): 337.
-#'\url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #'@examples
 #' \donttest{
 #'#Example 1. A cross superlet plot of two etp solutions with noise overprint
 #'
 #'
-#'etp_1 <- etp(
+#'etp_1 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -101,7 +102,7 @@
 #'  verbose = FALSE
 #')
 #'
-#'etp_2 <- etp(
+#'etp_2 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -222,6 +223,8 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 #' @importFrom scico scico
+#' @importFrom graphics arrows
+
 
 plot_Xsuperlet <- function (Xsuperlet = NULL, lowerPeriod = NULL, upperPeriod = NULL,
                             n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",

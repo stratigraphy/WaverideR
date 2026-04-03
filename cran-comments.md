@@ -1,3 +1,8 @@
+# Changes in version 0.6.0
+
+maintained code
+added functions
+
 # Changes in version 0.4.1
 fixed errors in 0.4.0
 

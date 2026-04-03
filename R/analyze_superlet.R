@@ -18,9 +18,6 @@
 #'
 #' @param Nf Number of frequencies used to construct the superlet spectrum.
 #'
-#' @param freq.scale Character string defining how frequencies are sampled.
-#' One of  \code{"none"}, \code{"log2"}, \code{"linear"}, or \code{"sqrt"}.
-#' Default is \code{"log2"} , following the original superlet formulation.
 #'
 #' @param c1 Base number of cycles of the Morlet wavelet. Acts as the
 #' fundamental wavelet width.
@@ -32,12 +29,12 @@
 #' multiplicatively with superlet order. If FALSE, cycles increase
 #' additively.
 #'
-#' @param scaling Character string defining how the number of wavelet
+#' @param order_scaling Character string defining how the number of wavelet
 #' cycles varies with scale. One of
 #' \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
 #' or \code{"power"}.
 #'
-#' @param alpha Numeric. Exponent used when \code{scaling = "power"}.
+#' @param order_alpha Numeric. Exponent used when \code{scaling = "power"}.
 #' Values greater than one emphasize high frequency sharpening, whereas
 #' values smaller than one emphasize low frequency sharpening.
 #'
@@ -68,10 +65,10 @@
 #' Adapted from MATLAB implementations by V. V. Moca et al. (2021)
 #'
 #' @references
-#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
-#' Time frequency super resolution with superlets.
-#' Nature Communications, 12, 337.
-#' \url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #' @examples
 #' \donttest{

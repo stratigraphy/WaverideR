@@ -14,7 +14,7 @@
 #'@param cycle Period of cycle for which the power will be extracted from the record.
 #'@param period_up Species the upper period of the to be extracted power \code{Default=1.2}.
 #'@param period_down specifies the lower period of the to be extracted power \code{Default=0.8}.
-#'
+#'@param ... additional input parameters from older versions
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
@@ -70,6 +70,8 @@ extract_power_stable <- function(scalogram = NULL,
                                  cycle = NULL,
                                  period_up = 1.2,
                                  period_down = 0.8,...) {
+  dots <- list(...)
+
   # Alias: wavelet -> scalogram
   if (is.null(scalogram) && !is.null(dots$wavelet)) {
     scalogram <- dots$wavelet

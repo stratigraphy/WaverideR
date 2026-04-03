@@ -33,12 +33,12 @@
 #' multiplicatively with superlet order. If FALSE, cycles increase
 #' additively.
 #'
-#' @param scaling Character string defining how the number of wavelet
+#' @param order_scaling Character string defining how the number of wavelet
 #' cycles varies with scale. One of
 #' \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
 #' or \code{"power"}.
 #'
-#' @param alpha Numeric. Exponent used when \code{scaling = "power"}.
+#' @param order_alpha Numeric. Exponent used when \code{scaling = "power"}.
 #' Values greater than one emphasize high frequency sharpening, whereas
 #' values smaller than one emphasize low frequency sharpening.
 #'
@@ -72,13 +72,13 @@
 #' is based on the matlab code in Moca et al. (2021) and the the "analyze.coherency" function of the  'WaveletComp' R package
 #'
 #' @references
-#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
-#' Time frequency super resolution with superlets.
-#' Nature Communications, 12, 337.
-#' \url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #' @examples
 #'#Example 1. A cross superlet of two etp solutions with noise overprint
-#'etp_1 <- etp(
+#'etp_1 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -91,7 +91,7 @@
 #'  verbose = FALSE
 #')
 #'
-#'etp_2 <- etp(
+#'etp_2 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -136,7 +136,7 @@
 #' @importFrom stats median
 #' @importFrom stats fft
 #' @importFrom stats fft
-
+#' @importFrom astrochron etp
 
 analyze_Xsuperlet <- function(data_1 = NULL,
                               data_2  = NULL,

@@ -1,7 +1,7 @@
 Package: WaverideR
 Type: Package
-Title: Processing signals for cyclostratigraphic studies
-Version: 0.5.0
+Title: Processing Signals for Cyclostratigraphic Studies
+Version: 0.6.0
 Authors@R: 
     person(given = "Michiel",
            family = "Arts",
@@ -10,8 +10,10 @@ Authors@R:
 		   comment = c(ORCID = "0000-0003-3181-4608"))
 Maintainer: Michiel Arts <michiel.arts@stratigraphy.eu>
 Depends: R (>= 3.5.0)
-Imports: DescTools, Hmisc, Matrix,utils,colorednoise, foreach,stats,matrixStats,reshape2,truncnorm,grDevices,graphics,parallel,astrochron,RColorBrewer,colorRamps,viridis,magick,rlist,trapezoid,fANCOVA,DecomposeR,doSNOW
-Description: WaverideR is an R package for advanced cyclostratigraphic 
+Imports: DescTools, Hmisc, Matrix,utils,colorednoise, foreach,stats,matrixStats,reshape2,truncnorm,grDevices,graphics,parallel,astrochron,RColorBrewer,colorRamps,viridis,magick,rlist,trapezoid,fANCOVA,DecomposeR,doSNOW,scico
+Description: Provides an advanced suite of spectral tools for detecting,
+visualising, and tracking non-stationary astronomical cycles in
+stratigraphic data sets.WaverideR is an R package for advanced cyclostratigraphic 
  analysis of stratigraphic data sets. It provides a comprehensive suite 
  of spectral tools for detecting, visualising, and tracking non-stationary 
  astronomical cycles, including continuous wavelet transforms (CWT), the 

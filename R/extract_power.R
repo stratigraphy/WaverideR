@@ -23,6 +23,9 @@
 #'extracted (make sure that \code{extract_cycle_power}) and
 #'\code{tracked_cycle_period}) are of the same unit (either depth or time domain).
 #'
+#'@param ... older input previous versions
+#'
+#'
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
@@ -71,8 +74,8 @@
 #'mag_track <- mag_track_solution
 #'
 #' mag_track_complete <- completed_series(
-#'   wavelet = mag_wt,
-#'   tracked_period_curve = mag_track,
+#'   scalogram = mag_wt,
+#'   tracked_curve = mag_track,
 #'   period_up = 1.2,
 #'   period_down = 0.8,
 #'   extrapolate = TRUE,
@@ -103,10 +106,6 @@
 #' @export
 #' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
-
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
-
-
 
 
 

@@ -1,3 +1,83 @@
+#' @title Cross-wavelet coherence analysis
+#'
+#' @description
+#' Computes the cross-wavelet transform and wavelet coherence between two
+#' time/depth series using a superlet-based wavelet approach. The function
+#' internally interpolates both input series onto a common grid, computes
+#' individual wavelet transforms, and derives cross-wavelet power, phase,
+#' and coherence with configurable smoothing.
+#'
+#' @param data_1 First input dataset as a two-column matrix or data.frame.
+#' First column must contain time/depth, second column the signal.
+#' @param data_2 Second input dataset as a two-column matrix or data.frame.
+#' Must have the same structure as \code{data_1}.
+#' @param dj Spacing between discrete scales. Smaller values increase resolution.
+#' Default is \code{1/100}.
+#' @param lowerPeriod Lower bound of the period range to analyze.
+#' @param upperPeriod Upper bound of the period range to analyze.
+#' @param verbose Logical; if \code{TRUE}, prints progress messages.
+#' @param omega_nr Number of oscillations in the Morlet/superlet wavelet.
+#' Controls time-frequency resolution trade-off.
+#' @param n_simulations Number of simulations (reserved for future significance testing).
+#' Currently not used internally.
+#' @param window.type.t Type of smoothingw indow applied in the time direction.
+#' Options: "none", "bar" (Bartlett), "tri" (triangular), "box" (boxcar),
+#' "han" (Hanning, default), "ham" (Hamming) or "bla" (Blackman)
+#' @param window.type.s Type of smoothing window applied in the scale direction.
+#' Same options as window.type.t.
+#' @param abs_window_t Absolute smoothing window size in the time direction
+#' (same units as input data).
+#' @param abs_window_s Absolute smoothing window size in the scale direction
+#' (in units of dj).
+#'
+#' @return
+#' A list of class containing:
+#'   Wave Smoothed cross-wavelet transform (complex)
+#'   Coherence Wavelet coherence matrix
+#'   Phase Phase difference between the two signals
+#'   Coh.avg Average coherence over time
+#'   Period (m)vector corresponding to scales
+#'   Scale Wavelet scales
+#'   dt Time step of interpolated grid
+#'   dj Scale resolution
+#'   axis.1 Time/depth axis
+#'   axis.2 Period axis
+#'   nc, nr Dimensions of the wavelet matrices
+#'   x1, y1 Interpolated first dataset
+#'   x2, y2 Interpolated second dataset
+#'
+#' @author
+#' plotting code based on the "analyze.coherency" function
+#'  of the 'WaveletComp' R package
+#'
+#' @references
+#' Torrence, C., and G. P. Compo (1998).
+#' A practical guide to wavelet analysis.
+#' \emph{Bulletin of the American Meteorological Society}, 79(1), 61–78.
+#'
+#' @examples
+#' \donttest{
+#' # Generate two synthetic signals
+#' t <- seq(0, 1000, by = 1)
+#' x1 <- sin(2 * pi * t / 100) + rnorm(length(t), 0, 0.5)
+#' x2 <- sin(2 * pi * t / 100 + pi/4) + rnorm(length(t), 0, 0.5)
+#'
+#' data_1 <- cbind(t, x1)
+#' data_2 <- cbind(t, x2)
+#'
+#' coh <- analyze_wavelet_coherence(
+#'   data_1 = data_1,
+#'   data_2 = data_2,
+#'   lowerPeriod = 2,
+#'   upperPeriod = 256
+#' )
+#'
+#' }
+#'
+#' @export
+#' @importFrom stats approx
+
+
 analyze_wavelet_coherence <- function(
     data_1,
     data_2,
@@ -42,8 +122,6 @@ analyze_wavelet_coherence <- function(
     run_multicore = FALSE,
     pval = FALSE)
 
-  ?analyze_wavelet
-
   wt2 <- analyze_wavelet(
     d2,
     dj=dj,
@@ -61,7 +139,7 @@ analyze_wavelet_coherence <- function(
   Scale <- wt1$Scale
 
   # --- CROSS-WAVELET ---
-  Wave.xy  = (wt_1_wt$Wave * Conj(wt_2_wt$Wave)) / matrix(rep(Scale, nc), nrow = nr)
+  Wave.xy  = (wt1$Wave * Conj(wt2$Wave)) / matrix(rep(Scale, nc), nrow = nr)
   Power.xy = Mod(Wave.xy)
   Phase.xy = Arg(Wave.xy)
 
@@ -166,12 +244,6 @@ analyze_wavelet_coherence <- function(
   # --- COHERENCE ---
   Coherence <- Mod(sWave.xy)^2 / (sPower.x * sPower.y)
   Coherence[sPower.x * sPower.y == 0] <- 0
-
-  out <- list(
-    Coherence = Coherence,
-    Phase.xy = Arg(Wave.xy),
-
-  )
 
   output <- list(
     Wave = t(sWave.xy),

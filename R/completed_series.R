@@ -31,6 +31,10 @@
 #'@param genplot Generate a plot \code{Default=TRUE}. The red curve is the completed curve,
 #'the black curve is the original curve.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#'
+#'@param ... older inputs from previous version
+#'
+#'
 #'@examples
 #'\donttest{
 #'#Use the grey_track example points to complete the tracking of the
@@ -63,7 +67,7 @@
 #'
 #'
 #'grey_track <- completed_series(
-#'  wavelet = grey_wt,
+#'  scalogram = grey_wt,
 #'  tracked_curve  = grey_track,
 #'  period_up  = 1.25,
 #'  period_down  = 0.75,
@@ -85,13 +89,13 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
                               keep_editable = FALSE,...)
 {
 
+
   dots <- list(...)
 
   # Allow alias: wavelet = scalogram
   if (is.null(scalogram) && !is.null(dots$wavelet)) {
     scalogram <- dots$wavelet
   }
-
   my.w <- scalogram
   my.data <- cbind(scalogram$x, scalogram$y)
 

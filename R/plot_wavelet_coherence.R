@@ -1,8 +1,8 @@
 #' @title Plots a cross wavelet scalogram
 #'
-#' @description Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_wavelet_coh}} function.
+#' @description Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_wavelet_coherence}} function.
 #'
-#'@param wavelet_coh wavelet_coh object created using the \code{\link{analyze_wavelet_coh}} function.
+#'@param wavelet_coh wavelet_coh object created using the \code{\link{analyze_wavelet_coherence}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
 #'@param n.levels  Number of color levels \code{Default=100}.
@@ -74,21 +74,21 @@
 #'  of the 'WaveletComp' R package
 #'
 #' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
+#' Wavelet Analysis. R package version 1.1.
+#' \url{https://CRAN.R-project.org/package=WaveletComp}
 #'
-#'Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
-#'Time-frequency super-resolution with superlets.
-#'Nature communications 12, no. 1 (2021): 337.
-#'\url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #'@examples
 #' \donttest{
 #'#Example 1. A cross superlet plot of two etp solutions with noise overprint
 #'
 #'
-#'etp_1 <- etp(
+#'etp_1 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -101,7 +101,7 @@
 #'  verbose = FALSE
 #')
 #'
-#'etp_2 <- etp(
+#'etp_2 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -127,13 +127,13 @@
 #'  phi = 0.9
 #')
 #'
-#'coh_etp <- analyze_wavelet_coh(
+#'coh_etp <- analyze_wavelet_coherence(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
 #'  upperPeriod = 1024,
 #'  lowerPeriod = 2
 #')
-#'plot_wavelet_coh(wavelet_coh = coh_etp, lowerPeriod = 2, upperPeriod = 1024,
+#'plot_wavelet_coherence(wavelet_coh = coh_etp, lowerPeriod = 2, upperPeriod = 1024,
 #'               n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
 #'               useRaster = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
 #'               keep_editable = FALSE, dev_new = TRUE, plot_dir = TRUE,
@@ -217,6 +217,7 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 #' @importFrom scico scico
+#' @importFrom graphics arrows
 
 plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upperPeriod = NULL,
                            n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
@@ -239,6 +240,7 @@ plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upper
   }
 
   Coherence <- t(wavelet_coh$Coherence)
+  Power <-  Coherence
   Phase <- t(wavelet_coh$Phase)
   maximum.level = max(wavelet_coh$Coherence, na.rm = TRUE)
   power_max_mat.levels = quantile(wavelet_coh$Coherence, probs = seq(from = 0,

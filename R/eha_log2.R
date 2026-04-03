@@ -22,7 +22,7 @@
 #' parameters allows to analyze the signal for a specific range of cycles.
 #' scaling is done using power 2 so for the best plotting results select a value
 #' to the power or 2.
-#' @param Pad with zeros to how many points? Must not factor into a prime number
+#' @param pad with zeros to how many points? Must not factor into a prime number
 #' >23. Maximum number of points is 200,000.
 #' @param padding pad the edges of the data set with half a
 #' window length with the following, the  "Mean", "noise" or "zero"
@@ -58,7 +58,7 @@
 #'
 #' @examples
 #' \donttest{
-#'#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
+#'#Example 1. Total Solar Irradiance
 #'# data set of Steinhilber et al., (2012)
 #'
 #'TSI_eha_log2 <- eha_log2(data = TSI,
@@ -67,31 +67,29 @@
 #'demean = TRUE,
 #'detrend = TRUE,
 #'upperPeriod = 8192,
-#'lowerPeriod = c,
+#'lowerPeriod = 50,
 #'pad = NULL,
 #'padding = "noise")
 #'
-#'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
-#'#data set of Pas et al., (2018)
+#'#Example 2. Magnetic susceptibility data set of Pas et al., (2018)
 #'mag_eha_log2 <- eha_log2(data = mag,
-#'win =  254,
+#'win =  50,
 #'tbw = 4,
 #'demean = TRUE,
 #'detrend = TRUE,
-#'upperPeriod = 254,
-#'lowerPeriod = 0.1,
+#'upperPeriod = 50,
+#'lowerPeriod = 2,
 #'pad = NULL,
 #'padding = "noise")
 #'
-#'#Example 3. A plot of a wavelet spectra using the greyscale
-#'# data set of Zeeden et al., (2013)
+#'#Example 3. Greyscale data set of Zeeden et al., (2013)
 #'grey_eha_log2 <- eha_log2(data = grey,
-#'win =  256,
+#'win =  20,
 #'tbw = 4,
 #'demean = TRUE,
 #'detrend = TRUE,
-#'upperPeriod = 256,
-#'lowerPeriod = 0.02,
+#'upperPeriod = 20,
+#'lowerPeriod = 2,
 #'pad = NULL,
 #'padding = "noise")
 #'
@@ -109,6 +107,7 @@
 #' @importFrom foreach %dopar%
 #' @importFrom parallel stopCluster
 #' @importFrom stats acf
+#' @importFrom astrochron eha
 
 
 eha_log2 <- function(data = NULL,
@@ -120,17 +119,19 @@ eha_log2 <- function(data = NULL,
                      lowerPeriod = NULL,
                      pad = NULL,
                      padding = "noise") {
-  half_win <- (win / 2)
+
+half_win <- (win / 2)
   dz <- mean(diff(data[, 1]), na.rm = TRUE)
   z <- data[, 1]
   x <- data[, 2]
+
 
   # Lower padding (before start)
   z_pad_low <- seq(from = z[1] - half_win,
                    to   = z[1] - dz,
                    by   = dz)
 
-  # Upper padding (after end)
+# Upper padding (after end)
   z_pad_high <- seq(from = z[length(z)] + dz,
                     to   = z[length(z)] + half_win,
                     by   = dz)
@@ -152,6 +153,10 @@ eha_log2 <- function(data = NULL,
       sd = sd(data[1:timesteps_data, 2]),
       phi = phi_x_up
     )
+
+
+    colorednoise::autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
+
     phi_x_down <- colorednoise::autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
     if (phi_x_down >= 1) {
       phi_x_down <- 0.99
@@ -194,7 +199,7 @@ eha_log2 <- function(data = NULL,
   }
 
 
-  eha_res <- eha(
+  eha_res <- astrochron::eha(
     data_padded,
     tbw = tbw,
     pad = pad*5, #factor 5 is needed to ensure low frequency spacing

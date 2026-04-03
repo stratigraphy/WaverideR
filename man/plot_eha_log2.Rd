@@ -112,6 +112,10 @@ should be period values \code{Default=NULL}}
 
 \item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
 
+\item{pval_abline}{p value of the abline}
+
+\item{pval_cutoff}{p value cutoff below which no data is displayed}
+
 \item{add_MTM}{Add the MTM  plot next to the wavelet plot \code{Default=FALSE}}
 
 \item{mtm_siglvl}{select the significance level  (0-1) for the MTM spectrum \code{Default=0.95}}
@@ -144,14 +148,14 @@ tbw = 4,
 demean = TRUE,
 detrend = TRUE,
 upperPeriod = 8192,
-lowerPeriod = c,
+lowerPeriod = 50,
 pad = NULL,
 padding = "noise")
 
 plot_eha_log2(
 eha_log2 = TSI_eha_log2,
 plot_opt = "Amplitude",
-lowerPeriod = 16,
+lowerPeriod = 50,
 upperPeriod = 8192,
 n.levels = 100,
 palette_name = "rainbow",
@@ -180,20 +184,20 @@ plot_horizontal = TRUE)
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
 mag_eha_log2 <- eha_log2(data = mag,
-win =  254,
+win =  50,
 tbw = 4,
 demean = TRUE,
 detrend = TRUE,
-upperPeriod = 254,
-lowerPeriod = 0.1,
+upperPeriod = 50,
+lowerPeriod = 1,
 pad = NULL,
 padding = "noise")
 
 plot_eha_log2(
 eha_log2 = mag_eha_log2,
 plot_opt = "Amplitude",
-lowerPeriod = 0.1,
-upperPeriod = 254,
+lowerPeriod = 1,
+upperPeriod = 50,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer = "grDevices",
@@ -222,12 +226,12 @@ plot_horizontal = TRUE)
 #Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
 grey_eha_log2 <- eha_log2(data = grey,
-win =  256,
+win =  20,
 tbw = 4,
 demean = TRUE,
 detrend = TRUE,
-upperPeriod = 256,
-lowerPeriod = 0.02,
+upperPeriod = 20,
+lowerPeriod = 1,
 pad = NULL,
 padding = "noise")
 
@@ -235,8 +239,8 @@ padding = "noise")
 plot_eha_log2(
 eha_log2 = grey_eha_log2,
 plot_opt = "Amplitude",
-lowerPeriod = 0.02,
-upperPeriod = 256,
+lowerPeriod = 1,
+upperPeriod = 20,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer = "grDevices",

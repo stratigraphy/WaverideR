@@ -146,9 +146,9 @@ alpha = 1
  )
 
 plot_Awavelet(
- wavelet = TSI_wt,
- lowerPeriod = NULL,
- upperPeriod = NULL,
+ Awavelet = TSI_wt,
+ lowerPeriod = 16,
+ upperPeriod = 8192,
  n.levels = 100,
  palette_name = "rainbow",
 color_brewer= "grDevices",
@@ -179,7 +179,7 @@ mag_wt <-
 analyze_Awavelet(
 data = mag,
 dj = 1/100,
-lowerPeriod = 0.1,
+lowerPeriod = 1,
 upperPeriod = 254,
 verbose = FALSE,
 omega_min = 6,
@@ -189,9 +189,9 @@ alpha = 1
 )
 
 plot_Awavelet(
-wavelet = mag_wt,
-lowerPeriod = NULL,
-upperPeriod = NULL,
+Awavelet = mag_wt,
+lowerPeriod = 1,
+upperPeriod = 254,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer= "grDevices",
@@ -223,8 +223,8 @@ grey_wt <-
  analyze_Awavelet(
    data = grey,
    dj = 1/200,
-   lowerPeriod = 0.02,
-   upperPeriod = 256,
+   lowerPeriod = 2,
+   upperPeriod = 25,
    verbose = FALSE,
 omega_min = 6,
 omega_max = 12,
@@ -232,9 +232,9 @@ scaling = "log2",
 alpha = 1)
 
 plot_Awavelet(
-wavelet = grey_wt,
-lowerPeriod = NULL,
-upperPeriod = NULL,
+Awavelet = grey_wt,
+lowerPeriod = 2,
+upperPeriod = 25,
 n.levels = 100,
 palette_name = "rainbow",
 color_brewer= "grDevices",

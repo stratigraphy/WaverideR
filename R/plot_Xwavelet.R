@@ -74,21 +74,21 @@
 #'  of the 'WaveletComp' R package
 #'
 #' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
+#' Wavelet Analysis. R package version 1.1.
+#' \url{https://CRAN.R-project.org/package=WaveletComp}
 #'
-#'Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
-#'Time-frequency super-resolution with superlets.
-#'Nature communications 12, no. 1 (2021): 337.
-#'\url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #'@examples
 #' \donttest{
 #'#Example 1. A cross superlet plot of two etp solutions with noise overprint
 #'
 #'
-#'etp_1 <- etp(
+#'etp_1 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -101,7 +101,7 @@
 #'  verbose = FALSE
 #')
 #'
-#'etp_2 <- etp(
+#'etp_2 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -127,18 +127,15 @@
 #'  phi = 0.9
 #')
 #'
-#'X_super_etp <- analyze_Xwavelet(
+#'X_wavelet_etp <- analyze_Xwavelet(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
 #'  upperPeriod = 1024,
 #'  lowerPeriod = 2,
-#'  Nf = 128,
-#'  c1 = 3,
-#'  o = c(1, 10),
-#'  mult = TRUE,
+#'   omega_nr = 8,
 #'  verbose = FALSE
 #')
-#'plot_Xwavelet(Xwavelet = X_super_etp, lowerPeriod = 2, upperPeriod = 1024,
+#'plot_Xwavelet(Xwavelet = X_wavelet_etp, lowerPeriod = 2, upperPeriod = 1024,
 #'               n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
 #'               useRaster = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
 #'               keep_editable = FALSE, dev_new = TRUE, plot_dir = TRUE,
@@ -222,6 +219,7 @@
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
 #' @importFrom scico scico
+#' @importFrom graphics arrows
 
 plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NULL,
                             n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
@@ -238,7 +236,7 @@ plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NU
                             add_abline_v = NULL, add_data = TRUE, add_avg = FALSE, plot_horizontal = TRUE)
 {
 
-  if (keep_editable == FALSE) {
+      if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
@@ -309,14 +307,14 @@ plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NU
   if (dev_new == TRUE & plot_horizontal == FALSE) {
     dev.new(width = 7, height = 10, noRStudioGD = TRUE)
   }
+
   depth <- Xwavelet$x1
   y_axis <- Xwavelet$Period
   depth <- as.numeric(depth)
   y_axis <- as.numeric(y_axis)
   if (plot_dir != TRUE) {
     xlim_vals = rev(c(min(Xwavelet$x1), max(Xwavelet$x1)))
-  }
-  else {
+  }else {
     xlim_vals = c(min(Xwavelet$x1), max(Xwavelet$x1))
   }
   if (is.null(lowerPeriod) == TRUE) {
@@ -1087,7 +1085,8 @@ plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NU
           las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(x = Xwavelet$x1, y = Xwavelet$axis.2, z = (Xwavelet$Power),
+
+    image(x = Xwavelet$x1, y = Xwavelet$axis.2, z = t(Xwavelet$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
           main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))

@@ -67,14 +67,14 @@
 #' is based on the matlab code in Moca et al. (2021)
 #'
 #' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
+#' Wavelet Analysis. R package version 1.1.
+#' \url{https://CRAN.R-project.org/package=WaveletComp}
 #'
-#'Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
-#'Time-frequency super-resolution with superlets.
-#'Nature communications 12, no. 1 (2021): 337.
-#'\url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #'@examples
 #' \donttest{
@@ -90,11 +90,10 @@
 #'    verbose = FALSE,
 #'    c1=1,
 #'    o = c(1,5),
-#'    mult = TRUE,
-#'    verbose = FALSE)
+#'    mult = TRUE)
 #'
 #'plot_superlet(
-#'  wavelet = TSI_super,
+#'  superlet = TSI_super,
 #'  lowerPeriod = 16,
 #'  upperPeriod = 8192,
 #'  n.levels = 100,
@@ -125,12 +124,11 @@
 #'    verbose = FALSE,
 #'    c1=1,
 #'    o = c(1,5),
-#'    mult = TRUE,
-#'    verbose = FALSE)
+#'    mult = TRUE)
 #'
 #'
 #'plot_superlet(
-#'  wavelet = mag_super,
+#'  superlet = mag_super,
 #'  lowerPeriod = 0.1,
 #'  upperPeriod = 254,
 #'  n.levels = 100,
@@ -164,11 +162,10 @@
 #'    verbose = FALSE,
 #'    c1=1,
 #'    o = c(1,5),
-#'    mult = TRUE,
-#'    verbose = FALSE)
+#'    mult = TRUE)
 #'
 #'plot_superlet(
-#'  wavelet = grey_super,
+#'  superlet = grey_super,
 #'  lowerPeriod = 0.02,
 #'  upperPeriod = 256,
 #'  n.levels = 100,

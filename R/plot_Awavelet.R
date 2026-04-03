@@ -74,14 +74,14 @@
 #'  of the 'WaveletComp' R package
 #'
 #' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
+#' Wavelet Analysis. R package version 1.1.
+#' \url{https://CRAN.R-project.org/package=WaveletComp}
 #'
-#'Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
-#'Time-frequency super-resolution with superlets.
-#'Nature communications 12, no. 1 (2021): 337.
-#'\url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #'
 #'@examples
 #' \donttest{
@@ -102,9 +102,9 @@
 #'  )
 #'
 #'plot_Awavelet(
-#'  wavelet = TSI_wt,
-#'  lowerPeriod = NULL,
-#'  upperPeriod = NULL,
+#'  Awavelet = TSI_wt,
+#'  lowerPeriod = 16,
+#'  upperPeriod = 8192,
 #'  n.levels = 100,
 #'  palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -135,7 +135,7 @@
 #'analyze_Awavelet(
 #'data = mag,
 #'dj = 1/100,
-#'lowerPeriod = 0.1,
+#'lowerPeriod = 1,
 #'upperPeriod = 254,
 #'verbose = FALSE,
 #' omega_min = 6,
@@ -145,9 +145,9 @@
 #')
 #'
 #'plot_Awavelet(
-#'wavelet = mag_wt,
-#'lowerPeriod = NULL,
-#'upperPeriod = NULL,
+#'Awavelet = mag_wt,
+#'lowerPeriod = 1,
+#'upperPeriod = 254,
 #'n.levels = 100,
 #' palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -179,8 +179,8 @@
 #'  analyze_Awavelet(
 #'    data = grey,
 #'    dj = 1/200,
-#'    lowerPeriod = 0.02,
-#'    upperPeriod = 256,
+#'    lowerPeriod = 2,
+#'    upperPeriod = 25,
 #'    verbose = FALSE,
 #' omega_min = 6,
 #' omega_max = 12,
@@ -188,9 +188,9 @@
 #' alpha = 1)
 #'
 #'plot_Awavelet(
-#'wavelet = grey_wt,
-#'lowerPeriod = NULL,
-#'upperPeriod = NULL,
+#'Awavelet = grey_wt,
+#'lowerPeriod = 2,
+#'upperPeriod = 25,
 #'n.levels = 100,
 #' palette_name = "rainbow",
 #' color_brewer= "grDevices",
@@ -561,15 +561,15 @@ plot_Awavelet <- function(Awavelet = NULL,
       xlim = log2(ylim_vals)
     )
 
-
-    polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+#
+#     polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)
@@ -701,15 +701,15 @@ plot_Awavelet <- function(Awavelet = NULL,
       xlim = log2(ylim_vals)
     )
 
-
-    polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+#
+#     polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
 
@@ -934,15 +934,15 @@ plot_Awavelet <- function(Awavelet = NULL,
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
     )
-
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+#
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
 
@@ -1175,15 +1175,15 @@ polygon(
       ylim = xlim_vals,
       xlim = log2(ylim_vals)
     )
-
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+#
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)
@@ -1441,14 +1441,14 @@ polygon(
     )
 
 
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
 
@@ -1625,14 +1625,14 @@ polygon(
     )
 
 
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
 
@@ -1879,14 +1879,14 @@ polygon(
     )
 
 
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)
@@ -2039,14 +2039,14 @@ polygon(
       xlim = log2(ylim_vals)
     )
 
-polygon(
-      y=Awavelet$coi.1 ,
-      x=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
-    )
+# polygon(
+#       y=Awavelet$coi.1 ,
+#       x=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       ylim = xlim_vals,
+#       xlim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)
@@ -2198,15 +2198,15 @@ polygon(
       ylim = log2(ylim_vals)
     )
 
-
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+#
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
 
@@ -2458,21 +2458,14 @@ polygon(
       ylim = log2(ylim_vals)
     )
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
-
-
-
-
-
-
-
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
     box(lwd = lwd.axis)
     period.tick = unique(trunc(Awavelet$axis.2))
@@ -2617,14 +2610,14 @@ polygon(
     )
 
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
     box(lwd = lwd.axis)
     period.tick = unique(trunc(Awavelet$axis.2))
@@ -2771,14 +2764,14 @@ polygon(
     )
 
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)
@@ -3037,14 +3030,14 @@ polygon(
       ylim = log2(ylim_vals)
     )
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
 
@@ -3285,14 +3278,14 @@ polygon(
       ylim = log2(ylim_vals)
     )
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
 
@@ -3505,14 +3498,14 @@ polygon(
     )
 
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
 
@@ -3639,14 +3632,14 @@ polygon(
     )
 
 
-polygon(
-      x=Awavelet$coi.1 ,
-      y=Awavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
-    )
+# polygon(
+#       x=Awavelet$coi.1 ,
+#       y=Awavelet$coi.2,
+#       border = NA,
+#       col = rgb(1, 1, 1, 0.5),
+#       xlim = xlim_vals,
+#       ylim = log2(ylim_vals)
+#     )
 
 
     box(lwd = lwd.axis)

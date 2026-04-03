@@ -41,6 +41,8 @@ plot_Xsuperlet(
 
 \item{upperPeriod}{Highest period value which will be plotted}
 
+\item{n.levels}{Number of color levels \code{Default=100}.}
+
 \item{palette_name}{Name of the color palette which is used for plotting.
 The color palettes than can be chosen depends on which the R package is specified in
 the color_brewer parameter. The included R packages from which palettes can be chosen
@@ -133,7 +135,7 @@ Plot cross superlet scalogram using the outcome of the \code{\link{analyze_Xsupe
 #Example 1. A cross superlet plot of two etp solutions with noise overprint
 
 
-etp_1 <- etp(
+etp_1 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -146,7 +148,7 @@ etp_1 <- etp(
  verbose = FALSE
 )
 
-etp_2 <- etp(
+etp_2 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,

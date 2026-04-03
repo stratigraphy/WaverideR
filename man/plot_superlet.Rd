@@ -120,11 +120,10 @@ TSI_super <-
    verbose = FALSE,
    c1=1,
    o = c(1,5),
-   mult = TRUE,
-   verbose = FALSE)
+   mult = TRUE)
 
 plot_superlet(
- wavelet = TSI_super,
+ superlet = TSI_super,
  lowerPeriod = 16,
  upperPeriod = 8192,
  n.levels = 100,
@@ -155,12 +154,11 @@ analyze_superlet(
    verbose = FALSE,
    c1=1,
    o = c(1,5),
-   mult = TRUE,
-   verbose = FALSE)
+   mult = TRUE)
 
 
 plot_superlet(
- wavelet = mag_super,
+ superlet = mag_super,
  lowerPeriod = 0.1,
  upperPeriod = 254,
  n.levels = 100,
@@ -194,11 +192,10 @@ analyze_superlet(
    verbose = FALSE,
    c1=1,
    o = c(1,5),
-   mult = TRUE,
-   verbose = FALSE)
+   mult = TRUE)
 
 plot_superlet(
- wavelet = grey_super,
+ superlet = grey_super,
  lowerPeriod = 0.02,
  upperPeriod = 256,
  n.levels = 100,

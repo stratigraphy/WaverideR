@@ -19,6 +19,13 @@
 #'
 #' @param verbose Logical. If TRUE, print progress and interpolation
 #' information.
+#' @param omega_nr . number of cycles within a wavelet
+#'
+#' @param dj Spacing between successive scales. The CWT analyses analyses the signal using successive periods
+#' which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
+#' in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
+#' the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
+#' Increasing the increases the computational time of the CWT
 #'
 #' @return
 #'A list with class \code{"analyze.Xwavelet"} containing
@@ -47,13 +54,13 @@
 #' is based on the matlab code in Moca et al. (2021) and the the "analyze.coherency" function of the  'WaveletComp' R package
 #'
 #' @references
-#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
-#' Time frequency super resolution with superlets.
-#' Nature Communications, 12, 337.
-#' \url{https://doi.org/10.1038/s41467-020-20539-9}
+#' Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+#' Time-frequency super-resolution with superlets.
+#' Nature Communications, 12(1), 337.
+#' \doi{10.1038/s41467-020-20539-9}
 #' @examples
 #'#Example 1. A cross superlet of two etp solutions with noise overprint
-#'etp_1 <- etp(
+#'etp_1 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -66,7 +73,7 @@
 #'  verbose = FALSE
 #')
 #'
-#'etp_2 <- etp(
+#'etp_2 <- astrochron::etp(
 #'  tmin = 0,
 #'  tmax = 1500,
 #'  dt = 1,
@@ -92,12 +99,13 @@
 #'  phi = 0.9
 #')
 #'
-#'Xetp <- analyze_xwavelet(
+#'Xetp <- analyze_Xwavelet(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
 #'  upperPeriod = 1024,
 #'  lowerPeriod = 2,
-#'  verbose = FALSE
+#'  verbose = FALSE,
+#'  omega_nr = 8
 #')
 #'
 #' @export
@@ -106,14 +114,14 @@
 #' @importFrom stats fft
 #' @importFrom stats fft
 
-analyze_xwavelet <- function(
+analyze_Xwavelet <- function(
     data_1,
     data_2,
     dj = 1/100,
     lowerPeriod = 2,
     upperPeriod = 1024,
     verbose = FALSE,
-    omega_nr = 8
+    omega_nr = 4
 ) {
 
   # --- PREPROCESSING ---
@@ -176,13 +184,12 @@ analyze_xwavelet <- function(
 
 
   out <- list(
-    Wave   = Wave.xy,
-    Power  = Power.xy,
-    Phase  = Phase.xy,
+    Wave   = t(Wave.xy),
+    Power  = t(Power.xy),
+    Phase  = t(Phase.xy),
     Power.avg = Power.avg,
-    dt = dt,
+    dt = dx,
     dj = dj,
-    Power.avg = colMeans(t(Power.xy), na.rm = TRUE),
     Scale = Scale,
     Period = wt1$Period,
     nc = nc,

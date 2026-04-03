@@ -34,7 +34,7 @@ unit (either depth or time domain).}
 extracted (make sure that \code{extract_cycle_power}) and
 \code{tracked_cycle_period}) are of the same unit (either depth or time domain).}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{...}{older input previous versions}
 }
 \value{
 Returns a matrix with 3 columns.
@@ -77,8 +77,8 @@ omega_nr = 10)
 mag_track <- mag_track_solution
 
 mag_track_complete <- completed_series(
-  wavelet = mag_wt,
-  tracked_period_curve = mag_track,
+  scalogram = mag_wt,
+  tracked_curve = mag_track,
   period_up = 1.2,
   period_down = 0.8,
   extrapolate = TRUE,

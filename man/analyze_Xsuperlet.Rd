@@ -46,17 +46,17 @@ order one.}
 multiplicatively with superlet order. If FALSE, cycles increase
 additively.}
 
-\item{verbose}{Logical. If TRUE, print progress and interpolation
-information.}
-
-\item{scaling}{Character string defining how the number of wavelet
+\item{order_scaling}{Character string defining how the number of wavelet
 cycles varies with scale. One of
 \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
 or \code{"power"}.}
 
-\item{alpha}{Numeric. Exponent used when \code{scaling = "power"}.
+\item{order_alpha}{Numeric. Exponent used when \code{scaling = "power"}.
 Values greater than one emphasize high frequency sharpening, whereas
 values smaller than one emphasize low frequency sharpening.}
+
+\item{verbose}{Logical. If TRUE, print progress and interpolation
+information.}
 }
 \value{
 A list with class \code{"analyze.Xsuperlet"} containing
@@ -88,7 +88,7 @@ combining multiple wavelet orders at each frequency.
 }
 \examples{
 #Example 1. A cross superlet of two etp solutions with noise overprint
-etp_1 <- etp(
+etp_1 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -101,7 +101,7 @@ etp_1 <- etp(
  verbose = FALSE
 )
 
-etp_2 <- etp(
+etp_2 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,

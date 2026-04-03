@@ -42,11 +42,11 @@ parameters allows to analyze the signal for a specific range of cycles.
 scaling is done using power 2 so for the best plotting results select a value
 to the power or 2.}
 
+\item{pad}{with zeros to how many points? Must not factor into a prime number
+>23. Maximum number of points is 200,000.}
+
 \item{padding}{pad the edges of the data set with half a
 window length with the following, the  "Mean", "noise" or "zero"}
-
-\item{Pad}{with zeros to how many points? Must not factor into a prime number
->23. Maximum number of points is 200,000.}
 }
 \value{
 The output is a list (analyze.eha object) which contain
@@ -72,7 +72,7 @@ This is a wrapper function for the "eha" function of the 'astrochron' R package
 }
 \examples{
 \donttest{
-#Example 1. A plot of a wavelet spectra using the Total Solar Irradiance
+#Example 1. Total Solar Irradiance
 # data set of Steinhilber et al., (2012)
 
 TSI_eha_log2 <- eha_log2(data = TSI,
@@ -81,31 +81,29 @@ tbw = 4,
 demean = TRUE,
 detrend = TRUE,
 upperPeriod = 8192,
-lowerPeriod = c,
+lowerPeriod = 50,
 pad = NULL,
 padding = "noise")
 
-#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
-#data set of Pas et al., (2018)
+#Example 2. Magnetic susceptibility data set of Pas et al., (2018)
 mag_eha_log2 <- eha_log2(data = mag,
-win =  254,
+win =  50,
 tbw = 4,
 demean = TRUE,
 detrend = TRUE,
-upperPeriod = 254,
-lowerPeriod = 0.1,
+upperPeriod = 50,
+lowerPeriod = 2,
 pad = NULL,
 padding = "noise")
 
-#Example 3. A plot of a wavelet spectra using the greyscale
-# data set of Zeeden et al., (2013)
+#Example 3. Greyscale data set of Zeeden et al., (2013)
 grey_eha_log2 <- eha_log2(data = grey,
-win =  256,
+win =  20,
 tbw = 4,
 demean = TRUE,
 detrend = TRUE,
-upperPeriod = 256,
-lowerPeriod = 0.02,
+upperPeriod = 20,
+lowerPeriod = 2,
 pad = NULL,
 padding = "noise")
 

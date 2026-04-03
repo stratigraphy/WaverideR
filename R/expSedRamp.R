@@ -19,18 +19,18 @@
 #'
 #'@examples
 #'
-#'data_1 <- etp(
+#'data_1 <- astrochron::etp(
 #'tmin = 0,
 #'tmax = 4000,
 #'dt = 1,
 #'eWt = 1.5,
 #'oWt = 0.75,
 #'pWt = 1,
-#'esinw = T,
+#'esinw = TRUE,
 #'solution = NULL,
-#'standardize = T,
-#'genplot = T,
-#'verbose = T
+#'standardize = TRUE,
+#'genplot = FALSE,
+#'verbose = FALSE
 #')
 #'data_ramped_ls <- expSedRamp(data_1, sr_start = 1, sr_end = 5)
 #' @return
@@ -38,6 +38,7 @@
 #'element 1: time series in the depth (m) domain
 #'element 2: sedimentation rate curve
 #' @export
+#' @importFrom astrochron etp
 
 
 expSedRamp <- function(data, sr_start, sr_end) {

@@ -6,8 +6,8 @@
 \usage{
 plot_Xwavelet(
   Xwavelet = NULL,
-  lowerPeriod = NULL,
-  upperPeriod = NULL,
+  lowerPeriod = 2,
+  upperPeriod = 1024,
   n.levels = 100,
   palette_name = "rainbow",
   color_brewer = "grDevices",
@@ -19,11 +19,11 @@ plot_Xwavelet(
   plot_dir = TRUE,
   plot_arrows = TRUE,
   pwr_quant = 0.85,
-  n_arrows = 75,
+  n_arrows = 50,
   T_unit = 15,
   P_unit = 0.5,
-  arrow_length = 0.075,
-  arrow_lwd = 1.9,
+  arrow_length = 0.1,
+  arrow_lwd = 2,
   arrow_angle = 25,
   add_lines = NULL,
   add_points = NULL,
@@ -135,7 +135,7 @@ Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_Xwavel
 #Example 1. A cross superlet plot of two etp solutions with noise overprint
 
 
-etp_1 <- etp(
+etp_1 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -148,7 +148,7 @@ etp_1 <- etp(
  verbose = FALSE
 )
 
-etp_2 <- etp(
+etp_2 <- astrochron::etp(
  tmin = 0,
  tmax = 1500,
  dt = 1,
@@ -174,18 +174,15 @@ etp_2[, 2] <- etp_2[, 2] + colorednoise::colored_noise(
  phi = 0.9
 )
 
-X_super_etp <- analyze_Xwavelet(
+X_wavelet_etp <- analyze_Xwavelet(
  data_1 = etp_1,
  data_2  = etp_2,
  upperPeriod = 1024,
  lowerPeriod = 2,
- Nf = 128,
- c1 = 3,
- o = c(1, 10),
- mult = TRUE,
+  omega_nr = 8,
  verbose = FALSE
 )
-plot_Xwavelet(Xwavelet = X_super_etp, lowerPeriod = 2, upperPeriod = 1024,
+plot_Xwavelet(Xwavelet = X_wavelet_etp, lowerPeriod = 2, upperPeriod = 1024,
               n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
               useRaster = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
               keep_editable = FALSE, dev_new = TRUE, plot_dir = TRUE,

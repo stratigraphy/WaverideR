@@ -149,7 +149,6 @@ analyze_Awavelet <- function(
     n_simulations = 10,
     run_multicore = FALSE
 ) {
-
   scaling <- match.arg(scaling)
 
   ## -------------------------------------------------------------------------
@@ -262,18 +261,36 @@ analyze_Awavelet <- function(
   axis.1 <- x_axis
   axis.2 <- log2(periods)
 
-  coi <- fourier.factor.vec * sqrt(2) * dt *
-    c(1e-5,
-      1:((series.length + 1) / 2 - 1),
-      rev(1:(series.length / 2 - 1)),
-      1e-5)
-
-  coi.x <- c(axis.1[1] - dt * 0.5, axis.1, axis.1[series.length] + dt * 0.5)
-  logyint <- axis.2[2] - axis.2[1]
-  yl <- c(log2(periods[scales.length]) + 0.5 * logyint,
-          log2(periods[1]) - 0.5 * logyint)
-  yr <- rev(yl)
-  coi.y <- c(yl, log2(coi), yr)
+  # n <- series.length
+  #
+  # if (n %% 2 == 0) {
+  #   # even
+  #   k <- c(
+  #     1e-5,
+  #     1:(n/2 - 1),
+  #     rev(1:(n/2 - 1)),
+  #     1e-5
+  #   )
+  # } else {
+  #   # odd (fix: remove duplicated center)
+  #   k <- c(
+  #     1e-5,
+  #     1:((n - 1)/2),
+  #     rev(1:((n - 1)/2 - 1)),
+  #     1e-5
+  #   )
+  # }
+  #
+  # coi_time <- k * dt * sqrt(2)
+  #
+  # coi <- outer(coi_time, fourier.factor.vec)
+  #
+  # coi.x <- c(axis.1[1] - dt * 0.5, axis.1, axis.1[series.length] + dt * 0.5)
+  # logyint <- axis.2[2] - axis.2[1]
+  # yl <- c(log2(periods[scales.length]) + 0.5 * logyint,
+  #         log2(periods[1]) - 0.5 * logyint)
+  # yr <- rev(yl)
+  # coi.y <- c(yl, log2(coi), yr)
 
   ## -------------------------------------------------------------------------
   ## 7. Output
@@ -289,8 +306,8 @@ analyze_Awavelet <- function(
     Power.avg = Power.avg,
     Period = periods,
     Scale = scales,
-    coi.1 = coi.x,
-    coi.2 = coi.y,
+    #coi.1 = coi.x,
+    #coi.2 = coi.y,
     nc = series.length,
     nr = scales.length,
     axis.1 = axis.1,
