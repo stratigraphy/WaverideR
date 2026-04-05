@@ -1,56 +1,18 @@
 Package: WaverideR
 Type: Package
-Title: Processing Signals for Cyclostratigraphic Studies
-Version: 0.6.0
-Authors@R: 
-    person(given = "Michiel",
-           family = "Arts",
-           role = c("aut", "cre"),
-           email = "michiel.arts@stratigraphy.eu",
-		   comment = c(ORCID = "0000-0003-3181-4608"))
+Title: Extracting Signals from Wavelet Spectra
+Version: 0.5.1
+Authors@R: person(given = "Michiel", family = "Arts", role = c("aut", "cre"), email = "michiel.arts@stratigraphy.eu", comment = c(ORCID = "0000-0003-3181-4608"))
 Maintainer: Michiel Arts <michiel.arts@stratigraphy.eu>
 Depends: R (>= 3.5.0)
-Imports: DescTools, Hmisc, Matrix,utils,colorednoise, foreach,stats,matrixStats,reshape2,truncnorm,grDevices,graphics,parallel,astrochron,RColorBrewer,colorRamps,viridis,magick,rlist,trapezoid,fANCOVA,DecomposeR,doSNOW,scico
-Description: Provides an advanced suite of spectral tools for detecting,
-visualising, and tracking non-stationary astronomical cycles in
-stratigraphic data sets.WaverideR is an R package for advanced cyclostratigraphic 
- analysis of stratigraphic data sets. It provides a comprehensive suite 
- of spectral tools for detecting, visualising, and tracking non-stationary 
- astronomical cycles, including continuous wavelet transforms (CWT), the 
- superlet transform, windowed FFT, and evolutionary harmonic analysis (EHA) (wrapper). 
- These methods allow both manual and automated tracking of orbital cycles in spectra 
- and scalograms, even in records affected by large changes in sedimentation rate. 
- Building on this spectral framework, WaverideR supports multi-proxy integration and 
- Monte Carlo–based uncertainty propagation to construct statistically robust floating 
- and absolute astrochronological age models. The package includes dedicated tools to 
- quantify analytical wavelet uncertainty, estimate the duration of stratigraphic gaps 
- and hiatuses, and integrate external radioisotopic age constraints. Designed for
- complex and incomplete stratigraphic records, WaverideR enables investigation of 
- the imprint of astronomical forcing even in suboptimal datasets.
- The 'WaverideR' package builds upon existing literature and established
- code bases. Relevant references can be grouped into four main subjects:
- cyclostratigraphic data analysis, example data sets, the continuous
- wavelet transform, and astronomical solutions.
- Key references for cyclostratigraphic data analysis include:
- Meyers (2012, 2019), Li et al. (2018, 2019), Wouters et al. (2021, 2022),
- Huang et al. (2009), Cleveland (1979), Hurvich et al. (1998), and
- Golub et al. (1979).
- References for example data sets include:
- Pas et al. (2018), Steinhilber et al. (2012), and Zeeden et al. (2013).
- Foundational references for the continuous wavelet and superlet transform include:
- Moca et al. (2021), Morlet et al. (1982a, 1982b), Torrence and Compo (1998), Gabor (1946),
- Russell and Han (2016), and related R implementations such as
- 'biwavelet' and 'WaveletComp'.
- References for astronomical solutions include:
- Laskar et al. (2004, 2011a, 2011b), Laskar (2019), and
- Zeebe and Lourens (2017, 2019, 2022).
+Imports: DescTools, Hmisc, Matrix, utils, colorednoise, doSNOW, foreach, stats, matrixStats, reshape2, truncnorm, grDevices, graphics, parallel, astrochron, RColorBrewer, colorRamps, viridis, magick, rlist, trapezoid, fANCOVA, DecomposeR, scico
+Description: Tools for extracting and analyzing cyclic signals from time series. 
 License: GPL (>= 2)
 URL: https://github.com/stratigraphy/WaverideR
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 NeedsCompilation: no
-Repository: CRAN
-Suggests: 
-    testthat (>= 3.0.0)
+Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
+

@@ -6,8 +6,8 @@
 \usage{
 plot_Xwavelet(
   Xwavelet = NULL,
-  lowerPeriod = 2,
-  upperPeriod = 1024,
+  lowerPeriod = NULL,
+  upperPeriod = NULL,
   n.levels = 100,
   palette_name = "rainbow",
   color_brewer = "grDevices",
@@ -19,11 +19,11 @@ plot_Xwavelet(
   plot_dir = TRUE,
   plot_arrows = TRUE,
   pwr_quant = 0.85,
-  n_arrows = 50,
+  n_arrows = 75,
   T_unit = 15,
   P_unit = 0.5,
-  arrow_length = 0.1,
-  arrow_lwd = 2,
+  arrow_length = 0.075,
+  arrow_lwd = 1.9,
   arrow_angle = 25,
   add_lines = NULL,
   add_points = NULL,
@@ -199,14 +199,14 @@ plot_Xwavelet(Xwavelet = X_wavelet_etp, lowerPeriod = 2, upperPeriod = 1024,
 
 }
 \references{
-Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
 Wavelet Analysis. R package version 1.1.
 \url{https://CRAN.R-project.org/package=WaveletComp}
 
-Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
+Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
 Time-frequency super-resolution with superlets.
-Nature communications 12, no. 1 (2021): 337.
-\url{https://doi.org/10.1038/s41467-020-20539-9}
+Nature Communications, 12(1), 337.
+\doi{10.1038/s41467-020-20539-9}
 }
 \author{
 plotting code based on the "wt.image" and "analyze.coherency" functions

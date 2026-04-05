@@ -59,11 +59,12 @@
 #' Nature Communications, 12(1), 337.
 #' \doi{10.1038/s41467-020-20539-9}
 #' @examples
+#' \donttest{
 #'#Example 1. A cross superlet of two etp solutions with noise overprint
 #'etp_1 <- astrochron::etp(
 #'  tmin = 0,
-#'  tmax = 1500,
-#'  dt = 1,
+#'  tmax = 500,
+#'  dt = 2,
 #'  eWt = 1.5,
 #'  oWt = 0.75,
 #'  pWt = 1,
@@ -75,8 +76,8 @@
 #'
 #'etp_2 <- astrochron::etp(
 #'  tmin = 0,
-#'  tmax = 1500,
-#'  dt = 1,
+#'  tmax = 500,
+#'  dt = 2,
 #'  eWt = 1,
 #'  oWt = 0.5,
 #'  pWt = 1.5,
@@ -102,12 +103,13 @@
 #'Xetp <- analyze_Xwavelet(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
-#'  upperPeriod = 1024,
-#'  lowerPeriod = 2,
+#'  upperPeriod = 512,
+#'      dj = 1/20,
+#'  lowerPeriod = 4,
 #'  verbose = FALSE,
 #'  omega_nr = 8
 #')
-#'
+#'}
 #' @export
 #' @importFrom stats sd
 #' @importFrom stats median

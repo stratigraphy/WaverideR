@@ -129,10 +129,10 @@ grey_sl <-
 
 }
 \references{
-Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
-Time frequency super resolution with superlets.
-Nature Communications, 12, 337.
-\url{https://doi.org/10.1038/s41467-020-20539-9}
+Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+Time-frequency super-resolution with superlets.
+Nature Communications, 12(1), 337.
+\doi{10.1038/s41467-020-20539-9}
 }
 \author{
 Adapted from MATLAB implementations by V. V. Moca et al. (2021)

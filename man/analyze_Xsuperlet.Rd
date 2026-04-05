@@ -87,10 +87,11 @@ package. The superlet transform increases time frequency resolution by
 combining multiple wavelet orders at each frequency.
 }
 \examples{
+\donttest{
 #Example 1. A cross superlet of two etp solutions with noise overprint
 etp_1 <- astrochron::etp(
  tmin = 0,
- tmax = 1500,
+ tmax = 300,
  dt = 1,
  eWt = 1.5,
  oWt = 0.75,
@@ -103,7 +104,7 @@ etp_1 <- astrochron::etp(
 
 etp_2 <- astrochron::etp(
  tmin = 0,
- tmax = 1500,
+ tmax = 300,
  dt = 1,
  eWt = 1,
  oWt = 0.5,
@@ -130,9 +131,9 @@ etp_2[, 2] <- etp_2[, 2] + colorednoise::colored_noise(
 Xetp <- analyze_Xsuperlet(
  data_1 = etp_1,
  data_2  = etp_2,
- upperPeriod = 1024,
+ upperPeriod = 256,
  lowerPeriod = 2,
- Nf = 128,
+ Nf = 32,
  c1 = 3,
  o = c(1, 10),
  mult = TRUE,
@@ -140,13 +141,13 @@ Xetp <- analyze_Xsuperlet(
  order_alpha = 1,
  verbose = FALSE
 )
-
+}
 }
 \references{
-Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., and Mureșan, R. C. (2021).
-Time frequency super resolution with superlets.
-Nature Communications, 12, 337.
-\url{https://doi.org/10.1038/s41467-020-20539-9}
+Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
+Time-frequency super-resolution with superlets.
+Nature Communications, 12(1), 337.
+\doi{10.1038/s41467-020-20539-9}
 }
 \author{
 The "analyze_Xsuperlet" that generates the input for the plotting function

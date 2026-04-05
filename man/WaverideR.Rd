@@ -2,7 +2,7 @@
 % Please edit documentation in R/WaverideR.R
 \name{WaverideR}
 \alias{WaverideR}
-\title{An R package for cyclostratigraphic analysis}
+\title{Extracting Signals from Wavelet Spectra}
 \description{
 WaverideR is an R package for advanced cyclostratigraphic
 analysis of stratigraphic data sets. It provides a comprehensive suite

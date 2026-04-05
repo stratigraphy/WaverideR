@@ -15,22 +15,22 @@
 #'
 #' @description Astronomical solutions option are:
 #'\itemize{
-#'     \item La2004 Eccentricity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010a Obliquity solution downloadable via the \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010a Precession solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010b Obliquity solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010b Precession solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010c Obliquity solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010c Precession solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010d Obliquity solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2010d Precession solution downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
-#'	   \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function or downloadable via \url{http://vo.imcce.fr/insola/earth/online/earth/earth.html}
+#'     \item La2004 Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function
+#'	   \item La2010a Obliquity solution
+#'	   \item La2010a Precession solution
+#'	   \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2010b Obliquity solution
+#'	   \item La2010b Precession solution
+#'	   \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2010c Obliquity solution
+#'	   \item La2010c Precession solution
+#'	   \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'	   \item La2010d Obliquity solution
+#'	   \item La2010d Precession solution
+#'	   \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function
 #'	   \item ZB17a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
 #'	   \item ZB17a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
 #'	   \item ZB17b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}

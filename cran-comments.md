@@ -1,4 +1,13 @@
-# Changes in version 0.6.0
+# Changes in version 0.5.1
+
+removed issues resulting in notes during 0.5.0 submission
+
+Resolved issues
+Possibly misspelled words in DESCRIPTION:
+Found the following (possibly) invalid URLs:
+Examples with CPU (user + system) or elapsed time > 5s
+
+# Changes in version 0.5.0
 
 maintained code
 added functions

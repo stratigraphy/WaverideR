@@ -76,11 +76,12 @@
 #' Time-frequency super-resolution with superlets.
 #' Nature Communications, 12(1), 337.
 #' \doi{10.1038/s41467-020-20539-9}
-#' @examples
+#'@examples
+#' \donttest{
 #'#Example 1. A cross superlet of two etp solutions with noise overprint
 #'etp_1 <- astrochron::etp(
 #'  tmin = 0,
-#'  tmax = 1500,
+#'  tmax = 300,
 #'  dt = 1,
 #'  eWt = 1.5,
 #'  oWt = 0.75,
@@ -93,7 +94,7 @@
 #'
 #'etp_2 <- astrochron::etp(
 #'  tmin = 0,
-#'  tmax = 1500,
+#'  tmax = 300,
 #'  dt = 1,
 #'  eWt = 1,
 #'  oWt = 0.5,
@@ -120,9 +121,9 @@
 #'Xetp <- analyze_Xsuperlet(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
-#'  upperPeriod = 1024,
+#'  upperPeriod = 256,
 #'  lowerPeriod = 2,
-#'  Nf = 128,
+#'  Nf = 32,
 #'  c1 = 3,
 #'  o = c(1, 10),
 #'  mult = TRUE,
@@ -130,7 +131,7 @@
 #'  order_alpha = 1,
 #'  verbose = FALSE
 #')
-#'
+#'}
 #' @export
 #' @importFrom stats sd
 #' @importFrom stats median

@@ -387,7 +387,7 @@ plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NU
           las = 2, font = par()$font.axis, cex = par()$cex.axis)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 2, 2))
-    image(y = Xwavelet$x1, x = Xwavelet$axis.2, z = t(Xwavelet$Power),
+    image(y = Xwavelet$x1, x = Xwavelet$axis.2, z = (Xwavelet$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           xlab = periodlab, ylab = "", yaxt = "n", xaxt = "n",
           main = main, ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
@@ -1086,7 +1086,7 @@ plot_Xwavelet <- function (Xwavelet = NULL, lowerPeriod = NULL, upperPeriod = NU
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 4, 0, 2))
 
-    image(x = Xwavelet$x1, y = Xwavelet$axis.2, z = t(Xwavelet$Power),
+    image(x = Xwavelet$x1, y = Xwavelet$axis.2, z = (Xwavelet$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
           main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))

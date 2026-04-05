@@ -218,14 +218,14 @@ color_brewer= "grDevices",
 
 }
 \references{
-Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
+Roesch, A., & Schmidbauer, H. (2018). WaveletComp: Computational
 Wavelet Analysis. R package version 1.1.
 \url{https://CRAN.R-project.org/package=WaveletComp}
 
-Moca, Vasile V., Harald Bârzan, Adriana Nagy-Dăbâcan, and Raul C. Mureșan.
+Moca, V. V., Bârzan, H., Nagy-Dăbâcan, A., & Mureșan, R. C. (2021).
 Time-frequency super-resolution with superlets.
-Nature communications 12, no. 1 (2021): 337.
-\url{https://doi.org/10.1038/s41467-020-20539-9}
+Nature Communications, 12(1), 337.
+\doi{10.1038/s41467-020-20539-9}
 }
 \author{
 Code based on the "wt.image" functions of the 'WaveletComp' R package
