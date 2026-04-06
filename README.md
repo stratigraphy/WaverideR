@@ -22,3 +22,7 @@ You can install the development version of WaverideR from [GitHub](https://githu
 devtools::install_github("stratigraphy/WaverideR")
 ```
 
+## Geological Annotation
+
+This repository now includes a note on cyclostratigraphic signals relevant to the WaverideR data. The 405 kyr eccentricity cycle, a fundamental component of the Milankovitch orbital forcing, is recognised as the longest and most stable eccentricity term in the Earth's pre‑cessional climate record. Recent cyclostratigraphic studies of the Apennine sections have linked this 405 kyr signal to the timing of the Cretaceous–Paleogene (K‑Pg) boundary, building on the pioneering work of Walter Alvarez and collaborators, who identified the iridium‑rich layer marking the mass‑extinction event. Integrating the 405 kyr eccentricity modulation with the Alvarez K‑Pg boundary chronostratigraphy helps refine the astronomical calibration of these key intervals.
+
