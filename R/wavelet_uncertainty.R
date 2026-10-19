@@ -11,15 +11,15 @@
 #' Any input (matrix or data frame) in which the first column is depth or
 #' time and the second column is period should work
 #' @param period_of_tracked_cycle period of the tracked curve (in kyr).
-#' @param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param multi multiple of the standard deviation to be used for defining uncertainty \code{Default=1}.
 #' @param verbose Print text \code{Default=FALSE}.
 #' @param genplot_time plot time curves with a upper and lower uncertainty based on Gabor uncertainty principle applied to the
-#' continuous wavelet transform using a Morlet wavelet, which uses which uses the omega number (number
-#' of cycles in the wavelet) at one standard deviation to define the analytical uncertainty \code{Default=TRUE}
+#' continuous wavelet transform using a Morlet wavelet, which uses the omega number (the central angular
+#' frequency of the Morlet wavelet) at one standard deviation to define the analytical uncertainty \code{Default=TRUE}
 #' @param genplot_uncertainty Plot period curves with upper and lower uncertainty based on Gabor uncertainty principle applied to the
-#' continuous wavelet transform using a Morlet wavelet, which uses which uses the omega number
-#' (number of cycles in the wavelet) to define uncertainty at one standard deviation \code{Default=TRUE}
+#' continuous wavelet transform using a Morlet wavelet, which uses the omega number
+#' (the central angular frequency of the Morlet wavelet) to define uncertainty at one standard deviation \code{Default=TRUE}
 #' @param genplot_uncertainty_wt generate a wavelet plot with the uncertainty based on Gabor uncertainty
 #' principle applied to the continuous wavelet transform using a Morlet wavelet superimposed on top of
 #'original wavelet plot. The red curve is period of the tracked curve plus the analytical uncertainty.
@@ -36,7 +36,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -91,7 +91,7 @@
 #'
 #'Gabor, Dennis. Theory of communication. Part 1: The analysis of information.
 #' Journal of the Institution of Electrical Engineers-part III: radio and
-#' communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
+#' communication engineering 93, no. 26 (1946): 429-441.\url{https://doi.org/10.1049/ji-3-2.1946.0074}
 #'
 #'Russell, Brian, and Jiajun Han.Jean Morlet and the continuous wavelet transform.
 #'CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
@@ -111,7 +111,7 @@
 #'#calculate the Gabor uncertainty derived mathematical uncertainty of the
 #'#magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -158,29 +158,10 @@
 #'   color_brewer= "grDevices"
 #' )
 #'}
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom grDevices dev.new
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -198,7 +179,9 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
                                 genplot_uncertainty_wt = FALSE,
                                 keep_editable = FALSE,
                                 palette_name="rainbow",
-                                color_brewer= "grDevices"){
+                                color_brewer= "grDevices",
+  colour_brewer = NULL){
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   data <- tracked_cycle[, c(1, 2)]
   ncycles <- wavelet$omega_nr
   b <- (2 * sqrt(2 * log(2)))
@@ -254,9 +237,7 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
-    dev.new(width = 7,
-            height = 7,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 7)
     plot(
       time_min,
       type = "l",
@@ -274,9 +255,7 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
-    dev.new(width = 7,
-            height = 7,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 7)
     max_y <- max(1 / (data$f0 - data$sd_morlet * multi))
     min_y <- min(1 / (data$f0 + data$sd_morlet * multi))
 

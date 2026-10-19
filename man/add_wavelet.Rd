@@ -25,11 +25,12 @@ add_wavelet(
   main = NULL,
   yaxt = "s",
   xaxt = "s",
-  depth_time_lab = "depth (m)"
+  depth_time_lab = "depth (m)",
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
@@ -58,7 +59,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -97,6 +98,8 @@ will add aditional tickmarks}
 \item{xaxt}{turn on of off the xaxis "s" is on "n" is off \code{Default="s"}}
 
 \item{depth_time_lab}{lable for the the depth/time column}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 returns a plot of a wavelet scalogram
@@ -123,7 +126,7 @@ par(mar = c(0, 0.5, 1, 0.5))
 
 
 mag_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = mag,
    dj = 1 / 100,
   lowerPeriod = 0.1,
@@ -201,7 +204,7 @@ add_wavelet(
  add_points = NULL,
  add_abline_h = NULL,
  add_abline_v = NULL,
- plot_horizontal = TRUE,
+ plot_horizontal = FALSE,
  period_ticks = 1,
  periodlab = "period (m)",
  main = NULL,
@@ -242,13 +245,17 @@ mag_110 <- extract_signal(
  plot_residual = FALSE
 )
 
-mag_110_hil <- Hilbert_transform(mag_110,demean=FALSE)
+# amplitude of the ~110-kyr cycle from the wavelet: the tracked 405-kyr curve scaled to 110 kyr
+track_110 <- cbind(mag_track_solution[, 1], mag_track_solution[, 2] * 110 / 405)
+mag_110_amp <- extract_amplitude(mag_110, cycle = track_110, band = c(0.75, 1.33))
+mag_110_mean <- mean(mag_110[, 2])
 
 plot(mag_110[,2],mag_110[,1],type="l",
     yaxt="n", yaxs = "i",
     xlab="110-kyr ecc")
 
-lines(mag_110_hil[,2],mag_110_hil[,1])
+lines(mag_110_mean + mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
+lines(mag_110_mean - mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
 }
 }
 \references{

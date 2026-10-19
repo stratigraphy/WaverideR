@@ -14,7 +14,7 @@ add_wavelet_avg(
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
 
@@ -51,7 +51,7 @@ par(mar = c(0, 0.5, 1, 0.5))
 
 
 mag_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = mag,
    dj = 1 / 100,
   lowerPeriod = 0.1,
@@ -129,7 +129,7 @@ add_wavelet(
  add_points = NULL,
  add_abline_h = NULL,
  add_abline_v = NULL,
- plot_horizontal = TRUE,
+ plot_horizontal = FALSE,
  period_ticks = 1,
  periodlab = "period (m)",
  main = NULL,
@@ -169,13 +169,17 @@ mag_110 <- extract_signal(
  plot_residual = FALSE
 )
 
-mag_110_hil <- Hilbert_transform(mag_110,demean=FALSE)
+# amplitude of the ~110-kyr cycle from the wavelet: the tracked 405-kyr curve scaled to 110 kyr
+track_110 <- cbind(mag_track_solution[, 1], mag_track_solution[, 2] * 110 / 405)
+mag_110_amp <- extract_amplitude(mag_110, cycle = track_110, band = c(0.75, 1.33))
+mag_110_mean <- mean(mag_110[, 2])
 
 plot(mag_110[,2],mag_110[,1],type="l",
     yaxt="n", yaxs = "i",
     xlab="110-kyr ecc")
 
-lines(mag_110_hil[,2],mag_110_hil[,1])
+lines(mag_110_mean + mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
+lines(mag_110_mean - mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
 }
 }
 \references{

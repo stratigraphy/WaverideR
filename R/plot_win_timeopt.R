@@ -37,11 +37,11 @@
 #'#plot the windowed timeOpt of the magnetic susceptibility record
 #'#of the Sullivan core of Pas et al., (2018).
 #'mag_win_timeOpt <-win_timeOpt(
-#'data = mag,
-#'window_size = 15,
+#'data = mag[1:250, ],
+#'window_size = 6,
 #'sedmin = 0.1,
 #'sedmax = 1,
-#'numsed = 100,
+#'numsed = 5,
 #'limit = FALSE,
 #'fit = 2,
 #'fitModPwr = TRUE,
@@ -83,63 +83,21 @@
 #' @importFrom graphics layout
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
-#' @importFrom DescTools Closest
 #' @importFrom graphics abline
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom scico scico
 
 plot_win_timeOpt <- function(win_timeOpt_result = NULL,
                              proxy_name= NULL,

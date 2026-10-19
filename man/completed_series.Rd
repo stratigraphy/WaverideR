@@ -16,7 +16,7 @@ completed_series(
 )
 }
 \arguments{
-\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 or \code{\link{track_period}} function.}
 
 \item{tracked_curve}{Tracked period result from the \code{track_period_wavelet} or
@@ -71,7 +71,7 @@ the interpolated curve values with the values of the nearest spectral peak in th
 
 
 grey_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = grey,
    dj = 1/200,
    lowerPeriod = 0.02,

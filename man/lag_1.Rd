@@ -8,6 +8,7 @@ lag_1(
   data = NULL,
   n_sim = 10,
   run_multicore = FALSE,
+  n_cores = NULL,
   win_max = NULL,
   win_min = NULL,
   verbose = FALSE
@@ -19,6 +20,11 @@ lag_1(
 \item{n_sim}{number of simulations to be ran}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
 
 \item{win_max}{maximum window size}
 
@@ -40,7 +46,7 @@ monte carlo analysis
 \donttest{
 #The example uses the magnetic susceptibility data set of Pas et al., (2018).
 # perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

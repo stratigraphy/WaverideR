@@ -68,9 +68,9 @@ Bisciaro_al <- astrochron::linterp(Bisciaro_al, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 
 Bisciaro_al_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_al,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -110,9 +110,9 @@ Bisciaro_ca <- astrochron::linterp(Bisciaro_ca, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 
 Bisciaro_ca_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_ca,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -151,9 +151,9 @@ Bisciaro_sial <- astrochron::linterp(Bisciaro_sial, dt = 0.01,verbose=FALSE,genp
 Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 
 Bisciaro_sial_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_sial,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -195,9 +195,9 @@ Bisciaro_Mn <- astrochron::linterp(Bisciaro_Mn, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 
 Bisciaro_Mn_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mn,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -237,9 +237,9 @@ Bisciaro_Mg <- astrochron::linterp(Bisciaro_Mg, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 
 Bisciaro_Mg_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mg,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,

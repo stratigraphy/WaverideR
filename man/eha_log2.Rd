@@ -31,14 +31,14 @@ the first column is depth or time and the second column is proxy record.}
 \item{upperPeriod}{Upper period to be analyzed.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
 so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
  scaling is done using power 2 so for the best plotting results select a
  value to the power or 2.}
 
 \item{lowerPeriod}{Lowest period to be analyzed.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
 so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
 scaling is done using power 2 so for the best plotting results select a value
 to the power or 2.}
 

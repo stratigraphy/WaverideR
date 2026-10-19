@@ -14,7 +14,7 @@ extract_signal_stable_V2(
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{period_max}{Maximum period (upper boundary) to be used to extract a cycle.}
 
@@ -39,7 +39,7 @@ Extract a signal from the wavelet using a upper and lower period boundary
 # Irradiance data set of Steinhilber et al., (2012)
 
 TSI_wt <-
-analyze_wavelet(
+analyse_wavelet(
 data = TSI,
 dj = 1/200,
 lowerPeriod = 16,

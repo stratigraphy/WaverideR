@@ -1,205 +1,310 @@
-#' @title Extract amplitude from a signal
+#' @title Extract the instantaneous amplitude (envelope) of a signal using the CWT
 #'
-#' @description Extracts the amplitude from a signal using the continuous wavelet transform using a Morlet wavelet.
-#' The extraction of the amplitude is useful for cyclostratigraphic studies because the amplitude of
-#' an astronomical cycle is modulated by higher order astronomical cycles.
+#' @description
+#' The wavelet equivalent of the Hilbert transform. A complex (analytic) Morlet
+#' wavelet is used, so the wavelet coefficients already are the analytic
+#' representation of a real signal; summing them back up gives the analytic
+#' signal \eqn{z(t)} whose real part is the input and whose modulus is the
+#' instantaneous amplitude.
 #'
-#'@param signal Input signal from which the amplitude is extracted any signal in which the first column is
-#'depth/time and the second column is the proxy record from which the amplitude is extracted
-#'@param pts The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-#'a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-#'then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-#'aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-#'picked up by the algorithm \code{Default=3}
-#'@param genplot If set to TRUE a plot with extracted amplitude will be displayed \code{Default=FALSE}.
-#'@param remean Prior to analysis the mean is subtracted from the data set to re-mean set \code{Default=TRUE}.
-#'@param ver_results To verify the amplitude extraction is representative of the amplitude
-#'extracted using the \code{\link{extract_amplitude}} function the results can be compared to the amplitude extracted
-#'using the \code{\link{Hilbert_transform}} if the mean difference is more then 5% one might need to reconsider
-#'whether the input contains a reliable enough signal with high a enough amplitude modulation to actually extract an amplitude from. \code{Default=FALSE}.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' Called with only a signal, it returns the envelope of the whole record and
+#' behaves like a Hilbert transform (median ratio 1.000 on a ZB18a eccentricity window), but computed scale by
+#' scale, so a period range can be
+#' imposed and the ends of the record do not have to be wrapped around.
 #'
-#' @author
-#' Code based on the reconstruct function of the 'WaveletComp' R package
-#' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
-#' The assignment of the standard deviation of the uncertainty of the wavelet
-#' is based on the work of Gabor (1946) and Russell et al., (2016)
+#' Given \code{cycle}, it instead returns the amplitude of that one cycle: the
+#' analytic signal is rebuilt only from the scales inside \code{band} around the
+#' given period, so other cycles, noise and trends do not enter the amplitude.
+#' This is the amplitude-modulation curve used in cyclostratigraphy.
 #'
-#' @references
-#'Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-#'Wavelet Analysis. R package version 1.1.
-#'\url{https://CRAN.R-project.org/package=WaveletComp}
+#' Calibration is absolute in both modes, with no rescaling against peak
+#' statistics: a signal of constant amplitude 3 returns 3, independent of dt,
+#' dj, omega_nr and the scale range. In whole-record mode the reconstruction
+#' constant is fixed by requiring \eqn{\mathrm{Re}(z)} to reproduce the input;
+#' in cycle mode it is the analytic response of the wavelet family to a unit
+#' cosine at the cycle's frequency.
 #'
-#'Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
-#'\url{https://github.com/tgouhier/biwavelet}
+#' @param signal Matrix/data frame: column 1 = depth/time, column 2 = proxy.
+#' @param cycle What to measure the amplitude of. \code{NULL} (default) = the
+#'   whole signal, i.e. the Hilbert-equivalent envelope. A single number = the
+#'   cycle of that period (e.g. \code{cycle = 405}). A 2-column matrix
+#'   (depth/time, period) = a tracked period curve, e.g. from
+#'   \code{track_period_wavelet()} + \code{completed_series()}, for records
+#'   whose sedimentation rate varies. \code{"ridge"} = follow the strongest
+#'   cycle at each depth (only for records dominated by one cycle).
+#' @param band Period band kept around \code{cycle}, as factors of it.
+#'   \code{Default = c(0.5, 2)}. Narrow it (e.g. \code{c(0.8, 1.2)}) for noisy
+#'   records or cycles close together; a wide band is needed when the cycle is
+#'   strongly modulated. Ignored when \code{cycle = NULL}.
+#' @param periods Period range analysed, \code{c(lower, upper)}. Default:
+#'   \code{2*dt} to half the record. Use it to keep noise or a trend out of the
+#'   whole-record envelope, or to stop \code{cycle = "ridge"} wandering.
+#' @param omega_nr Cycles in the Morlet wavelet; >= 5 keeps it analytic.
+#'   \code{Default = 6}.
+#' @param dj Scale spacing. \code{Default = 1/100}.
+#' @param pad End treatment: \code{"AR"} (default) extends the record with a
+#'   forward/backward linear-prediction forecast so the wavelet does not see a
+#'   step to zero, \code{"reflect"} mirrors it, \code{"zero"} is the classic
+#'   zero padding. Falls back automatically if the AR fit fails.
+#' @param mask_coi Return NA inside the cone of influence. \code{Default = FALSE}.
+#' @param genplot Plot the signal with its +/- envelope, and the envelope.
+#' @param ver_results Print the median ratio to the Hilbert envelope (outside the cone of influence).
+#' @param keep_editable Keep plot parameters editable. \code{Default = FALSE}.
+#' @param ... Ignored, with a note; lets old calls using \code{pts},
+#'   \code{remean}, \code{tracked_cycle_curve}, \code{lowerPeriod} etc. keep
+#'   working (the old names are mapped onto the new ones where possible).
 #'
-#'Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
-#'Bulletin of the American Meteorological Society 79:61-78.
-#'\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
+#' @return Matrix, column 1 = depth/time, column 2 = amplitude. In cycle mode
+#'   the period actually used is attached as \code{attr(x, "period")}.
 #'
-#'Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
-#'"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
-#'" Geophysics 47, no. 2 (1982): 203-221.
+#' @examples
+#' \donttest{
+#' # envelope of the whole record - nothing else to set (insolation-like signal, time in kyr)
+#' amp <- extract_amplitude(astrosignal_example, genplot = TRUE)
 #'
-#'J. Morlet, G. Arens, E. Fourgeau, D. Giard;
-#' Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
-#'  Geophysics 1982 47 (2): 222–236.
+#' # amplitude of one cycle only: the precession band (~21 kyr) of the example signal;
+#' # its amplitude is the eccentricity modulation
+#' amp21 <- extract_amplitude(astrosignal_example, cycle = 21, band = c(0.75, 1.35),
+#'                            genplot = TRUE)
 #'
-#'@examples
-#'\donttest{
-#'#Extract amplitude of the 405 kyr eccentricity cycle from the the magnetic
-#'# susceptibility data set of De pas et al., (2018)
-#'#Perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
-#'
-#'mag_wt <- analyze_wavelet(data = mag,
-#' dj = 1/100,
-#' lowerPeriod = 0.1,
-#' upperPeriod = 254,
-#' verbose = FALSE,
-#' omega_nr = 10)
-#'
-#'#Track the 405 kyr eccentricity cycle in a wavelet spectra
-#'
-#'#mag_track <- track_period_wavelet(astro_cycle = 405,
-#'#                                   wavelet=mag_wt,
-#'#                                   n.levels = 100,
-#'#                                   periodlab = "Period (metres)",
-#'#                                   x_lab = "depth (metres)")
-#'
-#'#Instead of tracking, the tracked solution data set mag_track_solution
-#'#is used
-#'mag_track <- mag_track_solution
-#'
-#' mag_track_complete <- completed_series(
-#'   wavelet = mag_wt,
-#'   tracked_curve = mag_track,
-#'   period_up = 1.2,
-#'   period_down = 0.8,
-#'   extrapolate = TRUE,
-#'   genplot = FALSE
-#' )
-#'
-#'#Smooth the completed tracking of the 405 kyr eccentricity cycle in the wavelet spectra
-#'
-#'mag_track_complete <- loess_auto(time_series = mag_track_complete,
-#' genplot = FALSE, print_span = FALSE)
-#'
-#'
-#'
-#'
-#'mag_405_ecc  <- extract_signal(
-#'tracked_cycle_curve = mag_track_complete,
-#'wavelet = mag_wt,
-#'period_up = 1.2,
-#'period_down = 0.8,
-#'add_mean = TRUE,
-#'tracked_cycle_period = 405,
-#'extract_cycle = 405,
-#'tune = FALSE,
-#'plot_residual = FALSE
-#')
-#'
-#'#extract the amplitude  of the 405 kyr eccentricity cycle
-#'mag_ampl <- extract_amplitude(
-#'signal = mag_405_ecc,
-#'pts=3,
-#'genplot = FALSE,
-#'ver_results = FALSE,
-#'keep_editable=FALSE)
-#'
-#'}
-#'@return
-#'Returns a matrix with 2 columns.
-#'The first column is depth/time.
-#'The second column is the extracted amplitude
-#'
+#' # depth domain with a varying sedimentation rate: hand it the tracked 405-kyr period curve
+#' # (magnetic susceptibility of Pas et al. 2018, tracked 405-kyr cycle in metres)
+#' mag_wt <- analyse_wavelet(mag, dj = 1/100, lowerPeriod = 0.1, upperPeriod = 254,
+#'                           verbose = FALSE, omega_nr = 10)
+#' mag_track <- completed_series(wavelet = mag_wt, tracked_curve = mag_track_solution,
+#'                               period_up = 1.2, period_down = 0.8, extrapolate = TRUE,
+#'                               genplot = FALSE)
+#' amp405 <- extract_amplitude(mag, cycle = mag_track, band = c(0.8, 1.25), genplot = TRUE)
+#' }
 #' @export
-
+#' @importFrom stats fft approx median na.omit ar predict sd
 extract_amplitude <- function(signal = NULL,
-                              pts=3,
+                              cycle = NULL,
+                              band = c(0.5, 2),
+                              periods = NULL,
+                              omega_nr = 6,
+                              dj = 1/100,
+                              pad = c("AR", "reflect", "zero"),
+                              mask_coi = FALSE,
                               genplot = FALSE,
-                              remean = TRUE,
                               ver_results = FALSE,
-                              keep_editable = FALSE) {
-  mean_signal <- mean(signal[, 2])
-  signal[, 2] <- signal[, 2] - mean_signal
-  LP <- (signal[2, 1] - signal[1, 1])
-  UP <- (signal[nrow(signal), 1] - signal[1, 1])
-  hilb <- Hilbert_transform(signal)
+                              keep_editable = FALSE,
+                              ...) {
 
-  wavelet <- analyze_wavelet(
-    data = signal,
-    dj = 1 / 200,
-    lowerPeriod = LP,
-    upperPeriod = UP,
-    verbose = FALSE,
-    omega_nr = 0.1
-  )
-
-  my.w <- wavelet
-  my.data <- cbind(wavelet$x, wavelet$y)
-  filtered_cycle <- my.data[, 1]
-  filtered_cycle <- as.data.frame(filtered_cycle)
-  filtered_cycle$value <- NA
-  Wave = my.w$Ampl
-  Power = my.w$Power
-  nc = my.w$nc
-  nr = my.w$nr
-  dt = my.w$dt
-  dj = my.w$dj
-  Scale = my.w$Scale
-  Period = my.w$Period
-  rec.waves = matrix(0, nrow = nr, ncol = nc)
-  for (s.ind in seq_len(nr)) {
-    rec.waves[s.ind, ] = (Wave[s.ind, ] / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / (pi ^ (-1 / 4))
-  }
-
-  #re-scaling of the data against the standard deviation of the maximum peaks of the input data
-  peaks_max <- max_detect(signal,pts=pts)
-  value <- colSums(rec.waves, na.rm = T)
-  value <- as.numeric(value)
-  filtered_cycle[, 2] <- value
-  filtered_cycle[, 2] <-
-    (filtered_cycle[, 2]) * (sd(peaks_max[, 2]) / sd(value))
-
-  if (remean == TRUE) {
-    filtered_cycle[, 2] <- filtered_cycle[, 2] + mean_signal
-    my.data[, 2] <- my.data[, 2] + mean_signal
-  }
-
-  ampl <- filtered_cycle
-
-  if (genplot == TRUE) {
-    if (keep_editable == FALSE) {
-      oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
+  ## ---- 0. accept the old argument names ------------------------------------
+  dots <- list(...)
+  if (length(dots)) {
+    if (is.null(cycle) && !is.null(dots$tracked_cycle_curve)) {
+      cycle <- dots$tracked_cycle_curve
+      if (!is.null(dots$extract_cycle) && !is.null(dots$tracked_cycle_period))
+        cycle[, 2] <- cycle[, 2] * (dots$extract_cycle / dots$tracked_cycle_period)
     }
-    par(mfrow = c(2, 1))
-    par(mar = c(4, 4, 1, 1))
-    plot(my.data, type = "l")
-    lines(ampl)
-    plot(ampl, type = "l")
+    if (is.null(cycle) && !is.null(dots$extract_cycle)) cycle <- dots$extract_cycle
+    if (is.null(periods) && (!is.null(dots$lowerPeriod) || !is.null(dots$upperPeriod)))
+      periods <- c(if (is.null(dots$lowerPeriod)) NA else dots$lowerPeriod,
+                   if (is.null(dots$upperPeriod)) NA else dots$upperPeriod)
+    if (!is.null(dots$period_down) || !is.null(dots$period_up))
+      band <- c(if (is.null(dots$period_down)) band[1] else dots$period_down,
+                if (is.null(dots$period_up))   band[2] else dots$period_up)
+    old <- intersect(names(dots), c("pts", "remean", "add_mean", "wavelet", "method"))
+    if (length(old))
+      message("extract_amplitude(): argument(s) ", paste(old, collapse = ", "),
+              " are no longer used and were ignored.")
+  }
+  pad <- match.arg(pad)
+  if (omega_nr < 5)
+    warning("omega_nr < 5: the Morlet wavelet is no longer analytic; ",
+            "amplitudes will be biased. Use omega_nr >= 5.")
+  band <- sort(as.numeric(band))
 
+  ## ---- 1. regular axis ------------------------------------------------------
+  dat <- stats::na.omit(as.matrix(signal))
+  dat <- dat[order(dat[, 1]), , drop = FALSE]
+  dt  <- stats::median(diff(dat[, 1]))
+  xout <- seq(dat[1, 1], dat[nrow(dat), 1], by = dt)
+  dat <- as.data.frame(stats::approx(dat[, 1], dat[, 2], xout, method = "linear"))
+  x_axis <- dat[, 1]; x_raw <- dat[, 2]
+  mean_signal <- mean(x_raw)
+  x <- x_raw - mean_signal
+  nx <- length(x)
+  span <- x_axis[nx] - x_axis[1]
+
+  lowerPeriod <- 2 * dt
+  upperPeriod <- span / 2
+  if (!is.null(periods)) {
+    if (length(periods) != 2) stop("'periods' must be c(lower, upper).")
+    if (!is.na(periods[1])) lowerPeriod <- periods[1]
+    if (!is.na(periods[2])) upperPeriod <- periods[2]
+  }
+  # a named cycle must fit inside the analysed range
+  if (is.numeric(cycle) && length(cycle) == 1) {
+    lowerPeriod <- min(lowerPeriod, cycle * band[1] * 0.9)
+    upperPeriod <- max(upperPeriod, cycle * band[2] * 1.1)
+    lowerPeriod <- max(lowerPeriod, 2 * dt)
+  }
+  if (upperPeriod <= lowerPeriod) stop("'periods' upper must exceed lower.")
+
+  ## ---- 2. CWT, Torrence & Compo Morlet, input not standardised --------------
+  omega0 <- omega_nr
+  ff <- (2 * pi) / omega0                       # period = ff * scale
+  J <- as.integer(log2((upperPeriod/ff)/(lowerPeriod/ff)) / dj)
+  scales <- (lowerPeriod/ff) * 2^((0:J) * dj)
+  ns <- length(scales)
+  per <- ff * scales
+
+  pot2 <- trunc(log2(nx) + 0.5)
+  pad.length <- 2^(pot2 + 1) - nx
+  pad.l <- floor(pad.length/2); pad.r <- pad.length - pad.l
+
+  ar_extend <- function(v, k, backwards = FALSE) {
+    if (k <= 0) return(numeric(0))
+    vv <- if (backwards) rev(v) else v
+    om <- max(1, min(100, floor(length(vv)/4)))
+    fit <- try(stats::ar(vv, order.max = om, aic = TRUE), silent = TRUE)
+    if (inherits(fit, "try-error")) stop("ar failed")
+    p <- as.numeric(stats::predict(fit, n.ahead = k)$pred)
+    if (anyNA(p)) stop("ar failed")
+    if (backwards) rev(p) else p
+  }
+  reflect_pad <- function() {
+    lf <- if (pad.l > 0) rev(x[2:min(pad.l + 1, nx)]) else numeric(0)
+    if (length(lf) < pad.l) lf <- c(rep(lf[1], pad.l - length(lf)), lf)
+    rt <- if (pad.r > 0) rev(x[max(1, nx - pad.r):(nx - 1)]) else numeric(0)
+    if (length(rt) < pad.r) rt <- c(rt, rep(rt[length(rt)], pad.r - length(rt)))
+    list(s = c(lf, x, rt), off = pad.l)
+  }
+  padded <- NULL
+  if (pad == "AR") {
+    padded <- tryCatch(list(s = c(ar_extend(x, pad.l, TRUE), x, ar_extend(x, pad.r)),
+                            off = pad.l),
+                       error = function(e) {
+                         warning("AR padding failed; using reflective padding."); NULL })
+    if (!is.null(padded) && length(padded$s) != nx + pad.length) padded <- NULL
+  }
+  if (is.null(padded) && pad %in% c("AR", "reflect"))
+    padded <- tryCatch(reflect_pad(), error = function(e) NULL)
+  if (is.null(padded)) padded <- list(s = c(x, rep(0, pad.length)), off = 0)
+
+  N <- length(padded$s); off <- padded$off
+  ok <- 1:floor(N/2); ok <- ok * (2*pi)/(N*dt)
+  ok <- c(0, ok, -ok[floor((N - 1)/2):1])
+  fx <- stats::fft(padded$s)
+
+  Wave <- matrix(0 + 0i, nrow = ns, ncol = nx)
+  for (i in seq_len(ns)) {
+    nf <- pi^(1/4) * sqrt(2 * scales[i]/dt)
+    dau <- nf * exp(-((scales[i]*ok - omega0)^2/2) * (ok > 0)) * (ok > 0)
+    Wave[i, ] <- (stats::fft(fx * dau, inverse = TRUE)/N)[(off + 1):(off + nx)]
+  }
+  Wn <- Wave / sqrt(scales)              # the 1/sqrt(s) of the inverse transform
+
+  ## ---- 3. which scales contribute at each depth -----------------------------
+  centre <- NULL
+  if (is.null(cycle)) {
+    mode <- "whole"
+  } else if (is.character(cycle) && cycle[1] == "ridge") {
+    mode <- "cycle"
+    k <- apply(Mod(Wn), 2, which.max)
+    lp <- log(per); centre <- per[k]
+    okr <- k > 1 & k < ns
+    if (any(okr)) {                      # parabolic refinement in log-period
+      j <- k[okr]; cl <- which(okr)
+      y1 <- Mod(Wn)[cbind(j - 1, cl)]; y2 <- Mod(Wn)[cbind(j, cl)]
+      y3 <- Mod(Wn)[cbind(j + 1, cl)]
+      den <- y1 - 2*y2 + y3
+      dd <- pmax(pmin(ifelse(den != 0, 0.5*(y1 - y3)/den, 0), 1), -1)
+      centre[okr] <- exp(lp[j] + dd*(lp[j + 1] - lp[j - 1])/2)
+    }
+  } else if (is.numeric(cycle) && length(cycle) == 1) {
+    mode <- "cycle"; centre <- rep(cycle, nx)
+  } else {
+    tc <- stats::na.omit(as.matrix(cycle))
+    if (ncol(tc) < 2) stop("'cycle' must be NULL, a period, a 2-column curve, or \"ridge\".")
+    mode <- "cycle"
+    centre <- stats::approx(tc[, 1], tc[, 2], xout = x_axis,
+                            method = "linear", rule = 2)$y
   }
 
-  if (ver_results == TRUE) {
-    hilb <- Hilbert_transform(my.data)
-    if (mean(ampl[, 2] / hilb[, 2]) > 1.05 |
-        mean(ampl[, 2] / hilb[, 2]) < 0.95) {
-      cat(
-        "Mean difference between the amplitude extracted via the Hilbert Transform and the amplitude extracted
-      using wavelets is larger then 5% therefore results might not be representative"
-      )
-      if ((mean(ampl[, 2] / hilb[, 2]) < 1.05) &
-          (mean(ampl[, 2] / hilb[, 2]) > 0.95)) {
-        cat(
-          "Mean difference between the amplitude extracted via the Hilbert Transform and the amplitude extracted
-      using wavelets is smaller then 5% hence results are representative"
-        )
+  ## ---- 4. amplitude ---------------------------------------------------------
+  if (mode == "whole") {
+    # analytic signal from all scales; the reconstruction constant is fixed by
+    # requiring Re(K*z) to reproduce the input signal (exact, and independent of
+    # dj / omega_nr / scale range, so no tabulated C_delta is needed)
+    z <- colSums(Wn)
+    K <- sum(x * Re(z)) / sum(Re(z)^2)
+    ampl <- Mod(K * z)
+    rec  <- Re(K * z)
+    fit  <- 1 - sum((x - rec)^2)/sum(x^2)        # how much variance is captured
+    if (fit < 0.9)
+      message(sprintf(paste0("The analysed band reproduces %.0f%% of the signal variance; ",
+                             "widen 'periods' if the envelope looks too low."), 100*fit))
+  } else {
+    # band around the cycle; calibrated with the wavelet family's exact response
+    # to a unit cosine at that period:
+    #   sum_s W/sqrt(s) = (A/2)*pi^(-1/4)*sqrt(2*pi/dt)*S(wc)*exp(i*wc*t)
+    cal0 <- 0.5 * pi^(-1/4) * sqrt(2*pi/dt)
+    ampl <- numeric(nx)
+    const_band <- length(unique(centre)) == 1
+    if (const_band) {
+      idx <- which(per >= centre[1]*band[1] & per <= centre[1]*band[2])
+      if (!length(idx)) idx <- which.min(abs(per - centre[1]))
+      S <- sum(exp(-(scales[idx]*(2*pi/centre[1]) - omega0)^2/2))
+      ampl <- Mod(colSums(Wn[idx, , drop = FALSE])) / (cal0 * S)
+    } else {
+      for (i in seq_len(nx)) {
+        wc <- 2*pi/centre[i]
+        idx <- which(per >= centre[i]*band[1] & per <= centre[i]*band[2])
+        if (!length(idx)) idx <- which.min(abs(per - centre[i]))
+        S <- sum(exp(-(scales[idx]*wc - omega0)^2/2))
+        ampl[i] <- Mod(sum(Wn[idx, i])) / (cal0 * S)
       }
     }
   }
 
-  return(ampl)
+  ## ---- 5. cone of influence -------------------------------------------------
+  coi <- ff * sqrt(2) * dt *
+    c(1e-5, 1:((nx + 1)/2 - 1), rev(1:(nx/2 - 1)), 1e-5)[seq_len(nx)]
+  ref <- if (mode == "cycle") centre else rep(upperPeriod, nx)
+  in.coi <- ref > coi
+  if (mask_coi) ampl[in.coi] <- NA
+
+  out <- cbind(x_axis, ampl)
+  colnames(out) <- c("x_axis", "amplitude")
+  if (mode == "cycle") attr(out, "period") <- centre
+
+  ## ---- 6. optional checks and plot ------------------------------------------
+  if (ver_results) {
+    hb <- .ea_hilbert(cbind(x_axis, x_raw))
+    g <- !in.coi & !is.na(ampl)
+    cat(sprintf("median(CWT amplitude / Hilbert amplitude) outside the COI = %.3f\n",
+                stats::median(ampl[g]/hb[g, 2])))
+    if (mode == "cycle")
+      cat("  (in cycle mode a ratio below 1 is expected: the Hilbert envelope also\n",
+          "   contains the other cycles, the noise and the trend.)\n")
+  }
+
+  if (genplot) {
+    if (!keep_editable) { oldpar <- graphics::par(no.readonly = TRUE)
+                          on.exit(graphics::par(oldpar)) }
+    graphics::par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
+    plot(x_axis, x_raw, type = "l", col = "grey45", xlab = "",
+         ylab = "signal",
+         main = if (mode == "whole") "signal and envelope"
+                else sprintf("signal and amplitude of the %s cycle",
+                             if (length(unique(centre)) == 1)
+                               signif(centre[1], 4) else "tracked"))
+    graphics::lines(x_axis, mean_signal + ampl, col = "red", lwd = 2)
+    graphics::lines(x_axis, mean_signal - ampl, col = "red", lwd = 2)
+    plot(x_axis, ampl, type = "l", lwd = 2, xlab = "depth/time", ylab = "amplitude")
+  }
+
+  out
+}
+
+# Hilbert envelope by FFT (used only for ver_results)
+.ea_hilbert <- function(data) {                    # used only for ver_results
+  x <- data[, 2] - mean(data[, 2]); n <- length(x); h <- rep(0, n)
+  if (n %% 2 == 0) { h[1] <- 1; h[n/2 + 1] <- 1; h[2:(n/2)] <- 2
+  } else            { h[1] <- 1; h[2:((n + 1)/2)] <- 2 }
+  cbind(data[, 1], Mod(stats::fft(stats::fft(x) * h, inverse = TRUE)/n))
 }

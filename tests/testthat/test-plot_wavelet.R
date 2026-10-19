@@ -1,0 +1,10 @@
+test_that("plot_wavelet with add_MTM works (issue: MTM_res_1 not found)", {
+  skip_on_cran()
+  set.seed(1)
+  x <- seq(0, 100, by = 0.5)
+  d <- data.frame(x = x, y = sin(2 * pi * x / 20) + stats::rnorm(length(x), sd = 0.3))
+  wt <- analyse_wavelet(data = d, dj = 1/20, lowerPeriod = 2, upperPeriod = 60, verbose = FALSE, omega_nr = 8)
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  expect_error(plot_wavelet(wt, dev_new = FALSE, add_MTM = TRUE, add_avg = TRUE), NA)
+})

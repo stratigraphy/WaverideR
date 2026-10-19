@@ -15,7 +15,7 @@ extract_signal_stable(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{cycle}{Period of the cycle which needs to be extracted.}
 
@@ -35,7 +35,7 @@ The first column is time/depth.
 The second column is the extracted signal/cycle.
 }
 \description{
-Extracts a cycle from the wavelet object created using the \code{\link{analyze_wavelet}}
+Extracts a cycle from the wavelet object created using the \code{\link{analyse_wavelet}}
 function using a fixed period and fixed period boundaries defined as factors of the original cycle
 }
 \examples{
@@ -44,7 +44,7 @@ function using a fixed period and fixed period boundaries defined as factors of 
 
 #Perform the CWT
 TSI_wt <-
-analyze_wavelet(
+analyse_wavelet(
 data = TSI,
 dj = 1/200,
 lowerPeriod = 16,

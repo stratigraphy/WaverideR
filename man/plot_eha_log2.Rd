@@ -16,7 +16,7 @@ plot_eha_log2(
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   keep_editable = FALSE,
-  dev_new = TRUE,
+  dev_new = wr_dev_new_default(),
   plot_dir = TRUE,
   add_lines = NULL,
   add_points = NULL,
@@ -33,7 +33,9 @@ plot_eha_log2(
   detrend_mtm = TRUE,
   padfac_mtm = 5,
   tbw_mtm = 3,
-  plot_horizontal = TRUE
+  plot_horizontal = TRUE,
+  colour_brewer = NULL,
+  scale = "auto"
 )
 }
 \arguments{
@@ -56,7 +58,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -88,8 +90,11 @@ WARNING plotting as a vector image is computationally intensive.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=TRUE}}
+\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
 
 \item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
@@ -129,6 +134,10 @@ should be period values \code{Default=NULL}}
 \item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+
+\item{scale}{Colour scale as in \code{\link{plot_wavelet}} \code{Default="auto"}.}
 }
 \value{
 The output is a plot of a EHA spectra.

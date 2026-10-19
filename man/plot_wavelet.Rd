@@ -15,7 +15,7 @@ plot_wavelet(
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   keep_editable = FALSE,
-  dev_new = TRUE,
+  dev_new = wr_dev_new_default(),
   plot_dir = TRUE,
   add_lines = NULL,
   add_points = NULL,
@@ -33,11 +33,15 @@ plot_wavelet(
   detrend_mtm = TRUE,
   padfac_mtm = 5,
   tbw_mtm = 3,
-  plot_horizontal = TRUE
+  plot_horizontal = TRUE,
+  add_signif = NULL,
+  colour_brewer = NULL,
+  whiten = FALSE,
+  scale = "auto"
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
@@ -54,7 +58,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -86,8 +90,11 @@ WARNING plotting as a vector image is computationally intensive.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=TRUE}}
+\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
 
 \item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
@@ -111,7 +118,7 @@ should be period values \code{Default=NULL}}
 \item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
 
 \item{add_pval}{add an transparent overlay on the wavelet scalogram based on the p-value and add the p-value curve to the
-average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyze_wavelet}} function.
+average spectral power curve. The p-value is based on a Monte Carlo simulation of the \code{\link{analyse_wavelet}} function.
 The p-value is based on Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise)
 the calculated using a windowed (the window is half the size of the data set) temporal autocorrelation
 and on shuffling the data set resulting in a random data sets which has similar spectral characteristics
@@ -141,13 +148,28 @@ solely the result of autocorrelated noise. \code{Default=FALSE}}
 \item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+
+\item{add_signif}{Optional significance object created with \code{\link{wavelet_significance}}. The significant
+cells are outlined on the scalogram and the critical level of the global spectrum is drawn as a red dashed line on
+the average power panel \code{Default=NULL}.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+
+\item{whiten}{Divide the power of every period by its mean along the record before plotting \code{Default=FALSE}.
+Removes the red-noise background, so that weak ridges at short periods (precession in a noisy record) are shown with
+the same contrast as the strong long periods; on CIP Case 3 (very red noise) the oscillating precession and obliquity
+ridges only become visible this way. The average panel is not informative with \code{whiten = TRUE}.}
+
+\item{scale}{Colour scale, the same for every image plot of the package: \code{"auto"} (default: logarithmic for
+synchrosqueezed, superlet-SST, chirplet-SST and other mostly empty maps, histogram-equalised quantiles otherwise),
+\code{"log"}, \code{"quantile"}, \code{"sqrt"} or \code{"linear"}.}
 }
 \value{
 The output is a plot of a wavelet spectra.
 if add_MTM_peaks = TRUE then the output of the MTM analysis will given as matrix
 }
 \description{
-Plot wavelet scalogram using the outcome of the \code{\link{analyze_wavelet}} function.
+Plot wavelet scalogram using the outcome of the \code{\link{analyse_wavelet}} function.
 }
 \examples{
 \donttest{
@@ -155,7 +177,7 @@ Plot wavelet scalogram using the outcome of the \code{\link{analyze_wavelet}} fu
 # data set of Steinhilber et al., (2012)
 
 TSI_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = TSI,
    dj = 1/200,
    lowerPeriod = 16,
@@ -198,7 +220,7 @@ color_brewer= "grDevices",
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
 mag_wt <-
-analyze_wavelet(
+analyse_wavelet(
 data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
@@ -242,7 +264,7 @@ plot_horizontal=TRUE)
 #Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
 grey_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = grey,
    dj = 1/200,
    lowerPeriod = 0.02,

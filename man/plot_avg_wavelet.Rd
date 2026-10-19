@@ -12,7 +12,7 @@ plot_avg_wavelet(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{y_lab}{Label for the y-axis \code{Default="Power"}.}
 
@@ -25,14 +25,14 @@ The output is a plot of the average spectral power of a wavelet spectra
 }
 \description{
 Plot the average spectral power of a wavelet spectra using the results of
-the \code{\link{analyze_wavelet}} function.
+the \code{\link{analyse_wavelet}} function.
 }
 \examples{
 \donttest{
 #Example 1. Plot the average spectral power of the wavelet spectra of
 # the Total Solar Irradiance data set of Steinhilber et al., (2012)
 TSI_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = TSI,
    dj = 1/200,
    lowerPeriod = 16,
@@ -50,7 +50,7 @@ plot_avg_wavelet(wavelet=TSI_wt,
 #Example 2. Plot the average spectral power of the wavelet spectra of \cr
 # the magnetic susceptibility data set of Pas et al., (2018)
 mag_wt <-
-analyze_wavelet(
+analyse_wavelet(
 data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
@@ -68,7 +68,7 @@ plot_avg_wavelet(wavelet=mag_wt,
 #Example 3. Plot the average spectral power of the wavelet spectra of
 #the greyscale data set of Zeeden et al., (2013)
 grey_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = grey,
    dj = 1/200,
    lowerPeriod = 0.02,

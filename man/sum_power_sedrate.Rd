@@ -16,22 +16,24 @@ sum_power_sedrate(
   x_lab = "depth",
   y_lab = "sedrate",
   run_multicore = FALSE,
+  n_cores = NULL,
   genplot = FALSE,
   plot_res = 1,
   keep_editable = FALSE,
   palette_name = "rainbow",
   color_brewer = "grDevices",
-  verbose = FALSE
+  verbose = FALSE,
+  colour_brewer = NULL
 )
 }
 \arguments{
 \item{red_noise}{Red noise curves generated using the \code{\link{model_red_noise_wt}} function}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function}
 
 \item{percentile}{Percentile value (0-1) of the rednoise runs which is used to normalize the data for.
 To account for the distribution/distortion of the spectral power distribution based on the analytical technique and
-random red-noise the data is normalized against a percentile based red-noise curve which is the results of the
+random red-noise the data is normalised against a percentile based red-noise curve which is the results of the
 '\code{\link{model_red_noise_wt}} modelling runs.}
 
 \item{sedrate_low}{Minimum sedimentation rate (cm/kyr)for which the sum of maximum spectral power is calculated for.}
@@ -49,6 +51,11 @@ random red-noise the data is normalized against a percentile based red-noise cur
 \item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
 the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes}
 
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
+
 \item{genplot}{Generate plot \code{Default="FALSE"}}
 
 \item{plot_res}{plot options are 1: sum max power or 2: nr of components \code{Default=2}}
@@ -64,7 +71,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -80,6 +87,8 @@ There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Returns a list which contains 4 elements
@@ -97,7 +106,7 @@ Subplot 3 is a color scale for subplot 1.
 \description{
 The \code{\link{sum_power_sedrate}} function is used calculate the sum of
 maximum spectral power for a list of astronomical cycles from a wavelet spectra.
-The data is first normalized using the average spectral power curves
+The data is first normalised using the average spectral power curves
  for a given percentile based on results of the \code{\link{model_red_noise_wt}} function
 }
 \examples{
@@ -105,16 +114,16 @@ The data is first normalized using the average spectral power curves
 #estimate sedimentation rate for the the magnetic susceptibility record
 # of the Sullivan core of Pas et al., (2018).
 
-mag_wt <- analyze_wavelet(data = mag,
-dj = 1/100,
+mag_wt <- analyse_wavelet(data = mag[1:200, ],
+dj = 1/10,
 lowerPeriod = 0.1,
-upperPeriod = 254,
+upperPeriod = 32,
 verbose = FALSE,
 omega_nr = 10)
 
 #increase n_simulations to better define the red noise spectral power curve
 mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
-n_simulations=10,
+n_simulations = 3,
 run_multicore=FALSE,
 verbose=FALSE)
 
@@ -123,7 +132,7 @@ wavelet=mag_wt,
 percentile=0.75,
 sedrate_low = 0.5,
 sedrate_high = 4,
-spacing = 0.05,
+spacing = 1,
 cycles = c(2376,1600,1180,696,406,110),
 x_lab="depth",
 y_lab="sedrate",

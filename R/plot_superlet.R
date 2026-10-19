@@ -1,8 +1,8 @@
 #' @title Plots a superlet scalogram
 #'
-#' @description Plot superlet scalogram using the outcome of the \code{\link{analyze_superlet}} function.
+#' @description Plot superlet scalogram using the outcome of the \code{\link{analyse_superlet}} function.
 #'
-#'@param superlet superlet object created using the \code{\link{analyze_superlet}} function.
+#'@param superlet superlet object created using the \code{\link{analyse_superlet}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
 #'@param n.levels  Number of color levels \code{Default=100}.
@@ -15,7 +15,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -41,8 +41,11 @@
 #'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
 #'@param x_lab Label for the x-axis \code{Default="depth (metres)"}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param dev_new Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-#'document the plot might not plot  \code{Default=TRUE}
+#'@param dev_new Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+#'than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+#'opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+#'on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+#'\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.
 #'@param plot_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 #'(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
 #'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
@@ -55,6 +58,9 @@
 #'@param add_abline_v Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
 #'@param add_data Plot the data on top of the wavelet \code{Default=TRUE}
 #'@param add_avg Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
+#' @param add_signif Optional significance object created with \code{\link{wavelet_significance}}. The significant
+#' cells are outlined on the scalogram and the critical level of the global spectrum is drawn as a red dashed line on
+#' the average power panel \code{Default=NULL}.
 #'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}
 #'
 #'
@@ -63,7 +69,7 @@
 #'
 #' @author
 #' Code based on the "wt.image" functions of the 'WaveletComp' R package
-#' Whereas the "analyze_superlet" that generates the input for the plotting function
+#' Whereas the "analyse_superlet" that generates the input for the plotting function
 #' is based on the matlab code in Moca et al. (2021)
 #'
 #' @references
@@ -82,7 +88,7 @@
 #'# data set of Steinhilber et al., (2012)
 #'
 #'TSI_super <-
-#'  analyze_superlet(
+#'  analyse_superlet(
 #'    data = TSI,
 #'    Nf = 128,
 #'    lowerPeriod = 16,
@@ -116,7 +122,7 @@
 #'#Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #'#data set of Pas et al., (2018)
 #'mag_super <-
-#'analyze_superlet(
+#'analyse_superlet(
 #'    data = mag,
 #'    Nf = 128,
 #'    lowerPeriod = 0.1,
@@ -154,7 +160,7 @@
 #'#Example 3. A plot of a wavelet spectra using the greyscale
 #'# data set of Zeeden et al., (2013)
 #'grey_super <-
-#'analyze_superlet(
+#'analyse_superlet(
 #'    data = grey,
 #'    Nf = 128,
 #'    lowerPeriod = 0.02,
@@ -186,6 +192,8 @@
 #'  plot_horizontal = TRUE)
 #'}
 #'
+#' @param scale Colour scale as in \code{\link{plot_wavelet}} \code{Default="auto"}.
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -198,63 +206,21 @@
 #' @importFrom graphics layout
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
-#' @importFrom DescTools Closest
 #' @importFrom graphics abline
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom scico scico
 
 plot_superlet <- function (superlet = NULL,
                            lowerPeriod = NULL,
@@ -266,7 +232,7 @@ plot_superlet <- function (superlet = NULL,
                            periodlab = "Period (metres)",
                            x_lab = "depth (metres)",
                            keep_editable = FALSE,
-                           dev_new = TRUE,
+                           dev_new = wr_dev_new_default(),
                            plot_dir = TRUE,
                            add_lines = NULL,
                            add_points = NULL,
@@ -274,8 +240,12 @@ plot_superlet <- function (superlet = NULL,
                            add_abline_v = NULL,
                            add_data = TRUE,
                            add_avg = FALSE,
-                           plot_horizontal = TRUE)
-{if (keep_editable == FALSE) {
+                           plot_horizontal = TRUE,
+                           add_signif = NULL,
+  colour_brewer = NULL, scale = "auto")
+{
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+  if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
@@ -285,50 +255,7 @@ plot_superlet <- function (superlet = NULL,
     to = 1,
     length.out = n.levels + 1
   ))
-  if (color_brewer == "RColorBrewer") {
-    key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
-  }
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <- paste("colorRamps::", palette_name, "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" | palette_name ==
-             "terrain.colors" | palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <- paste("grDevices::",
-                                palette_name,
-                                "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else {
-      key.cols <- hcl.colors(
-        n = n.levels,
-        palette = palette_name,
-        alpha = NULL,
-        rev = FALSE,
-        fixup = TRUE
-      )
-    }
-  }
-  if (color_brewer== "scico"){
-    color_brewer_Sel <- paste(
-      "scico::scico(n = n.levels, palette = '",
-      palette_name,
-      "', direction = -1)",
-      sep = ""
-    )
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
-
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <- paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
   periodtck = 0.02
   periodtcl = 0.5
   main = NULL
@@ -356,14 +283,10 @@ plot_superlet <- function (superlet = NULL,
     format = legend.params$label.format
   )[key.marks + 1]
   if (dev_new == TRUE & plot_horizontal == TRUE) {
-    dev.new(width = 15,
-            height = 7,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 15, height = 7)
   }
   if (dev_new == TRUE & plot_horizontal == FALSE) {
-    dev.new(width = 7,
-            height = 10,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 10)
   }
   depth <- superlet$x
   y_axis <- superlet$Period
@@ -383,913 +306,19 @@ plot_superlet <- function (superlet = NULL,
   }
   ylim_vals = (c(lowerPeriod, upperPeriod))
 
-  if (add_data == TRUE & add_avg == FALSE  &
-      plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 3, 0, 2),
-                            nrow = 2,
-                            ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 0.25),
-                     widths = c(1, 4))
-    par(mar = c(4, 4, 2, 0))
-    plot(
-      x = superlet$y,
-      y = superlet$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      ylim = xlim_vals
-    )
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-    par(new = FALSE, mar = c(3, 0, 2, 2))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 2, 2))
-    image(
-      y = superlet$x,
-      x = superlet$axis.2,
-      z = t(superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = "",
-      yaxt = "n",
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = as.vector(period.tick),
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-
-
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-  }
-
-
-  if (add_data == FALSE & add_avg == FALSE  &
-      plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 2),
-                            nrow = 2,
-                            ncol = 1,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     widths = c(1))
-    par(mar = c(2, 4, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 2,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 2, 3))
-    image(
-      y = superlet$x,
-      x = superlet$axis.2,
-      z = t(superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-  }
-  if (add_data == FALSE & add_avg == TRUE  &
-      plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 2, 0, 3),
-                            nrow = 2,
-                            ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     widths = c(1, 4))
-    par(mar = c(2, 2, 2, 3))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 1,
-      at = median(key.marks),
-      line = 3,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      xpd = NA
-    )
-    box(lwd = lwd.axis)
-    par(mar = c(0, 4, 2, 2))
-    plot(
-      y = superlet$Power.avg,
-      x = superlet$Period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xaxs = "i",
-      xlim = sort(ylim_vals)
-    )
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = (add_abline_v))
-    }
-    par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      y = superlet$x,
-      x = superlet$axis.2,
-      z = t(superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      xaxt = "n",
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(sort(ylim_vals))
-    )
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(y = add_lines[, 1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(y = add_points[, 1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-  }
-  if (add_data == TRUE & add_avg == TRUE  &
-      plot_horizontal == FALSE) {
-    layout.matrix <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      4), widths = c(1, 4))
-    par(mar = c(2, 0.5, 2, 6), xpd = NA)
-    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(2, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 2, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 1, at = 1, line = 0.5, font = par()$font.axis,
-          cex = par()$cex.axis, las = 1, xpd = NA)
-    box(lwd = lwd.axis)
-    par(mar = c(0, 0, 2, 2))
-    plot(y = superlet$Power.avg, x = superlet$Period, log = "x",
-         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
-         xlab = "", xaxs = "i", xlim = sort(ylim_vals))
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = (add_abline_v), xpd = FALSE)
-    }
-    title(ylab = "Wt. power", xpd = NA)
-    par(mar = c(4, 4, 0, 0), xpd = TRUE)
-    plot(x = superlet$y, y = superlet$x, type = "l", yaxs = "i",
-         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
-    par(new = FALSE, mar = c(4, 0, 0, 2), xpd = FALSE)
-    image(y = superlet$x, x = superlet$axis.2, z = t(superlet$Power),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          xlab = periodlab, ylab = "", xaxt = "n", yaxt = "n",
-          main = main, ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 1, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
-    }
-
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-  }
-  if (add_data == TRUE & add_avg == TRUE  &
-      plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(1, 2, 4, 3),
-                            nrow = 2,
-                            ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(8, 2))
-    par(mar = c(0, 4, 2, 0))
-    plot(
-      y = superlet$y,
-      x = superlet$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    par(new = FALSE,
-        mar = c(3, 2, 2, 2),
-        mgp = c(2, 1, 0))
-    image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "Power",
-      ylab = ""
-    )
-    axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.2
-    )
-    mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.1,
-      las = 2,
-      cex = 0.75
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 0, 0.5))
-    plot(
-      x = superlet$Power.avg,
-      y = superlet$Period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      #yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = sort(ylim_vals)
-    )
-
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-
-    par(new = FALSE,
-        mar = c(4, 4, 0, 0),
-        xpd = FALSE)
-    image(
-      x = superlet$x,
-      y = superlet$axis.2,
-      z = (superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-  }
-  if (add_data == TRUE & add_avg == FALSE  &
-      plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(1, 0, 3, 2),
-                            nrow = 2,
-                            ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     widths = c(8, 2))
-    par(mar = c(0, 4, 2, 2))
-    plot(
-      y = superlet$y,
-      x = superlet$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
-    )
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    par(new = FALSE, mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(
-      x = superlet$x,
-      y = superlet$axis.2,
-      z = (superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
-    }
-
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-  }
-  if (add_data == FALSE & add_avg == TRUE  &
-      plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(3, 2, 1),
-                            nrow = 1,
-                            ncol = 3,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1),
-                     widths = c(6, 1, 1))
-    par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 2, 0.5))
-    plot(
-      x = superlet$Power.avg,
-      y = superlet$Period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = sort(ylim_vals)
-    )
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-    par(new = FALSE,
-        mar = c(4, 4, 2, 0),
-        mgp = c(2, 1, 0))
-    image(
-      x = superlet$x,
-      y = superlet$axis.2,
-      z = (superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-  }
-  if (add_data == FALSE & add_avg == FALSE  &
-      plot_horizontal == TRUE) {
-    layout.matrix <- matrix(c(2, 1),
-                            nrow = 1,
-                            ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix,
-                     heights = c(1),
-                     widths = c(10, 2.25))
-    par(mar = c(4, 0, 2, 5))
-    image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels, nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
-
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
-    )
-    mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    mtext(
-      c("Power"),
-      side = 4,
-      at = mean(key.marks),
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 2, 0.5))
-    image(
-      x = superlet$x,
-      y = superlet$axis.2,
-      z = (superlet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n",
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(sort(ylim_vals))
-    )
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(superlet$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines))
-        lines(add_lines[, 1], log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points))
-        points(add_points[, 1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-  }
+  p <- list(wavelet = superlet, data_x = superlet$x, data_y = superlet$y, depth = superlet$x, ax2 = superlet$axis.2,
+            z = t(superlet$Power), avg = superlet$Power.avg, per = superlet$Period,
+            tick_min = min(log2(ylim_vals)), tick_max = max(log2(ylim_vals)), overlay = TRUE,
+            gws_abline_all = TRUE, levels = power_max_mat.levels,
+            n.levels = n.levels, key.cols = key.cols, key.marks = key.marks,
+            key.labels = key.labels, lwd.axis = lwd.axis, pmax_avg_sel = superlet$Power, xlim_vals = xlim_vals,
+            ylim_vals = sort(ylim_vals), periodlab = periodlab, x_lab = x_lab, main = main, periodtck = periodtck,
+            periodtcl = periodtcl, add_lines = add_lines, add_points = add_points, add_abline_h = add_abline_h,
+            add_abline_v = add_abline_v, add_MTM_peaks = FALSE, add_pval = FALSE,
+            pval_abline = NULL, pval_cutoff = NULL, add_signif = add_signif,
+            MTM_res_1 = NULL, MTM_res_2 = matrix(data = NA, ncol = 2, nrow = 1),
+            plot_horizontal = plot_horizontal, add_data = add_data, add_avg = add_avg, add_MTM = FALSE)
+  p$scale <- scale
+  .pw_draw(p)
 
 }

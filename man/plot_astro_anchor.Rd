@@ -46,7 +46,7 @@ which was conducted using the \code{\link{astro_anchor}}
 # of Zeeden et al., (2013) to the p-0.5t la2004 solution
 
 grey_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = grey,
    dj = 1/200,
    lowerPeriod = 0.02,
@@ -143,7 +143,7 @@ astrosignal <- as.data.frame(astrosignal_example)
 plot_astro_anchor(astro_solution = astrosignal,
 proxy_signal = insolation_extract,
 anchor_points = anchor_points_grey,
-time_dir = FALSE,
+time_dir = TRUE, # the anchor points of this example get older with increasing depth
 keep_editable = FALSE)
 
 }

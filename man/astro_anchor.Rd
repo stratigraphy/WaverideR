@@ -170,11 +170,12 @@ Astronomical solutions option are:
 }
 \examples{
 \donttest{
+if (interactive()) { # needs mouse input (identify())
 # Use the grey_track example tracking points to anchor the grey scale data set
 # of Zeeden et al., (2013) to the p-0.5t la2004 solution
 
 grey_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = grey,
    dj = 1/200,
    lowerPeriod = 0.02,
@@ -260,7 +261,7 @@ proxy_period_cycle  = NULL,
 pts=3,
 verbose=FALSE, #set verbose to TRUE to allow for anchoring using text feedback commands
 genplot=FALSE
-)}
+)}}
 
 }
 \references{

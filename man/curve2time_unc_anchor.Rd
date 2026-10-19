@@ -18,6 +18,7 @@ curve2time_unc_anchor(
   uncer_cycles_check = NULL,
   max_runs = 1000,
   run_multicore = FALSE,
+  n_cores = NULL,
   verbose = FALSE,
   genplot = FALSE,
   keep_nr = 2,
@@ -68,6 +69,11 @@ input should be a data frame with}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. Only used when
+`run_multicore = TRUE`. Results do not depend on the number of cores.}
+
 \item{verbose}{Print text \code{Default=FALSE}.}
 
 \item{genplot}{generate plot code\code{Default=FALSE}}
@@ -83,17 +89,17 @@ in-between these steps the dj parameter exists, the dj parameter specifies how m
 the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
 Increasing the increases the computational time of the CWT \code{Default=1/200}.}
 
-\item{lowerPeriod}{Lowest period to be analyzed \code{Default=2}.
+\item{lowerPeriod}{Lowest period to be analysed \code{Default=2}.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
 scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
-\item{upperPeriod}{Upper period to be analyzed \code{Default=1024}.
+\item{upperPeriod}{Upper period to be analysed \code{Default=1024}.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
  scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
-\item{omega_nr}{Number of cycles contained within the Morlet wavelet}
+\item{omega_nr}{The omega number: central angular frequency of the Morlet wavelet}
 
 \item{seed_nr}{The seed number of the Monte-Carlo simulations.
 \code{Default=1337}}
@@ -133,7 +139,7 @@ Bisciaro_al <-
 Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 
 Bisciaro_al_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_al,
    dj = 1 / 200 ,
    lowerPeriod = 0.01,
@@ -181,7 +187,7 @@ Bisciaro_ca <-
 Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 
 Bisciaro_ca_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_ca,
    dj = 1 / 200 ,
    lowerPeriod = 0.01,
@@ -231,7 +237,7 @@ Bisciaro_sial <-
 Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 
 Bisciaro_sial_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_sial,
    dj = 1 / 200 ,
    lowerPeriod = 0.01,
@@ -280,7 +286,7 @@ Bisciaro_Mn <-
 Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 
 Bisciaro_Mn_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mn,
    dj = 1 / 200 ,
    lowerPeriod = 0.01,
@@ -327,7 +333,7 @@ Bisciaro_Mg <-
 Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 
 Bisciaro_Mg_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mg,
    dj = 1 / 200 ,
    lowerPeriod = 0.01,

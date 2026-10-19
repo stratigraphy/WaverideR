@@ -1,18 +1,23 @@
 Package: WaverideR
 Type: Package
 Title: Extracting Signals from Wavelet Spectra
-Version: 0.5.1
+Version: 0.6.0
 Authors@R: person(given = "Michiel", family = "Arts", role = c("aut", "cre"), email = "michiel.arts@stratigraphy.eu", comment = c(ORCID = "0000-0003-3181-4608"))
 Maintainer: Michiel Arts <michiel.arts@stratigraphy.eu>
 Depends: R (>= 3.5.0)
-Imports: DescTools, Hmisc, Matrix, utils, colorednoise, doSNOW, foreach, stats, matrixStats, reshape2, truncnorm, grDevices, graphics, parallel, astrochron, RColorBrewer, colorRamps, viridis, magick, rlist, trapezoid, fANCOVA, DecomposeR, scico
-Description: Tools for extracting and analyzing cyclic signals from time series. 
+Imports: astrochron, graphics, grDevices, parallel, stats, utils
+Suggests: knitr, magick, rmarkdown, scico, shiny, testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Description: Tools for extracting and analyzing cyclic signals from time series: continuous wavelet, superlet and
+    synchrosqueezed transforms, significance tests, tracking of astronomical cycles and sedimentation rates, age models
+    with uncertainty and de-chirped spectra. When using the package please cite both the paper that introduced it,
+    Arts et al. (2024) <doi:10.3389/feart.2024.1357751>, and the package itself (Arts 2023,
+    <https://CRAN.R-project.org/package=WaverideR>); see citation("WaverideR").
 License: GPL (>= 2)
 URL: https://github.com/stratigraphy/WaverideR
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.3
 NeedsCompilation: no
-Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
-
+Config/roxygen2/version: 8.1.1
+RoxygenNote: 7.3.3

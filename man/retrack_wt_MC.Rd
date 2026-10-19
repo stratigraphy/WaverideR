@@ -30,15 +30,17 @@ retrack_wt_MC(
   time_dir = TRUE,
   file_name = NULL,
   run_multicore = FALSE,
+  n_cores = NULL,
   output = 1,
   n_imgs = 50,
   plot_horizontal = TRUE,
-  empty_folder = FALSE
+  empty_folder = FALSE,
+  colour_brewer = NULL
 )
 }
 \arguments{
 \item{wt_list}{a list containing all the wavelet objects created using the
-\link[WaverideR]{analyze_wavelet} wavelet function
+\link[WaverideR]{analyse_wavelet} wavelet function
 To create a list use the \link[base]{list} function}
 
 \item{data_track}{a matrix containing all the tracked period values.
@@ -54,7 +56,7 @@ a automatic loess smoother,"loess" where one can specify Lowess smoothing
 parameter. or "window" where one can specific the window length of the moving
 average. one should specify the parameter and its value as vector
 #'@param wt_list a list containing all the wavelet objects created using the
-\link[WaverideR]{analyze_wavelet} wavelet function
+\link[WaverideR]{analyse_wavelet} wavelet function
 To create a list use the \link[base]{list} function}
 
 \item{nr_simulations}{The number of Monte-Carlo simulations which are to be
@@ -106,7 +108,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -139,6 +141,11 @@ directory}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
 
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
+
 \item{output}{#'If output = 1, output is a list which contain 3 objects.
 object 1 is a matrix with the x-axis and the mean tracked frequency and
 standard deviation. #'object 2 is a matrix with all the tracked periods.
@@ -170,6 +177,8 @@ is depth or y axis power \code{Default=TRUE}}
 
 \item{empty_folder}{Empty the folder in which the images created using
 this function are saved \code{Default=FALSE}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 The output depends on the output setting
@@ -200,7 +209,7 @@ If output = 6, a matrix with all the tracked periods is returned.
 If output = 7, a GIF in which all the tracked periods are plotted is returned
 }
 \description{
-When analyzing multi-proxy records an age-model can be created
+When analysing multi-proxy records an age-model can be created
 for each proxy. These age-models can be in general agreement but might also
 indicate conflicting deposition rates. Picking one age-model out of the all
 multi-proxy age-models and stating that, that age-model is the best overlooks
@@ -244,9 +253,9 @@ Bisciaro_al <- astrochron::linterp(Bisciaro_al, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 
 Bisciaro_al_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_al,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -286,9 +295,9 @@ Bisciaro_ca <- astrochron::linterp(Bisciaro_ca, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 
 Bisciaro_ca_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_ca,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -327,9 +336,9 @@ Bisciaro_sial <- astrochron::linterp(Bisciaro_sial, dt = 0.01,verbose=FALSE,genp
 Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 
 Bisciaro_sial_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_sial,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -371,9 +380,9 @@ Bisciaro_Mn <- astrochron::linterp(Bisciaro_Mn, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 
 Bisciaro_Mn_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mn,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,
@@ -413,9 +422,9 @@ Bisciaro_Mg <- astrochron::linterp(Bisciaro_Mg, dt = 0.01,verbose=FALSE,genplot=
 Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 
 Bisciaro_Mg_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = Bisciaro_Mg,
-   dj = 1 /200 ,
+   dj = 1 /50 ,
    lowerPeriod = 0.01,
    upperPeriod = 50,
    verbose = FALSE,

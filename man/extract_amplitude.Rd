@@ -2,135 +2,110 @@
 % Please edit documentation in R/extract_amplitude.R
 \name{extract_amplitude}
 \alias{extract_amplitude}
-\title{Extract amplitude from a signal}
+\title{Extract the instantaneous amplitude (envelope) of a signal using the CWT}
 \usage{
 extract_amplitude(
   signal = NULL,
-  pts = 3,
+  cycle = NULL,
+  band = c(0.5, 2),
+  periods = NULL,
+  omega_nr = 6,
+  dj = 1/100,
+  pad = c("AR", "reflect", "zero"),
+  mask_coi = FALSE,
   genplot = FALSE,
-  remean = TRUE,
   ver_results = FALSE,
-  keep_editable = FALSE
+  keep_editable = FALSE,
+  ...
 )
 }
 \arguments{
-\item{signal}{Input signal from which the amplitude is extracted any signal in which the first column is
-depth/time and the second column is the proxy record from which the amplitude is extracted}
+\item{signal}{Matrix/data frame: column 1 = depth/time, column 2 = proxy.}
 
-\item{pts}{The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-picked up by the algorithm \code{Default=3}}
+\item{cycle}{What to measure the amplitude of. \code{NULL} (default) = the
+whole signal, i.e. the Hilbert-equivalent envelope. A single number = the
+cycle of that period (e.g. \code{cycle = 405}). A 2-column matrix
+(depth/time, period) = a tracked period curve, e.g. from
+\code{track_period_wavelet()} + \code{completed_series()}, for records
+whose sedimentation rate varies. \code{"ridge"} = follow the strongest
+cycle at each depth (only for records dominated by one cycle).}
 
-\item{genplot}{If set to TRUE a plot with extracted amplitude will be displayed \code{Default=FALSE}.}
+\item{band}{Period band kept around \code{cycle}, as factors of it.
+\code{Default = c(0.5, 2)}. Narrow it (e.g. \code{c(0.8, 1.2)}) for noisy
+records or cycles close together; a wide band is needed when the cycle is
+strongly modulated. Ignored when \code{cycle = NULL}.}
 
-\item{remean}{Prior to analysis the mean is subtracted from the data set to re-mean set \code{Default=TRUE}.}
+\item{periods}{Period range analysed, \code{c(lower, upper)}. Default:
+\code{2*dt} to half the record. Use it to keep noise or a trend out of the
+whole-record envelope, or to stop \code{cycle = "ridge"} wandering.}
 
-\item{ver_results}{To verify the amplitude extraction is representative of the amplitude
-extracted using the \code{\link{extract_amplitude}} function the results can be compared to the amplitude extracted
-using the \code{\link{Hilbert_transform}} if the mean difference is more then 5% one might need to reconsider
-whether the input contains a reliable enough signal with high a enough amplitude modulation to actually extract an amplitude from. \code{Default=FALSE}.}
+\item{omega_nr}{Cycles in the Morlet wavelet; >= 5 keeps it analytic.
+\code{Default = 6}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{dj}{Scale spacing. \code{Default = 1/100}.}
+
+\item{pad}{End treatment: \code{"AR"} (default) extends the record with a
+forward/backward linear-prediction forecast so the wavelet does not see a
+step to zero, \code{"reflect"} mirrors it, \code{"zero"} is the classic
+zero padding. Falls back automatically if the AR fit fails.}
+
+\item{mask_coi}{Return NA inside the cone of influence. \code{Default = FALSE}.}
+
+\item{genplot}{Plot the signal with its +/- envelope, and the envelope.}
+
+\item{ver_results}{Print the median ratio to the Hilbert envelope (outside the cone of influence).}
+
+\item{keep_editable}{Keep plot parameters editable. \code{Default = FALSE}.}
+
+\item{...}{Ignored, with a note; lets old calls using \code{pts},
+\code{remean}, \code{tracked_cycle_curve}, \code{lowerPeriod} etc. keep
+working (the old names are mapped onto the new ones where possible).}
 }
 \value{
-Returns a matrix with 2 columns.
-The first column is depth/time.
-The second column is the extracted amplitude
+Matrix, column 1 = depth/time, column 2 = amplitude. In cycle mode
+  the period actually used is attached as \code{attr(x, "period")}.
 }
 \description{
-Extracts the amplitude from a signal using the continuous wavelet transform using a Morlet wavelet.
-The extraction of the amplitude is useful for cyclostratigraphic studies because the amplitude of
-an astronomical cycle is modulated by higher order astronomical cycles.
+The wavelet equivalent of the Hilbert transform. A complex (analytic) Morlet
+wavelet is used, so the wavelet coefficients already are the analytic
+representation of a real signal; summing them back up gives the analytic
+signal \eqn{z(t)} whose real part is the input and whose modulus is the
+instantaneous amplitude.
+
+Called with only a signal, it returns the envelope of the whole record and
+behaves like a Hilbert transform (median ratio 1.000 on a ZB18a eccentricity window), but computed scale by
+scale, so a period range can be
+imposed and the ends of the record do not have to be wrapped around.
+
+Given \code{cycle}, it instead returns the amplitude of that one cycle: the
+analytic signal is rebuilt only from the scales inside \code{band} around the
+given period, so other cycles, noise and trends do not enter the amplitude.
+This is the amplitude-modulation curve used in cyclostratigraphy.
+
+Calibration is absolute in both modes, with no rescaling against peak
+statistics: a signal of constant amplitude 3 returns 3, independent of dt,
+dj, omega_nr and the scale range. In whole-record mode the reconstruction
+constant is fixed by requiring \eqn{\mathrm{Re}(z)} to reproduce the input;
+in cycle mode it is the analytic response of the wavelet family to a unit
+cosine at the cycle's frequency.
 }
 \examples{
 \donttest{
-#Extract amplitude of the 405 kyr eccentricity cycle from the the magnetic
-# susceptibility data set of De pas et al., (2018)
-#Perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
+# envelope of the whole record - nothing else to set (insolation-like signal, time in kyr)
+amp <- extract_amplitude(astrosignal_example, genplot = TRUE)
 
-mag_wt <- analyze_wavelet(data = mag,
-dj = 1/100,
-lowerPeriod = 0.1,
-upperPeriod = 254,
-verbose = FALSE,
-omega_nr = 10)
+# amplitude of one cycle only: the precession band (~21 kyr) of the example signal;
+# its amplitude is the eccentricity modulation
+amp21 <- extract_amplitude(astrosignal_example, cycle = 21, band = c(0.75, 1.35),
+                           genplot = TRUE)
 
-#Track the 405 kyr eccentricity cycle in a wavelet spectra
-
-#mag_track <- track_period_wavelet(astro_cycle = 405,
-#                                   wavelet=mag_wt,
-#                                   n.levels = 100,
-#                                   periodlab = "Period (metres)",
-#                                   x_lab = "depth (metres)")
-
-#Instead of tracking, the tracked solution data set mag_track_solution
-#is used
-mag_track <- mag_track_solution
-
-mag_track_complete <- completed_series(
-  wavelet = mag_wt,
-  tracked_curve = mag_track,
-  period_up = 1.2,
-  period_down = 0.8,
-  extrapolate = TRUE,
-  genplot = FALSE
-)
-
-#Smooth the completed tracking of the 405 kyr eccentricity cycle in the wavelet spectra
-
-mag_track_complete <- loess_auto(time_series = mag_track_complete,
-genplot = FALSE, print_span = FALSE)
-
-
-
-
-mag_405_ecc  <- extract_signal(
-tracked_cycle_curve = mag_track_complete,
-wavelet = mag_wt,
-period_up = 1.2,
-period_down = 0.8,
-add_mean = TRUE,
-tracked_cycle_period = 405,
-extract_cycle = 405,
-tune = FALSE,
-plot_residual = FALSE
-)
-
-#extract the amplitude  of the 405 kyr eccentricity cycle
-mag_ampl <- extract_amplitude(
-signal = mag_405_ecc,
-pts=3,
-genplot = FALSE,
-ver_results = FALSE,
-keep_editable=FALSE)
-
+# depth domain with a varying sedimentation rate: hand it the tracked 405-kyr period curve
+# (magnetic susceptibility of Pas et al. 2018, tracked 405-kyr cycle in metres)
+mag_wt <- analyse_wavelet(mag, dj = 1/100, lowerPeriod = 0.1, upperPeriod = 254,
+                          verbose = FALSE, omega_nr = 10)
+mag_track <- completed_series(wavelet = mag_wt, tracked_curve = mag_track_solution,
+                              period_up = 1.2, period_down = 0.8, extrapolate = TRUE,
+                              genplot = FALSE)
+amp405 <- extract_amplitude(mag, cycle = mag_track, band = c(0.8, 1.25), genplot = TRUE)
 }
-}
-\references{
-Angi Roesch and Harald Schmidbauer (2018). WaveletComp: Computational
-Wavelet Analysis. R package version 1.1.
-\url{https://CRAN.R-project.org/package=WaveletComp}
-
-Gouhier TC, Grinsted A, Simko V (2021). R package biwavelet: Conduct Univariate and Bivariate Wavelet Analyses. (Version 0.20.21),
-\url{https://github.com/tgouhier/biwavelet}
-
-Torrence, C., and G. P. Compo. 1998. A Practical Guide to Wavelet Analysis.
-Bulletin of the American Meteorological Society 79:61-78.
-\url{https://paos.colorado.edu/research/wavelets/bams_79_01_0061.pdf}
-
-Morlet, Jean, Georges Arens, Eliane Fourgeau, and Dominique Glard.
-"Wave propagation and sampling theory—Part I: Complex signal and scattering in multilayered media.
-" Geophysics 47, no. 2 (1982): 203-221.
-
-J. Morlet, G. Arens, E. Fourgeau, D. Giard;
-Wave propagation and sampling theory; Part II, Sampling theory and complex waves.
- Geophysics 1982 47 (2): 222–236.
-}
-\author{
-Code based on the reconstruct function of the 'WaveletComp' R package
-which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
-The assignment of the standard deviation of the uncertainty of the wavelet
-is based on the work of Gabor (1946) and Russell et al., (2016)
 }

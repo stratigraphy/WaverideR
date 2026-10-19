@@ -44,7 +44,7 @@
 #'# of Pas et al., (2018) and then create a age model using minimal tuning
 #'# (e.g.) set the distance between peaks to 405 kyr
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,

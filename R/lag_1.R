@@ -6,6 +6,10 @@
 #'@param data Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy
 #'@param n_sim number of simulations to be ran
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param win_max maximum window size
 #'@param win_min minimum window size
 #'@param verbose print text
@@ -16,7 +20,7 @@
 #'\donttest{
 #'#The example uses the magnetic susceptibility data set of Pas et al., (2018).
 #'# perform the CWT
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -67,50 +71,24 @@
 #'column 3: sd autocorrelation coefficient
 #'
 #' @export
-#' @importFrom Matrix rowMeans
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
 #' @importFrom stats runif
 #' @importFrom stats sd
-#' @importFrom foreach %dopar%
-#' @importFrom parallel stopCluster
-#' @importFrom truncnorm rtruncnorm
 #' @importFrom stats approx
-#' @importFrom DescTools Closest
-#' @importFrom matrixStats rowSds
 #' @importFrom stats acf
 
 
 lag_1 <- function(data = NULL,
                   n_sim = 10,
                   run_multicore = FALSE,
+                  n_cores = NULL,
                   win_max = NULL,
                   win_min = NULL,
                   verbose = FALSE) {
 
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  } else{
-    numCores <- 1
-    cl <- parallel::makeCluster(numCores)
-    registerDoSNOW(cl)
-  }
 
 
-  if (verbose == TRUE) {
-    pb <- txtProgressBar(max = n_sim, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)
-  } else{
-    opts = NULL
-  }
 
 
   dat <- data.frame(data)
@@ -148,13 +126,11 @@ lag_1 <- function(data = NULL,
 
 
   fit <-
-    foreach (i = 1:n_sim,
-             .combine = 'cbind',
-             .options.snow = opts) %dopar% {
+    wr_lapply(seq_len(n_sim), function(i) {
                #i <- 1
                if ((dt - (2 * sdt)) > 0) {
                  new_sampling_rate <-
-                   truncnorm::rtruncnorm(
+                   wr_rtruncnorm(
                      n = 1,
                      a = dt - 2 * sdt,
                      b = dt + (2 * sdt),
@@ -163,7 +139,7 @@ lag_1 <- function(data = NULL,
                    )
                } else {
                  new_sampling_rate <-
-                   truncnorm::rtruncnorm(
+                   wr_rtruncnorm(
                      n = 1,
                      a = dt / 2,
                      b = dt +
@@ -188,10 +164,10 @@ lag_1 <- function(data = NULL,
 
                for (k in 1:nrow(d_new)) {
                  row_nr_1 <-
-                   DescTools::Closest(d_new[, 1], d_new[k, 1] - (win_size / 2), which = TRUE)
+                   wr_closest(d_new[, 1], d_new[k, 1] - (win_size / 2), which = TRUE)
 
                  row_nr_2 <-
-                   DescTools::Closest(d_new[, 1], d_new[k, 1] + (win_size / 2), which = TRUE)
+                   wr_closest(d_new[, 1], d_new[k, 1] + (win_size / 2), which = TRUE)
 
                  data_sel <- d_new[row_nr_1[1]:row_nr_2[1], ]
                  corr <- acf(data_sel[, 2], plot = F)
@@ -222,12 +198,11 @@ lag_1 <- function(data = NULL,
                app_res <- cbind(app$y)
 
                return(app_res)
-             }
+             }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
-  stopCluster(cl)
 
   mat_sim_mean <- rowMeans(fit)
-  mat_sim_sd  <- rowSds(fit)
+  mat_sim_sd  <- wr_row_sds(fit)
   results <- cbind(xout_vals, mat_sim_mean, mat_sim_sd)
 
 

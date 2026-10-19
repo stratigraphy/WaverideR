@@ -9,6 +9,7 @@ win_fft(
   padfac = 5,
   window_size = NULL,
   run_multicore = FALSE,
+  n_cores = NULL,
   genplot = FALSE,
   x_lab = c("depth (m)"),
   y_lab = c("frequency cycle/metre"),
@@ -20,7 +21,8 @@ win_fft(
   color_brewer = "grDevices",
   keep_editable = FALSE,
   verbose = FALSE,
-  dev_new = FALSE
+  dev_new = FALSE,
+  colour_brewer = NULL
 )
 }
 \arguments{
@@ -32,6 +34,11 @@ first column being depth and the second column being a proxy}
 \item{window_size}{size of the running window}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
 
 \item{genplot}{Generate plot \code{Default="FALSE"}}
 
@@ -63,7 +70,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -85,6 +92,8 @@ read the documentation of these packages. "\code{Default=grDevices}}
 \item{dev_new}{Opens a new plotting window to plot the plot, this
 guarantees  a "nice" looking plot however when plotting in an R markdown
 document the plot might not plot  \code{Default=FALSE}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Returns a list which contains 10 elements

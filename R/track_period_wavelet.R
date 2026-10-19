@@ -8,12 +8,15 @@
 #'indicates that the previously selected point is deselected. Deselecting points can be quite tricky
 #'due to the close spacing of  points and such the \code{\link{delpts_tracked_period_wt}} can be used to
 #'delete points were previously selected using the \code{\link{track_period_wavelet}} function.
-#' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param astro_cycle Duration (in kyr) of the cycle which traced.
 #' @param n.levels Number of color levels \code{Default=100}.
 #' @param track_peaks Setting which indicates whether tracking is restricted
 #' to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
-#' spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}.
+#' spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}. With \code{track_peaks=TRUE} a click selects the
+#' nearest local power maximum (black circles); with \code{track_peaks=FALSE} any point of the scalogram can be
+#' clicked: the click is snapped to the nearest depth of the wavelet and its period is used as clicked.
+#' In both modes clicking a selected point again removes it; finish with right-click/Esc (or "Finish" in RStudio).
 #' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
 #' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
 #'@param palette_name Name of the color palette which is used for plotting.
@@ -25,7 +28,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -38,7 +41,8 @@
 #'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
-#'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
+#'@param plot_horizontal \code{TRUE}: depth on the x-axis and period on the y-axis; \code{FALSE}: period on the
+#' x-axis and depth on the y-axis. The output is the same in both layouts \code{Default=TRUE}
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
 #'@param plot_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
@@ -66,10 +70,11 @@
 #'
 #'@examples
 #'\donttest{
+#'if (interactive()) { # needs mouse input (identify())
 #'#Track the 405kyr eccentricity cycle in the magnetic susceptibility record
 #'# of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -92,10 +97,10 @@
 #'add_points = NULL,
 #'add_abline_h = NULL,
 #'add_abline_v = NULL)
-#'}
+#'}}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom reshape2 melt
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom grDevices dev.new
@@ -110,27 +115,7 @@
 #' @importFrom stats aggregate
 #' @importFrom stats na.omit
 #' @importFrom astrochron traceFreq
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -153,8 +138,10 @@ track_period_wavelet <- function(wavelet = NULL,
                                  add_lines = NULL,
                                  add_points = NULL,
                                  add_abline_h = NULL,
-                                 add_abline_v = NULL)
+                                 add_abline_v = NULL,
+  colour_brewer = NULL)
 {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
 
@@ -168,55 +155,7 @@ track_period_wavelet <- function(wavelet = NULL,
   ))
 
 
-  if (color_brewer == "RColorBrewer") {
-    key.cols <-
-      rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
-
-  }
-
-
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <-
-      paste("colorRamps::", palette_name, "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <-
-        "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" |
-             palette_name == "terrain.colors" |
-             palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <-
-        paste("grDevices::",
-              palette_name,
-              "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-
-        hcl.colors(
-          n = n.levels,
-          palette = palette_name,
-          alpha = NULL,
-          rev = FALSE,
-          fixup = TRUE
-        )
-    }
-  }
-
-
-
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <-
-      paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
   periodtck = 0.02
@@ -250,7 +189,6 @@ track_period_wavelet <- function(wavelet = NULL,
   )[key.marks + 1]
 
 
-  plot_horizontal <- TRUE
 
 
 
@@ -285,9 +223,7 @@ track_period_wavelet <- function(wavelet = NULL,
   ylim_vals = c(lowerPeriod, upperPeriod)
 
   if (plot_horizontal == TRUE) {
-    dev.new(width = 15,
-            height = 7,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 15, height = 7, interactive_input = TRUE)
 
 
     layout.matrix <- matrix(c(1, 2, 4, 3),
@@ -484,7 +420,7 @@ track_period_wavelet <- function(wavelet = NULL,
         }
       }
 
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
 
 
 
@@ -510,75 +446,15 @@ track_period_wavelet <- function(wavelet = NULL,
       n <- nrow(maxdetect2)
       y = maxdetect2$x_val
       x = maxdetect2$y_val
-    } else {
-      x  <- rep(wavelet$x, each = length(wavelet$axis.2))
-      y  <- rep(wavelet$axis.2, times = length(wavelet$x))
-      n <- length(wavelet$x)
     }
 
-
-    defaultW <- getOption("warn")
-    options(warn = -1)
-    xy <- xy.coords(x, y)
-    y <- xy$y
-    x <- xy$x
-    sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-
-    while (sum(sel) < n) {
-      ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
-
-      if (!length(ans))
-        break
-
-
-      if (sel[ans, 1] == FALSE) {
-        sel[ans, 1] <- TRUE
-        sel[ans, 2] <- FALSE
-      } else{
-        sel[ans, 1] <- FALSE
-        sel[ans, 2] <- TRUE
-      }
-
-      points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-      points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
-    }
-
-    pts <- sel[, 1]
-    if (track_peaks == TRUE) {
-      out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts, 2]))
-      out <- na.omit(out)
-    }
-
-
-    if (track_peaks == FALSE) {
-      out <- data.frame(y[sel[, 1]], x[sel[, 1]])
-      out <- na.omit(out)
-    }
-
-    if (nrow(out) != 0) {
-      out <- na.omit(out)
-      out <- out[order(out[, 1]),]
-      out <- na.omit(out)
-      out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
-      out <- out[, c(2, 3)]
-      out[, 2] <- 2 ^ out[, 2]
-      out$sedrate <- out[, 2] / astro_cycle * 100
-      colnames(out) <- c("depth", "period", "sedrate")
-    }
+    out <- .tpw_pick(wavelet, astro_cycle, horizontal = TRUE,
+                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
   }
 
 
   if (plot_horizontal == FALSE) {
-    dev.new(width = 7,
-            height = 10,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 10, interactive_input = TRUE)
 
 
 
@@ -787,7 +663,7 @@ track_period_wavelet <- function(wavelet = NULL,
       }
 
 
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
 
 
 
@@ -812,69 +688,10 @@ track_period_wavelet <- function(wavelet = NULL,
 
       n <- nrow(maxdetect2)
       x = maxdetect2$x_val
-      y = maxdetect2$y_val
-    } else {
-      y  <- rep(wavelet$x, each = length(wavelet$axis.2))
-      x  <- rep(wavelet$axis.2, times = length(wavelet$x))
-      n <- length(wavelet$x)
     }
 
-
-    defaultW <- getOption("warn")
-    options(warn = -1)
-    xy <- xy.coords(x, y)
-    y <- xy$y
-    x <- xy$x
-    sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-
-    while (sum(sel) < n) {
-      ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
-
-      if (!length(ans))
-        break
-
-
-      if (sel[ans, 1] == FALSE) {
-        sel[ans, 1] <- TRUE
-        sel[ans, 2] <- FALSE
-      } else{
-        sel[ans, 1] <- FALSE
-        sel[ans, 2] <- TRUE
-      }
-
-      points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-      points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
-    }
-
-    pts <- sel[, 1]
-    if (track_peaks == TRUE) {
-      out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts, 2]))
-      out <- na.omit(out)
-    }
-
-
-    if (track_peaks == FALSE) {
-      out <- data.frame(y[sel[, 1]], x[sel[, 1]])
-      out <- na.omit(out)
-    }
-
-    if (nrow(out) != 0) {
-      out <- na.omit(out)
-      out <- out[order(out[, 1]),]
-      out <- na.omit(out)
-      out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
-      out <- out[, c(2, 3)]
-      out[, 2] <- 2 ^ out[, 2]
-      out$sedrate <- out[, 2] / astro_cycle * 100
-      colnames(out) <- c("depth", "period", "sedrate")
-    }
+    out <- .tpw_pick(wavelet, astro_cycle, horizontal = FALSE,
+                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
   }
 
 
@@ -882,4 +699,63 @@ track_period_wavelet <- function(wavelet = NULL,
 
 
   return(out)
+}
+
+## ---- interactive picking used by track_period_wavelet() -------------------------------------------
+## Mouse input goes through these two wrappers so that the tests can replace them by scripted clicks.
+.tpw_identify <- function(x, y) graphics::identify(x, y, n = 1, plot = FALSE, tolerance = 0.1)
+.tpw_locator  <- function() graphics::locator(n = 1)
+
+#' Pick points on the scalogram drawn by track_period_wavelet()
+#'
+#' Plot coordinates: horizontal layout x = depth, y = log2(period); vertical layout x = log2(period), y = depth.
+#' With \code{candidates} (the local power maxima, columns 1 = depth, 2 = log2 period) a click selects the nearest
+#' maximum (identify()); without, any point of the scalogram can be clicked (locator()): the click is snapped to the
+#' nearest depth of the wavelet and its period is taken as clicked. Clicking a selected point again removes it.
+#' Finish with right-click / Esc (or "Finish" in RStudio).
+#' @return data.frame(depth, period, sedrate), sorted by depth, one row per depth.
+#' @noRd
+.tpw_pick <- function(wavelet, astro_cycle, horizontal = TRUE, candidates = NULL) {
+  to_plot <- function(d, lp) if (horizontal) list(x = d, y = lp) else list(x = lp, y = d)
+  usr <- graphics::par("usr"); tolx <- 0.01 * abs(diff(usr[1:2])); toly <- 0.01 * abs(diff(usr[3:4]))
+  if (!is.null(candidates)) {
+    cd <- as.numeric(candidates[, 1]); clp <- as.numeric(candidates[, 2])
+    pp <- to_plot(cd, clp); sel <- logical(length(cd))
+    repeat {
+      ans <- .tpw_identify(pp$x, pp$y)
+      if (!length(ans)) break
+      sel[ans] <- !sel[ans]
+      graphics::points(pp$x[ans], pp$y[ans], pch = 19, col = if (sel[ans]) "white" else "red")
+    }
+    d <- cd[sel]; lp <- clp[sel]
+  } else {
+    d <- numeric(0); lp <- numeric(0)
+    repeat {
+      cl <- .tpw_locator()
+      if (is.null(cl) || !length(cl$x)) break
+      cd <- if (horizontal) cl$x else cl$y; clp <- if (horizontal) cl$y else cl$x
+      cd <- wavelet$x[which.min(abs(wavelet$x - cd))]            # snap to the depth grid of the wavelet
+      pp <- to_plot(d, lp); hit <- which(abs(pp$x - (if (horizontal) cd else clp)) < tolx &
+                                           abs(pp$y - (if (horizontal) clp else cd)) < toly)
+      if (length(hit)) {                                           # clicked an existing pick: remove it
+        q <- to_plot(d[hit], lp[hit]); graphics::points(q$x, q$y, pch = 19, col = "red")
+        d <- d[-hit]; lp <- lp[-hit]
+      } else {
+        d <- c(d, cd); lp <- c(lp, clp)
+        q <- to_plot(cd, clp); graphics::points(q$x, q$y, pch = 19, col = "white")
+      }
+    }
+  }
+  .tpw_output(d, lp, astro_cycle)
+}
+
+#' depth + log2(period) of the picks -> data.frame(depth, period, sedrate) for loess_auto() / curve2time()
+#' @noRd
+.tpw_output <- function(depth, log2period, astro_cycle) {
+  ok <- is.finite(depth) & is.finite(log2period)
+  if (!any(ok)) return(data.frame(depth = numeric(0), period = numeric(0), sedrate = numeric(0)))
+  a <- stats::aggregate(log2period[ok], by = list(depth = depth[ok]), FUN = mean)   # sorted by depth
+  out <- data.frame(depth = a$depth, period = 2^a$x)
+  out$sedrate <- out$period / astro_cycle * 100
+  out
 }

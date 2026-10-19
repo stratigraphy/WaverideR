@@ -11,11 +11,12 @@ plot_sed_model(
   y_lab = "sed rate cm/kyr",
   keep_editable = FALSE,
   palette_name = "rainbow",
-  color_brewer = "grDevices"
+  color_brewer = "grDevices",
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{model_results}{Wavelet object created using the \code{\link{analyze_wavelet}} function}
+\item{model_results}{Wavelet object created using the \code{\link{analyse_wavelet}} function}
 
 \item{plot_res}{Numbers to be used as input form the \code{\link{flmw}}output
 options 1-8 option 1: slope coefficient, option 2: r squared,
@@ -39,7 +40,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -53,6 +54,8 @@ The included R packages from which palettes can be chosen
 are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Returns a plot of sedimentation rates vs depth and a value which was generated using
@@ -67,16 +70,16 @@ The \code{\link{plot_sed_model}} function is used plot/re-plot the results from 
 #estimate sedimentation rate for the the magnetic susceptibility record
 # of the Sullivan core of Pas et al., (2018).
 
-mag_wt <- analyze_wavelet(data = mag,
-dj = 1/100,
+mag_wt <- analyse_wavelet(data = mag[1:200, ],
+dj = 1/10,
 lowerPeriod = 0.1,
-upperPeriod = 254,
+upperPeriod = 32,
 verbose = FALSE,
 omega_nr = 10)
 
 #increase n_simulations to better define the red noise spectral power curve
 mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
-n_simulations=10, # increase for a better constrained result
+n_simulations = 3, # increase for a better constrained result
 run_multicore=FALSE,
 verbose=FALSE)
 
@@ -85,7 +88,7 @@ wavelet=mag_wt,
 percentile=0.75,
 sedrate_low = 0.5,
 sedrate_high = 4,
-spacing = 0.05,
+spacing = 1,
 cycles = c(2376,1600,1180,696,406,110),
 x_lab="depth",
 y_lab="sedrate",

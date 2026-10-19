@@ -9,7 +9,7 @@
 #'After tracking the lower and upper boundaries of the cycle the \code{\link{dynamic_extraction}} function
 #'will extract the signal in between the boundaries. the output can then used as input for the
 #'\code{\link{minimal_tuning}} function to create an age model.
-#' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param n.levels Number of color levels \code{Default=100}.
 #' @param add_peaks Setting which indicates whether spectral peaks should be
 #' added to the tracking plot  \code{Default=FALSE}.
@@ -24,7 +24,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -59,7 +59,7 @@
 #'#Track the 405kyr upper and lower periods of the eccentricity cycle in the
 #'#magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(
+#'mag_wt <- analyse_wavelet(
 #'  data = mag,
 #'  dj = 1 / 100,
 #'  lowerPeriod = 0.1,
@@ -82,8 +82,8 @@
 #')
 #'}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom reshape2 melt
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom grDevices dev.new
@@ -98,36 +98,13 @@
 #' @importFrom stats aggregate
 #' @importFrom stats na.omit
 #' @importFrom astrochron traceFreq
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom DescTools Closest
-#' @importFrom matrixStats rowMaxs
-#' @importFrom matrixStats rowMins
 
 dynamic_extraction <- function(wavelet = NULL,
                                n.levels = 100,
@@ -138,58 +115,12 @@ dynamic_extraction <- function(wavelet = NULL,
                                color_brewer = "grDevices",
                                plot_horizontal = TRUE,
                                smooth = FALSE,
-                               add_mean = TRUE) {
+                               add_mean = TRUE,
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   plot.COI = TRUE
 
-  if (color_brewer == "RColorBrewer") {
-    key.cols <-
-      rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
-
-  }
-
-
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <-
-      paste("colorRamps::", palette_name, "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <-
-        "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" |
-             palette_name == "terrain.colors" |
-             palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <-
-        paste("grDevices::",
-              palette_name,
-              "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-
-        hcl.colors(
-          n = n.levels,
-          palette = palette_name,
-          alpha = NULL,
-          rev = FALSE,
-          fixup = TRUE
-        )
-    }
-  }
-
-
-
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <-
-      paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
   useRaster = TRUE
   plot.legend = TRUE
@@ -227,9 +158,7 @@ dynamic_extraction <- function(wavelet = NULL,
 
 
   if (plot_horizontal == TRUE) {
-    dev.new(width = 15,
-            height = 7,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 15, height = 7, interactive_input = TRUE)
 
     if (plot.legend == T) {
       legend.plt = par()$plt
@@ -387,7 +316,7 @@ dynamic_extraction <- function(wavelet = NULL,
       }
 
 
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
 
       depth <- rep(wavelet$x, each = length(wavelet$axis.2))
       period <- rep(wavelet$axis.2, times = length(wavelet$x))
@@ -820,9 +749,7 @@ dynamic_extraction <- function(wavelet = NULL,
   }
 
   if (plot_horizontal == FALSE) {
-    dev.new(width = 7,
-            height = 10,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 10, interactive_input = TRUE)
 
     if (plot.legend == T) {
       legend.plt = par()$plt
@@ -970,7 +897,7 @@ dynamic_extraction <- function(wavelet = NULL,
         }
       }
 
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
 
       depth <- rep(wavelet$x, each = length(wavelet$axis.2))
       period <- rep(wavelet$axis.2, times = length(wavelet$x))
@@ -1495,17 +1422,17 @@ dynamic_extraction <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind,] = (Re(Wave[s.ind,]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / (pi ^ (-1 / 4))
+      dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
 
   interpolated <- as.data.frame(completed_series)
-  interpolated[, 2] <- rowMaxs(as.matrix(completed_series[, c(2, 3)]))
-  interpolated[, 3] <- rowMins(as.matrix(completed_series[, c(2, 3)]))
+  interpolated[, 2] <- wr_row_maxs(as.matrix(completed_series[, c(2, 3)]))
+  interpolated[, 3] <- wr_row_mins(as.matrix(completed_series[, c(2, 3)]))
 
   for (i in 1:nrow(filtered_cycle)) {
-    row_nr_high <- Closest(Period[], interpolated[i, 2], which = TRUE)
-    row_nr_low <- Closest(Period[], interpolated[i, 3], which = TRUE)
+    row_nr_high <- wr_closest(Period[], interpolated[i, 2], which = TRUE)
+    row_nr_low <- wr_closest(Period[], interpolated[i, 3], which = TRUE)
 
     row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]

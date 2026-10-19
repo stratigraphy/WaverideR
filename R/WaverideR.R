@@ -1,4 +1,4 @@
-#' @name WaverideR
+#' @aliases WaverideR
 #' @title Extracting Signals from Wavelet Spectra
 #' @description WaverideR is an R package for advanced cyclostratigraphic
 #'analysis of stratigraphic data sets. It provides a comprehensive suite
@@ -139,19 +139,25 @@
 #'
 #' Type: R package
 #'
-#' Version: 0.5.0 (1st quarter 2026)
+#' Version: 0.6.0 (2026)
 #'
 #' License: GPL (= 2)
 #'
 #' @note
-#' If you want to use this package for publication or research
-#' purposes, please cite:
+#' If you want to use this package for publication or research purposes, please cite both the paper that
+#' introduced the package and the package itself (a double citation, e.g. "using the WaverideR R package
+#' (Arts et al., 2024; Arts, 2023)"):
 #'
-#' Arts, M.C.M (2023).
-#' WaverideR: Extracting Signals from Wavelet Spectra.
-#' https://CRAN.R-project.org/package=WaverideR
+#' Arts, M., Corradini, C., Pondrelli, M., Pas, D., Da Silva, A.-C. (2024). Age and orbital forcing in the upper
+#' Silurian Cellon section (Carnic Alps, Austria) uncovered using the WaverideR R package. Frontiers in Earth
+#' Science 12, 1357751. \doi{10.3389/feart.2024.1357751}
+#'
+#' Arts, M.C.M. (2023). WaverideR: Extracting Signals from Wavelet Spectra.
+#' \url{https://CRAN.R-project.org/package=WaverideR}
+#'
+#' \code{citation("WaverideR")} gives both entries.
 #'
 #' @author Michiel Arts
 #'
 #' Maintainer: Michiel Arts \email{michiel.arts@stratigraphy.eu}
-NULL
+"_PACKAGE"

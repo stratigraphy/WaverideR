@@ -9,7 +9,7 @@ percentile_from_red_noise(red_noise = NULL, wavelet = NULL, percentile = NULL)
 \arguments{
 \item{red_noise}{Red noise curves generated using the \code{\link{model_red_noise_wt}} function.}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{percentile}{Percentile value (0-1).}
 }
@@ -30,7 +30,7 @@ a set percentile based. To generate the percentile curve the results of
 #'#generate average spectral power curves based on red noise curves which are
 # based on the magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

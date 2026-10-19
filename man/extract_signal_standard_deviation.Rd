@@ -16,11 +16,12 @@ extract_signal_standard_deviation(
   genplot_extracted = FALSE,
   keep_editable = FALSE,
   palette_name = "rainbow",
-  color_brewer = "grDevices"
+  color_brewer = "grDevices",
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{tracked_cycle_curve}{Curve of the cycle tracked using the
 \code{\link{track_period_wavelet}} function. Any input (matrix or data frame)
@@ -58,7 +59,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -72,6 +73,8 @@ The included R packages from which palettes can be chosen
 are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Signal extracted from the wavelet spectra.
@@ -102,7 +105,7 @@ continuous wavelet transform using a Morlet wavelet.
 # boundaries
 
 # perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
@@ -169,7 +172,7 @@ Bulletin of the American Meteorological Society 79:61-78.
 
 Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 Journal of the Institution of Electrical Engineers-part III: radio and
-communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
+communication engineering 93, no. 26 (1946): 429-441.\url{https://doi.org/10.1049/ji-3-2.1946.0074}
 
 Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
 " CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}

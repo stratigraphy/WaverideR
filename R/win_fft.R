@@ -7,6 +7,10 @@
 #'@param padfac Pad record with zero, zero padding smooths out the spectra
 #'@param window_size size of the running window
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param genplot Generate plot \code{Default="FALSE"}
 #'@param x_lab label for the y-axis \code{Default="depth"}
 #'@param y_lab label for the y-axis \code{Default="sedrate"}
@@ -30,7 +34,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -95,15 +99,11 @@
 #'element 10: y_axis
 #'If genplot is \code{Default=TRUE} then a plot of one of the elements 1:8 is plotted
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom Matrix rowMeans
 #' @importFrom stats quantile
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
 #' @importFrom stats runif
 #' @importFrom stats sd
 #' @importFrom stats lm
@@ -115,36 +115,12 @@
 #' @importFrom graphics box
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
-#' @importFrom foreach %dopar%
 #' @importFrom graphics layout
-#' @importFrom parallel stopCluster
-#' @importFrom colorednoise autocorrelation
-#' @importFrom colorednoise colored_noise
 #' @importFrom stats cor
 #' @importFrom stats pchisq
 #' @importFrom stats qchisq
 #' @importFrom astrochron periodogram
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -156,6 +132,7 @@ win_fft <- function(data = NULL,
                     padfac = 5,
                     window_size = NULL,
                     run_multicore = FALSE,
+                    n_cores = NULL,
                     genplot = FALSE,
                     x_lab = c("depth (m)"),
                     y_lab = c("frequency cycle/metre"),
@@ -167,7 +144,9 @@ win_fft <- function(data = NULL,
                     color_brewer= "grDevices",
                     keep_editable = FALSE,
                     verbose=FALSE,
-                    dev_new=FALSE) {
+                    dev_new=FALSE,
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
 
   n.levels = 100
   dat <- data
@@ -179,11 +158,11 @@ win_fft <- function(data = NULL,
 
   timesteps_data <- round(((window_size / dt) / 2), 0)
 
-  phi_x_up <-  autocorrelation(dat[1:timesteps_data, 2])
+  phi_x_up <-  wr_autocorrelation(dat[1:timesteps_data, 2])
   if (phi_x_up >= 1) {
     phi_x_up <- 0.99
   }
-  x_up <- colorednoise::colored_noise(
+  x_up <- wr_coloured_noise(
     timesteps = timesteps_data,
     mean = mean(dat[1:timesteps_data, 2]),
     sd = sd(dat[1:timesteps_data, 2]),
@@ -191,13 +170,13 @@ win_fft <- function(data = NULL,
   )
 
   phi_x_down <-
-    autocorrelation(dat[(nrow(dat) - timesteps_data):nrow(dat), 2])
+    wr_autocorrelation(dat[(nrow(dat) - timesteps_data):nrow(dat), 2])
 
   if (phi_x_down >= 1) {
     phi_x_down <- 0.99
   }
 
-  x_down <- colorednoise::colored_noise(
+  x_down <- wr_coloured_noise(
     timesteps = timesteps_data,
     mean = mean(dat[(nrow(dat) - timesteps_data):nrow(dat), 2]),
     sd = sd(dat[(nrow(dat) - timesteps_data):nrow(dat), 2]),
@@ -224,31 +203,17 @@ win_fft <- function(data = NULL,
   d <- rbind(pad_up, d, pad_down)
 
 
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  } else{
-    numCores <- 1
-    cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
-  }
 
 
   simulations <- nrow(dat)
 
-  if (verbose==TRUE){
-    pb <- txtProgressBar(max = simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)}else{opts=NULL}
 
 
 
   i <- 1 # needed to assign 1 to ijk to avoid note
   npts <- round(((window_size / dt)), 0)
 
-  fit <-  foreach (i = 1:simulations, .options.snow   = opts) %dopar% {
+  fit <-  wr_lapply(seq_len(simulations), function(i) {
     d_subsel <- d[i:(i + (window_size / dt - 1)),]
 
     demean = TRUE
@@ -334,10 +299,9 @@ win_fft <- function(data = NULL,
     )
 
     return(fft.out)
-  }
+  }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
 
 
-  stopCluster(cl)
 
   fit2 <- fit
 
@@ -431,7 +395,7 @@ win_fft <- function(data = NULL,
     pmax_avg_sel <- pmax_avg_sel[, sel_cols_down:sel_cols_up]
 
     if(dev_new==TRUE){
-    dev.new(width = 14, height = 7)}
+    wr_open_device(width = 14, height = 7)}
 
     if (keep_editable == FALSE) {
       oldpar <- par(no.readonly = TRUE)
@@ -457,39 +421,7 @@ win_fft <- function(data = NULL,
 
     image.plt = par()$plt
 
-    if (color_brewer== "RColorBrewer"){
-      key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
-
-    }
-
-
-    if (color_brewer== "colorRamps"){
-      color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
-      key.cols = eval(parse(text = color_brewer_Sel))
-    }
-
-
-    if (color_brewer == "grDevices"){
-      if (palette_name == "rainbow"){
-        color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-      }
-      else if (palette_name == "heat.colors"|
-               palette_name == "terrain.colors"|
-               palette_name == "topo.colors"|
-               palette_name == "cm.colors"){
-        color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
-        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-      }
-      else{
-        key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
-
-
-
-    if (color_brewer== "viridis"){
-      color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
-      key.cols = rev(eval(parse(text = color_brewer_Sel)))
-    }
+    key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
     depth <-  results$depth
     y_axis <- results$y_axis

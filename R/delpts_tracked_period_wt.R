@@ -6,7 +6,7 @@
 #'This function allows one to select points for deletion.
 #'#'
 #' @param tracking_pts Points tracked using the \code{\link{track_period_wavelet}} function.
-#' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param n.levels Number of color levels \code{Default=100}.
 #' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
 #' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
@@ -19,7 +19,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -41,10 +41,11 @@
 #'
 #'@examples
 #'\donttest{
+#'if (interactive()) { # needs mouse input (identify())
 #'#Track the 405kyr eccentricity cycle in the magnetic susceptibility record
 #'# of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -70,8 +71,9 @@
 #'                                     x_lab = "depth (metres)",
 #'                                    palette_name ="rainbow",
 #'                                    color_brewer ="grDevices")
-#'}
+#'}}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -93,42 +95,12 @@ delpts_tracked_period_wt <- function(tracking_pts = NULL,
                                      periodlab = "Period (metres)",
                                      x_lab = "depth (metres)",
                                      palette_name ="rainbow",
-                                     color_brewer ="grDevices" ){
+                                     color_brewer ="grDevices",
+  colour_brewer = NULL){
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   plot.COI = TRUE
 
-  if (color_brewer== "RColorBrewer"){
-    key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
-
-  }
-
-
-  if (color_brewer== "colorRamps"){
-    color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-
-  if (color_brewer == "grDevices"){
-    if (palette_name == "rainbow"){
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors"|
-             palette_name == "terrain.colors"|
-             palette_name == "topo.colors"|
-             palette_name == "cm.colors"){
-      color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
-
-
-
-  if (color_brewer== "viridis"){
-    color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
   useRaster = TRUE
@@ -164,9 +136,7 @@ delpts_tracked_period_wt <- function(tracking_pts = NULL,
 
   image.plt = par()$plt
   legend.plt = NULL
-  dev.new(width = 15,
-          height = 7,
-          noRStudioGD = TRUE)
+  wr_open_device(width = 15, height = 7, interactive_input = TRUE)
 
   if (plot.legend == T) {
     legend.plt = par()$plt

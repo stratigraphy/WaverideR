@@ -2,7 +2,7 @@
 #'
 #' @description Perform an automatically loess based smoothing of a time series.
 #' The local polynomial regression with automatic smoothing parameter selection is based on an
-#' optimization using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
+#' optimisation using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
 #'
 #'
 #'@param time_series Input is a time series with the first column being depth or time and the second column being a proxy
@@ -27,7 +27,7 @@
 #'# the magnetic susceptibility data set of Pas et al., (2018)
 #'#perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -68,7 +68,6 @@
 #' @export
 #' @importFrom stats loess
 #' @importFrom stats predict
-#' @importFrom fANCOVA loess.as
 
 
 loess_auto <-
@@ -78,7 +77,7 @@ loess_auto <-
            keep_editable = FALSE) {
     completed_series_test <- na.omit(time_series)
     parameters_to_use <-
-      loess.as(
+      wr_loess_as(
         y = completed_series_test[, 2],
         x = completed_series_test[, 1],
         degree = 2,

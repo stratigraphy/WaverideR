@@ -14,7 +14,7 @@ curve2tune(
 }
 \arguments{
 \item{data}{Data set (matrix with 2 columns 1st column depth 2nd column proxy value)
-which was used as input for the \code{\link{analyze_wavelet}} function. \cr
+which was used as input for the \code{\link{analyse_wavelet}} function. \cr
 That result was then used to tracked a cycle using the \code{\link{track_period_wavelet}} function}
 
 \item{tracked_cycle_curve}{Tracking result of a cycle tracked using the
@@ -50,7 +50,7 @@ tracked curve/cycle.
 \donttest{
 #The example uses the magnetic susceptibility data set of Pas et al., (2018).
 # perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

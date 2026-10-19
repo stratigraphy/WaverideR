@@ -15,7 +15,7 @@ plot_superlet(
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   keep_editable = FALSE,
-  dev_new = TRUE,
+  dev_new = wr_dev_new_default(),
   plot_dir = TRUE,
   add_lines = NULL,
   add_points = NULL,
@@ -23,11 +23,14 @@ plot_superlet(
   add_abline_v = NULL,
   add_data = TRUE,
   add_avg = FALSE,
-  plot_horizontal = TRUE
+  plot_horizontal = TRUE,
+  add_signif = NULL,
+  colour_brewer = NULL,
+  scale = "auto"
 )
 }
 \arguments{
-\item{superlet}{superlet object created using the \code{\link{analyze_superlet}} function.}
+\item{superlet}{superlet object created using the \code{\link{analyse_superlet}} function.}
 
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
@@ -44,7 +47,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -76,8 +79,11 @@ WARNING plotting as a vector image is computationally intensive.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=TRUE}}
+\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
 
 \item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
@@ -99,12 +105,20 @@ should be period values \code{Default=NULL}}
 \item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+
+\item{add_signif}{Optional significance object created with \code{\link{wavelet_significance}}. The significant
+cells are outlined on the scalogram and the critical level of the global spectrum is drawn as a red dashed line on
+the average power panel \code{Default=NULL}.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+
+\item{scale}{Colour scale as in \code{\link{plot_wavelet}} \code{Default="auto"}.}
 }
 \value{
 The output is a plot of a superlet scalogram.
 }
 \description{
-Plot superlet scalogram using the outcome of the \code{\link{analyze_superlet}} function.
+Plot superlet scalogram using the outcome of the \code{\link{analyse_superlet}} function.
 }
 \examples{
 \donttest{
@@ -112,7 +126,7 @@ Plot superlet scalogram using the outcome of the \code{\link{analyze_superlet}} 
 # data set of Steinhilber et al., (2012)
 
 TSI_super <-
- analyze_superlet(
+ analyse_superlet(
    data = TSI,
    Nf = 128,
    lowerPeriod = 16,
@@ -146,7 +160,7 @@ color_brewer= "grDevices",
 #Example 2. A plot of a wavelet spectra using the magnetic susceptibility
 #data set of Pas et al., (2018)
 mag_super <-
-analyze_superlet(
+analyse_superlet(
    data = mag,
    Nf = 128,
    lowerPeriod = 0.1,
@@ -184,7 +198,7 @@ color_brewer= "grDevices",
 #Example 3. A plot of a wavelet spectra using the greyscale
 # data set of Zeeden et al., (2013)
 grey_super <-
-analyze_superlet(
+analyse_superlet(
    data = grey,
    Nf = 128,
    lowerPeriod = 0.02,
@@ -229,6 +243,6 @@ Nature Communications, 12(1), 337.
 }
 \author{
 Code based on the "wt.image" functions of the 'WaveletComp' R package
-Whereas the "analyze_superlet" that generates the input for the plotting function
+Whereas the "analyse_superlet" that generates the input for the plotting function
 is based on the matlab code in Moca et al. (2021)
 }

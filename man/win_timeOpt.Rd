@@ -22,7 +22,9 @@ win_timeOpt(
   normalize = TRUE,
   linLog = 1,
   run_multicore = FALSE,
-  verbose = FALSE
+  n_cores = NULL,
+  verbose = FALSE,
+  normalise = NULL
 )
 }
 \arguments{
@@ -36,7 +38,7 @@ first column being depth and the second column being a proxy \code{Default=NULL}
 \item{sedmax}{Maximum sedimentation rate for investigation (cm/ka). \code{Default=1}}
 
 \item{numsed}{Number of sedimentation rates to investigate
-in optimization grid. \code{Default=100}}
+in optimisation grid. \code{Default=100}}
 
 \item{limit}{Limit evaluated sedimentation rates to region in which full
 target signal can be recovered? .\code{Default=FALSE}}
@@ -71,7 +73,14 @@ rate grid spacing? (0=linear, 1=log; default value is 1) \code{Default=1}}
 
 \item{run_multicore}{Run function using multiple cores \code{Default=FALSE}}
 
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
+
 \item{verbose}{print text \code{Default=FALSE}}
+
+\item{normalise}{British spelling of \code{normalize}; if given it overrides \code{normalize}.}
 }
 \value{
 Returns a list which contains 10 elements
@@ -96,11 +105,11 @@ process of conducting a Windowed timeOpt sedimentation rate estimation
 #Conduct a windowed timeOpt on the magnetic susceptibility record
 #of the Sullivan core of Pas et al., (2018).
 mag_win_timeOpt <-win_timeOpt(
-data = mag,
-window_size = 15,
+data = mag[1:250, ],
+window_size = 6,
 sedmin = 0.1,
 sedmax = 1,
-numsed = 100,
+numsed = 5,
 limit = FALSE,
 fit = 2,
 fitModPwr = TRUE,

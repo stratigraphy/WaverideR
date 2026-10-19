@@ -14,11 +14,12 @@ dynamic_extraction(
   color_brewer = "grDevices",
   plot_horizontal = TRUE,
   smooth = FALSE,
-  add_mean = TRUE
+  add_mean = TRUE,
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{n.levels}{Number of color levels \code{Default=100}.}
 
@@ -38,7 +39,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -58,6 +59,8 @@ read the documentation of these packages. "\code{Default=grDevices}}
 \item{smooth}{smooth the tracked period using the "loess_auto" function}
 
 \item{add_mean}{add the mean to the extracted signal}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
@@ -82,7 +85,7 @@ will extract the signal in between the boundaries. the output can then used as i
 #Track the 405kyr upper and lower periods of the eccentricity cycle in the
 #magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(
+mag_wt <- analyse_wavelet(
  data = mag,
  dj = 1 / 100,
  lowerPeriod = 0.1,

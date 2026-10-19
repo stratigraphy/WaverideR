@@ -12,7 +12,7 @@
 #'@param tracked_period_curve Traced period result from the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
 #'function completed using the \code{\link{completed_series}}.
 #'The input can be pre-smoothed using the the \code{\link{loess_auto}} function.
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 #'or \code{\link{track_period}} function.
 #'@param period_up Upper period as a factor of the to be extracted power \code{Default=1.2}.
 #'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
@@ -54,7 +54,7 @@
 #'# susceptibility data set of De pas et al., (2018)
 #'#Perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -104,7 +104,6 @@
 #'The third column is extracted power/total power.
 #'
 #' @export
-#' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
 
 
@@ -151,7 +150,7 @@ extract_power <- function(tracked_period_curve = NULL,
   tracked_period_curve <- na.omit(tracked_period_curve)
 
   app <-
-    approxExtrap(
+    wr_approx_extrap(
       x = tracked_period_curve[, 1],
       y = tracked_period_curve[, 2],
       xout = my.data[, 1],
@@ -167,9 +166,9 @@ extract_power <- function(tracked_period_curve = NULL,
   interpolated$low <- interpolated[, 2] * (period_down)
 
   for (i in 1:nrow(filtered_power)) {
-    row_nr_high <- Closest(Period[], interpolated[i, 3], which = TRUE)
+    row_nr_high <- wr_closest(Period[], interpolated[i, 3], which = TRUE)
     row_nr_low <-
-      Closest(Period[], interpolated[i, 4], which = TRUE)
+      wr_closest(Period[], interpolated[i, 4], which = TRUE)
 
     row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]

@@ -16,7 +16,8 @@ plot_win_fft(
   palette_name = "rainbow",
   color_brewer = "grDevices",
   plot_horizontal = TRUE,
-  dev_new = TRUE
+  dev_new = wr_dev_new_default(),
+  colour_brewer = NULL
 )
 }
 \arguments{
@@ -52,7 +53,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -77,8 +78,13 @@ read the documentation of these packages. "\code{Default=grDevices}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=TRUE}}
+\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Returns a plot of, which plot 1 of 8 options,

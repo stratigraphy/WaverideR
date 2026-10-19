@@ -4,7 +4,7 @@
 #' for a list of astronomical cycles transformed using a range of sedimentation rates and then compared
 #' to spectral peaks of a wavelet spectra
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function
+#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function
 #'@param sedrate_low Minimum sedimentation rate (cm/kyr)for which the sum of maximum spectral power is calculated for.
 #'@param sedrate_high Maximum sedimentation rate (cm/kyr) for which the sum of maximum spectral power is calculated  for.
 #'@param spacing Spacing (cm/kyr) between sedimentation rates
@@ -15,6 +15,10 @@
 #'@param rand_simulations nr of simulations to calculate percentile against the 0 hypothesis
 #'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
 #'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param genplot Generate plot \code{Default="FALSE"}
 #'@param palette_name Name of the color palette which is used for plotting.
 #'The color palettes than can be chosen depends on which the R package is specified in
@@ -25,7 +29,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -38,12 +42,21 @@
 #'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
-#'@param plot_res options 1-8 option 1: slope coefficient, option 2: r squared,
+#'@param plot_res options 1-8 (only used with \code{method = "classic"}; the other methods always plot the score)
+#'option 1: slope coefficient, option 2: r squared,
 #'option 3: nr of components, option 4: difference to the  origin , option 5: slope coefficient percentile
 #'option 6: r squared percentile, option 7: nr of components percentile,
 #'option 8: difference to the origin percentile \code{Default=2}
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
 #' @param verbose Print text \code{Default=FALSE}.
+#'@param method Method used to compare the cycles with the spectrum. \code{"classic"} (default) is the original
+#'peak based method (output identical to earlier versions); \code{"weighted"} matches predicted cycles one-to-one to
+#'spectral peaks, weighting by peak power and using a relative (log period) misfit; \code{"template"} correlates the
+#'spectrum with Gaussian peaks at the predicted periods (no peak picking, fastest and usually most robust).
+#'@param tolerance Relative period tolerance (standard deviation in log period, 0.1 is about 10 percent) used by the
+#'\code{"weighted"} and \code{"template"} methods \code{Default=0.1}.
+#'@param whiten Divide the wavelet power of every period by its average over depth before comparing (removes the red
+#'background) for the \code{"weighted"} and \code{"template"} methods \code{Default=TRUE}.
 #'
 #' @author
 #'Based on the \link[astrochron]{eAsm} function of the 'astrochron' R package and the 'eCOCO' and 'COCO' function of the 'Acycle' software
@@ -67,17 +80,17 @@
 #'#estimate sedimentation rate for the magnetic susceptibility record
 #'# of the Sullivan core of Pas et al., (2018).
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
-#' dj = 1/100,
+#'mag_wt <- analyse_wavelet(data = mag[1:200, ],
+#' dj = 1/10,
 #' lowerPeriod = 0.1,
-#' upperPeriod = 254,
+#' upperPeriod = 32,
 #' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'sedrates <- flmw(wavelet = mag_wt,
 #'     sedrate_low = 0.5,
 #'     sedrate_high = 4,
-#'     spacing = 0.05,
+#'     spacing = 1,
 #'     cycles = c(2376,1600,1180,696,406,110),
 #'     x_lab = "depth",
 #'     y_lab = "sedrate",
@@ -90,10 +103,27 @@
 #'     plot_res = 2,
 #'     keep_editable=FALSE,
 #'     verbose=FALSE)
+#'
+#'# template method (no peak picking) followed by a smooth sedimentation rate curve
+#'sed_t <- flmw(wavelet = mag_wt, sedrate_low = 0.5, sedrate_high = 4, spacing = 0.5,
+#'     cycles = c(406, 110), method = "template")
+#'sed_path <- flmw_path(sed_t)
 #'}
 #'
+#' @section Choosing a method:
+#' \code{"classic"} keeps the earlier results reproducible. In a synthetic test with strong noise and a sedimentation rate
+#' that changes with depth, \code{"weighted"} and \code{"template"} followed by \code{\link{flmw_path}} recovered the
+#' true curve far better than the classic score (see the NEWS file). \code{"template"} needs no peak picking and is the
+#' fastest.
+#'
 #' @return
-#'Returns a list which contains 10 elements
+#'Returns a list. For \code{method = "classic"} it has the 10 elements below plus
+#'\code{score_mat} (a heuristic combined score between 0 and 1), \code{best_sedrate} (sedimentation rate with the highest
+#'score per depth) and \code{method}. For the other methods the list has \code{score_mat}, \code{best_sedrate}, \code{depth},
+#'\code{y_axis} and \code{method}. Use \code{\link{flmw_path}} to turn \code{score_mat} into a smooth sedimentation
+#'rate curve with uncertainty.
+#'
+#'Elements of the classic result:
 #'element 1: slope coefficient
 #'element 2: r squared
 #'element 3: nr of components
@@ -105,20 +135,14 @@
 #'element 9: y-axis values of the matrices which is sedimentation rate
 #'element 10: x-axis values of the matrices which is depth
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom matrixStats rowSds
-#' @importFrom Matrix rowMeans
 #' @importFrom stats qnorm
 #' @importFrom stats quantile
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
 #' @importFrom stats runif
 #' @importFrom stats sd
-#' @importFrom stats lm
 #' @importFrom stats ecdf
 #' @importFrom graphics par
 #' @importFrom graphics image
@@ -128,33 +152,10 @@
 #' @importFrom graphics box
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
-#' @importFrom foreach %dopar%
 #' @importFrom graphics layout
-#' @importFrom parallel stopCluster
-#' @importFrom truncnorm rtruncnorm
 #' @importFrom astrochron asm
 #' @importFrom astrochron eAsm
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -172,365 +173,106 @@ flmw  <- function(wavelet = NULL,
                   run_random = FALSE,
                   rand_simulations = 1000,
                   run_multicore = FALSE,
+                  n_cores = NULL,
                   genplot = FALSE,
                   palette_name = "rainbow",
                   color_brewer = "grDevices",
                   plot_res = 2,
                   keep_editable = FALSE,
-                  verbose=FALSE) {
-  my.data <- cbind(wavelet$x, wavelet$y)
+                  verbose = FALSE,
+                  method = c("classic", "weighted", "template"),
+                  tolerance = 0.1,
+                  whiten = TRUE,
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+  method <- match.arg(method)
   my.w <- wavelet
+  if (inherits(my.w, "analyze.superlet")) {                    # superlet power is stored as depth x period
+    Powert <- t(my.w$Power)
+  } else {
+    Powert <- matrix(as.numeric(unlist(as.data.frame(my.w$Power))), nrow = my.w$nr, ncol = my.w$nc)
+  }
+  period <- my.w$Period
+  depth <- as.numeric(my.w$x)
+  testsedrates <- seq(from = sedrate_low, to = sedrate_high, by = spacing)
+  nsr <- length(testsedrates)
+  ndepth <- ncol(Powert)
 
-  Power <- matrix(unlist(as.data.frame(my.w$Power)))
-  Power <-
-    as.data.frame(matrix(
-      unlist(as.data.frame(my.w$Power)),
-      ncol = my.w$nc,
-      nrow = my.w$nr
-    ))
-  Power <- t(Power)
-  Powert <- t(Power)
-
-  testsedrates <-
-    seq(from = sedrate_low, to = sedrate_high, by = spacing)
-  testsedrates <- as.data.frame(testsedrates)
-
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  } else{
-    numCores <- 1
-    cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
+  # power relative to the average spectrum (removes the red background)
+  if (method != "classic" && whiten) {
+    bg <- rowMeans(Powert, na.rm = TRUE)
+    bg[!is.finite(bg) | bg <= 0] <- 1
+    Powert <- Powert / bg
   }
 
-
-  simulations <- ncol(Powert)
-
-  if (verbose==TRUE){
-    pb <- txtProgressBar(max = simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)}else{opts=NULL}
-
-
-  ijk <- 1 # needed to assign 1 to ijk to avoid note
-
-  if (run_random == TRUE) {
-    #generate random simulation shifts
-    randomize_mat <-
-      matrix(
-        data = truncnorm::rtruncnorm(
-          n = (nrow(Powert) / 2) * rand_simulations,
-          a = 1 / 10,
-          b = 10,
-          mean = 1,
-          sd = 1
-        ),
-        ncol = rand_simulations
-      )
-  }
-
-
-  fit <-
-    foreach (ijk = 1:simulations, .options.snow   = opts) %dopar% {
-      fits <- matrix(data = NA,
-                     nrow = nrow(testsedrates),
-                     ncol = 8)
-      slope_coeff_random_mat <-
-        matrix(data = NA,
-               nrow = nrow(testsedrates),
-               ncol = rand_simulations)
-      corr_coeff_random_mat  <-
-        matrix(data = NA,
-               nrow = nrow(testsedrates),
-               ncol = rand_simulations)
-      nr_compenents_random_mat <-
-        matrix(data = NA,
-               nrow = nrow(testsedrates),
-               ncol = rand_simulations)
-      slope_orig_random_mat <-
-        matrix(data = NA,
-               nrow = nrow(testsedrates),
-               ncol = rand_simulations)
-      nearest_cycle <-
-        as.data.frame(matrix(
-          data = NA,
-          nrow = length(cycles),
-          ncol = 3
-        ))
-
-      data <- as.data.frame(cbind(my.w$Period, Powert[, ijk]))
-
-      astro_mindetect <- as.data.frame(data)
-      astro_mindetect$min <- 0
-      for (i in 3:(nrow(data) - 2)) {
-        if ((data[i, 2] - data[(i + 2), 2] < 0) &
-            (data[i, 2] - data[(i - 2), 2] < 0))
-        {
-          astro_mindetect[i, 3] <- 1
-        }
-      }
-
-      astro_mindetect_error_corr <- astro_mindetect
-      astro_mindetect_error_corr <-
-        astro_mindetect_error_corr[astro_mindetect_error_corr$min == 1 ,]
-
-      astro_maxdetect <- as.data.frame(data)
-      astro_maxdetect$max <- 0
-      for (i in 3:(nrow(data) - 2)) {
-        if ((data[i, 2] - data[(i + 2), 2] > 0) &
-            (data[i, 2] - data[(i - 2), 2]  > 0))
-        {
-          astro_maxdetect[i, 3] <- 1
-        }
-      }
-
-      astro_maxdetect_error_corr <- astro_maxdetect
-      astro_maxdetect_error_corr <-
-        astro_maxdetect_error_corr[astro_maxdetect_error_corr$max == 1 ,]
-
-      max <- astro_maxdetect_error_corr
-      colnames(max) <- c("A", "B", "C")
-      min <- astro_mindetect_error_corr
-      colnames(min) <- c("A", "B", "C")
-
-      min[, 3] <- -1
-      peaks <- rbind(max, min)
-
-      peaks <- peaks[order(peaks[, 1]), ]
-      i <- 1
-      res_rownr <- nrow(peaks)
-
-      while (i < res_rownr) {
-        if (peaks[i, 3] == peaks[(i + 1), 3]) {
-          if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
-              (peaks[i, 2] > peaks[(i + 1), 2])) {
-            peaks[(i + 1), ] <- NA
-            peaks <- na.omit(peaks)
-            res_rownr <- res_rownr - 1
-          }
-          if ((peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
-              (peaks[i, 2] < peaks[(i + 1), 2])) {
-            peaks[i, ] <- NA
-            peaks <- na.omit(peaks)
-            res_rownr <- res_rownr - 1
-          }
-          if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
-              (peaks[i, 2] < peaks[(i + 1), 2])) {
-            peaks[(i + 1), ] <- NA
-            peaks <- na.omit(peaks)
-            res_rownr <- res_rownr - 1
-          }
-          if ((peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
-              (peaks[i, 2] > peaks[(i + 1), 2])) {
-            peaks[i, ] <- NA
-            peaks <- na.omit(peaks)
-            res_rownr <- res_rownr - 1
-
-          }
-        }
-        if ((peaks[i, 3] != peaks[(i + 1), 3]) |
-            is.na(peaks[i, 3] != peaks[(i + 1), 3])) {
-          i <- i + 1
-        }
-      }
-
-      peaks <- peaks[peaks[, 3] > 0, c(1, 2)]
-
-
-      for (ij in 1:nrow(testsedrates)) {
-        cycles_in_depth <- ((cycles * testsedrates[ij, ]) / 100)
-        nearest_cycle[, 1] <- cycles_in_depth
-
-        for (jj in 1:length(cycles)) {
-          row_nr <-
-            DescTools::Closest(peaks[, 1], cycles_in_depth[jj], which = TRUE)
-          nearest_cycle[jj, 2] <- peaks[row_nr[1], 1]
-        }
-
-        nearest_cycle[, 3] <-
-          sqrt((nearest_cycle[, 2] - nearest_cycle[, 1]) ^ 2)
-        nearest_cycle <-
-          nearest_cycle[order(-nearest_cycle[, 2], -nearest_cycle[, 3]),]
-        sel_cycles <-
-          nearest_cycle[!duplicated(nearest_cycle[, 2], fromLast = TRUE),]
-
-        if (nrow(sel_cycles) <= 1) {
-          fits[ij, 1] <- 0
-          fits[ij, 2] <- 0
-          fits[ij, 3] <- nrow(sel_cycles)
-          fits[ij, 4] <- 0
-        } else{
-          lmodel <- summary(lm(sel_cycles[, 1] ~ sel_cycles[, 2]))
-          fits[ij, 1] <- sqrt((1 - lmodel$coefficients[2, 1]) ^ 2)
-          fits[ij, 2] <- lmodel$r.squared
-          fits[ij, 3] <- nrow(sel_cycles)
-          fits[ij, 4] <- 1 - sqrt((lmodel$coefficients[1, 1] ^ 2))
-
-        }
-
-      }
-
-      if (run_random == TRUE) {
-        for (rt in 1:rand_simulations) {
-          random_peaks <-
-            sort(peaks[, 1] * (randomize_mat[1:nrow(peaks), rt]))
-
-          for (ij in 1:nrow(testsedrates)) {
-            cycles_in_depth <- ((cycles * testsedrates[ij, ]) / 100)
-            nearest_cycle[, 1] <- cycles_in_depth
-
-            for (pl in 1:length(cycles)) {
-              row_nr <-
-                DescTools::Closest(random_peaks[], cycles_in_depth[pl], which = TRUE)
-              nearest_cycle[pl, 2] <- random_peaks[row_nr[1]]
-            }
-
-            nearest_cycle[, 3] <-
-              sqrt((nearest_cycle[, 2] - nearest_cycle[, 1]) ^ 2)
-            nearest_cycle <-
-              nearest_cycle[order(-nearest_cycle[, 2],-nearest_cycle[, 3]),]
-            sel_cycles <-
-              nearest_cycle[!duplicated(nearest_cycle[, 2], fromLast = TRUE),]
-
-            if (nrow(sel_cycles) <= 1) {
-              slope_coeff_random_mat[ij, rt] <- 0
-              corr_coeff_random_mat[ij, rt] <- 0
-              nr_compenents_random_mat[ij, rt] <- nrow(sel_cycles)
-              slope_orig_random_mat[ij, rt] <- 0
-            } else{
-              lmodel_random <- summary(lm(sel_cycles[, 1] ~ sel_cycles[, 2]))
-              slope_coeff_random_mat[ij, rt]  <-
-                sqrt((1 - lmodel_random$coefficients[2, 1]) ^ 2)
-              corr_coeff_random_mat[ij, rt] <-
-                lmodel_random$r.squared
-              nr_compenents_random_mat[ij, rt] <- nrow(sel_cycles)
-              slope_orig_random_mat[ij, rt] <-
-                1 - sqrt((lmodel_random$coefficients[1, 1] ^ 2))
-            }
-
-          }
-        }
-
-
-        for (yu in 1:nrow(testsedrates)) {
-          slope_coeff_random_per <- ecdf(slope_coeff_random_mat[yu, ])
-          corr_coeff_random_per <- ecdf(corr_coeff_random_mat[yu, ])
-          nr_compenents_random_per <-
-            ecdf(nr_compenents_random_mat[yu, ])
-          slope_orig_random_per <- ecdf(slope_orig_random_mat[yu, ])
-
-          fits[yu, 5] <- 1 - slope_coeff_random_per(fits[yu, 1])
-          fits[yu, 6] <- corr_coeff_random_per(fits[yu, 2])
-          fits[yu, 7] <- nr_compenents_random_per(fits[yu, 3])
-          fits[yu, 8] <- slope_orig_random_per(fits[yu, 4])
-
-        }
-      }
-
-
-      fits <- fits
-
+  if (method == "classic") {
+    if (run_random == TRUE) {
+      randomize_mat <-
+        matrix(
+          data = wr_rtruncnorm(
+            n = (nrow(Powert) / 2) * rand_simulations,
+            a = 1 / 10,
+            b = 10,
+            mean = 1,
+            sd = 1
+          ),
+          ncol = rand_simulations
+        )
+    } else {
+      randomize_mat <- NULL
     }
-
-
-  stopCluster(cl)
-
-  fit2 <- fit
-
-
-  slope_coeff_mat <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
+    fit <- wr_lapply(seq_len(ndepth), function(ijk) {
+      .flmw_depth_fit(period, Powert[, ijk], cycles, testsedrates, run_random, rand_simulations, randomize_mat)
+    }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
+    col_mat <- function(k) matrix(vapply(fit, function(m) m[, k], numeric(nsr)), nrow = nsr, ncol = ndepth)
+    results <- list(
+      slope_coeff_mat = col_mat(1),
+      corr_coeff_mat = col_mat(2),
+      nr_compenents_mat = col_mat(3),
+      orig_mat = col_mat(4),
+      slope_coeff_mat_per = col_mat(5),
+      corr_coeff_mat_per = col_mat(6),
+      nr_compenents_mat_per = col_mat(7),
+      orig_mat_per = col_mat(8),
+      depth = depth,
+      y_axis = as.numeric(testsedrates)
     )
-  corr_coeff_mat <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-  nr_compenents_mat <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-  orig_mat <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-
-  slope_coeff_mat_per <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-  corr_coeff_mat_per <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-  nr_compenents_mat_per <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-  orig_mat_per <-
-    matrix(
-      data = NA,
-      ncol = length(my.w$x),
-      nrow = nrow(testsedrates)
-    )
-
-
-  for (kk in 1:length(fit2)) {
-    extract <- as.data.frame(fit2[[kk]])
-    slope_coeff_mat[, kk] <- extract[, 1]
-    corr_coeff_mat[, kk] <- extract[, 2]
-    nr_compenents_mat[, kk] <- extract[, 3]
-    orig_mat[, kk] <- extract[, 4]
-    slope_coeff_mat_per[, kk]  <- extract[, 5]
-    corr_coeff_mat_per[, kk]  <- extract[, 6]
-    nr_compenents_mat_per[, kk]  <- extract[, 7]
-    orig_mat_per[, kk]  <- extract[, 8]
-
+    # heuristic combined score: fit quality x slope agreement x share of matched cycles
+    sc <- results$corr_coeff_mat * (1 - pmin(results$slope_coeff_mat, 1)) * (results$nr_compenents_mat / length(cycles))
+    sc[!is.finite(sc)] <- 0
+    sc[results$nr_compenents_mat < 2] <- 0
+    results$score_mat <- sc
+    plot_mat <- results[[plot_res]]
+  } else {
+    if (method == "weighted") {
+      sc <- wr_lapply(seq_len(ndepth), function(ijk) {
+        .flmw_weighted_depth(period, Powert[, ijk], cycles, testsedrates, tolerance)
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
+      sc <- matrix(unlist(sc), nrow = nsr, ncol = ndepth)
+    } else {
+      sc <- .flmw_template_scores(period, Powert, cycles, testsedrates, tolerance)
+    }
+    results <- list(score_mat = sc, depth = depth, y_axis = as.numeric(testsedrates))
+    plot_mat <- sc
   }
-
-
-  depth <- (my.data[, 1])
-  y_axis <- unlist(testsedrates)
-
-  results <- list(
-    slope_coeff_mat = slope_coeff_mat,
-    corr_coeff_mat = corr_coeff_mat,
-    nr_compenents_mat = nr_compenents_mat,
-    orig_mat = orig_mat,
-    slope_coeff_mat_per = slope_coeff_mat_per,
-    corr_coeff_mat_per = corr_coeff_mat_per,
-    nr_compenents_mat_per = nr_compenents_mat_per,
-    orig_mat_per = orig_mat_per,
-    depth = my.data[, 1],
-    y_axis = as.numeric(unlist(testsedrates))
-  )
-
-
+  best <- max.col(t(results$score_mat), ties.method = "first")
+  results$best_sedrate <- as.numeric(testsedrates)[best]
+  results$method <- method
   if (genplot == TRUE) {
+    .flmw_plot(plot_mat, depth, as.numeric(testsedrates), x_lab, y_lab, palette_name, color_brewer, keep_editable)
+  }
+  return(results)
+}
+
+# Plot of a (sedimentation rate x depth) matrix with the sum of the matrix next to it and a colour key
+.flmw_plot <- function(mat, depth, y_axis, x_lab, y_lab, palette_name, color_brewer, keep_editable) {
     if (keep_editable == FALSE) {
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
 
 
-    dev.new(width = 14, height = 7)
+    wr_open_device(width = 14, height = 7)
     layout.matrix <- matrix(c(1, 2, 3), nrow = 1, ncol = 3)
     layout(
       mat = layout.matrix,
@@ -540,55 +282,21 @@ flmw  <- function(wavelet = NULL,
     )
 
     par(mar = c(4, 4, 2, 4))
-    pmax_avg <- t(as.matrix(results[[plot_res]]))
+    pmax_avg <- t(as.matrix(mat))
 
     n.levels = 100
 
 
-    power_max_mat.levels = quantile(pmax_avg, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
-    ))
+    # common colour rule of the package: quantiles, or log for a mostly empty map (e.g. method = "template")
+    power_max_mat.levels = as.numeric(.wr_colour_breaks(pmax_avg, "auto", n.levels))
 
 
     image.plt = par()$plt
-    if (color_brewer== "RColorBrewer"){
-      key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
-
-    }
+    key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
-    if (color_brewer== "colorRamps"){
-      color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
-      key.cols = eval(parse(text = color_brewer_Sel))
-    }
-
-
-    if (color_brewer == "grDevices"){
-      if (palette_name == "rainbow"){
-        color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-      }
-      else if (palette_name == "heat.colors"|
-               palette_name == "terrain.colors"|
-               palette_name == "topo.colors"|
-               palette_name == "cm.colors"){
-        color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
-        key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-      }
-      else{key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
-
-
-
-    if (color_brewer== "viridis"){
-      color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
-      key.cols = rev(eval(parse(text = color_brewer_Sel)))
-    }
-
-
-    depth <- (my.data[, 1])
-    y_axis <- unlist(testsedrates)
+    depth <- (depth)
+    y_axis <- y_axis
     depth <- as.numeric(depth)
     y_axis <- as.numeric(y_axis)
     image(
@@ -669,7 +377,4 @@ flmw  <- function(wavelet = NULL,
     )
 
     box(lwd = lwd.axis)
-  }
-return(results)
-
 }

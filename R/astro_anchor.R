@@ -158,11 +158,12 @@
 #'
 #'@examples
 #'\donttest{
+#'if (interactive()) { # needs mouse input (identify())
 #'# Use the grey_track example tracking points to anchor the grey scale data set
 #'# of Zeeden et al., (2013) to the p-0.5t la2004 solution
 #'
 #'grey_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = grey,
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
@@ -249,7 +250,7 @@
 #'pts=3,
 #'verbose=FALSE, #set verbose to TRUE to allow for anchoring using text feedback commands
 #'genplot=FALSE
-#')}
+#')}}
 #'
 #' @export
 #' @importFrom graphics points
@@ -280,6 +281,11 @@ astro_anchor <- function(astro_solution = NULL,
                          time_dir = TRUE,
                          genplot=FALSE) {
 
+  if (!interactive()) {
+    stop("astro_anchor() needs mouse and keyboard input (identify(), readline()) and can only be used in an ",
+         "interactive R session; use astro_anchor_app() or astro_anchor_interactive() in a session with a display.", call. = FALSE)
+  }
+
   if (clip_astrosolution == TRUE) {
     astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
@@ -287,7 +293,7 @@ astro_anchor <- function(astro_solution = NULL,
   }
 
   if (extract_astrosolution == TRUE) {
-    extract_astrosolution_wt <- analyze_wavelet(
+    extract_astrosolution_wt <- analyse_wavelet(
       data = astro_solution,
       dj = 1 / 200,
       lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
@@ -308,7 +314,7 @@ astro_anchor <- function(astro_solution = NULL,
   }
 
   if (extract_proxy_signal == TRUE) {
-    proxy_signal_wt <- analyze_wavelet(
+    proxy_signal_wt <- analyse_wavelet(
       data = astro_solution,
       dj = 1 / 200,
       lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
@@ -374,9 +380,7 @@ astro_anchor <- function(astro_solution = NULL,
       next_step <- "NO"
       while (next_step == "NO") {
         next_step <- "NO"
-        dev.new(width = 20,
-                height = 10,
-                noRStudioGD = TRUE)
+        wr_open_device(width = 20, height = 10, interactive_input = TRUE)
         par(mfrow = c(2, 1))
         plot(
           all_data_pre_max,
@@ -560,9 +564,7 @@ astro_anchor <- function(astro_solution = NULL,
       next_step <- "NO"
       while (next_step == "NO") {
         next_step <- "NO"
-        dev.new(width = 20,
-                height = 10,
-                noRStudioGD = TRUE)
+        wr_open_device(width = 20, height = 10, interactive_input = TRUE)
         par(mfrow = c(2, 1))
         plot(
           all_data_pre_max,
@@ -762,9 +764,7 @@ astro_anchor <- function(astro_solution = NULL,
 
 
     if (time_dir == TRUE){
-      dev.new(width = 20,
-              height = 10,
-              noRStudioGD = TRUE)
+      wr_open_device(width = 20, height = 10, interactive_input = TRUE)
       par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
       plot(x=proxy_signal[,1],
            y=proxy_signal[,2],
@@ -839,9 +839,7 @@ astro_anchor <- function(astro_solution = NULL,
                col = "black", lwd = 2,lend=1)
 
     }else{
-      dev.new(width = 20,
-              height = 10,
-              noRStudioGD = TRUE)
+      wr_open_device(width = 20, height = 10, interactive_input = TRUE)
       par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
       plot(x=proxy_signal[,1],
            y=proxy_signal[,2],
@@ -926,3 +924,4 @@ astro_anchor <- function(astro_solution = NULL,
 
 
 }
+

@@ -9,16 +9,22 @@ model_red_noise_wt(
   wavelet = NULL,
   n_simulations = NULL,
   run_multicore = FALSE,
+  n_cores = NULL,
   verbose = FALSE
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{n_simulations}{Number of red noise simulations.}
 
 \item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
 the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.}
+
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
 }
@@ -35,7 +41,7 @@ average spectral power curves based on and input signal and set wavelet settings
 #'#generate average spectral power curves based on red noise curves which are
 # based on the magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

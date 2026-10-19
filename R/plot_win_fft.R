@@ -26,7 +26,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -48,8 +48,11 @@
 #'There are many options to choose from so please
 #'read the documentation of these packages. "\code{Default=grDevices}
 #'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
-#'@param dev_new Opens a new plotting window to plot the plot, this guarantees  a "nice" looking plot however when plotting in an R markdown
-#'document the plot might not plot  \code{Default=TRUE}
+#'@param dev_new Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+#'than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+#'opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+#'on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+#'\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.
 #'
 #'@examples
 #'\donttest{
@@ -99,8 +102,8 @@
 #'option 7: AR1_95_power matrix
 #'option 8: AR1_99_power matrix
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom Matrix rowMeans
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom graphics image
@@ -111,34 +114,13 @@
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
 #' @importFrom graphics layout
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom scico scico
 
 
 
@@ -156,11 +138,15 @@ plot_win_fft <- function(win_fft = NULL,
                          palette_name = "rainbow",
                          color_brewer="grDevices",
                          plot_horizontal=TRUE,
-                         dev_new=TRUE) {
+                         dev_new = wr_dev_new_default(),
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
 
   results <- win_fft
   n.levels = 100
   y_axis <- as.numeric(unlist(results$y_axis))
+  if (is.null(freq_max)) freq_max <- max(y_axis) + 1e-9
+  if (is.null(freq_min)) freq_min <- min(y_axis) - 1e-9
   sel_cols_up <- max(which(y_axis < freq_max))
   sel_cols_down <- min(which(y_axis > freq_min))
 
@@ -171,12 +157,12 @@ plot_win_fft <- function(win_fft = NULL,
 
 
   if (dev_new==TRUE & plot_horizontal==TRUE){
-    dev.new(width = 14, height = 7)
+    wr_open_device(width = 14, height = 7)
 
   }
 
   if (dev_new==TRUE & plot_horizontal==FALSE){
-    dev.new(width = 7, height = 10)
+    wr_open_device(width = 7, height = 10)
 
   }
 
@@ -186,48 +172,7 @@ plot_win_fft <- function(win_fft = NULL,
     on.exit(par(oldpar))
   }
 
-  if (color_brewer== "RColorBrewer"){
-    key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
-
-  }
-
-
-  if (color_brewer== "colorRamps"){
-    color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-
-  if (color_brewer == "grDevices"){
-    if (palette_name == "rainbow"){
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors"|
-             palette_name == "terrain.colors"|
-             palette_name == "topo.colors"|
-             palette_name == "cm.colors"){
-      color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
-
-  if (color_brewer== "scico"){
-    color_brewer_Sel <- paste(
-      "scico::scico(n = n.levels, palette = '",
-      palette_name,
-      "', direction = -1)",
-      sep = ""
-    )
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
-
-
-  if (color_brewer== "viridis"){
-    color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
 

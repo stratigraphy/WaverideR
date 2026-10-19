@@ -11,7 +11,7 @@
 #'@param  sedmin Minimum sedimentation rate for investigation (cm/ka). \code{Default=0.1}
 #'@param  sedmax Maximum sedimentation rate for investigation (cm/ka). \code{Default=1}
 #'@param  numsed Number of sedimentation rates to investigate
-#' in optimization grid. \code{Default=100}
+#' in optimisation grid. \code{Default=100}
 #'@param  limit Limit evaluated sedimentation rates to region in which full
 #'target signal can be recovered? .\code{Default=FALSE}
 #'@param  fit Test for (1) precession amplitude modulation or (2) short
@@ -33,6 +33,10 @@
 #'@param  linLog Use linear or logarithmic scaling for sedimentation
 #'rate grid spacing? (0=linear, 1=log; default value is 1) \code{Default=1}
 #'@param  run_multicore Run function using multiple cores \code{Default=FALSE}
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param  verbose print text \code{Default=FALSE}
 
 #' @author
@@ -49,11 +53,11 @@
 #'#Conduct a windowed timeOpt on the magnetic susceptibility record
 #'#of the Sullivan core of Pas et al., (2018).
 #'mag_win_timeOpt <-win_timeOpt(
-#'data = mag,
-#'window_size = 15,
+#'data = mag[1:250, ],
+#'window_size = 6,
 #'sedmin = 0.1,
 #'sedmax = 1,
-#'numsed = 100,
+#'numsed = 5,
 #'limit = FALSE,
 #'fit = 2,
 #'fitModPwr = TRUE,
@@ -80,17 +84,11 @@
 #'element 7: y_axis
 #'element 8: linLog value
 #'
+#' @param normalise British spelling of \code{normalize}; if given it overrides \code{normalize}.
 #' @export
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
-#' @importFrom foreach %dopar%
-#' @importFrom parallel stopCluster
 #' @importFrom astrochron timeOpt
-#' @importFrom DescTools Closest
 
 win_timeOpt <- function(data = NULL,
                         window_size = 10,
@@ -109,17 +107,11 @@ win_timeOpt <- function(data = NULL,
                         normalize = TRUE,
                         linLog = 1,
                         run_multicore = FALSE,
-                        verbose=FALSE ) {
+                        n_cores = NULL,
+                        verbose=FALSE,
+  normalise = NULL) {
+  if (!is.null(normalise)) normalize <- normalise  # British spelling synonym
 
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  } else{
-    numCores <- 1
-    cl <- parallel::makeCluster(numCores)
-    registerDoSNOW(cl)
-  }
 
   output = 1
   title = NULL
@@ -129,21 +121,10 @@ win_timeOpt <- function(data = NULL,
   proxy <- data
   n_simulations <- nrow(proxy)
 
-  if (verbose==TRUE){
-    pb <- txtProgressBar(max = n_simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)}else{opts=NULL}
 
   op <- 1
   win_timeOpt_res <-
-    foreach (
-      op = 1:n_simulations,
-      .options.snow = opts,
-      .combine = 'cbind',
-      .packages = c("astrochron", "DescTools"),
-      .errorhandling = c("pass")
-    ) %dopar% {
+    wr_lapply(seq_len(n_simulations), function(op) {
 
       d <- proxy
       dt <- d[2, 1] - d[1, 1]
@@ -151,10 +132,10 @@ win_timeOpt <- function(data = NULL,
       left <- d[op, 1] - (window_size / 2)
       right <- d[op, 1] + (window_size / 2)
 
-      row_nr_1 <- DescTools::Closest(d[, 1], left, which = TRUE)
+      row_nr_1 <- wr_closest(d[, 1], left, which = TRUE)
       row_nr_1 <- row_nr_1[1]
 
-      row_nr_2 <- DescTools::Closest(d[, 1], right, which = TRUE)
+      row_nr_2 <- wr_closest(d[, 1], right, which = TRUE)
       row_nr_2 <- row_nr_2[1]
 
       d_subsel <- d[row_nr_1:row_nr_2, ]
@@ -190,11 +171,10 @@ win_timeOpt <- function(data = NULL,
       timeOpt_res <- c(timeOpt_res[, 2], timeOpt_res[, 3], timeOpt_res[, 4])
 
 
-    }
+    }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
 
 
-  stopCluster(cl)
 
 
   if (linLog == 0) {

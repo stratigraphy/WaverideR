@@ -60,11 +60,11 @@ This function is based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}functio
 #plot the windowed timeOpt of the magnetic susceptibility record
 #of the Sullivan core of Pas et al., (2018).
 mag_win_timeOpt <-win_timeOpt(
-data = mag,
-window_size = 15,
+data = mag[1:250, ],
+window_size = 6,
 sedmin = 0.1,
 sedmax = 1,
-numsed = 100,
+numsed = 5,
 limit = FALSE,
 fit = 2,
 fitModPwr = TRUE,

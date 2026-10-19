@@ -21,7 +21,7 @@ extract_signal(
 function completed using the \code{completed_series}.
 The input can be pre-smoothed using the the \code{loess_auto} function.}
 
-\item{wavelet}{wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{period_up}{Upper period as a factor of the to be extracted cycle \code{Default=1.2}.}
 
@@ -53,7 +53,7 @@ Extract signal power from the wavelet in the depth domain using the traced perio
 #deviation to define boundaries.
 
 #Perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

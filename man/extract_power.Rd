@@ -19,7 +19,7 @@ extract_power(
 function completed using the \code{\link{completed_series}}.
 The input can be pre-smoothed using the the \code{\link{loess_auto}} function.}
 
-\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 or \code{\link{track_period}} function.}
 
 \item{period_up}{Upper period as a factor of the to be extracted power \code{Default=1.2}.}
@@ -57,7 +57,7 @@ function with boundaries is used to extract spectral power in the depth domain f
 # susceptibility data set of De pas et al., (2018)
 #Perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

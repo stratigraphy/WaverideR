@@ -1,9 +1,9 @@
 #' @title Extract a signal/cycle from a wavelet spectra using a set period and boundaries
 #'
-#' @description Extracts a cycle from the wavelet object created using the \code{\link{analyze_wavelet}}
+#' @description Extracts a cycle from the wavelet object created using the \code{\link{analyse_wavelet}}
 #' function using a fixed period and fixed period boundaries defined as factors of the original cycle
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #'@param cycle Period of the cycle which needs to be extracted.
 #'@param period_up Specifies the upper period as a factor of the to be extracted cycle \code{Default=1.2}.
 #'@param period_down Specifies the lower period as a factor of the to be extracted cycle \code{Default=0.8}.
@@ -33,7 +33,7 @@
 #'
 #'#Perform the CWT
 #'TSI_wt <-
-#'analyze_wavelet(
+#'analyse_wavelet(
 #'data = TSI,
 #'dj = 1/200,
 #'lowerPeriod = 16,
@@ -56,7 +56,6 @@
 #'The first column is time/depth.
 #'The second column is the extracted signal/cycle.
 #' @export
-#' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
 #' @importFrom graphics par
 #' @importFrom graphics hist
@@ -92,15 +91,15 @@ extract_signal_stable <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / (pi ^ (-1 / 4))
+      dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
   cycle_high <- cycle * period_up
   cycle_low <- cycle * period_down
 
 
-  row_nr_high <- Closest(Period[], cycle_high, which = TRUE)
-  row_nr_low <- Closest(Period[], cycle_low, which = TRUE)
+  row_nr_high <- wr_closest(Period[], cycle_high, which = TRUE)
+  row_nr_low <- wr_closest(Period[], cycle_low, which = TRUE)
 
   row_nr_high <- row_nr_high[1]
   row_nr_low <- row_nr_low[1]

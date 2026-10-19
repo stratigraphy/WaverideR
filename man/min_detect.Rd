@@ -31,7 +31,7 @@ filter out local minima in a sinusoidal signal
 #after which all minima are extracted
 
 TSI_wt <-
-analyze_wavelet(
+analyse_wavelet(
 data = TSI,
 dj = 1/200,
 lowerPeriod = 16,

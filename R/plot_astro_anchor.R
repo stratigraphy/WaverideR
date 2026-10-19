@@ -28,7 +28,7 @@
 #'# of Zeeden et al., (2013) to the p-0.5t la2004 solution
 #'
 #'grey_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = grey,
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
@@ -127,7 +127,7 @@
 #'plot_astro_anchor(astro_solution = astrosignal,
 #'proxy_signal = insolation_extract,
 #'anchor_points = anchor_points_grey,
-#'time_dir = FALSE,
+#'time_dir = TRUE, # the anchor points of this example get older with increasing depth
 #'keep_editable = FALSE)
 #'
 #'}
@@ -156,9 +156,7 @@ plot_astro_anchor <- function(astro_solution = NULL,
   }
 
   if (time_dir == TRUE) {
-    dev.new(width = 20,
-            height = 10,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 20, height = 10)
     par(
       mfrow = c(2, 1),
       mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),
@@ -285,9 +283,7 @@ plot_astro_anchor <- function(astro_solution = NULL,
     )
 
   } else{
-    dev.new(width = 20,
-            height = 10,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 20, height = 10)
     par(
       mfrow = c(2, 1),
       mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),

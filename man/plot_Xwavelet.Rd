@@ -15,13 +15,13 @@ plot_Xwavelet(
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   keep_editable = FALSE,
-  dev_new = TRUE,
+  dev_new = wr_dev_new_default(),
   plot_dir = TRUE,
   plot_arrows = TRUE,
   pwr_quant = 0.85,
   n_arrows = 75,
-  T_unit = 15,
-  P_unit = 0.5,
+  T_unit = NULL,
+  P_unit = NULL,
   arrow_length = 0.075,
   arrow_lwd = 1.9,
   arrow_angle = 25,
@@ -31,11 +31,12 @@ plot_Xwavelet(
   add_abline_v = NULL,
   add_data = TRUE,
   add_avg = FALSE,
-  plot_horizontal = TRUE
+  plot_horizontal = TRUE,
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{Xwavelet}{Xwavelet object created using the \code{\link{analyze_Xwavelet}} function.}
+\item{Xwavelet}{Xwavelet object created using the \code{\link{analyse_Xwavelet}} function.}
 
 \item{lowerPeriod}{Lowest period value which will be plotted}
 
@@ -52,7 +53,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -84,8 +85,11 @@ WARNING plotting as a vector image is computationally intensive.}
 
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=TRUE}}
+\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
 
 \item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
@@ -98,9 +102,9 @@ then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
 
 \item{n_arrows}{number arrows width wise plotted on the time axis \code{Default= 50}}
 
-\item{T_unit}{length of the arrows in time units \code{Default= 15}}
+\item{T_unit}{length of the arrows in depth/time units \code{Default=NULL}: automatic, a fixed visual length of 0.3 inch whatever the record length}
 
-\item{P_unit}{length of the arrows in period units \code{Default = 0.5}}
+\item{P_unit}{length of the arrows in log2 period units \code{Default=NULL}: automatic (see \code{T_unit})}
 
 \item{arrow_length}{length of the slanted part of the arrow  \code{Default= 0.1}}
 
@@ -123,12 +127,14 @@ should be period values \code{Default=NULL}}
 \item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
 
 \item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 The output is a plot of a cross wavelet scalogram.
 }
 \description{
-Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_Xwavelet}} function.
+Plot cross wavelet scalogram using the outcome of the \code{\link{analyse_Xwavelet}} function.
 }
 \examples{
 \donttest{
@@ -161,20 +167,20 @@ etp_2 <- astrochron::etp(
 verbose = FALSE
 )
 
-etp_1[, 2] <- etp_1[, 2] + colorednoise::colored_noise(
+etp_1[, 2] <- etp_1[, 2] + wr_coloured_noise(
  nrow(etp_1),
  sd = sd(etp_1[, 2]) / 1.5,
  mean = mean(etp_1[, 2]),
  phi = 0.9
 )
-etp_2[, 2] <- etp_2[, 2] + colorednoise::colored_noise(
+etp_2[, 2] <- etp_2[, 2] + wr_coloured_noise(
  nrow(etp_2),
  sd = sd(etp_2[, 2]) / 1.5,
  mean = mean(etp_2[, 2]),
  phi = 0.9
 )
 
-X_wavelet_etp <- analyze_Xwavelet(
+X_wavelet_etp <- analyse_Xwavelet(
  data_1 = etp_1,
  data_2  = etp_2,
  upperPeriod = 1024,
@@ -189,8 +195,8 @@ plot_Xwavelet(Xwavelet = X_wavelet_etp, lowerPeriod = 2, upperPeriod = 1024,
               plot_arrows = TRUE,
               pwr_quant = 0.85,
               n_arrows = 50,
-              T_unit = 15,
-              P_unit  = 0.5,
+              T_unit = NULL,
+              P_unit  = NULL,
               arrow_length = 0.1,
               arrow_lwd = 2,
               arrow_angle = 25,add_lines = NULL, add_points = NULL, add_abline_h = NULL,

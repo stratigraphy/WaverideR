@@ -4,10 +4,14 @@
 #' @description The \code{\link{model_red_noise_wt}} function is used to generate
 #' average spectral power curves based on and input signal and set wavelet settings.
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #'@param n_simulations Number of red noise simulations.
 #'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
 #'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param verbose Print text \code{Default=FALSE}.
 #'
 #' @author
@@ -40,7 +44,7 @@
 #'#'#generate average spectral power curves based on red noise curves which are
 #'# based on the magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -60,28 +64,20 @@
 #'power resulting from a red-noise run.
 #'
 #' @export
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
-#' @importFrom colorednoise colored_noise
-#' @importFrom colorednoise autocorrelation
 #' @importFrom stats runif
 #' @importFrom stats fft
 #' @importFrom stats sd
-#' @importFrom foreach %dopar%
-#' @importFrom parallel stopCluster
-#' @importFrom truncnorm  rtruncnorm
 
 
 model_red_noise_wt <- function(wavelet = NULL,
                                n_simulations = NULL,
                                run_multicore = FALSE,
+                               n_cores = NULL,
                                verbose = FALSE) {
   data <- cbind(wavelet$x, wavelet$y)
-  phi_data <-  autocorrelation(data[, 2])
+  phi_data <-  wr_autocorrelation(data[, 2])
   lowerPeriod <- min(wavelet$Period)
   upperPeriod <- max(wavelet$Period)
   omega_nr <- wavelet$omega_nr
@@ -112,22 +108,7 @@ model_red_noise_wt <- function(wavelet = NULL,
   mean_data <- mean(data[, 2])
 
 
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  }
-  else{
-    numCores <- 1
-    cl <- makeCluster(numCores)
-    registerDoSNOW(cl)
-  }
 
-  if (verbose==TRUE){
-    pb <- txtProgressBar(max = n_simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)}else{opts=NULL}
 
 
 
@@ -158,64 +139,35 @@ model_red_noise_wt <- function(wavelet = NULL,
 
 
 
+  # The Morlet daughter wavelets (frequency domain) are the same for every simulation: compute them once.
+  pos_k <- omega.k > 0
+  daughter <- matrix(0, nrow = N, ncol = scales.length)
+  for (ind.scale in seq_len(scales.length)) {
+    my.scale <- scales[ind.scale]
+    daughter[, ind.scale] <- pi^(1 / 4) * sqrt(2 * my.scale / dt) *
+      exp(-((my.scale * omega.k - omega0)^2 / 2)) * pos_k
+  }
+  inv_scales <- 1 / scales
+  keep_t <- seq_len(series.length)
+
   red_noise <-
-    foreach (
-      j = 1:n_simulations,
-      .combine = 'cbind',
-      .options.snow   = opts
-    ) %dopar% {
-      phi_data_2 <- truncnorm::rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5) #old option
+    wr_lapply(seq_len(n_simulations), function(j) {
+      phi_data_2 <- wr_rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5)
       x <-
-        (
-          colorednoise::colored_noise(
-            timesteps = timesteps_data,
-            mean = mean_data,
-            sd = sd_data,
-            phi_data_2
-          )
+        wr_coloured_noise(
+          timesteps = timesteps_data,
+          mean = mean_data,
+          sd = sd_data,
+          phi_data_2
         )
 
+      # Standardise, zero-pad and transform; all scales are inverse-transformed at once (mvfft).
+      x_standard <- (x - mean(x)) / sd(x)
+      fft.xpad <- fft(c(x_standard, rep(0, pad.length)))
+      wave <- mvfft(daughter * fft.xpad, inverse = TRUE) / N
+      # Average wavelet power (|W|^2 / scale) over the record for every scale.
+      colMeans(Mod(wave[keep_t, , drop = FALSE])^2) * inv_scales
+    }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
-      ###############################################################################
-      ## Define the Morlet wavelet transform function
-      ###############################################################################
-
-      x_standard = (x - mean(x)) / sd(x)
-      xpad = c(x_standard, rep(0, pad.length))
-
-      # Compute Fast Fourier Transform of xpad
-      fft.xpad = fft(xpad)
-
-      # Compute wavelet transform of x
-      # Prepare a complex matrix which accomodates the wavelet transform
-      wave = matrix(0, nrow = scales.length, ncol = N)
-      wave = wave + 1i * wave
-
-      # Computation for each scale...
-      # ... simultaneously for all time instances
-      for (ind.scale in (1:scales.length)) {
-        my.scale = scales[ind.scale]
-
-        norm.factor = pi ^ (1 / 4) * sqrt(2 * my.scale / dt)
-        expnt       = -((my.scale * omega.k - omega0) ^ 2 / 2) * (omega.k > 0)
-        daughter    = norm.factor * exp(expnt)
-        daughter    = daughter * (omega.k > 0)
-
-        wave[ind.scale,] = fft(fft.xpad * daughter, inverse = TRUE) / N
-      }
-
-      # Cut out the wavelet transform
-      Wave = wave[, 1:series.length]
-
-      # Compute wavelet power
-      Power.avg = rowMeans(as.matrix(Mod(Wave) ^ 2 / matrix(rep(
-        scales, series.length
-      ), nrow = scales.length)))
-
-      noise_period <- Power.avg
-
-    }
-
-  stopCluster(cl)
   return(red_noise)
 }

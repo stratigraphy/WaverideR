@@ -24,7 +24,8 @@ dur_gaps(
   missing_cycle_unc = NULL,
   missing_cycle_unc_dist = "u",
   seed_nr = 1337,
-  run_multicore = FALSE
+  run_multicore = FALSE,
+  n_cores = NULL
 )
 }
 \arguments{
@@ -68,14 +69,14 @@ in-between these steps the dj parameter exists, the dj parameter specifies how m
 the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
 Increasing the increases the computational time of the CWT \code{Default=1/200}.}
 
-\item{lowerPeriod}{Lowest period to be analyzed \code{Default=2}.
+\item{lowerPeriod}{Lowest period to be analysed \code{Default=2}.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
 scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
-\item{upperPeriod}{Upper period to be analyzed \code{Default=1024}.
+\item{upperPeriod}{Upper period to be analysed \code{Default=1024}.
 The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyze the signal for a specific range of cycles.
+parameters allows to analyse the signal for a specific range of cycles.
  scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
 
 \item{period_max}{Maximum period (upper boundary) to be used to extract a cycle.}
@@ -96,6 +97,11 @@ tracked cycle value need to be either "u" for uniform distribution or
 \code{Default=1337}}
 
 \item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. Only used when
+`run_multicore = TRUE`. Results do not depend on the number of cores.}
 }
 \value{
 a vector with all the calculated gap durations

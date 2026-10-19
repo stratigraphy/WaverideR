@@ -13,7 +13,7 @@ extract_power_stable(
 )
 }
 \arguments{
-\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 or \code{\link{track_period}} function}
 
 \item{cycle}{Period of cycle for which the power will be extracted from the record.}
@@ -36,7 +36,7 @@ boundaries as selection criteria. The extraction of spectral is useful for cyclo
 astronomical cycle is modulated by higher order astronomical cycles.
 The spectral power record from an astronomical cycle can thus be used as a proxy for
 amplitude modulating cycles. The spectral power is extracted from a wavelet spectra
-which was created using the \code{\link{analyze_wavelet}}
+which was created using the \code{\link{analyse_wavelet}}
 function for a given, \code{cycle}, \code{period_up} and \code{period_down}
 }
 \examples{
@@ -44,7 +44,7 @@ function for a given, \code{cycle}, \code{period_up} and \code{period_down}
 #Irradiance data set of Steinhilber et al., (2012).
 
 TSI_wt <-
- analyze_wavelet(
+ analyse_wavelet(
    data = TSI,
    dj = 1/200,
    lowerPeriod = 16,

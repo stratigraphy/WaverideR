@@ -15,16 +15,21 @@ flmw(
   run_random = FALSE,
   rand_simulations = 1000,
   run_multicore = FALSE,
+  n_cores = NULL,
   genplot = FALSE,
   palette_name = "rainbow",
   color_brewer = "grDevices",
   plot_res = 2,
   keep_editable = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  method = c("classic", "weighted", "template"),
+  tolerance = 0.1,
+  whiten = TRUE,
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function}
 
 \item{sedrate_low}{Minimum sedimentation rate (cm/kyr)for which the sum of maximum spectral power is calculated for.}
 
@@ -45,6 +50,11 @@ flmw(
 \item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
 the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes}
 
+\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+parallel computing. Results do not depend on the number of cores.}
+
 \item{genplot}{Generate plot \code{Default="FALSE"}}
 
 \item{palette_name}{Name of the color palette which is used for plotting.
@@ -56,7 +66,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -71,7 +81,8 @@ are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
 
-\item{plot_res}{options 1-8 option 1: slope coefficient, option 2: r squared,
+\item{plot_res}{options 1-8 (only used with \code{method = "classic"}; the other methods always plot the score)
+option 1: slope coefficient, option 2: r squared,
 option 3: nr of components, option 4: difference to the  origin , option 5: slope coefficient percentile
 option 6: r squared percentile, option 7: nr of components percentile,
 option 8: difference to the origin percentile \code{Default=2}}
@@ -79,9 +90,28 @@ option 8: difference to the origin percentile \code{Default=2}}
 \item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
 
 \item{verbose}{Print text \code{Default=FALSE}.}
+
+\item{method}{Method used to compare the cycles with the spectrum. \code{"classic"} (default) is the original
+peak based method (output identical to earlier versions); \code{"weighted"} matches predicted cycles one-to-one to
+spectral peaks, weighting by peak power and using a relative (log period) misfit; \code{"template"} correlates the
+spectrum with Gaussian peaks at the predicted periods (no peak picking, fastest and usually most robust).}
+
+\item{tolerance}{Relative period tolerance (standard deviation in log period, 0.1 is about 10 percent) used by the
+\code{"weighted"} and \code{"template"} methods \code{Default=0.1}.}
+
+\item{whiten}{Divide the wavelet power of every period by its average over depth before comparing (removes the red
+background) for the \code{"weighted"} and \code{"template"} methods \code{Default=TRUE}.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
-Returns a list which contains 10 elements
+Returns a list. For \code{method = "classic"} it has the 10 elements below plus
+\code{score_mat} (a heuristic combined score between 0 and 1), \code{best_sedrate} (sedimentation rate with the highest
+score per depth) and \code{method}. For the other methods the list has \code{score_mat}, \code{best_sedrate}, \code{depth},
+\code{y_axis} and \code{method}. Use \code{\link{flmw_path}} to turn \code{score_mat} into a smooth sedimentation
+rate curve with uncertainty.
+
+Elements of the classic result:
 element 1: slope coefficient
 element 2: r squared
 element 3: nr of components
@@ -98,22 +128,30 @@ The \code{\link{flmw}} function is used calculate the linear correlation
 for a list of astronomical cycles transformed using a range of sedimentation rates and then compared
 to spectral peaks of a wavelet spectra
 }
+\section{Choosing a method}{
+
+\code{"classic"} keeps the earlier results reproducible. In a synthetic test with strong noise and a sedimentation rate
+that changes with depth, \code{"weighted"} and \code{"template"} followed by \code{\link{flmw_path}} recovered the
+true curve far better than the classic score (see the NEWS file). \code{"template"} needs no peak picking and is the
+fastest.
+}
+
 \examples{
 \donttest{
 #estimate sedimentation rate for the magnetic susceptibility record
 # of the Sullivan core of Pas et al., (2018).
 
-mag_wt <- analyze_wavelet(data = mag,
-dj = 1/100,
+mag_wt <- analyse_wavelet(data = mag[1:200, ],
+dj = 1/10,
 lowerPeriod = 0.1,
-upperPeriod = 254,
+upperPeriod = 32,
 verbose = FALSE,
 omega_nr = 10)
 
 sedrates <- flmw(wavelet = mag_wt,
     sedrate_low = 0.5,
     sedrate_high = 4,
-    spacing = 0.05,
+    spacing = 1,
     cycles = c(2376,1600,1180,696,406,110),
     x_lab = "depth",
     y_lab = "sedrate",
@@ -126,6 +164,11 @@ sedrates <- flmw(wavelet = mag_wt,
     plot_res = 2,
     keep_editable=FALSE,
     verbose=FALSE)
+
+# template method (no peak picking) followed by a smooth sedimentation rate curve
+sed_t <- flmw(wavelet = mag_wt, sedrate_low = 0.5, sedrate_high = 4, spacing = 0.5,
+    cycles = c(406, 110), method = "template")
+sed_path <- flmw_path(sed_t)
 }
 
 }

@@ -3,4 +3,5 @@
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
 ^revdep$
-^\.github$
+^\.github$^README\.md$
+^Rplots\.pdf$

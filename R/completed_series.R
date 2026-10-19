@@ -12,7 +12,7 @@
 #' or \code{\link{track_period}}. A a search a algorithm then looks up and replaces
 #' the interpolated curve values with the values of the nearest spectral peak in the wavelet spectra.
 #'
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 #'or \code{\link{track_period}} function.
 #'@param tracked_curve Tracked period result from the \code{track_period_wavelet} or
 #'or \code{\link{track_period}} function.
@@ -44,7 +44,7 @@
 #'
 #'
 #'grey_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = grey,
 #'    dj = 1/200,
 #'    lowerPeriod = 0.02,
@@ -144,7 +144,7 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
   completed_series[, 1] <- app[, 1]
 
   for (i in 1:nrow(completed_series)) {
-    row_nr <- Closest(periods[, 1], app[i, 2], which = TRUE)
+    row_nr <- wr_closest(periods[, 1], app[i, 2], which = TRUE)
     row_nr
     row_nr <- row_nr[1]
     if (maxdetect[row_nr, i] == 1) {
@@ -154,8 +154,8 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
       sel_row <- as.data.frame(maxdetect[, i])
       sel_row$period <- periods[, 1]
       sel_row <- sel_row[sel_row[, 1] > 0, ]
-      row_nr_sel_row <- Closest(sel_row[, 2], app[i, 2], which = TRUE)
-      row_nr_closest <- Closest(periods[, 1], sel_row[row_nr_sel_row, 2], which = TRUE)
+      row_nr_sel_row <- wr_closest(sel_row[, 2], app[i, 2], which = TRUE)
+      row_nr_closest <- wr_closest(periods[, 1], sel_row[row_nr_sel_row, 2], which = TRUE)
       closest_period <- periods[unlist(row_nr_closest[1]), 1]
       if ((closest_period < (app[i, 2] * period_up)) &
           (closest_period > (app[i, 2] * period_down))) {

@@ -6,7 +6,7 @@
 #'  the \code{\link{model_red_noise_wt}} function are used.
 #'
 #'@param red_noise Red noise curves generated using the \code{\link{model_red_noise_wt}} function.
-#'@param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #'@param percentile Percentile value (0-1).
 #'
 #'@examples
@@ -14,7 +14,7 @@
 #'#'#generate average spectral power curves based on red noise curves which are
 #'# based on the magnetic susceptibility record of the Sullivan core of Pas et al., (2018)
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -42,7 +42,6 @@
 #'the red noise modelling runs. \cr
 #'
 #' @export
-#' @importFrom matrixStats rowSds
 #' @importFrom stats qnorm
 
 
@@ -54,7 +53,7 @@ percentile_from_red_noise <- function(red_noise = NULL,
   noise_period2$mean <-
     rowMeans(noise_period2[, 2:(ncol(red_noise) + 1)])
   noise_period2$sd <-
-    rowSds(as.matrix(noise_period2[, 2:(ncol(red_noise) + 1)]))
+    wr_row_sds(as.matrix(noise_period2[, 2:(ncol(red_noise) + 1)]))
   prob <-
     qnorm(p = percentile,
           mean = noise_period2$mean,

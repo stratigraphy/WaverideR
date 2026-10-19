@@ -20,12 +20,13 @@ track_period(
   add_lines = NULL,
   add_points = NULL,
   add_abline_h = NULL,
-  add_abline_v = NULL
+  add_abline_v = NULL,
+  colour_brewer = NULL
 )
 }
 \arguments{
 \item{scalogram}{A wavelet or superlet object created using
-\code{\link{analyze_wavelet}} or \code{\link{analyze_superlet}}.}
+\code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}.}
 
 \item{astro_cycle}{Duration (in kyr) of the astronomical cycle that is being tracked.}
 
@@ -72,6 +73,8 @@ contain period values.}
 \item{add_abline_h}{Optional numeric vector specifying horizontal reference lines.}
 
 \item{add_abline_v}{Optional numeric vector specifying vertical reference lines.}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 A data frame with three columns:
@@ -97,8 +100,9 @@ were previously selected.
 }
 \examples{
 \donttest{
+if (interactive()) { # needs mouse input (identify())
 ## Track the 405 kyr eccentricity cycle in a magnetic susceptibility record
-mag_wt <- analyze_wavelet(
+mag_wt <- analyse_wavelet(
   data = mag,
   dj = 1/100,
   lowerPeriod = 0.1,
@@ -112,7 +116,7 @@ mag_track <- track_period(
   astro_cycle = 405,
   track_peaks = TRUE
 )
-}
+}}
 
 }
 \references{

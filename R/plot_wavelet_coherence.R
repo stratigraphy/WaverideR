@@ -1,8 +1,8 @@
 #' @title Plots a cross wavelet scalogram
 #'
-#' @description Plot cross wavelet scalogram using the outcome of the \code{\link{analyze_wavelet_coherence}} function.
+#' @description Plot cross wavelet scalogram using the outcome of the \code{\link{analyse_wavelet_coherence}} function.
 #'
-#'@param wavelet_coh wavelet_coh object created using the \code{\link{analyze_wavelet_coherence}} function.
+#'@param wavelet_coh wavelet_coh object created using the \code{\link{analyse_wavelet_coherence}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
 #'@param n.levels  Number of color levels \code{Default=100}.
@@ -15,7 +15,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -41,8 +41,11 @@
 #'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
 #'@param x_lab Label for the x-axis \code{Default="depth (metres)"}.
 #'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param dev_new Opens a new plotting window to plot the plot, this guarantees a "nice" looking plot however when plotting in an R markdown
-#'document the plot might not plot  \code{Default=TRUE}
+#'@param dev_new Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
+#'than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
+#'opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
+#'on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
+#'\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.
 #'@param plot_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 #'(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
 #'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
@@ -50,8 +53,8 @@
 #'@param plot_arrows add the phase arrows of the cross superlet transform \code{Default=TRUE}
 #'@param pwr_quant Power quantile above which the arrows are plotted  \code{Default= 0.85}
 #'@param n_arrows number arrows width wise plotted on the time axis \code{Default= 50}
-#'@param T_unit length of the arrows in time units \code{Default= 15}
-#'@param P_unit length of the arrows in period units \code{Default = 0.5}
+#'@param T_unit length of the arrows in depth/time units \code{Default=NULL}: automatic, a fixed visual length of 0.3 inch whatever the record length
+#'@param P_unit length of the arrows in log2 period units \code{Default=NULL}: automatic (see \code{T_unit})
 #'@param arrow_length length of the slanted part of the arrow  \code{Default= 0.1}
 #'@param arrow_lwd thickness of the arrow \code{Default= 2}
 #'@param arrow_angle angle of the slanted part of the arrow \code{Default= 25}
@@ -114,20 +117,20 @@
 #' verbose = FALSE
 #')
 #'
-#'etp_1[, 2] <- etp_1[, 2] + colorednoise::colored_noise(
+#'etp_1[, 2] <- etp_1[, 2] + wr_coloured_noise(
 #'  nrow(etp_1),
 #'  sd = sd(etp_1[, 2]) / 1.5,
 #'  mean = mean(etp_1[, 2]),
 #'  phi = 0.9
 #')
-#'etp_2[, 2] <- etp_2[, 2] + colorednoise::colored_noise(
+#'etp_2[, 2] <- etp_2[, 2] + wr_coloured_noise(
 #'  nrow(etp_2),
 #'  sd = sd(etp_2[, 2]) / 1.5,
 #'  mean = mean(etp_2[, 2]),
 #'  phi = 0.9
 #')
 #'
-#'coh_etp <- analyze_wavelet_coherence(
+#'coh_etp <- analyse_wavelet_coherence(
 #'  data_1 = etp_1,
 #'  data_2  = etp_2,
 #'  upperPeriod = 1024,
@@ -140,14 +143,15 @@
 #'               plot_arrows = TRUE,
 #'               pwr_quant = 0.85,
 #'               n_arrows = 50,
-#'               T_unit = 15,
-#'               P_unit  = 0.5,
+#'               T_unit = NULL,
+#'               P_unit  = NULL,
 #'               arrow_length = 0.1,
 #'               arrow_lwd = 2,
 #'               arrow_angle = 25,add_lines = NULL, add_points = NULL, add_abline_h = NULL,
 #'               add_abline_v = NULL, add_data = TRUE, add_avg = FALSE, plot_horizontal = TRUE)
 #'}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -160,79 +164,39 @@
 #' @importFrom graphics layout
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
-#' @importFrom DescTools Closest
 #' @importFrom graphics abline
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom scico scico
 #' @importFrom graphics arrows
 
 plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upperPeriod = NULL,
                            n.levels = 100, palette_name = "rainbow", color_brewer = "grDevices",
                            useRaster = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
-                           keep_editable = FALSE, dev_new = TRUE, plot_dir = TRUE,
+                           keep_editable = FALSE, dev_new = wr_dev_new_default(), plot_dir = TRUE,
                            plot_arrows = TRUE,
                            pwr_quant = 0.85,
                            n_arrows = 75,
-                           T_unit = 15,
-                           P_unit  = 0.5,
+                           T_unit = NULL,
+                           P_unit  = NULL,
                            arrow_length = 0.075,
                            arrow_lwd = 1.9,
                            arrow_angle = 25,add_lines = NULL, add_points = NULL, add_abline_h = NULL,
-                           add_abline_v = NULL, add_data = TRUE, add_avg = FALSE, plot_horizontal = TRUE)
+                           add_abline_v = NULL, add_data = TRUE, add_avg = FALSE, plot_horizontal = TRUE,
+  colour_brewer = NULL)
 {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
 
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
@@ -245,50 +209,7 @@ plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upper
   maximum.level = max(wavelet_coh$Coherence, na.rm = TRUE)
   power_max_mat.levels = quantile(wavelet_coh$Coherence, probs = seq(from = 0,
                                                               to = 1, length.out = n.levels + 1))
-  if (color_brewer == "RColorBrewer") {
-    key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,
-                                                                1], palette_name))(n.levels))
-  }
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <- paste("colorRamps::", palette_name,
-                              "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" | palette_name ==
-             "terrain.colors" | palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <- paste("grDevices::", palette_name,
-                                "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else {
-      key.cols <- hcl.colors(n = n.levels, palette = palette_name,
-                             alpha = NULL, rev = FALSE, fixup = TRUE)
-    }
-  }
-
-  if (color_brewer== "scico"){
-    color_brewer_Sel <- paste(
-      "scico::scico(n = n.levels, palette = '",
-      palette_name,
-      "', direction = -1)",
-      sep = ""
-    )
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
-
-
-
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <- paste("viridis::", palette_name,
-                              "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
   periodtck = 0.02
   periodtcl = 0.5
   main = NULL
@@ -302,10 +223,10 @@ plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upper
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
   if (dev_new == TRUE & plot_horizontal == TRUE) {
-    dev.new(width = 15, height = 7, noRStudioGD = TRUE)
+    wr_open_device(width = 15, height = 7)
   }
   if (dev_new == TRUE & plot_horizontal == FALSE) {
-    dev.new(width = 7, height = 10, noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 10)
   }
   depth <- wavelet_coh$x1
   y_axis <- wavelet_coh$Period
@@ -324,1084 +245,21 @@ plot_wavelet_coherence<- function (wavelet_coh = NULL, lowerPeriod = NULL, upper
     upperPeriod <- max(wavelet_coh$Period)
   }
   ylim_vals = (c(lowerPeriod, upperPeriod))
-  if (add_data == TRUE & add_avg == FALSE & plot_horizontal ==
-      FALSE) {
-    layout.matrix <- matrix(c(1, 3, 0, 2), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      0.25), widths = c(1, 4))
-    par(mar = c(4, 4, 2, 0))
-    plot(
-      x = wavelet_coh$y1,
-      y = wavelet_coh$x1,
-      type = "l",
-      col = "black",
-      yaxs = "i",
-      ylim = xlim_vals,
-      xlab = "proxy_1",
-      ylab = x_lab,
-      xaxt = "s",
-      yaxt = "s"
-    )
-
-    par(new = TRUE)
-    plot(
-      x = wavelet_coh$y2,
-      y = wavelet_coh$x2,
-      type = "l",
-      col = "red",
-      yaxs = "i",
-      ylim = xlim_vals,
-      xlab = "",
-      ylab = "",
-      xaxt = "n",
-      yaxt = "n"
-    )
-
-    axis(
-      side = 3,
-      col = "red",
-      col.axis = "red"
-    )
-
-    mtext(
-      "proxy_2",
-      side = 3,
-      line = 2,
-      col = "red"
-    )
-
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-    par(new = FALSE, mar = c(3, 0, 2, 2))
-    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
-                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "")
-    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 2, 2))
-    image(y = wavelet_coh$x1, x = wavelet_coh$axis.2, z = t(wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          xlab = periodlab, ylab = "", yaxt = "n", xaxt = "n",
-          main = main, ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(1, lwd = lwd.axis, at = as.vector(period.tick),
-         labels = NA, tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 1, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-
-
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == FALSE & add_avg == FALSE & plot_horizontal ==
-      FALSE) {
-    layout.matrix <- matrix(c(1, 2), nrow = 2, ncol = 1,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      4), widths = c(1))
-    par(mar = c(2, 4, 2, 3))
-    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
-                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 2, at = mean(key.marks), line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 2, 3))
-    image(y = wavelet_coh$x1, x = wavelet_coh$axis.2, z = t(wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          xlab = periodlab, ylab = x_lab, xaxt = "n", main = main,
-          ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 1, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == FALSE & add_avg == TRUE & plot_horizontal ==
-      FALSE) {
-    layout.matrix <- matrix(c(1, 2, 0, 3), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      4), widths = c(1, 4))
-    par(mar = c(2, 2, 2, 3))
-    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
-                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 1, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 1, at = median(key.marks),
-          line = 3, las = 2, font = par()$font.axis, cex = par()$cex.axis,
-          xpd = NA)
-    box(lwd = lwd.axis)
-    par(mar = c(0, 4, 2, 2))
-    plot(y = wavelet_coh$Coh.avg, x = wavelet_coh$Period, log = "x",
-         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
-         xaxs = "i", xlim = sort(ylim_vals))
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = (add_abline_v))
-    }
-    par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(y = wavelet_coh$x1, x = wavelet_coh$axis.2, z = t(wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          xlab = periodlab, ylab = x_lab, xaxt = "n", main = main,
-          ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 1, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == TRUE & add_avg == TRUE & plot_horizontal ==
-      FALSE) {
-    layout.matrix <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      4), widths = c(1, 4))
-    par(mar = c(2, 0.5, 2, 6), xpd = NA)
-    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(2, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 2, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 1, at = 1, line = 0.5, font = par()$font.axis,
-          cex = par()$cex.axis, las = 1, xpd = NA)
-    box(lwd = lwd.axis)
-    par(mar = c(0, 0, 2, 2))
-    plot(y = wavelet_coh$Coh.avg, x = wavelet_coh$Period, log = "x",
-         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
-         xlab = "", xaxs = "i", xlim = sort(ylim_vals))
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = (add_abline_v), xpd = FALSE)
-    }
-    title(ylab = "Wt. power", xpd = NA)
-    par(mar = c(4, 4, 0, 0), xpd = TRUE)
-    plot(
-      x = wavelet_coh$y1,
-      y = wavelet_coh$x1,
-      type = "l",
-      col = "black",
-      yaxs = "i",
-      ylim = xlim_vals,
-      xlab = "proxy_1",
-      ylab = x_lab,
-      xaxt = "s",
-      yaxt = "s"
-    )
-
-    par(new = TRUE)
-    plot(
-      x = wavelet_coh$y2,
-      y = wavelet_coh$x2,
-      type = "l",
-      col = "red",
-      yaxs = "i",
-      ylim = xlim_vals,
-      xlab = "",
-      ylab = "",
-      xaxt = "n",
-      yaxt = "n"
-    )
-
-    axis(
-      side = 3,
-      col = "red",
-      col.axis = "red"
-    )
-
-    mtext(
-      "proxy_2",
-      side = 3,
-      line = 2,
-      col = "red"
-    )
-
-
-    par(new = FALSE, mar = c(4, 0, 0, 2), xpd = FALSE)
-    image(y = wavelet_coh$x1, x = wavelet_coh$axis.2, z = t(wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          xlab = periodlab, ylab = "", xaxt = "n", yaxt = "n",
-          main = main, ylim = xlim_vals, xlim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 1, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = (add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = log2(add_abline_v))
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == TRUE & add_avg == TRUE & plot_horizontal ==
-      TRUE) {
-    layout.matrix <- matrix(c(1, 2, 4, 3), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(0.25,
-                                                      1), widths = c(8, 2))
-    par(mar = c(0, 4, 2, 0))
-
-    plot(
-      y = wavelet_coh$y1,
-      x = wavelet_coh$x1,
-      type = "l",
-      col = "black",
-      xaxs = "i",
-      xlim = xlim_vals,
-      ylab = "proxy_1",
-      xlab = x_lab,
-      yaxt = "s",
-      xaxt = "s"
-    )
-
-    par(new = TRUE)
-    plot(
-      y = wavelet_coh$y2,
-      x = wavelet_coh$x2,
-      type = "l",
-      col = "red",
-      xaxs = "i",
-      xlim = xlim_vals,
-      ylab = "",
-      xlab = "",
-      yaxt = "n",
-      xaxt = "n"
-    )
-
-    axis(
-      side = 4,
-      col = "red",
-      col.axis = "red"
-    )
-
-    mtext(
-      "proxy_2",
-      side = 4,
-      line = 2,
-      col = "red"
-    )
-
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    par(new = FALSE, mar = c(3, 2, 2, 2), mgp = c(2, 1,
-                                                  0))
-    image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
-                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
-          ylab = "")
-    axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.2)
-    mtext(key.labels, side = 1, at = key.marks, line = 0.1,
-          las = 2, cex = 0.75)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 0, 0.5))
-    plot(x = wavelet_coh$Coh.avg, y = wavelet_coh$Period, log = "y",
-         type = "l", yaxs = "i", xlab = "Wt. power", xaxs = "i",
-         ylim = sort(ylim_vals))
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-    par(new = FALSE, mar = c(4, 4, 0, 0), xpd = FALSE)
-    image(x = wavelet_coh$x1, y = wavelet_coh$axis.2, z = (wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-          main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 2, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                         log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(add_points[,
-                                                      1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == TRUE & add_avg == FALSE & plot_horizontal ==
-      TRUE) {
-    layout.matrix <- matrix(c(1, 0, 3, 2), nrow = 2, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(0.25,
-                                                      1), widths = c(8, 2))
-    par(mar = c(0, 4, 2, 2))
-
-    plot(
-      y = wavelet_coh$y1,
-      x = wavelet_coh$x1,
-      type = "l",
-      col = "black",
-      xaxs = "i",
-      xlim = xlim_vals,
-      ylab = "proxy_1",
-      xlab = x_lab,
-      yaxt = "s",
-      xaxt = "s"
-    )
-
-    par(new = TRUE)
-    plot(
-      y = wavelet_coh$y2,
-      x = wavelet_coh$x2,
-      type = "l",
-      col = "red",
-      xaxs = "i",
-      xlim = xlim_vals,
-      ylab = "",
-      xlab = "",
-      yaxt = "n",
-      xaxt = "n"
-    )
-
-    axis(
-      side = 4,
-      col = "red",
-      col.axis = "red"
-    )
-
-    mtext(
-      "proxy_2",
-      side = 4,
-      line = 2,
-      col = "red"
-    )
-
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    par(new = FALSE, mar = c(4, 0, 2, 5))
-    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 0, 2))
-    image(x = wavelet_coh$x1, y = wavelet_coh$axis.2, z = (wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-          main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 2, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                         log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(add_points[,
-                                                      1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == FALSE & add_avg == TRUE & plot_horizontal ==
-      TRUE) {
-    layout.matrix <- matrix(c(3, 2, 1), nrow = 1, ncol = 3,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1),
-                     widths = c(6, 1, 1))
-    par(mar = c(4, 0, 2, 5))
-    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 0, 2, 0.5))
-    plot(x = wavelet_coh$Coh.avg, y = wavelet_coh$Period, log = "y",
-         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
-         xaxs = "i", ylim = sort(ylim_vals))
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = add_abline_h)
-    }
-    par(new = FALSE, mar = c(4, 4, 2, 0), mgp = c(2, 1,
-                                                  0))
-    image(x = wavelet_coh$x1, y = wavelet_coh$axis.2, z = (wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-          main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 2, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                         log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(add_points[,
-                                                      1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
-  if (add_data == FALSE & add_avg == FALSE & plot_horizontal ==
-      TRUE) {
-    layout.matrix <- matrix(c(2, 1), nrow = 1, ncol = 2,
-                            byrow = TRUE)
-    graphics::layout(mat = layout.matrix, heights = c(1),
-                     widths = c(10, 2.25))
-    par(mar = c(4, 0, 2, 5))
-    image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
-    axis(4, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
-    mtext(key.labels, side = 4, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    mtext(c("Power"), side = 4, at = mean(key.marks), line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
-    box(lwd = lwd.axis)
-    par(new = FALSE, mar = c(4, 4, 2, 0.5))
-    image(x = wavelet_coh$x1, y = wavelet_coh$axis.2, z = (wavelet_coh$Coherence),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-          main = main, xlim = xlim_vals, ylim = log2(sort(ylim_vals)))
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(wavelet_coh$axis.2))
-    period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
-    period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
-    period.tick.label = 2^(period.tick)
-    axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
-    mtext(period.tick.label, side = 2, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
-    if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                         log2(add_lines[, i]))
-    }
-    if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(add_points[,
-                                                      1], log2(add_points[, i]))
-    }
-    if (is.null(add_abline_h) != TRUE) {
-      abline(h = log2(add_abline_h))
-    }
-    if (is.null(add_abline_v) != TRUE) {
-      abline(v = add_abline_v)
-    }
-    if (plot_arrows == TRUE) {
-      maxdetect <- matrix(0, nrow = wavelet_coh$nr, ncol = wavelet_coh$nc)
-      for (j in 1:wavelet_coh$nc) {
-        for (i in 2:(wavelet_coh$nr - 1)) {
-          # Vertical check along the Period axis
-          if ((Power[i, j] > Power[i + 1, j]) &
-              (Power[i, j] > Power[i - 1, j])) {
-            maxdetect[i, j] <- 1
-          }
-        }
-      }
-
-
-      # --- 4. PHASE ARROWS ---
-      # Filter by top 20% power and use the ridge detector
-      p_thresh = quantile(wavelet_coh$Coherence, pwr_quant)
-      # Subsample time (t_idx) to avoid overlapping arrows in high-res Superlets
-      t_idx = seq(1, wavelet_coh$nc, by = round(wavelet_coh$nc / n_arrows))
-      s_idx = 1:wavelet_coh$nr
-
-      for (i in t_idx) {
-        for (j in s_idx) {
-          if (Power[j, i] >= p_thresh && maxdetect[j, i] == 1) {
-            x0 <- wavelet_coh$x1[i]
-            y0 <- wavelet_coh$axis.2[j]
-            angle <- Phase[j, i]
-
-            # Draw the phase arrow
-            # Angle 0: In-phase (Right), Pi: Anti-phase (Left)
-            x1 <- x0 + cos(angle) * T_unit  # Time-unit length
-            y1 <- y0 + sin(angle) * P_unit # Log2-unit length
-            if (plot_horizontal == TRUE) {
-              arrows(
-                x0,
-                y0,
-                x1,
-                y1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-            } else{
-              arrows(
-                y0,
-                x0,
-                y1,
-                x1,
-                length = arrow_length,
-                lwd = arrow_lwd ,
-                angle = arrow_angle,
-                col = "black"
-              )
-
-
-            }
-          }
-        }
-      }
-    }
-  }
+  p <- list(wavelet = wavelet_coh, data_x = wavelet_coh$x1, data_y = wavelet_coh$y1, data2 = list(x = wavelet_coh$x2, y = wavelet_coh$y2),
+            depth = wavelet_coh$x1, ax2 = wavelet_coh$axis.2, z = Power, avg = wavelet_coh$Coh.avg, per = wavelet_coh$Period,
+            tick_min = min(log2(ylim_vals)), tick_max = max(log2(ylim_vals)), overlay = FALSE,
+            gws_abline_all = TRUE, levels = power_max_mat.levels,
+            n.levels = n.levels, key.cols = key.cols, key.marks = key.marks,
+            key.labels = key.labels, lwd.axis = lwd.axis, xlim_vals = xlim_vals,
+            ylim_vals = sort(ylim_vals), periodlab = periodlab, x_lab = x_lab, main = main, periodtck = periodtck,
+            periodtcl = periodtcl, add_lines = add_lines, add_points = add_points, add_abline_h = add_abline_h,
+            add_abline_v = add_abline_v, add_MTM_peaks = FALSE, add_pval = FALSE,
+            pval_abline = NULL, pval_cutoff = NULL, add_signif = NULL,
+            MTM_res_1 = NULL, MTM_res_2 = matrix(data = NA, ncol = 2, nrow = 1),
+            plot_horizontal = plot_horizontal, add_data = add_data, add_avg = add_avg, add_MTM = FALSE,
+            arrows = if (plot_arrows == TRUE) list(Power = Power, Phase = Phase, nr = wavelet_coh$nr, nc = wavelet_coh$nc,
+                                                   p_thresh = quantile(wavelet_coh$Coherence, pwr_quant), n_arrows = n_arrows,
+                                                   depth = wavelet_coh$x1, ax2 = wavelet_coh$axis.2, T_unit = T_unit, P_unit = P_unit,
+                                                   length = arrow_length, lwd = arrow_lwd, angle = arrow_angle))
+  .pw_draw(p)
 }

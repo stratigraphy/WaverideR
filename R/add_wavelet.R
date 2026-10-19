@@ -3,7 +3,7 @@
 #' @description Generates a plot of a wavelet scalogram which can be integrated into
 #' a larger composite plot
 #'
-#'@param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
 #'@param lowerPeriod Lowest period value which will be plotted
 #'@param upperPeriod Highest period value which will be plotted
 #'@param lower_depth_time lowest depth/time value which will be plotted
@@ -19,7 +19,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -95,7 +95,7 @@
 #'
 #'
 #'mag_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = mag,
 #'    dj = 1 / 100,
 #'   lowerPeriod = 0.1,
@@ -173,7 +173,7 @@
 #'  add_points = NULL,
 #'  add_abline_h = NULL,
 #'  add_abline_v = NULL,
-#'  plot_horizontal = TRUE,
+#'  plot_horizontal = FALSE,
 #'  period_ticks = 1,
 #'  periodlab = "period (m)",
 #'  main = NULL,
@@ -214,16 +214,21 @@
 #'  plot_residual = FALSE
 #')
 #'
-#'mag_110_hil <- Hilbert_transform(mag_110,demean=FALSE)
+#'# amplitude of the ~110-kyr cycle from the wavelet: the tracked 405-kyr curve scaled to 110 kyr
+#'track_110 <- cbind(mag_track_solution[, 1], mag_track_solution[, 2] * 110 / 405)
+#'mag_110_amp <- extract_amplitude(mag_110, cycle = track_110, band = c(0.75, 1.33))
+#'mag_110_mean <- mean(mag_110[, 2])
 #'
 #'plot(mag_110[,2],mag_110[,1],type="l",
 #'     yaxt="n", yaxs = "i",
 #'     xlab="110-kyr ecc")
 #'
-#'lines(mag_110_hil[,2],mag_110_hil[,1])
+#'lines(mag_110_mean + mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
+#'lines(mag_110_mean - mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
 #'}
 #'@return
 #'returns a plot of a wavelet scalogram
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -237,56 +242,15 @@
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
 #' @importFrom astrochron mtm
-#' @importFrom DescTools Closest
 #' @importFrom graphics abline
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -314,7 +278,9 @@ add_wavelet <- function(wavelet = NULL,
                         main = NULL,
                         yaxt = "s",
                         xaxt = "s",
-                        depth_time_lab = "depth (m)"){
+                        depth_time_lab = "depth (m)",
+  colour_brewer = NULL){
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   levels = quantile(wavelet$Power, probs = seq(
     from = 0,
     to = 1,
@@ -346,51 +312,7 @@ add_wavelet <- function(wavelet = NULL,
   }
 
 
-  if (color_brewer == "RColorBrewer") {
-    key.cols <-
-      rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name, 1], palette_name))(n.levels))
-
-  }
-
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <-
-      paste("colorRamps::", palette_name, "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <-
-        "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" |
-             palette_name == "terrain.colors" |
-             palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <-
-        paste("grDevices::",
-              palette_name,
-              "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-
-        hcl.colors(
-          n = n.levels,
-          palette = palette_name,
-          alpha = NULL,
-          rev = FALSE,
-          fixup = TRUE
-        )
-    }
-  }
-
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <-
-      paste("viridis::", palette_name, "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
   maximum.level = max(wavelet$Power)

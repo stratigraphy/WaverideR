@@ -29,6 +29,10 @@
 #'@param max_runs maximum runs before one of the  age constraints is dropped \code{Default=1000}
 #'@param keep_nr minimal number of age constraints to be kept \code{Default=2}
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. Only used when
+#'   `run_multicore = TRUE`. Results do not depend on the number of cores.
 #'@param verbose Print text \code{Default=FALSE}.
 #'@param genplot generate plot code\code{Default=FALSE}
 #'@param keep_all_time_curves weather to keep all the generated age curves
@@ -41,15 +45,15 @@
 #' in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
 #' the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
 #' Increasing the increases the computational time of the CWT \code{Default=1/200}.
-#' @param lowerPeriod  Lowest period to be analyzed \code{Default=2}.
+#' @param lowerPeriod  Lowest period to be analysed \code{Default=2}.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #' scaling is done using power 2 so for the best plotting results select a value to the power or 2.
-#' @param upperPeriod Upper period to be analyzed \code{Default=1024}.
+#' @param upperPeriod Upper period to be analysed \code{Default=1024}.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #'  scaling is done using power 2 so for the best plotting results select a value to the power or 2.
-#' @param omega_nr Number of cycles contained within the Morlet wavelet
+#' @param omega_nr The omega number: central angular frequency of the Morlet wavelet
 #'@param seed_nr The seed number of the Monte-Carlo simulations.
 #' \code{Default=1337}
 #'@param dir time direction of tuning e.g. does time increase or decrease with depth
@@ -77,7 +81,7 @@
 #'Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 #'
 #'Bisciaro_al_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_al,
 #'    dj = 1 / 200 ,
 #'    lowerPeriod = 0.01,
@@ -125,7 +129,7 @@
 #'Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 #'
 #'Bisciaro_ca_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_ca,
 #'    dj = 1 / 200 ,
 #'    lowerPeriod = 0.01,
@@ -175,7 +179,7 @@
 #'Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 #'
 #'Bisciaro_sial_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_sial,
 #'    dj = 1 / 200 ,
 #'    lowerPeriod = 0.01,
@@ -224,7 +228,7 @@
 #'Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 #'
 #'Bisciaro_Mn_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mn,
 #'    dj = 1 / 200 ,
 #'    lowerPeriod = 0.01,
@@ -271,7 +275,7 @@
 #'Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 #'
 #'Bisciaro_Mg_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mg,
 #'    dj = 1 / 200 ,
 #'    lowerPeriod = 0.01,
@@ -448,12 +452,7 @@
 #' @importFrom stats quantile
 #' @importFrom stats runif
 #' @importFrom stats rnorm
-#' @importFrom matrixStats rowSds
-#' @importFrom matrixStats colMins
-#' @importFrom DescTools Closest
 #' @importFrom stats pnorm
-#' @importFrom rlist list.append
-#' @importFrom rlist list.extract
 #' @importFrom astrochron linterp
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -466,16 +465,9 @@
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
 #' @importFrom astrochron mtm
-#' @importFrom DescTools Closest
-#' @importFrom parallel stopCluster
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
 #' @importFrom stats runif
-#' @importFrom trapezoid rtrapezoid
 
 
 curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = NULL,
@@ -483,6 +475,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
                                    tracked_cycle_period_unc_dist = "n", n_simulations = 20,
                                    gap_constraints = NULL, proxy_data = NULL, cycles_check = NULL,
                                    uncer_cycles_check = NULL, max_runs = 1000, run_multicore = FALSE,
+                                   n_cores = NULL,
                                    verbose = FALSE, genplot = FALSE, keep_nr = 2, keep_all_time_curves = FALSE,
                                    dj = 1/200, lowerPeriod = 1, upperPeriod = 4600, omega_nr = 6,
                                    seed_nr = 1337, dir = TRUE)
@@ -515,11 +508,6 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
                        ncol = n_simulations)
   if (verbose == TRUE) {
     pb <- txtProgressBar(max = n_simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)
-  }else {
-    opts = NULL
   }
   set.seed(seed_nr)
   if (nrow(age_constraint) > 0) {
@@ -650,7 +638,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
                 }
               }
               gaps_dur[qx, 1] <- gap_dur_new
-              row_nr <- DescTools::Closest(time_curve[, 1],
+              row_nr <- wr_closest(time_curve[, 1],
                                            as.numeric(gap_constraints[qx, 3]),
                                            which = TRUE)
               out_3 <- time_curve[, 2]
@@ -700,15 +688,12 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
             }
             if (age_constraint_2[klm, 7] == "t") {
               trap_par <- as.numeric(unlist(strsplit(age_constraint_2[klm, 5], " +")))
-              anchor_depth_new <- trapezoid::rtrapezoid(
+              anchor_depth_new <- wr_rtrapezoid(
                 1,
                 min = trap_par[1],
                 mode1 = trap_par[2],
                 mode2 = trap_par[3],
-                max = trap_par[3],
-                n1 = 2,
-                n3 = 2,
-                alpha = 1
+                max = trap_par[3]
               )
             }
             if (age_constraint_2[klm, 4] == "u") {
@@ -729,7 +714,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
             }
             anchor_depth_2[klm] <- anchor_depth_new
             anchor_age_2[klm] <- anchor_age_new
-            row_nr <- DescTools::Closest(time_curve[, 1], anchor_depth_2[klm], which = TRUE)
+            row_nr <- wr_closest(time_curve[, 1], anchor_depth_2[klm], which = TRUE)
             anchor_astro_age[klm] <- time_curve[row_nr, 2]
           }
           ages_radio <- anchor_age_2
@@ -768,8 +753,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
             runs <- runs + 1
           }
           if (runs == max_runs) {
-            anchor_diff_rw_sum <- matrixStats::rowSums2(as.matrix(anchor_diff))
-            row_nr <- DescTools::Closest(anchor_diff_rw_sum,
+            anchor_diff_rw_sum <- rowSums(as.matrix(anchor_diff))
+            row_nr <- wr_closest(anchor_diff_rw_sum,
                                          max(anchor_diff_rw_sum),
                                          which = TRUE)
             if (length(sel_rws) <= keep_nr) {
@@ -791,19 +776,14 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
         }
         else
           (result <- list(time_curve_anchored[, 2], anchor_astro_age, gaps_dur))
-        res_list <- list.append(res_list, result)
+        res_list <- c(res_list, list(result))
         if (verbose == TRUE) {
           setTxtProgressBar(pb, i)
         }
       }
     }
     if (run_multicore == TRUE) {
-      numCores <- detectCores()
-      cl <- parallel::makeCluster(numCores - 2)
-      registerDoSNOW(cl)
-      i <- 1
-      fit <- foreach(i = 1:n_simulations, .options.snow = opts) %dopar%
-        {
+      fit <- wr_lapply(seq_len(n_simulations), function(i) {
 
 
           check_astro_age <- matrix(
@@ -926,7 +906,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
                   }
                 }
                 gaps_dur[qx, 1] <- gap_dur_new
-                row_nr <- DescTools::Closest(time_curve[, 1],
+                row_nr <- wr_closest(time_curve[, 1],
                                              as.numeric(gap_constraints[qx, 3]),
                                              which = TRUE)
                 out_3 <- time_curve[, 2]
@@ -976,15 +956,12 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
               }
               if (age_constraint_2[klm, 7] == "t") {
                 trap_par <- as.numeric(unlist(strsplit(age_constraint_2[klm, 5], " +")))
-                anchor_depth_new <- trapezoid::rtrapezoid(
+                anchor_depth_new <- wr_rtrapezoid(
                   1,
                   min = trap_par[1],
                   mode1 = trap_par[2],
                   mode2 = trap_par[3],
-                  max = trap_par[3],
-                  n1 = 2,
-                  n3 = 2,
-                  alpha = 1
+                  max = trap_par[3]
                 )
               }
               if (age_constraint_2[klm, 4] == "u") {
@@ -1005,7 +982,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
               }
               anchor_depth_2[klm] <- anchor_depth_new
               anchor_age_2[klm] <- anchor_age_new
-              row_nr <- DescTools::Closest(time_curve[, 1], anchor_depth_2[klm], which = TRUE)
+              row_nr <- wr_closest(time_curve[, 1], anchor_depth_2[klm], which = TRUE)
               anchor_astro_age[klm] <- time_curve[row_nr, 2]
             }
             ages_radio <- anchor_age_2
@@ -1067,7 +1044,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
             npts <- length(xout)
             interp <- approx(dat[, 1], dat[, 2], xout, method = "linear", n = npts)
             completed_series <- as.data.frame(interp)
-            wt_res <- WaverideR::analyze_wavelet(
+            wt_res <- WaverideR::analyse_wavelet(
               data = completed_series,
               dj = dj,
               lowerPeriod = lowerPeriod,
@@ -1112,8 +1089,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
               print(runs)
             }
             if (runs == max_runs) {
-              anchor_diff_rw_sum <- matrixStats::rowSums2(as.matrix(anchor_diff))
-              row_nr <- DescTools::Closest(anchor_diff_rw_sum,
+              anchor_diff_rw_sum <- rowSums(as.matrix(anchor_diff))
+              row_nr <- wr_closest(anchor_diff_rw_sum,
                                            max(anchor_diff_rw_sum),
                                            which = TRUE)
               if (length(sel_rws) <= keep_nr) {
@@ -1137,9 +1114,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
           else {
             (result <- list(time_curve_anchored, anchor_astro_age, gaps_dur))
           }
-        }
+        }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
       res_list <- fit
-      stopCluster(cl)
     }
   }
   result_matrix <- matrix(data = NA,
@@ -1259,7 +1235,7 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
       pch = 2
     )
     res <- result[[2]]
-    sds <- rowSds(result[[2]])
+    sds <- wr_row_sds(result[[2]])
     lines(x_axis, rowMeans(result[[2]]), col = "black")
     lines(x_axis, rowMeans(result[[2]]) + 2 * sds, col = "red")
     lines(x_axis, rowMeans(result[[2]]) - 2 * sds, col = "blue")

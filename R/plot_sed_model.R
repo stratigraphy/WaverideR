@@ -3,7 +3,7 @@
 #' @description The \code{\link{plot_sed_model}} function is used plot/re-plot the results from the
 #' \code{\link{flmw}} and  \code{\link{sum_power_sedrate}} functions
 #'
-#'@param model_results Wavelet object created using the \code{\link{analyze_wavelet}} function
+#'@param model_results Wavelet object created using the \code{\link{analyse_wavelet}} function
 #'@param plot_res Numbers to be used as input form the \code{\link{flmw}}output
 #' options 1-8 option 1: slope coefficient, option 2: r squared,
 #'option 3: nr of components, option 4: difference to origin, option 5: slope coefficient percentile
@@ -22,7 +22,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -41,16 +41,16 @@
 #'#estimate sedimentation rate for the the magnetic susceptibility record
 #'# of the Sullivan core of Pas et al., (2018).
 #'
-#'mag_wt <- analyze_wavelet(data = mag,
-#' dj = 1/100,
+#'mag_wt <- analyse_wavelet(data = mag[1:200, ],
+#' dj = 1/10,
 #' lowerPeriod = 0.1,
-#' upperPeriod = 254,
+#' upperPeriod = 32,
 #' verbose = FALSE,
 #' omega_nr = 10)
 #'
 #'#increase n_simulations to better define the red noise spectral power curve
 #'mag_wt_red_noise <- model_red_noise_wt(wavelet=mag_wt,
-#'n_simulations=10, # increase for a better constrained result
+#'n_simulations = 3, # increase for a better constrained result
 #'run_multicore=FALSE,
 #'verbose=FALSE)
 #'
@@ -59,7 +59,7 @@
 #'percentile=0.75,
 #'sedrate_low = 0.5,
 #'sedrate_high = 4,
-#'spacing = 0.05,
+#'spacing = 1,
 #'cycles = c(2376,1600,1180,696,406,110),
 #'x_lab="depth",
 #'y_lab="sedrate",
@@ -83,6 +83,7 @@
 #'Returns a plot of sedimentation rates vs depth and a value which was generated using
 #'the \code{\link{flmw}} or \code{\link{sum_power_sedrate}} functions
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -94,27 +95,7 @@
 #' @importFrom graphics polygon
 #' @importFrom grDevices rgb
 #' @importFrom graphics layout
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -128,11 +109,13 @@ plot_sed_model  <- function(model_results = NULL,
                             y_lab = "sed rate cm/kyr",
                             keep_editable = FALSE,
                             palette_name = "rainbow",
-                            color_brewer= "grDevices" ) {
+                            color_brewer= "grDevices",
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   depth <-   as.numeric(model_results$depth)
   y_axis <- as.numeric(model_results$y_axis)
 
-  dev.new(width = 14, height = 7)
+  wr_open_device(width = 14, height = 7)
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
@@ -156,39 +139,7 @@ plot_sed_model  <- function(model_results = NULL,
   ))
 
   image.plt = par()$plt
-  if (color_brewer== "RColorBrewer"){
-    key.cols <-   rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,1],palette_name))(n.levels))
-
-  }
-
-
-  if (color_brewer== "colorRamps"){
-    color_brewer_Sel <- paste("colorRamps::",palette_name,"(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-
-
-  if (color_brewer == "grDevices"){
-    if (palette_name == "rainbow"){
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors"|
-             palette_name == "terrain.colors"|
-             palette_name == "topo.colors"|
-             palette_name == "cm.colors"){
-      color_brewer_Sel <- paste("grDevices::",palette_name,"(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else{
-      key.cols <-  hcl.colors(n=n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE)}}
-
-
-
-  if (color_brewer== "viridis"){
-    color_brewer_Sel <- paste("viridis::",palette_name,"(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
 
 
 

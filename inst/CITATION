@@ -1,0 +1,28 @@
+citHeader("To cite WaverideR in publications please use both references: the paper that introduced the package and the package itself.")
+
+bibentry(
+  bibtype = "Article",
+  title   = "Age and orbital forcing in the upper Silurian Cellon section (Carnic Alps, Austria) uncovered using the WaverideR R package",
+  author  = c(person("Michiel", "Arts"), person("Carlo", "Corradini"), person("Monica", "Pondrelli"),
+              person("Damien", "Pas"), person("Anne-Christine", "Da Silva")),
+  journal = "Frontiers in Earth Science",
+  year    = "2024",
+  volume  = "12",
+  pages   = "1357751",
+  doi     = "10.3389/feart.2024.1357751",
+  textVersion = paste("Arts, M., Corradini, C., Pondrelli, M., Pas, D., Da Silva, A.-C. (2024).",
+                      "Age and orbital forcing in the upper Silurian Cellon section (Carnic Alps, Austria) uncovered using the WaverideR R package.",
+                      "Frontiers in Earth Science 12, 1357751. https://doi.org/10.3389/feart.2024.1357751")
+)
+
+bibentry(
+  bibtype = "Manual",
+  title   = "WaverideR: Extracting Signals from Wavelet Spectra",
+  author  = person("Michiel", "Arts"),
+  year    = "2023",
+  note    = "R package",
+  url     = "https://CRAN.R-project.org/package=WaverideR",
+  textVersion = "Arts, M.C.M. (2023). WaverideR: Extracting Signals from Wavelet Spectra. R package. https://CRAN.R-project.org/package=WaverideR"
+)
+
+citFooter("Please cite both, e.g. '... using the WaverideR R package (Arts et al., 2024; Arts, 2023)'.")

@@ -34,13 +34,13 @@
 #' in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
 #' the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
 #' Increasing the increases the computational time of the CWT \code{Default=1/200}.
-#' @param lowerPeriod  Lowest period to be analyzed \code{Default=2}.
+#' @param lowerPeriod  Lowest period to be analysed \code{Default=2}.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #' scaling is done using power 2 so for the best plotting results select a value to the power or 2.
-#' @param upperPeriod Upper period to be analyzed \code{Default=1024}.
+#' @param upperPeriod Upper period to be analysed \code{Default=1024}.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #'  scaling is done using power 2 so for the best plotting results select a value to the power or 2.
 #' @param period_max Maximum period (upper boundary) to be used to extract a cycle.
 #' @param period_min Minimum period (lower boundary) to be used to extract a cycle.
@@ -54,14 +54,15 @@
 #' \code{Default=1337}
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
 #'
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. Only used when
+#'   `run_multicore = TRUE`. Results do not depend on the number of cores.
 #'@return
 #'a vector with all the calculated gap durations
 #'
 #' @export
 #' @importFrom stats quantile
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 #' @importFrom stats runif
@@ -88,29 +89,14 @@ dur_gaps <- function(proxies = NULL,
                      missing_cycle_unc = NULL,
                      missing_cycle_unc_dist = "u",
                      seed_nr=1337,
-                     run_multicore = FALSE) {
+                     run_multicore = FALSE, n_cores = NULL) {
 
 
   if (run_multicore == TRUE) {
     set.seed(seed_nr)
-    j <- 1
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-
-    pb <- txtProgressBar(max = n_simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)
 
     dur_gaps <-
-      foreach::foreach (
-        j = 1:(n_simulations),
-        .options.snow   = opts,
-        .errorhandling = "remove",
-        .packages = c("WaverideR", "stats"),
-        .combine = "cbind"
-      ) %dopar% {
+      wr_lapply(seq_len(n_simulations), function(j) {
         new_curve_1 <- matrix(
           data = NA,
           nrow = nrow(retracked_period_1),
@@ -217,7 +203,7 @@ dur_gaps <- function(proxies = NULL,
 
 
         tuned_1_wt <-
-          analyze_wavelet(
+          analyse_wavelet(
             tuned_1,
             dj = dj,
             lowerPeriod = lowerPeriod,
@@ -235,7 +221,7 @@ dur_gaps <- function(proxies = NULL,
         tuned_1_wt <- NULL
 
         tuned_2_wt <-
-          analyze_wavelet(
+          analyse_wavelet(
             tuned_2,
             dj = dj,
             lowerPeriod = lowerPeriod,
@@ -253,8 +239,6 @@ dur_gaps <- function(proxies = NULL,
 
         peak_opt <- min_max[[proxy_nr]]
 
-
-        plot(tuned_1_wt_cycle)
 
         if (peak_opt == "min") {
           pts_tuned_1_wt_cycle <-
@@ -275,7 +259,7 @@ dur_gaps <- function(proxies = NULL,
         dur_gap <-
           (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
                                                           max(pts_tuned_1_wt_cycle[, 1]))
-      }
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = TRUE)
   } else {
     dur_gaps <- NA
     set.seed(seed_nr)
@@ -386,7 +370,7 @@ dur_gaps <- function(proxies = NULL,
 
 
       tuned_1_wt <-
-        analyze_wavelet(
+        analyse_wavelet(
           tuned_1,
           dj = dj,
           lowerPeriod = lowerPeriod,
@@ -404,7 +388,7 @@ dur_gaps <- function(proxies = NULL,
       tuned_1_wt <- NULL
 
       tuned_2_wt <-
-        analyze_wavelet(
+        analyse_wavelet(
           tuned_2,
           dj = dj,
           lowerPeriod = lowerPeriod,

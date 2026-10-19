@@ -5,7 +5,7 @@
 #'@param tracked_cycle_curve Traced period result from the \code{track_period_wavelet}
 #'function completed using the \code{completed_series}.
 #'The input can be pre-smoothed using the the \code{loess_auto} function.
-#'@param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
+#'@param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
 #'@param period_up Upper period as a factor of the to be extracted cycle \code{Default=1.2}.
 #'@param period_down Lower period as a factor of the to be extracted cycle \code{Default=0.8}.
 #'@param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
@@ -38,7 +38,7 @@
 #'#deviation to define boundaries.
 #'
 #'#Perform the CWT
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -92,9 +92,7 @@
 #'
 #'
 #' @export
-#' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
-#' @importFrom DescTools Closest
 
 
 extract_signal <- function(tracked_cycle_curve = NULL,
@@ -118,7 +116,7 @@ extract_signal <- function(tracked_cycle_curve = NULL,
 
   completed_series <- na.omit(tracked_cycle_curve)
   completed_series[,2] <- completed_series[,2]*(extract_cycle/tracked_cycle_period)
-  app <- approxExtrap(x=completed_series[,1],y=completed_series[,2],xout=my.data[,1],
+  app <- wr_approx_extrap(x=completed_series[,1],y=completed_series[,2],xout=my.data[,1],
                       method="linear")
   interpolated <- cbind(app$x,app$y)
 
@@ -138,7 +136,7 @@ extract_signal <- function(tracked_cycle_curve = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ])/sqrt(Scale[s.ind])) *
-      dj * sqrt(dt)/(pi^(-1/4))}
+      dj * sqrt(dt)/.wr_psi0(my.w)}
 
 
   interpolated <- as.data.frame(interpolated)
@@ -146,8 +144,8 @@ extract_signal <- function(tracked_cycle_curve = NULL,
   interpolated$low <- interpolated[,2]*(period_down)
 
   for (i in 1:nrow(filtered_cycle)){
-    row_nr_high <- Closest(Period[],interpolated[i,3],which=TRUE)
-    row_nr_low <- Closest(Period[],interpolated[i,4],which=TRUE)
+    row_nr_high <- wr_closest(Period[],interpolated[i,3],which=TRUE)
+    row_nr_low <- wr_closest(Period[],interpolated[i,4],which=TRUE)
 
     row_nr_high <-row_nr_high[1]
     row_nr_low <- row_nr_low[1]

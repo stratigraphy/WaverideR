@@ -1,6 +1,6 @@
 #'@title Re-track cycles using a Monte-Carlo simulation
 #'
-#'@description When analyzing multi-proxy records an age-model can be created
+#'@description When analysing multi-proxy records an age-model can be created
 #'for each proxy. These age-models can be in general agreement but might also
 #'indicate conflicting deposition rates. Picking one age-model out of the all
 #'multi-proxy age-models and stating that, that age-model is the best overlooks
@@ -34,7 +34,7 @@
 #' age-model is less-reliable in this interval.
 #'
 #'@param wt_list a list containing all the wavelet objects created using the
-#'\link[WaverideR]{analyze_wavelet} wavelet function
+#'\link[WaverideR]{analyse_wavelet} wavelet function
 #'To create a list use the \link[base]{list} function
 #'@param data_track a matrix containing all the tracked period values.
 #'To create the matrix use the \link[base]{cbind} function and only add the
@@ -48,7 +48,7 @@
 #' parameter. or "window" where one can specific the window length of the moving
 #' average. one should specify the parameter and its value as vector
 #'#'@param wt_list a list containing all the wavelet objects created using the
-#'\link[WaverideR]{analyze_wavelet} wavelet function
+#'\link[WaverideR]{analyse_wavelet} wavelet function
 #'To create a list use the \link[base]{list} function
 #'@param nr_simulations The number of Monte-Carlo simulations which are to be
 #' conducted\code{Default=50}
@@ -86,7 +86,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -111,6 +111,10 @@
 #'the files are saved in a folder with a similar name created in the current
 #'directory
 #'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
+#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
+#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
+#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
+#'   parallel computing. Results do not depend on the number of cores.
 #'@param output #'If output = 1, output is a list which contain 3 objects.
 #'object 1 is a matrix with the x-axis and the mean tracked frequency and
 #'standard deviation. #'object 2 is a matrix with all the tracked periods.
@@ -180,9 +184,9 @@
 #'Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 #'
 #'Bisciaro_al_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_al,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -222,9 +226,9 @@
 #'Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 #'
 #'Bisciaro_ca_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_ca,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -263,9 +267,9 @@
 #'Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 #'
 #'Bisciaro_sial_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_sial,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -307,9 +311,9 @@
 #'Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 #'
 #'Bisciaro_Mn_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mn,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -349,9 +353,9 @@
 #'Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 #'
 #'Bisciaro_Mg_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mg,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -439,12 +443,8 @@
 #'
 #'}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom magick image_write
-#' @importFrom magick image_read
-#' @importFrom magick image_join
-#' @importFrom magick image_animate
-#' @importFrom rlist list.extract
 #' @importFrom astrochron linterp
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -457,56 +457,15 @@
 #' @importFrom graphics title
 #' @importFrom grDevices rgb
 #' @importFrom astrochron mtm
-#' @importFrom DescTools Closest
 #' @importFrom graphics abline
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
 #' @importFrom grDevices topo.colors
 #' @importFrom grDevices cm.colors
 #' @importFrom grDevices hcl.colors
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -516,11 +475,8 @@
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices png
 #' @importFrom astrochron sortNave
-#' @importFrom parallel stopCluster
-#' @importFrom parallel makeCluster
 #' @importFrom astrochron noLow
 #' @importFrom astrochron mwStats
-#' @importFrom doSNOW registerDoSNOW
 
 
 retrack_wt_MC <- function(wt_list = NULL,
@@ -548,10 +504,13 @@ retrack_wt_MC <- function(wt_list = NULL,
                           time_dir = TRUE,
                           file_name = NULL,
                           run_multicore = FALSE,
+                          n_cores = NULL,
                           output = 1,
                           n_imgs = 50,
                           plot_horizontal = TRUE,
-                          empty_folder = FALSE){
+                          empty_folder = FALSE,
+  colour_brewer = NULL){
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
 
   simulations = nr_simulations
   img_animated <- NULL
@@ -559,22 +518,12 @@ retrack_wt_MC <- function(wt_list = NULL,
 
 
 
-  if (run_multicore == TRUE) {
-    numCores <- detectCores()
-    cl <- parallel::makeCluster(numCores - 2)
-    registerDoSNOW(cl)
-  }
 
   if (empty_folder==TRUE & create_GIF==TRUE){
     f <- list.files(file_name, include.dirs = F, full.names = T, recursive = T)
     file.remove(f)}
 
 
-  if (verbose==TRUE){
-    pb <- txtProgressBar(max = simulations, style = 3)
-    progress <- function(n)
-      setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)}else{opts=NULL}
 
   if (create_GIF==TRUE){
     dir.create(file_name, showWarnings = TRUE, recursive = FALSE, mode = "0777")
@@ -582,10 +531,8 @@ retrack_wt_MC <- function(wt_list = NULL,
 
   n_curves <- ncol(data_track)
 
-  if (run_multicore == TRUE) {
-    j <- 1 # needed to assign 1 to ijk to avoid note
-    set.seed(seed_nr)
-    fit <-  foreach (j = 1:simulations, .options.snow  = opts, .combine = 'cbind') %dopar% {
+  set.seed(seed_nr)
+    fit <-  wr_lapply(seq_len(simulations), function(j) {
 
       sel_curve <- sample(1:n_curves, 1, replace=F)
       n <- n_curves
@@ -598,7 +545,7 @@ retrack_wt_MC <- function(wt_list = NULL,
       fractions <- rowSums(fractions)
       fractions <- cbind(x_axis,fractions)
 
-      wt_sel <- rlist::list.extract(wt_list, sel_curve)
+      wt_sel <- wt_list[[sel_curve]]
 
       completed_curve <- WaverideR::completed_series(
         wavelet =  wt_sel,
@@ -654,77 +601,17 @@ retrack_wt_MC <- function(wt_list = NULL,
       }
       completed_curve <- completed_curve[,2]
 
-    }
-
-    stopCluster(cl)
-  }
-
-  if (run_multicore == FALSE) {
-
-  fit <- matrix(data=NA,nrow=length(x_axis),ncol=simulations)
-
-  for (j in 1:simulations){
-  sel_curve <- sample(1:n_curves, 1, replace=F)
-  n <- n_curves
-  x <- runif(n, 0, 1)
-  y <- x / sum(x)
+    }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
 
-  vals <- matrix(rep(t(y),nrow(data_track)),ncol=ncol(data_track),byrow=TRUE)
-  fractions <- data_track*vals
-  fractions <- rowSums(fractions)
-  fractions <- cbind(x_axis,fractions)
-
-  wt_sel <- rlist::list.extract(wt_list, sel_curve)
-
-  completed_curve <- WaverideR::completed_series(
-    wavelet =  wt_sel,
-    tracked_curve =  fractions[,c(1,2)],
-    period_up  = period_up,
-    period_down  = period_down,
-    extrapolate = TRUE,
-    genplot = FALSE
-  )
 
 
-  completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
-  completed_curve <- completed_curve[1:length(x_axis),]
-  completed_curve <- WaverideR::loess_auto(completed_curve)
-  interp <- approx(completed_curve[, 1],
-                   completed_curve[, 2], x_axis, method = "linear")
-  completed_curve <- cbind(interp$x, interp$y)
-
-  completed_curve <- completed_curve[,c(1,2)]
-
-
-  if (create_GIF==TRUE){
-    png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
-
-    WaverideR::plot_wavelet(wavelet = wt_sel,
-                            plot.COI = plot.COI,
-                            n.levels = n.levels,
-                            useRaster = TRUE,
-                            palette_name = palette_name,
-                            color_brewer = color_brewer,
-                            periodlab = periodlab,
-                            x_lab = x_lab,
-                            add_lines=completed_curve,
-                            add_avg= add_avg,
-                            dev_new = FALSE,
-                            time_dir = time_dir,
-                            plot_horizontal = plot_horizontal)
-    dev.off()
-  }
-  fit[,j] <- completed_curve[,2]
-
-}
-}
 
 
   sims_2 <- 1/fit
   sims_mean_2 <- rowMeans(sims_2,na.rm = TRUE)
   sims_2 <-  as.matrix(sims_2)
-  sims_sd_2 <- matrixStats::rowSds(sims_2,na.rm = TRUE)
+  sims_sd_2 <- wr_row_sds(sims_2,na.rm = TRUE)
 
   sed_run <- cbind(x_axis,sims_mean_2,sims_sd_2)
 
@@ -747,6 +634,9 @@ retrack_wt_MC <- function(wt_list = NULL,
   }
 
   if (create_GIF==TRUE){
+    if (!requireNamespace("magick", quietly = TRUE)) {
+      stop("create_GIF = TRUE needs the 'magick' package: install.packages('magick')", call. = FALSE)
+    }
     imgs <- list.files(file_name, full.names = TRUE)
 
     if (n_imgs > nr_simulations){
@@ -755,15 +645,15 @@ retrack_wt_MC <- function(wt_list = NULL,
 
     imgs <- imgs[1:n_imgs]
 
-    img_list <- lapply(imgs, image_read)
-    img_joined <- image_join(img_list)
-    img_animated <- image_animate(img_joined, fps = 5)
+    img_list <- lapply(imgs, magick::image_read)
+    img_joined <- magick::image_join(img_list)
+    img_animated <- magick::image_animate(img_joined, fps = 5)
 
     if (plot_GIF==TRUE){
       img_animated
     }
 
-    image_write(image = img_animated,
+    magick::image_write(image = img_animated,
                 path =paste0(file_name,"/",file_name,".gif"))
   }
 

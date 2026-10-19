@@ -27,7 +27,7 @@ assigning a duration (in kyr) to the period of a tracked cycle
 #in a wavelet spectra by assigning a duration of  405 kyr to the tracked cycle.
 # the example uses the magnetic susceptibility data set of Pas et al., (2018)
 # perform the CWT
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

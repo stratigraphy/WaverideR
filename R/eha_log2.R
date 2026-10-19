@@ -13,13 +13,13 @@
 #' @param upperPeriod Upper period to be analyzed.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
 #' so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #'  scaling is done using power 2 so for the best plotting results select a
 #'  value to the power or 2.
 #' @param lowerPeriod  Lowest period to be analyzed.
 #' The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
 #' so the proper selection these
-#' parameters allows to analyze the signal for a specific range of cycles.
+#' parameters allows to analyse the signal for a specific range of cycles.
 #' scaling is done using power 2 so for the best plotting results select a value
 #' to the power or 2.
 #' @param pad with zeros to how many points? Must not factor into a prime number
@@ -98,14 +98,8 @@
 #' @importFrom stats sd
 #' @importFrom stats median
 #' @importFrom stats fft
-#' @importFrom parallel detectCores
-#' @importFrom parallel makeCluster
-#' @importFrom doSNOW registerDoSNOW
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
-#' @importFrom foreach foreach
-#' @importFrom foreach %dopar%
-#' @importFrom parallel stopCluster
 #' @importFrom stats acf
 #' @importFrom astrochron eha
 
@@ -143,11 +137,11 @@ half_win <- (win / 2)
   } else if (padding == "noise") {
     timesteps_data <- length(z_pad_low)
     set.seed(timesteps_data)
-    phi_x_up <- colorednoise::autocorrelation(data[1:timesteps_data, 2])
+    phi_x_up <- wr_autocorrelation(data[1:timesteps_data, 2])
     if (phi_x_up >= 1) {
       phi_x_up <- 0.99
     }
-    x_pad_low <- colorednoise::colored_noise(
+    x_pad_low <- wr_coloured_noise(
       timesteps = timesteps_data,
       mean = mean(data[1:timesteps_data, 2]),
       sd = sd(data[1:timesteps_data, 2]),
@@ -155,13 +149,13 @@ half_win <- (win / 2)
     )
 
 
-    colorednoise::autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
+    wr_autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
 
-    phi_x_down <- colorednoise::autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
+    phi_x_down <- wr_autocorrelation(data[(nrow(data) - timesteps_data):nrow(data), 2])
     if (phi_x_down >= 1) {
       phi_x_down <- 0.99
     }
-    x_pad_high <- colorednoise::colored_noise(
+    x_pad_high <- wr_coloured_noise(
       timesteps = timesteps_data,
       mean = mean(data[(nrow(data) - timesteps_data):nrow(data), 2]),
       sd = sd(data[(nrow(data) - timesteps_data):nrow(data), 2]),

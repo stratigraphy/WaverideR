@@ -5,11 +5,11 @@
 #' astronomical cycle is modulated by higher order astronomical cycles.
 #'The spectral power record from an astronomical cycle can thus be used as a proxy for
 #' amplitude modulating cycles. The spectral power is extracted from a wavelet spectra
-#' which was created using the \code{\link{analyze_wavelet}}
+#' which was created using the \code{\link{analyse_wavelet}}
 #'function for a given, \code{cycle}, \code{period_up} and \code{period_down}
 #'
 #'
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyze_wavelet}} or
+#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
 #'or \code{\link{track_period}} function
 #'@param cycle Period of cycle for which the power will be extracted from the record.
 #'@param period_up Species the upper period of the to be extracted power \code{Default=1.2}.
@@ -41,7 +41,7 @@
 #'#Irradiance data set of Steinhilber et al., (2012).
 #'
 #'TSI_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = TSI,
 #'    dj = 1/200,
 #'    lowerPeriod = 16,
@@ -64,7 +64,6 @@
 #'The third column is extracted power/total power.
 #'
 #' @export
-#' @importFrom DescTools Closest
 
 extract_power_stable <- function(scalogram = NULL,
                                  cycle = NULL,
@@ -83,9 +82,9 @@ extract_power_stable <- function(scalogram = NULL,
   Period <- as.data.frame(my.w$Period)
   extract_power_high <- cycle * period_up
   extract_power_low <- cycle * period_down
-  low_rownr <- Closest(Period[, 1], extract_power_low, which = TRUE)
+  low_rownr <- wr_closest(Period[, 1], extract_power_low, which = TRUE)
   high_rownr <-
-    Closest(Period[, 1], extract_power_high, which = TRUE)
+    wr_closest(Period[, 1], extract_power_high, which = TRUE)
 
   if(inherits(scalogram,"analyze.superlet") == TRUE){
     Power <- t(my.w$Power)}

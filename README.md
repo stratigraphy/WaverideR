@@ -1,24 +1,64 @@
 # WaverideR
 
-WaverideR is an R package for advanced cyclostratigraphic analysis of stratigraphic data sets.
-It provides a comprehensive suite of spectral tools for detecting, visualising, and tracking
-non-stationary astronomical cycles, including continuous wavelet transforms (CWT),
-the superlet transform, windowed FFT, and evolutionary harmonic analysis (EHA) (wrapper).
-These methods allow both manual and automated tracking of orbital cycles in spectra and
-scalograms, even in records affected by large changes in sedimentation rate.Building on
-this spectral framework, WaverideR supports multi-proxy integration and Monte Carlo–based
-uncertainty propagation to construct statistically robust floating and absolute astrochronological
-age models. The package includes dedicated tools to quantify analytical wavelet uncertainty,
-estimate the duration of stratigraphic gaps and hiatuses, and integrate external radioisotopic
-age constraints. Designed for complex and incomplete stratigraphic records, WaverideR enables
-investigation of the imprint of astronomical forcing even in suboptimal datasets.
+Tools for extracting and analysing cyclic signals from stratigraphic and other time series
+with the continuous wavelet transform and the superlet transform: spectra, significance tests,
+sedimentation rate estimation, tracking of periods and age-model uncertainty, plus the
+astrochronology functions of acycle2R and the Bayesian age-model code of astroMCBchron.
+
+Version 0.6.0 (see `NEWS.md` for all changes).
 
 ## Installation
 
-You can install the development version of WaverideR from [GitHub](https://github.com/stratigraphy/WaverideR) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("stratigraphy/WaverideR")
+```r
+# development version
+# install.packages("remotes")
+remotes::install_github("stratigraphy/WaverideR")
 ```
 
+## A short example
+
+```r
+library(WaverideR)
+
+wt <- analyse_wavelet(data = mag[1:300, ], dj = 1/12, lowerPeriod = 0.2, upperPeriod = 32,
+                      omega_nr = 8, verbose = FALSE)
+sig <- wavelet_significance(wt)                       # red-noise significance (Torrence & Compo)
+plot_wavelet(wt, add_avg = TRUE, add_signif = sig)
+
+# significance of the power in a period band, valid for any omega_nr
+wavelet_band_significance(wt, period_range = c(0.8, 1.6))
+```
+
+`vignette("WaverideR-intro")` walks through the workflow.
+
+## What is in the package
+
+* **Transforms**: `analyse_wavelet()`, `analyse_superlet()`, cross spectra and coherence
+  (`analyse_Xwavelet()`, `analyse_Xsuperlet()`, `analyse_wavelet_coherence()`), evolutive harmonic
+  analysis (`eha_log2()`), and multitaper and bispectral tools.
+* **Significance**: `wavelet_significance()` (analytic and surrogate), `wavelet_band_significance()`
+  (scale-averaged, any `omega_nr`), `wavelet_uncertainty()`.
+* **Sedimentation rate**: `flmw()`, `flmw_path()`, `sum_power_sedrate()`, `model_red_noise_wt()`, COCO and eCOCO.
+* **Tying to astronomical solutions**: `astro_anchor()` and the interactive, random-order `astro_anchor_interactive()` (tie, untie, tune and inspect), `plot_astro_anchor()`, `anchor2time()`.
+* **Tracking and age models**: `track_period()`, `track_ecoco()`, `curve2time()`, `curve2time_unc()`,
+  `astroMCBchron()`, `modBchron()`.
+* **Plots**: all scalograms share one set of panel functions, so layouts, palettes and options behave the same.
+
+## Parallel computing
+
+Everything is sequential by default. `run_multicore = TRUE` and `n_cores` switch on base-R `parallel`
+(forked workers on Linux and macOS, PSOCK on Windows and in RStudio). The number of cores is capped by
+the physical cores, the free memory and the CRAN limit, and results do not depend on it.
+
+## Citation
+
+When using WaverideR please cite both the paper that introduced the package and the package itself, for example
+"... using the WaverideR R package (Arts et al., 2024; Arts, 2023)":
+
+* Arts, M., Corradini, C., Pondrelli, M., Pas, D., Da Silva, A.-C. (2024). Age and orbital forcing in the upper
+  Silurian Cellon section (Carnic Alps, Austria) uncovered using the WaverideR R package. *Frontiers in Earth
+  Science* 12, 1357751. https://doi.org/10.3389/feart.2024.1357751
+* Arts, M.C.M. (2023). WaverideR: Extracting Signals from Wavelet Spectra. R package.
+  https://CRAN.R-project.org/package=WaverideR
+
+`citation("WaverideR")` prints both entries.

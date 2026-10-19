@@ -2,7 +2,7 @@
 #'
 #' @description Extract a signal from the wavelet using a upper and lower period boundary
 #'
-#' @param wavelet wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param period_max Maximum period (upper boundary) to be used to extract a cycle.
 #' @param period_min Minimum period (lower boundary) to be used to extract a cycle.
 #' @param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
@@ -35,7 +35,7 @@
 #'# Irradiance data set of Steinhilber et al., (2012)
 #'
 #'TSI_wt <-
-#'analyze_wavelet(
+#'analyse_wavelet(
 #'data = TSI,
 #'dj = 1/200,
 #'lowerPeriod = 16,
@@ -87,11 +87,11 @@ extract_signal_stable_V2 <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / (pi ^ (-1 / 4))
+      dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
-  row_nr_high <- Closest(Period[], period_max, which = TRUE)
-  row_nr_low <- Closest(Period[], period_min, which = TRUE)
+  row_nr_high <- wr_closest(Period[], period_max, which = TRUE)
+  row_nr_low <- wr_closest(Period[], period_min, which = TRUE)
 
   row_nr_high <- row_nr_high[1]
   row_nr_low <- row_nr_low[1]

@@ -18,7 +18,7 @@
 #'
 #' @param scalogram
 #' A wavelet or superlet object created using
-#' \code{\link{analyze_wavelet}} or \code{\link{analyze_superlet}}.
+#' \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}.
 #'
 #' @param astro_cycle
 #' Duration (in kyr) of the astronomical cycle that is being tracked.
@@ -98,8 +98,9 @@
 #'
 #' @examples
 #' \donttest{
+#'if (interactive()) { # needs mouse input (identify())
 #' ## Track the 405 kyr eccentricity cycle in a magnetic susceptibility record
-#' mag_wt <- analyze_wavelet(
+#' mag_wt <- analyse_wavelet(
 #'   data = mag,
 #'   dj = 1/100,
 #'   lowerPeriod = 0.1,
@@ -113,10 +114,10 @@
 #'   astro_cycle = 405,
 #'   track_peaks = TRUE
 #' )
-#' }
+#' }}
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom reshape2 melt
 #' @importFrom stats quantile
 #' @importFrom graphics par
 #' @importFrom grDevices dev.new
@@ -131,27 +132,7 @@
 #' @importFrom stats aggregate
 #' @importFrom stats na.omit
 #' @importFrom astrochron traceFreq
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -164,44 +145,16 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
                           palette_name = "rainbow", color_brewer = "grDevices", plot_horizontal = TRUE,
                           plot_dir = TRUE, lowerPeriod = NULL, upperPeriod = NULL,
                           add_lines = NULL, add_points = NULL, add_abline_h = NULL,
-                          add_abline_v = NULL)
+                          add_abline_v = NULL,
+  colour_brewer = NULL)
 {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
   maximum.level = max(scalogram$Power)
   power_max_mat.levels = quantile(scalogram$Power, probs = seq(from = 0,
                                                                to = 1, length.out = n.levels + 1))
-  if (color_brewer == "RColorBrewer") {
-    key.cols <- rev(colorRampPalette(brewer.pal(brewer.pal.info[palette_name,
-                                                                1], palette_name))(n.levels))
-  }
-  if (color_brewer == "colorRamps") {
-    color_brewer_Sel <- paste("colorRamps::", palette_name,
-                              "(n=n.levels)")
-    key.cols = eval(parse(text = color_brewer_Sel))
-  }
-  if (color_brewer == "grDevices") {
-    if (palette_name == "rainbow") {
-      color_brewer_Sel <- "grDevices::rainbow(n=n.levels, start = 0, end = 0.7)"
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else if (palette_name == "heat.colors" | palette_name ==
-             "terrain.colors" | palette_name == "topo.colors" |
-             palette_name == "cm.colors") {
-      color_brewer_Sel <- paste("grDevices::", palette_name,
-                                "(n=n.levels, start = 0, end = 1)")
-      key.cols <- rev(eval(parse(text = color_brewer_Sel)))
-    }
-    else {
-      key.cols <- hcl.colors(n = n.levels, palette = palette_name,
-                             alpha = NULL, rev = FALSE, fixup = TRUE)
-    }
-  }
-  if (color_brewer == "viridis") {
-    color_brewer_Sel <- paste("viridis::", palette_name,
-                              "(n=n.levels,direction = -1)")
-    key.cols = rev(eval(parse(text = color_brewer_Sel)))
-  }
+  key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
   periodtck = 0.02
   periodtcl = 0.5
   main = NULL
@@ -214,7 +167,6 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
                       n.levels)
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
                        format = legend.params$label.format)[key.marks + 1]
-  plot_horizontal <- TRUE
   y_axis <- as.numeric(unlist(scalogram$Period))
   pmax_avg_sel <- t(scalogram$Power)
   depth <- scalogram$x
@@ -234,7 +186,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
   }
   ylim_vals = c(lowerPeriod, upperPeriod)
   if (plot_horizontal == TRUE) {
-    dev.new(width = 15, height = 7, noRStudioGD = TRUE)
+    wr_open_device(width = 15, height = 7, interactive_input = TRUE)
     layout.matrix <- matrix(c(1, 2, 4, 3), nrow = 2, ncol = 2,
                             byrow = TRUE)
     graphics::layout(mat = layout.matrix, heights = c(0.25,
@@ -311,7 +263,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
             }
           }
         }
-        maxdetect2 <- melt(maxdetect)
+        maxdetect2 <- wr_melt(maxdetect)
         depth <- rep(scalogram$x, each = length(scalogram$axis.2))
         period <- rep(scalogram$axis.2, times = length(scalogram$x))
         maxdetect2 <- as.data.frame(maxdetect2)
@@ -325,61 +277,17 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
         y = maxdetect2$x_val
         x = maxdetect2$y_val
       }
-      else {
-        x <- rep(scalogram$x, each = length(scalogram$axis.2))
-        y <- rep(scalogram$axis.2, times = length(scalogram$x))
-        n <- length(scalogram$x)
-      }
-      defaultW <- getOption("warn")
-      options(warn = -1)
-      xy <- xy.coords(x, y)
-      y <- xy$y
-      x <- xy$x
-      sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-      while (sum(sel) < n) {
-        ans <- identify(x, y, n = 1, plot = F, tolerance = 0.1)
-        if (!length(ans))
-          break
-        if (sel[ans, 1] == FALSE) {
-          sel[ans, 1] <- TRUE
-          sel[ans, 2] <- FALSE
-        }
-        else {
-          sel[ans, 1] <- FALSE
-          sel[ans, 2] <- TRUE
-        }
-        points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-        points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
-      }
-      pts <- sel[, 1]
-      if (track_peaks == TRUE) {
-        out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts,
-                                                               2]))
-        out <- na.omit(out)
-      }
-      if (track_peaks == FALSE) {
-        out <- data.frame(y[sel[, 1]], x[sel[, 1]])
-        out <- na.omit(out)
-      }
-      if (nrow(out) != 0) {
-        out <- na.omit(out)
-        out <- out[order(out[, 1]), ]
-        out <- na.omit(out)
-        out <- aggregate(out, by = list(name = out[, 1]),
-                         data = out, FUN = mean)
-        out <- out[, c(2, 3)]
-        out[, 2] <- 2^out[, 2]
-        out$sedrate <- out[, 2]/astro_cycle * 100
-        colnames(out) <- c("depth", "period", "sedrate")
-      }
+      out <- .tpw_pick(scalogram, astro_cycle, horizontal = TRUE,
+                       candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
     }
   }
 
-  if(inherits(scalogram,"analyze.superlet") == TRUE){
+  if (plot_horizontal == TRUE && inherits(scalogram, "analyze.superlet")) {
     image(x = scalogram$x, y = scalogram$axis.2, z = (scalogram$Power),
           col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
           ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
           main = main, xlim = xlim_vals, ylim = log2(ylim_vals))
+    if (!is.null(scalogram$coi.1)) polygon(x = scalogram$coi.1, y = scalogram$coi.2, border = NA, col = rgb(1, 1, 1, 0.5))
     box(lwd = lwd.axis)
     period.tick = unique(trunc(scalogram$axis.2))
     period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
@@ -419,7 +327,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
           }
         }
       }
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
       depth <- rep(scalogram$x, each = length(scalogram$axis.2))
       period <- rep(scalogram$axis.2, times = length(scalogram$x))
       maxdetect2 <- as.data.frame(maxdetect2)
@@ -432,58 +340,14 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       n <- nrow(maxdetect2)
       y = maxdetect2$x_val
       x = maxdetect2$y_val
-    }else {
-      x <- rep(scalogram$x, each = length(scalogram$axis.2))
-      y <- rep(scalogram$axis.2, times = length(scalogram$x))
-      n <- length(scalogram$x)
     }
-    defaultW <- getOption("warn")
-    options(warn = -1)
-    xy <- xy.coords(x, y)
-    y <- xy$y
-    x <- xy$x
-    sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-    while (sum(sel) < n) {
-      ans <- identify(x, y, n = 1, plot = F, tolerance = 0.1)
-      if (!length(ans))
-        break
-      if (sel[ans, 1] == FALSE) {
-        sel[ans, 1] <- TRUE
-        sel[ans, 2] <- FALSE
-      }
-      else {
-        sel[ans, 1] <- FALSE
-        sel[ans, 2] <- TRUE
-      }
-      points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-      points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
-    }
-    pts <- sel[, 1]
-    if (track_peaks == TRUE) {
-      out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts,
-                                                             2]))
-      out <- na.omit(out)
-    }
-    if (track_peaks == FALSE) {
-      out <- data.frame(y[sel[, 1]], x[sel[, 1]])
-      out <- na.omit(out)
-    }
-    if (nrow(out) != 0) {
-      out <- na.omit(out)
-      out <- out[order(out[, 1]), ]
-      out <- na.omit(out)
-      out <- aggregate(out, by = list(name = out[, 1]),
-                       data = out, FUN = mean)
-      out <- out[, c(2, 3)]
-      out[, 2] <- 2^out[, 2]
-      out$sedrate <- out[, 2]/astro_cycle * 100
-      colnames(out) <- c("depth", "period", "sedrate")
-    }
+    out <- .tpw_pick(scalogram, astro_cycle, horizontal = TRUE,
+                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
   }
 
 
   if (plot_horizontal == FALSE) {
-    dev.new(width = 7, height = 10, noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 10, interactive_input = TRUE)
     layout.matrix <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2,
                             byrow = TRUE)
     graphics::layout(mat = layout.matrix, heights = c(1,
@@ -557,6 +421,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
         ylim = xlim_vals,
         xlim = log2(ylim_vals)
       )
+      if (!is.null(scalogram$coi.1)) polygon(x = scalogram$coi.2, y = scalogram$coi.1, border = NA, col = rgb(1, 1, 1, 0.5))
       box(lwd = lwd.axis)
       period.tick = unique(trunc(scalogram$axis.2))
       period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
@@ -604,7 +469,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
           }
         }
       }
-      maxdetect2 <- melt(maxdetect)
+      maxdetect2 <- wr_melt(maxdetect)
       depth <- rep(scalogram$x, each = length(scalogram$axis.2))
       period <- rep(scalogram$axis.2, times = length(scalogram$x))
       maxdetect2 <- as.data.frame(maxdetect2)
@@ -618,53 +483,8 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       x = maxdetect2$x_val
       y = maxdetect2$y_val
     }
-    else {
-      y <- rep(scalogram$x, each = length(scalogram$axis.2))
-      x <- rep(scalogram$axis.2, times = length(scalogram$x))
-      n <- length(scalogram$x)
-    }
-    defaultW <- getOption("warn")
-    options(warn = -1)
-    xy <- xy.coords(x, y)
-    y <- xy$y
-    x <- xy$x
-    sel <- cbind(rep(FALSE, length(y)), rep(FALSE, length(y)))
-    while (sum(sel) < n) {
-      ans <- identify(x, y, n = 1, plot = F, tolerance = 0.1)
-      if (!length(ans))
-        break
-      if (sel[ans, 1] == FALSE) {
-        sel[ans, 1] <- TRUE
-        sel[ans, 2] <- FALSE
-      }
-      else {
-        sel[ans, 1] <- FALSE
-        sel[ans, 2] <- TRUE
-      }
-      points(x[sel[, 1]], y[sel[, 1]], pch = 19, col = "white")
-      points(x[sel[, 2]], y[sel[, 2]], pch = 19, col = "red")
-    }
-    pts <- sel[, 1]
-    if (track_peaks == TRUE) {
-      out <- data.frame(cbind(maxdetect2[pts, 1], maxdetect2[pts,
-                                                             2]))
-      out <- na.omit(out)
-    }
-    if (track_peaks == FALSE) {
-      out <- data.frame(y[sel[, 1]], x[sel[, 1]])
-      out <- na.omit(out)
-    }
-    if (nrow(out) != 0) {
-      out <- na.omit(out)
-      out <- out[order(out[, 1]), ]
-      out <- na.omit(out)
-      out <- aggregate(out, by = list(name = out[, 1]),
-                       data = out, FUN = mean)
-      out <- out[, c(2, 3)]
-      out[, 2] <- 2^out[, 2]
-      out$sedrate <- out[, 2]/astro_cycle * 100
-      colnames(out) <- c("depth", "period", "sedrate")
-    }
+    out <- .tpw_pick(scalogram, astro_cycle, horizontal = FALSE,
+                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
   }
   return(out)
 }

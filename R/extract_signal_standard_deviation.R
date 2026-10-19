@@ -8,7 +8,7 @@
 #' continuous wavelet transform using a Morlet wavelet.
 #'
 #'
-#' @param wavelet Wavelet object created using the \code{\link{analyze_wavelet}} function.
+#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
 #' @param tracked_cycle_curve Curve of the cycle tracked using the
 #' \code{\link{track_period_wavelet}} function. Any input (matrix or data frame)
 #'  in which the first column is depth or time and the second column is period should work.
@@ -36,7 +36,7 @@
 #'The R package 'viridis' has the color palette options: “magma”, “plasma”,
 #'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 #'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the RColorBrewer::brewer.pal.info() function
+#'the wr_brewer_palettes() function
 #'The R package 'colorRamps' has the color palette options:"blue2green",
 #'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
 #'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
@@ -69,7 +69,7 @@
 #'
 #'Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 #' Journal of the Institution of Electrical Engineers-part III: radio and
-#' communication engineering 93, no. 26 (1946): 429-441.\url{http://genesis.eecg.toronto.edu/gabor1946.pdf}
+#' communication engineering 93, no. 26 (1946): 429-441.\url{https://doi.org/10.1049/ji-3-2.1946.0074}
 #'
 #'Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
 #'" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
@@ -93,7 +93,7 @@
 #'# boundaries
 #'
 #'# perform the CWT
-#'mag_wt <- analyze_wavelet(data = mag,
+#'mag_wt <- analyse_wavelet(data = mag,
 #' dj = 1/100,
 #' lowerPeriod = 0.1,
 #' upperPeriod = 254,
@@ -156,36 +156,15 @@
 #'If \code{genplot_extracted=TRUE} plot with the data set and
 #'the extracted cycle on top of it will be plotted.
 #'
+#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
 #' @export
-#' @importFrom Hmisc approxExtrap
 #' @importFrom stats na.omit
 #' @importFrom graphics par
 #' @importFrom graphics hist
 #' @importFrom graphics lines
 #' @importFrom stats median
 #' @importFrom stats fft
-#' @importFrom DescTools Closest
-#' @importFrom RColorBrewer brewer.pal.info
-#' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
-#' @importFrom colorRamps blue2green
-#' @importFrom colorRamps blue2green2red
-#' @importFrom colorRamps blue2red
-#' @importFrom colorRamps blue2yellow
-#' @importFrom colorRamps cyan2yellow
-#' @importFrom colorRamps green2red
-#' @importFrom colorRamps magenta2green
-#' @importFrom colorRamps matlab.like
-#' @importFrom colorRamps matlab.like2
-#' @importFrom colorRamps ygobb
-#' @importFrom viridis viridis
-#' @importFrom viridis magma
-#' @importFrom viridis plasma
-#' @importFrom viridis inferno
-#' @importFrom viridis cividis
-#' @importFrom viridis mako
-#' @importFrom viridis rocket
-#' @importFrom viridis turbo
 #' @importFrom grDevices rainbow
 #' @importFrom grDevices heat.colors
 #' @importFrom grDevices terrain.colors
@@ -206,7 +185,9 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
                                               genplot_extracted = FALSE,
                                               keep_editable = FALSE,
                                               palette_name="rainbow",
-                                              color_brewer="grDevices") {
+                                              color_brewer="grDevices",
+  colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
   my.w <- wavelet
   my.data <- cbind(wavelet$x, wavelet$y)
   filtered_cycle <- my.data[, 1]
@@ -217,7 +198,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
   completed_series[, 2] <-
     completed_series[, 2] * (extract_cycle / tracked_cycle_period)
   app <-
-    approxExtrap(
+    wr_approx_extrap(
       x = completed_series[, 1],
       y = completed_series[, 2],
       xout = my.data[, 1],
@@ -241,7 +222,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / (pi ^ (-1 / 4))
+      dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
 
@@ -272,9 +253,9 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
   interpolated[, 4] <- fact_low
 
   for (i in 1:nrow(filtered_cycle)) {
-    row_nr_high <- Closest(Period[], interpolated[i, 3], which = TRUE)
+    row_nr_high <- wr_closest(Period[], interpolated[i, 3], which = TRUE)
     row_nr_low <-
-      Closest(Period[], interpolated[i, 4], which = TRUE)
+      wr_closest(Period[], interpolated[i, 4], which = TRUE)
 
     row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]
@@ -379,7 +360,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
     data_set_time <- as.data.frame(interp)
 
     data_set_time_wt <-
-      analyze_wavelet(
+      analyse_wavelet(
         data = data_set_time,
         dj = 1 / 200,
         lowerPeriod = steps_size,
@@ -465,9 +446,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
       oldpar <- par(no.readonly = TRUE)
       on.exit(par(oldpar))
     }
-    dev.new(width = 7,
-            height = 4,
-            noRStudioGD = TRUE)
+    wr_open_device(width = 7, height = 4)
     if (tune == TRUE) {
       my.data_time <- curve2tune(
         data = my.data,

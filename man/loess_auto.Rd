@@ -31,7 +31,7 @@ The third column is difference between the original curve and the smoothed curve
 \description{
 Perform an automatically loess based smoothing of a time series.
 The local polynomial regression with automatic smoothing parameter selection is based on an
-optimization using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
+optimisation using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
 }
 \examples{
 \donttest{
@@ -39,7 +39,7 @@ optimization using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' gener
 # the magnetic susceptibility data set of Pas et al., (2018)
 #perform the CWT on the magnetic susceptibility data set of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,

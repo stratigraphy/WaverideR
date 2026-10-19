@@ -45,9 +45,9 @@
 #'Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
 #'
 #'Bisciaro_al_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_al,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -87,9 +87,9 @@
 #'Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
 #'
 #'Bisciaro_ca_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_ca,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -128,9 +128,9 @@
 #'Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
 #'
 #'Bisciaro_sial_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_sial,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -172,9 +172,9 @@
 #'Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
 #'
 #'Bisciaro_Mn_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mn,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -214,9 +214,9 @@
 #'Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
 #'
 #'Bisciaro_Mg_wt <-
-#'  analyze_wavelet(
+#'  analyse_wavelet(
 #'    data = Bisciaro_Mg,
-#'    dj = 1 /200 ,
+#'    dj = 1 /50 ,
 #'    lowerPeriod = 0.01,
 #'    upperPeriod = 50,
 #'    verbose = FALSE,
@@ -325,9 +325,6 @@
 #' @importFrom stats quantile
 #' @importFrom stats runif
 #' @importFrom stats rnorm
-#' @importFrom matrixStats rowSds
-#' @importFrom matrixStats colMins
-#' @importFrom matrixStats rowQuantiles
 #' @importFrom stats pnorm
 
 curve2time_unc <- function(tracked_cycle_curve = NULL,
@@ -424,7 +421,7 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
   }
 
   dif_mat <- out[2:(nrow(out)),] - out[1:(nrow(out) - 1),]
-  dif_mat_mins <- colMins(dif_mat)
+  dif_mat_mins <- wr_col_mins(dif_mat)
   out_2 <- out[, dif_mat_mins > 0]
 
   if (output == 1) {
@@ -435,7 +432,7 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
   if (output == 2) {
     res <- tracked_cycle_curve_2[, c(1, 2)]
     res <-
-      cbind(res, rowQuantiles(
+      cbind(res, wr_row_quantiles(
         out_2,
         probs = c(0.02275, 0.373, 0.5, 0.6827, 0.97725),
         na.rm = TRUE
@@ -445,7 +442,7 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
   if (output == 3) {
     res <- tracked_cycle_curve_2[, c(1)]
     mean <- rowMeans(out_2)
-    sd <- rowSds(out_2)
+    sd <- wr_row_sds(out_2)
 
     res <- cbind(res, mean, sd)
   }

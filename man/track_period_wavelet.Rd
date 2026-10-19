@@ -20,11 +20,12 @@ track_period_wavelet(
   add_lines = NULL,
   add_points = NULL,
   add_abline_h = NULL,
-  add_abline_v = NULL
+  add_abline_v = NULL,
+  colour_brewer = NULL
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyze_wavelet}} function.}
+\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
 
 \item{astro_cycle}{Duration (in kyr) of the cycle which traced.}
 
@@ -32,7 +33,10 @@ track_period_wavelet(
 
 \item{track_peaks}{Setting which indicates whether tracking is restricted
 to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
-spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}.}
+spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}. With \code{track_peaks=TRUE} a click selects the
+nearest local power maximum (black circles); with \code{track_peaks=FALSE} any point of the scalogram can be
+clicked: the click is snapped to the nearest depth of the wavelet and its period is used as clicked.
+In both modes clicking a selected point again removes it; finish with right-click/Esc (or "Finish" in RStudio).}
 
 \item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
 
@@ -47,7 +51,7 @@ read the documentation of these packages \code{Default=rainbow}.
 The R package 'viridis' has the color palette options: “magma”, “plasma”,
 “inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
 To see the color palette options of the The R pacakge 'RColorBrewer' run
-the RColorBrewer::brewer.pal.info() function
+the wr_brewer_palettes() function
 The R package 'colorRamps' has the color palette options:"blue2green",
 "blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
 "green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
@@ -62,7 +66,8 @@ are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
 There are many options to choose from so please
 read the documentation of these packages. "\code{Default=grDevices}}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
+\item{plot_horizontal}{\code{TRUE}: depth on the x-axis and period on the y-axis; \code{FALSE}: period on the
+x-axis and depth on the y-axis. The output is the same in both layouts \code{Default=TRUE}}
 
 \item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
 (e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
@@ -82,6 +87,8 @@ should be period values \code{Default=NULL}}
 \item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
 
 \item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+
+\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
 }
 \value{
 Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
@@ -101,10 +108,11 @@ delete points were previously selected using the \code{\link{track_period_wavele
 }
 \examples{
 \donttest{
+if (interactive()) { # needs mouse input (identify())
 #Track the 405kyr eccentricity cycle in the magnetic susceptibility record
 # of the Sullivan core of Pas et al., (2018)
 
-mag_wt <- analyze_wavelet(data = mag,
+mag_wt <- analyse_wavelet(data = mag,
 dj = 1/100,
 lowerPeriod = 0.1,
 upperPeriod = 254,
@@ -127,7 +135,7 @@ add_lines = NULL,
 add_points = NULL,
 add_abline_h = NULL,
 add_abline_v = NULL)
-}
+}}
 
 }
 \references{
