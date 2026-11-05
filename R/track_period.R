@@ -16,70 +16,68 @@
 #' \code{\link{delpts_tracked_period_wt}} can be used to remove points that
 #' were previously selected.
 #'
-#' @param scalogram
-#' A wavelet or superlet object created using
-#' \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}.
+#' @param scalogram Scalogram in which the cycle is tracked: a wavelet object (class \code{analyze.wavelet}) created
+#' with \code{\link{analyse_wavelet}} or a superlet object (class \code{analyze.superlet}) created with
+#' \code{\link{analyse_superlet}}. The elements \code{x}, \code{y}, \code{Power}, \code{Period}, \code{axis.2} and
+#' \code{Power.avg} are used. Must be given (the \code{NULL} default fails). \code{Default=NULL}.
 #'
-#' @param astro_cycle
-#' Duration (in kyr) of the astronomical cycle that is being tracked.
+#' @param astro_cycle Duration of the astronomical cycle that is tracked (numeric, > 0, in kyr, e.g. 405 for the long
+#' eccentricity cycle). It is used to convert the tracked period into the sedimentation rate of the output
+#' (period / \code{astro_cycle} * 100, i.e. cm/kyr for a record in metres). \code{Default=405}.
 #'
-#' @param n.levels
-#' Number of colour levels used for plotting.
-#' Default is \code{100}.
+#' @param n.levels Number of colour levels of the power scale (integer, > 1); the breaks are quantiles of the power.
+#' \code{Default=100}.
 #'
-#' @param track_peaks
-#' Logical flag indicating whether tracking is restricted to spectral
-#' peaks (\code{TRUE}) or whether any point within the spectrum can be
-#' selected (\code{FALSE}). Default is \code{TRUE}.
+#' @param track_peaks Restrict the selection to spectral peaks (logical, TRUE or FALSE). With \code{TRUE} the local
+#' power maxima along the period axis are drawn as black circles and a click selects the nearest one; with
+#' \code{FALSE} any point of the scalogram can be clicked (the click is snapped to the nearest depth of the scalogram
+#' and its period is used as clicked). In both modes clicking a selected point again removes it; finish with
+#' right-click/Esc (or "Finish" in RStudio). \code{Default=TRUE}.
 #'
-#' @param periodlab
-#' Label for the period axis.
-#' Default is \code{"Period (metres)"}.
+#' @param periodlab Label of the period axis (character). \code{Default="Period (metres)"}.
 #'
-#' @param x_lab
-#' Label for the x-axis.
-#' Default is \code{"depth (metres)"}.
+#' @param x_lab Label of the depth/time axis (character). \code{Default="depth (metres)"}.
 #'
-#' @param palette_name
-#' Name of the colour palette used for plotting.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
+#' @param plot_horizontal Layout of the plot (logical, TRUE or FALSE): \code{TRUE} depth/time on the x-axis and period
+#' on the y-axis; \code{FALSE} period on the x-axis and depth/time on the y-axis. The output is the same in both layouts.
+#' \code{Default=TRUE}.
 #'
-#' @param color_brewer
-#' Name of the R package from which the colour palette is selected.
-#' Supported packages are \code{RColorBrewer}, \code{grDevices},
-#' \code{ColorRamps}, and \code{viridis}.
-#' Default is \code{"grDevices"}.
+#' @param lowerPeriod Shortest period shown on the period axis (numeric, in the depth/time unit of the record);
+#' \code{NULL} uses the shortest period of \code{scalogram}. \code{Default=NULL}.
 #'
-#' @param plot_horizontal
-#' Logical flag indicating whether the spectrum is plotted horizontally
-#' or vertically. Default is \code{TRUE}.
+#' @param upperPeriod Longest period shown on the period axis (numeric, in the depth/time unit of the record);
+#' \code{NULL} uses the longest period of \code{scalogram}. \code{Default=NULL}.
 #'
-#' @param lowerPeriod
-#' Lowest period value to be displayed.
+#' @param plot_dir Direction of the depth/time axis (logical, TRUE or FALSE): \code{TRUE} plots it from low to high
+#' values (e.g. borehole data that get older with increasing depth); \code{FALSE} reverses the axis (e.g. outcrop logs
+#' in which 0 m is the base of the section). \code{Default=TRUE}.
 #'
-#' @param upperPeriod
-#' Highest period value to be displayed.
+#' @param add_lines Optional lines to draw on the scalogram (matrix or data frame: depth/time in column 1, one or more
+#' columns of periods after it; one line per period column). \code{Default=NULL}.
 #'
-#' @param plot_dir
-#' Logical flag defining the direction of the record.
-#' If time increases with increasing depth (e.g. borehole data),
-#' set to \code{TRUE}. If time decreases with increasing depth,
-#' set to \code{FALSE}. Default is \code{TRUE}.
+#' @param add_points Optional points to draw on the scalogram (matrix or data frame: depth/time in column 1, one or
+#' more columns of periods after it). \code{Default=NULL}.
 #'
-#' @param add_lines
-#' Optional matrix of additional lines to overlay on the spectrum.
-#' The first column must be depth or time, and subsequent columns
-#' contain period values.
+#' @param add_abline_h Optional horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5)}): periods in the
+#' horizontal layout, depths/times in the vertical layout (\code{plot_horizontal = FALSE}). \code{Default=NULL}.
 #'
-#' @param add_points
-#' Optional matrix of additional points to overlay on the spectrum.
-#' The first column must be depth or time, and subsequent columns
-#' contain period values.
-#'
-#' @param add_abline_h
-#' Optional numeric vector specifying horizontal reference lines.
-#'
-#' @param add_abline_v
-#' Optional numeric vector specifying vertical reference lines.
+#' @param add_abline_v Optional vertical reference lines (numeric vector): depths/times in the horizontal layout,
+#' periods in the vertical layout. \code{Default=NULL}.
 #'
 #' @return
 #' A data frame with three columns:
@@ -116,7 +114,8 @@
 #' )
 #' }}
 #'
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -141,19 +140,21 @@
 #' @importFrom grDevices hcl.colors
 
 track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
-                          track_peaks = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
-                          palette_name = "rainbow", color_brewer = "grDevices", plot_horizontal = TRUE,
-                          plot_dir = TRUE, lowerPeriod = NULL, upperPeriod = NULL,
-                          add_lines = NULL, add_points = NULL, add_abline_h = NULL,
-                          add_abline_v = NULL,
-  colour_brewer = NULL)
+    track_peaks = TRUE, periodlab = "Period (metres)", x_lab = "depth (metres)",
+    palette_name = "viridis", color_brewer = "viridis", plot_horizontal = TRUE,
+    plot_dir = TRUE, lowerPeriod = NULL, upperPeriod = NULL,
+    add_lines = NULL, add_points = NULL, add_abline_h = NULL,
+    add_abline_v = NULL,
+    colour_brewer = NULL)
 {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
   maximum.level = max(scalogram$Power)
   power_max_mat.levels = quantile(scalogram$Power, probs = seq(from = 0,
-                                                               to = 1, length.out = n.levels + 1))
+      to = 1, length.out = n.levels + 1))
   key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
   periodtck = 0.02
   periodtcl = 0.5
@@ -161,12 +162,12 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
   lwd = 2
   lwd.axis = 1
   legend.params = list(width = 1.2, shrink = 0.9, mar = 5.1,
-                       n.ticks = 6, label.digits = 3, label.format = "f", lab = NULL,
-                       lab.line = 2.5)
+      n.ticks = 6, label.digits = 3, label.format = "f", lab = NULL,
+      lab.line = 2.5)
   key.marks = round(seq(from = 0, to = 1, length.out = legend.params$n.ticks) *
-                      n.levels)
+      n.levels)
   key.labels = formatC(as.numeric(power_max_mat.levels), digits = legend.params$label.digits,
-                       format = legend.params$label.format)[key.marks + 1]
+      format = legend.params$label.format)[key.marks + 1]
   y_axis <- as.numeric(unlist(scalogram$Period))
   pmax_avg_sel <- t(scalogram$Power)
   depth <- scalogram$x
@@ -188,62 +189,66 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
   if (plot_horizontal == TRUE) {
     wr_open_device(width = 15, height = 7, interactive_input = TRUE)
     layout.matrix <- matrix(c(1, 2, 4, 3), nrow = 2, ncol = 2,
-                            byrow = TRUE)
+        byrow = TRUE)
     graphics::layout(mat = layout.matrix, heights = c(0.25,
-                                                      1), widths = c(8, 2))
+        1), widths = c(8, 2))
     power_max_mat.levels = quantile(pmax_avg_sel, probs = seq(from = 0,
-                                                              to = 1, length.out = n.levels + 1))
+        to = 1, length.out = n.levels + 1))
     par(mar = c(0, 4, 2, 0))
     plot(y = scalogram$y, x = scalogram$x, type = "l", xaxs = "i",
-         xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
+        xlab = "", ylab = "proxy value", xaxt = "n", xlim = xlim_vals)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = add_abline_v)
     }
     par(new = FALSE, mar = c(3, 2, 2, 2), mgp = c(2, 1,
-                                                  0))
+        0))
     image(x = seq(from = 0, to = n.levels), y = 1, z = t(matrix(power_max_mat.levels,
-                                                                nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
-          ylab = "")
+        nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+        useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "Power",
+        ylab = "")
     axis(1, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.2)
+        tck = 0.02, tcl = 1.2)
     mtext(key.labels, side = 1, at = key.marks, line = 0.1,
-          las = 2, cex = 0.75)
+        las = 2, cex = 0.75)
     box(lwd = lwd.axis)
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
     plot(x = scalogram$Power.avg, y = scalogram$Period, log = "y",
-         type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
-         xaxs = "i", ylim = ylim_vals)
+        type = "l", yaxs = "i", yaxt = "n", xlab = "Wt. power",
+        xaxs = "i", ylim = ylim_vals)
     if (is.null(add_abline_h) != TRUE) {
       abline(h = add_abline_h)
     }
     par(new = FALSE, mar = c(4, 4, 0, 0), xpd = FALSE)
     if (inherits(scalogram,"analyze.wavelet") == TRUE ){
       image(x = scalogram$x, y = scalogram$axis.2, z = t(scalogram$Power),
-            col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-            ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-            main = main, xlim = xlim_vals, ylim = log2(ylim_vals))
+          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
+          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
+          main = main, xlim = xlim_vals, ylim = log2(ylim_vals))
       polygon(x = scalogram$coi.1, y = scalogram$coi.2, border = NA,
-              col = rgb(1, 1, 1, 0.5), ylim = xlim_vals, xlim = log2(ylim_vals))
+          col = rgb(1, 1, 1, 0.5), ylim = xlim_vals, xlim = log2(ylim_vals))
       box(lwd = lwd.axis)
       period.tick = unique(trunc(scalogram$axis.2))
       period.tick[period.tick < log2(scalogram$Period[1])] = NA
       period.tick = na.omit(period.tick)
       period.tick.label = 2^(period.tick)
       axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-           tck = periodtck, tcl = periodtcl)
+          tck = periodtck, tcl = periodtcl)
       axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-           tck = periodtck, tcl = periodtcl)
+          tck = periodtck, tcl = periodtcl)
       mtext(period.tick.label, side = 2, at = period.tick,
-            las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-            cex = par()$cex.axis)
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
       if (is.null(add_lines) != TRUE) {
-        for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                           log2(add_lines[, i]))
+        for (i in 2:ncol(add_lines)) {
+          lines(add_lines[, 1],
+              log2(add_lines[, i]))
+        }
       }
       if (is.null(add_points) != TRUE) {
-        for (i in 2:ncol(add_points)) points(add_points[,
-                                                        1], log2(add_points[, i]))
+        for (i in 2:ncol(add_points)) {
+          points(add_points[,
+              1], log2(add_points[, i]))
+        }
       }
       if (is.null(add_abline_h) != TRUE) {
         abline(h = log2(add_abline_h))
@@ -254,7 +259,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       if (track_peaks == TRUE) {
         Pwert <- scalogram$Power
         maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert),
-                            0)
+            0)
         for (j in 1:ncol(Pwert)) {
           for (i in 2:(nrow(maxdetect) - 1)) {
             if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
@@ -272,41 +277,47 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
         maxdetect2 <- maxdetect2[maxdetect2$value > 0, ]
         colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
         points(y = maxdetect2$x_val, x = maxdetect2$y_val,
-               type = "p", pch = 1, col = "black", lwd = "0.5")
+            type = "p", pch = 1, col = "black", lwd = "0.5")
         n <- nrow(maxdetect2)
         y = maxdetect2$x_val
         x = maxdetect2$y_val
       }
       out <- .tpw_pick(scalogram, astro_cycle, horizontal = TRUE,
-                       candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
+          candidates = if (isTRUE(track_peaks)) { maxdetect2 } else { NULL })
     }
   }
 
   if (plot_horizontal == TRUE && inherits(scalogram, "analyze.superlet")) {
     image(x = scalogram$x, y = scalogram$axis.2, z = (scalogram$Power),
-          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-          ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
-          main = main, xlim = xlim_vals, ylim = log2(ylim_vals))
-    if (!is.null(scalogram$coi.1)) polygon(x = scalogram$coi.1, y = scalogram$coi.2, border = NA, col = rgb(1, 1, 1, 0.5))
+        col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
+        ylab = periodlab, xlab = x_lab, axes = TRUE, yaxt = "n",
+        main = main, xlim = xlim_vals, ylim = log2(ylim_vals))
+    if (!is.null(scalogram$coi.1)) {
+      polygon(x = scalogram$coi.1, y = scalogram$coi.2, border = NA, col = rgb(1, 1, 1, 0.5))
+    }
     box(lwd = lwd.axis)
     period.tick = unique(trunc(scalogram$axis.2))
     period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
     period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
     period.tick.label = 2^(period.tick)
     axis(2, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
+        tck = periodtck, tcl = periodtcl)
     axis(4, lwd = lwd.axis, at = period.tick, labels = NA,
-         tck = periodtck, tcl = periodtcl)
+        tck = periodtck, tcl = periodtcl)
     mtext(period.tick.label, side = 2, at = period.tick,
-          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-          cex = par()$cex.axis)
+        las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+        cex = par()$cex.axis)
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(add_lines[, 1],
-                                         log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) {
+        lines(add_lines[, 1],
+            log2(add_lines[, i]))
+      }
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(add_points[,
-                                                      1], log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) {
+        points(add_points[,
+            1], log2(add_points[, i]))
+      }
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = log2(add_abline_h))
@@ -318,7 +329,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     if (track_peaks == TRUE) {
       Pwert <- t(scalogram$Power)
       maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert),
-                          0)
+          0)
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
           if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
@@ -336,47 +347,47 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       maxdetect2 <- maxdetect2[maxdetect2$value > 0, ]
       colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
       points(y = maxdetect2$x_val, x = maxdetect2$y_val,
-             type = "p", pch = 1, col = "black", lwd = "0.5")
+          type = "p", pch = 1, col = "black", lwd = "0.5")
       n <- nrow(maxdetect2)
       y = maxdetect2$x_val
       x = maxdetect2$y_val
     }
     out <- .tpw_pick(scalogram, astro_cycle, horizontal = TRUE,
-                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
+        candidates = if (isTRUE(track_peaks)) { maxdetect2 } else { NULL })
   }
 
 
   if (plot_horizontal == FALSE) {
     wr_open_device(width = 7, height = 10, interactive_input = TRUE)
     layout.matrix <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2,
-                            byrow = TRUE)
+        byrow = TRUE)
     graphics::layout(mat = layout.matrix, heights = c(1,
-                                                      4), widths = c(1, 4))
+        4), widths = c(1, 4))
     power_max_mat.levels = quantile(pmax_avg_sel, probs = seq(from = 0,
-                                                              to = 1, length.out = n.levels + 1))
+        to = 1, length.out = n.levels + 1))
     par(mar = c(2, 0.5, 2, 6), xpd = NA)
     image(y = seq(from = 0, to = n.levels), x = 1, z = (matrix(power_max_mat.levels,
-                                                               nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
-          useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
-          ylab = "", )
+        nrow = 1)), col = key.cols, breaks = power_max_mat.levels,
+        useRaster = TRUE, yaxt = "n", xaxt = "n", xlab = "",
+        ylab = "", )
     axis(2, lwd = lwd.axis, at = key.marks, labels = NA,
-         tck = 0.02, tcl = 1.24)
+        tck = 0.02, tcl = 1.24)
     mtext(key.labels, side = 2, at = key.marks, line = 0.5,
-          las = 2, font = par()$font.axis, cex = par()$cex.axis)
+        las = 2, font = par()$font.axis, cex = par()$cex.axis)
     mtext(c("Power"), side = 1, at = 1, line = 0.5, font = par()$font.axis,
-          cex = par()$cex.axis, las = 1, xpd = NA)
+        cex = par()$cex.axis, las = 1, xpd = NA)
     box(lwd = lwd.axis)
     par(mar = c(0, 0, 2, 2))
     plot(y = scalogram$Power.avg, x = scalogram$Period, log = "x",
-         type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
-         xlab = "", xaxs = "i", xlim = ylim_vals)
+        type = "l", xaxs = "i", xaxt = "n", ylab = "Wt. power",
+        xlab = "", xaxs = "i", xlim = ylim_vals)
     title(ylab = "Wt. power", xpd = NA)
     if (is.null(add_abline_v) != TRUE) {
       abline(v = (add_abline_v),xpd=FALSE)
     }
     par(mar = c(4, 4, 0, 0), xpd = TRUE)
     plot(x = scalogram$y, y = scalogram$x, type = "l", yaxs = "i",
-         xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
+        xlab = "proxy value", ylab = x_lab, ylim = xlim_vals)
     if (is.null(add_abline_h) != TRUE) {
       abline(h = (add_abline_h),xpd=FALSE)
     }
@@ -385,21 +396,21 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     if(inherits(scalogram, "analyze.wavelet") == TRUE){
 
       image(y = scalogram$x, x = scalogram$axis.2, z = (scalogram$Power),
-            col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
-            xlab = periodlab, ylab = "", xaxt = "n", yaxt = "n",
-            main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
+          col = key.cols, breaks = power_max_mat.levels, useRaster = TRUE,
+          xlab = periodlab, ylab = "", xaxt = "n", yaxt = "n",
+          main = main, ylim = xlim_vals, xlim = log2(ylim_vals))
       polygon(y = scalogram$coi.1, x = scalogram$coi.2, border = NA,
-              col = rgb(1, 1, 1, 0.5), ylim = xlim_vals, xlim = log2(ylim_vals))
+          col = rgb(1, 1, 1, 0.5), ylim = xlim_vals, xlim = log2(ylim_vals))
       box(lwd = lwd.axis)
       period.tick = unique(trunc(scalogram$axis.2))
       period.tick[period.tick < log2(scalogram$Period[1])] = NA
       period.tick = na.omit(period.tick)
       period.tick.label = 2^(period.tick)
       axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-           tck = periodtck, tcl = periodtcl)
+          tck = periodtck, tcl = periodtcl)
       mtext(period.tick.label, side = 1, at = period.tick,
-            las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-            cex = par()$cex.axis)
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
 
 
 
@@ -407,42 +418,48 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     }
     if(inherits(scalogram, "analyze.superlet") == TRUE){
       image(
-        y = scalogram$x,
-        x = scalogram$axis.2,
-        z = t(scalogram$Power),
-        col = key.cols,
-        breaks = power_max_mat.levels,
-        useRaster = TRUE,
-        xlab = periodlab,
-        ylab = x_lab,
-        xaxt = "n",
-        yaxt="n",
-        main = main,
-        ylim = xlim_vals,
-        xlim = log2(ylim_vals)
+          y = scalogram$x,
+          x = scalogram$axis.2,
+          z = t(scalogram$Power),
+          col = key.cols,
+          breaks = power_max_mat.levels,
+          useRaster = TRUE,
+          xlab = periodlab,
+          ylab = x_lab,
+          xaxt = "n",
+          yaxt="n",
+          main = main,
+          ylim = xlim_vals,
+          xlim = log2(ylim_vals)
       )
-      if (!is.null(scalogram$coi.1)) polygon(x = scalogram$coi.2, y = scalogram$coi.1, border = NA, col = rgb(1, 1, 1, 0.5))
+      if (!is.null(scalogram$coi.1)) {
+        polygon(x = scalogram$coi.2, y = scalogram$coi.1, border = NA, col = rgb(1, 1, 1, 0.5))
+      }
       box(lwd = lwd.axis)
       period.tick = unique(trunc(scalogram$axis.2))
       period.tick <- period.tick[period.tick >= min(log2(ylim_vals))]
       period.tick <- period.tick[period.tick <= max(log2(ylim_vals))]
       period.tick.label = 2^(period.tick)
       axis(1, lwd = lwd.axis, at = period.tick, labels = NA,
-           tck = periodtck, tcl = periodtcl)
+          tck = periodtck, tcl = periodtcl)
       mtext(period.tick.label, side = 1, at = period.tick,
-            las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
-            cex = par()$cex.axis)
+          las = 2, line = par()$mgp[2] - 0.5, font = par()$font.axis,
+          cex = par()$cex.axis)
 
     }
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i in 2:ncol(add_lines)) lines(y = add_lines[,
-                                                       1], x = log2(add_lines[, i]))
+      for (i in 2:ncol(add_lines)) {
+        lines(y = add_lines[,
+            1], x = log2(add_lines[, i]))
+      }
     }
     if (is.null(add_points) != TRUE) {
-      for (i in 2:ncol(add_points)) points(y = add_points[,
-                                                          1], x = log2(add_points[, i]))
+      for (i in 2:ncol(add_points)) {
+        points(y = add_points[,
+            1], x = log2(add_points[, i]))
+      }
     }
     if (is.null(add_abline_h) != TRUE) {
       abline(h = (add_abline_h))
@@ -452,7 +469,8 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
     }
     if (track_peaks == TRUE) {
       if(inherits(scalogram,"analyze.superlet") == TRUE ){
-        Pwert <- t(scalogram$Power)}
+        Pwert <- t(scalogram$Power)
+      }
       if(inherits(scalogram,"analyze.wavelet") == TRUE){
         Pwert <- scalogram$Power
 
@@ -460,7 +478,7 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       }
 
       maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert),
-                          0)
+          0)
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
           if ((Pwert[i, j] - Pwert[(i + 1), j] > 0) &
@@ -478,13 +496,13 @@ track_period <- function (scalogram = NULL, astro_cycle = 405, n.levels = 100,
       maxdetect2 <- maxdetect2[maxdetect2$value > 0, ]
       colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
       points(x = maxdetect2$x_val, y = maxdetect2$y_val,
-             type = "p", pch = 1, col = "black", lwd = "0.5")
+          type = "p", pch = 1, col = "black", lwd = "0.5")
       n <- nrow(maxdetect2)
       x = maxdetect2$x_val
       y = maxdetect2$y_val
     }
     out <- .tpw_pick(scalogram, astro_cycle, horizontal = FALSE,
-                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
+        candidates = if (isTRUE(track_peaks)) { maxdetect2 } else { NULL })
   }
   return(out)
 }

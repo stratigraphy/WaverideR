@@ -1,15 +1,22 @@
 #' Precession constant implied by an observed obliquity or precession cycle
 #'
-#' @param period_kyr the cycle period read from the record (kyr)
-#' @param term which astronomical term it is: "k+s3" (obliquity), or one of
-#'   the precession terms "k+g5", "k+g2", "k+g4", "k+g3"
-#' @param g Optional g frequencies (arcsec/yr) overriding the defaults.
-#' @param s Optional s frequencies (arcsec/yr) overriding the defaults.
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param period_kyr Period of the cycle read from the record, in kyr (numeric, > 0; can be a vector of several
+#' readings of the same term), i.e. from a tuned record or a known sedimentation rate. Required, no default.
+#' @param term Astronomical term the cycle represents (character): \code{"k+s3"} (obliquity) or one of the
+#' precession terms \code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"} (aliases such as \code{"obl"} and
+#' \code{"prec"} are accepted, see \code{\link{astro_terms}}); a term without k (an eccentricity term) gives an
+#' error. \code{Default="k+s3"}.
+#' @param g Secular frequencies g1 to g9 in arcsec/yr (numeric vector of length 9) used instead of the La2004
+#' values; \code{NULL} uses the La2004 values from \code{La04gisi.csv}. \code{Default=NULL}.
+#' @param s Secular frequencies s1 to s9 in arcsec/yr (numeric vector of length 9) used instead of the La2004
+#' values; \code{NULL} uses the La2004 values from \code{La04gisi.csv}. \code{Default=NULL}.
+#' @param data_dir Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+#' \code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+#' set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return list: p in arcsec/yr and the precession constant k in years
 #' @export
 cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -58,8 +65,8 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -102,7 +109,7 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -152,8 +159,8 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -165,7 +172,7 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -180,7 +187,7 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -189,30 +196,30 @@ cycles_to_k <- function(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir 
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   tf <- .term_frequency(term, p_arcsec = 0, g = g, s = s, data_dir = data_dir)
   if (!tf$has_k){
     stop("'", term, "' is a difference of secular frequencies and contains no ",
-         "precession constant, so it cannot give k.")
+        "precession constant, so it cannot give k.")
   }
   offset <- tf$freq
   f <- 360 * 3600 / (period_kyr * 1000)          # cycle frequency, arcsec/yr

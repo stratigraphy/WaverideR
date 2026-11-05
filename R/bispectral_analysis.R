@@ -24,68 +24,77 @@
 #' bispectralPreprocess.m, bispectralEstimate.m and bispectralSignificance.m
 #' (Mingsong Li).
 #'
-#' @param data Input data set: a matrix or data frame with 2 columns, the first
-#' being depth/time and the second the proxy value.
-#' @param estimator Estimator: "wosa" (segment averaged) or
-#' "frequency-smoothed". \code{NULL} chooses as Acycle does: "wosa", unless
-#' three 32-point segments do not fit, then "frequency-smoothed".
-#' \code{Default=NULL}
-#' @param n_segments Number of WOSA segments (>= 3). \code{NULL} uses
-#' min(8, maximum number of 32-point segments) as in Acycle. \code{Default=NULL}
-#' @param overlap Segment overlap in percent, in [0,90). \code{Default=50}
-#' @param window Taper: "hann", "hamming", "blackman" or "rectangular".
-#' \code{Default="hann"}
-#' @param segment_detrend Detrending applied to each segment (or the whole
-#' record for the frequency-smoothed estimator): "none", "mean" or "linear".
-#' \code{Default="mean"}
-#' @param smoothing_span Odd span (>= 3) of the hexagonal frequency-smoothing
-#' kernel (3 gives 7 triads). \code{Default=3}
-#' @param smoothing_kernel "daniell" (uniform) or "cosine" weights.
-#' \code{Default="daniell"}
-#' @param detrend Whole-record detrending: "none", "mean", "linear" or
-#' "polynomial". \code{Default="linear"}
-#' @param poly_order Polynomial order (1-10) for \code{detrend="polynomial"}.
-#' \code{Default=2}
-#' @param standardize Standardise the series to zero mean and unit standard
-#' deviation after detrending. \code{Default=TRUE}
-#' @param interpolate "auto" (interpolate only irregular series), "always" or
-#' "never". \code{Default="auto"}
-#' @param interp_method Interpolation method: "linear", "pchip" or "makima".
-#' \code{Default="linear"}
-#' @param sample_interval Sample interval of the regular grid; \code{NULL} uses
-#' the median original spacing. May not be coarser than the median spacing.
-#' \code{Default=NULL}
-#' @param irregular_tol Maximum relative spacing departure treated as regular
-#' (input_policy "prepare"). \code{Default=0.01}
-#' @param gap_warning_factor Largest gap (in sample intervals) above which a
-#' warning is stored. \code{Default=5}
-#' @param input_policy "prepare" (clean the input) or "strict" (refuse
-#' non-finite, unsorted or duplicated rows). \code{Default="prepare"}
-#' @param nfft FFT length for the WOSA estimator; \code{NULL} uses
-#' round(segment length x zero_pad). Ignored by the frequency-smoothed
-#' estimator. \code{Default=NULL}
-#' @param zero_pad Zero-padding factor for the WOSA estimator. \code{Default=1}
-#' @param max_freq_bins Maximum number of computed frequency-axis bins (>= 16);
-#' larger grids are decimated with a constant stride. \code{Default=512}
-#' @param significance Inference: "none", "analytical", "pointwise"
-#' (pointwise surrogate thresholds) or "global" (maximum-statistic surrogate
-#' test). \code{Default="none"}
-#' @param conf_level Confidence level in (0.5,1). \code{Default=0.95}
-#' @param n_sim Number of accepted surrogates (19-99999). \code{Default=999}
-#' @param surrogate_type "iaaft" or "ft" (phase randomisation).
-#' \code{Default="iaaft"}
-#' @param iaaft_iter Maximum number of IAAFT iterations. \code{Default=200}
-#' @param iaaft_tol Maximum accepted relative Fourier-amplitude error of an
-#' IAAFT surrogate (non-DC, non-Nyquist bins); worse surrogates are rejected
-#' and replaced. \code{Default=0.02}
-#' @param max_attempts Maximum number of surrogate attempts; \code{NULL} allows
-#' n_sim + max(10, ceiling(0.1 n_sim)). \code{Default=NULL}
-#' @param seed Seed for the random number generator (\code{NULL} leaves the
-#' generator untouched). \code{Default=NULL}
-#' @param genplot Plot the result with \code{\link{plot_bispectral}}.
-#' \code{Default=FALSE}
-#' @param verbose Print progress (progress bar for the surrogates).
-#' \code{Default=FALSE}
+#' @param data Series to analyse (numeric matrix or data frame with at least two columns: depth or time in
+#' column 1, proxy value in column 2; further columns are ignored). At least 32 finite observations with distinct
+#' coordinates are needed; even or uneven sampling (see \code{interpolate}). Required, no default
+#' (\code{Default=NULL} gives an error).
+#' @param estimator Bispectrum estimator (character): \code{"wosa"} (direct FFT bispectrum averaged over tapered,
+#' overlapping segments; also \code{"welch"}) or \code{"frequency-smoothed"} (direct estimate on the native DFT
+#' grid smoothed with a hexagonal kernel). \code{NULL} chooses as Acycle does: \code{"wosa"}, unless three
+#' 32-point segments do not fit, then \code{"frequency-smoothed"}. \code{Default=NULL}.
+#' @param n_segments Number of WOSA segments (integer, >= 3); more segments give a more stable estimate with a
+#' coarser frequency resolution. \code{NULL} uses min(8, maximum number of 32-point segments) as in Acycle.
+#' \code{Default=NULL}.
+#' @param overlap Overlap of adjacent WOSA segments in percent (numeric, 0 <= overlap < 90). \code{Default=50}.
+#' @param window Taper applied to every segment (character): \code{"hann"}, \code{"hamming"}, \code{"blackman"}
+#' or \code{"rectangular"} (no taper). \code{Default="hann"}.
+#' @param segment_detrend Detrending applied to each segment (or to the whole record for the frequency-smoothed
+#' estimator) before the FFT (character): \code{"none"}, \code{"mean"} or \code{"linear"}. \code{Default="mean"}.
+#' @param smoothing_span Span of the hexagonal frequency-smoothing kernel of the frequency-smoothed estimator
+#' (odd integer, >= 3; 3 averages 7 triads); larger spans give a smoother, lower-resolution estimate.
+#' \code{Default=3}.
+#' @param smoothing_kernel Weights of the hexagonal smoothing kernel (character): \code{"daniell"} (uniform) or
+#' \code{"cosine"} (raised cosine). \code{Default="daniell"}.
+#' @param detrend Detrending of the whole record before the estimation (character): \code{"none"}, \code{"mean"},
+#' \code{"linear"} or \code{"polynomial"} (order \code{poly_order}). \code{Default="linear"}.
+#' @param poly_order Order of the polynomial removed when \code{detrend = "polynomial"} (integer, 1 to 10 and
+#' below N - 1). \code{Default=2}.
+#' @param standardize Standardise the series to zero mean and unit standard deviation after detrending (logical,
+#' TRUE or FALSE). \code{Default=TRUE}.
+#' @param interpolate When the series is interpolated onto a regular grid (character): \code{"auto"} only when the
+#' sampling is irregular (see \code{irregular_tol}), \code{"always"}, or \code{"never"} (an irregular series then
+#' gives an error). \code{Default="auto"}.
+#' @param interp_method Interpolation method for the regular grid (character): \code{"linear"}, \code{"pchip"}
+#' (shape-preserving piecewise cubic) or \code{"makima"} (modified Akima). \code{Default="linear"}.
+#' @param sample_interval Sample interval of the regular grid, in the unit of the first column of \code{data}
+#' (numeric, > 0, not coarser than the median original spacing); \code{NULL} uses the median original spacing.
+#' \code{Default=NULL}.
+#' @param irregular_tol Largest relative departure of the sample spacing from the grid interval that is still
+#' treated as regular sampling, used with \code{input_policy = "prepare"} (numeric, >= 0). \code{Default=0.01}.
+#' @param gap_warning_factor Largest original gap, in sample intervals, above which a warning about interpolation
+#' across gaps is stored in the result (numeric, > 0). \code{Default=5}.
+#' @param input_policy How irregular input is handled (character): \code{"prepare"} cleans the input (removes
+#' non-finite rows, sorts, averages duplicate coordinates) or \code{"strict"} refuses non-finite, unsorted or
+#' duplicated rows with an error. \code{Default="prepare"}.
+#' @param nfft FFT length of every WOSA segment (positive integer); \code{NULL} uses round(segment length x
+#' \code{zero_pad}). Ignored by the frequency-smoothed estimator. \code{Default=NULL}.
+#' @param zero_pad Zero-padding factor of the WOSA segments, used when \code{nfft = NULL} (numeric, > 0).
+#' \code{Default=1}.
+#' @param max_freq_bins Maximum number of frequency bins computed along each frequency axis (integer, >= 16);
+#' larger grids are decimated with a constant stride to limit computing time and memory. \code{Default=512}.
+#' @param significance Type of inference on the bicoherence (character): \code{"none"}, \code{"analytical"}
+#' (Beta(1, R - 1) pointwise reference), \code{"pointwise"} (pointwise surrogate thresholds) or \code{"global"}
+#' (maximum-statistic surrogate test with family-wise error control over the computed principal domain).
+#' \code{Default="none"}.
+#' @param conf_level Confidence level of the significance threshold (numeric, strictly between 0.5 and 1).
+#' \code{Default=0.95}.
+#' @param n_sim Number of accepted surrogates for \code{significance = "pointwise"} or \code{"global"}
+#' (integer, 19 to 99999, and large enough to reach 1 - \code{conf_level}). \code{Default=999}.
+#' @param surrogate_type Type of surrogate (character): \code{"iaaft"} (iterative amplitude-adjusted Fourier
+#' transform, keeps both spectrum and amplitude distribution) or \code{"ft"} (Fourier phase randomisation).
+#' \code{Default="iaaft"}.
+#' @param iaaft_iter Maximum number of IAAFT iterations per surrogate (positive integer). \code{Default=200}.
+#' @param iaaft_tol Largest accepted relative Fourier-amplitude error of an IAAFT surrogate (non-DC,
+#' non-Nyquist bins); worse surrogates are rejected and replaced (numeric, 0 < iaaft_tol <= 1).
+#' \code{Default=0.02}.
+#' @param max_attempts Maximum number of surrogate attempts, including rejected ones (integer, >= \code{n_sim});
+#' \code{NULL} allows \code{n_sim} + max(10, ceiling(0.1 \code{n_sim})). \code{Default=NULL}.
+#' @param seed Seed of the random number generator (integer), so that the surrogates can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param genplot Plot the result with \code{\link{plot_bispectral}} (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param verbose Print progress messages and a progress bar for the surrogates (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle bispectral module).
@@ -145,6 +154,7 @@
 #' \code{significant_mask} and \code{warnings}.
 #'
 #' @param standardise British spelling of \code{standardize}; if given it overrides \code{standardize}.
+#' \code{Default=NULL}.
 #' @export
 #' @importFrom stats fft
 #' @importFrom stats median
@@ -155,38 +165,40 @@
 #' @importFrom utils setTxtProgressBar
 
 bispectral_analysis <- function(data = NULL,
-                                estimator = NULL,
-                                n_segments = NULL,
-                                overlap = 50,
-                                window = "hann",
-                                segment_detrend = "mean",
-                                smoothing_span = 3,
-                                smoothing_kernel = "daniell",
-                                detrend = "linear",
-                                poly_order = 2,
-                                standardize = TRUE,
-                                interpolate = "auto",
-                                interp_method = "linear",
-                                sample_interval = NULL,
-                                irregular_tol = 0.01,
-                                gap_warning_factor = 5,
-                                input_policy = "prepare",
-                                nfft = NULL,
-                                zero_pad = 1,
-                                max_freq_bins = 512,
-                                significance = "none",
-                                conf_level = 0.95,
-                                n_sim = 999,
-                                surrogate_type = "iaaft",
-                                iaaft_iter = 200,
-                                iaaft_tol = 0.02,
-                                max_attempts = NULL,
-                                seed = NULL,
-                                genplot = FALSE,
-                                verbose = FALSE,
-  standardise = NULL){
-  if (!is.null(standardise)) standardize <- standardise  # British spelling synonym
-  # ---- internal helper functions (local to this function) ----
+    estimator = NULL,
+    n_segments = NULL,
+    overlap = 50,
+    window = "hann",
+    segment_detrend = "mean",
+    smoothing_span = 3,
+    smoothing_kernel = "daniell",
+    detrend = "linear",
+    poly_order = 2,
+    standardize = TRUE,
+    interpolate = "auto",
+    interp_method = "linear",
+    sample_interval = NULL,
+    irregular_tol = 0.01,
+    gap_warning_factor = 5,
+    input_policy = "prepare",
+    nfft = NULL,
+    zero_pad = 1,
+    max_freq_bins = 512,
+    significance = "none",
+    conf_level = 0.95,
+    n_sim = 999,
+    surrogate_type = "iaaft",
+    iaaft_iter = 200,
+    iaaft_tol = 0.02,
+    max_attempts = NULL,
+    seed = NULL,
+    genplot = FALSE,
+    verbose = FALSE,
+    standardise = NULL){
+  if (!is.null(standardise)) {
+    standardize <- standardise
+  }  # British spelling synonym
+  # Internal helper functions (local to this function)
 
   acy_detrend_linear <- function(x, t = NULL){
     x <- as.numeric(x)
@@ -202,9 +214,7 @@ bispectral_analysis <- function(data = NULL,
     x - as.numeric(X %*% beta)
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB interp1(...,'pchip')
-  # ---------------------------------------------------------------------------
 
   acy_pchip_slopes <- function(x, y){
     n <- length(x)
@@ -260,9 +270,7 @@ bispectral_analysis <- function(data = NULL,
     yi
   }
 
-  # ===========================================================================
   # internal helpers
-  # ===========================================================================
 
   # @keywords internal
   # @noRd
@@ -305,7 +313,7 @@ bispectral_analysis <- function(data = NULL,
       return("wosa")
     }
     if (value %in% c("frequency-smoothed", "frequency smoothed", "smooth",
-                     "direct-smoothed")){
+        "direct-smoothed")){
       return("frequency-smoothed")
     }
     stop("estimator must be wosa or frequency-smoothed.")
@@ -377,7 +385,7 @@ bispectral_analysis <- function(data = NULL,
       return("pointwise")
     }
     if (value %in% c("global", "surrogate-global", "global-surrogate",
-                     "max-surrogate")){
+        "max-surrogate")){
       return("global")
     }
     stop("significance must be none, analytical, pointwise, or global.")
@@ -400,8 +408,8 @@ bispectral_analysis <- function(data = NULL,
       stop("poly_order must be a finite nonnegative integer.")
     }
     int_pos <- list(n_segments = opts$n_segments, max_freq_bins = opts$max_freq_bins,
-                    smoothing_span = opts$smoothing_span, n_sim = opts$n_sim,
-                    iaaft_iter = opts$iaaft_iter)
+        smoothing_span = opts$smoothing_span, n_sim = opts$n_sim,
+        iaaft_iter = opts$iaaft_iter)
     for (i in seq_len(length(int_pos))){
       if (!(bisp_is_int(int_pos[[i]]) && int_pos[[i]] > 0)){
         stop(paste0(names(int_pos)[i], " must be a finite positive integer."))
@@ -411,12 +419,12 @@ bispectral_analysis <- function(data = NULL,
       stop("zero_pad must be a finite positive scalar.")
     }
     if (!(length(opts$overlap) == 1 && is.finite(opts$overlap) &&
-          opts$overlap >= 0 && opts$overlap < 90)){
+        opts$overlap >= 0 && opts$overlap < 90)){
       stop("overlap must be in the interval [0,90).")
     }
     if (!is.null(opts$sample_interval)){
       if (!(length(opts$sample_interval) == 1 && is.finite(opts$sample_interval) &&
-            opts$sample_interval > 0)){
+          opts$sample_interval > 0)){
         stop("sample_interval must be NULL or positive.")
       }
     }
@@ -426,7 +434,7 @@ bispectral_analysis <- function(data = NULL,
       }
     }
     if (!(length(opts$iaaft_tol) == 1 && is.finite(opts$iaaft_tol) &&
-          opts$iaaft_tol > 0 && opts$iaaft_tol <= 1)){
+        opts$iaaft_tol > 0 && opts$iaaft_tol <= 1)){
       stop("iaaft_tol must lie in (0,1].")
     }
     if (!is.null(opts$max_attempts)){
@@ -435,26 +443,24 @@ bispectral_analysis <- function(data = NULL,
       }
     }
     if (!(length(opts$irregular_tol) == 1 && is.finite(opts$irregular_tol) &&
-          opts$irregular_tol >= 0)){
+        opts$irregular_tol >= 0)){
       stop("irregular_tol must be a finite nonnegative scalar.")
     }
     if (!(length(opts$gap_warning_factor) == 1 && is.finite(opts$gap_warning_factor) &&
-          opts$gap_warning_factor > 0)){
+        opts$gap_warning_factor > 0)){
       stop("gap_warning_factor must be a finite positive scalar.")
     }
     invisible(TRUE)
   }
 
-  # ---------------------------------------------------------------------------
   # preprocessing (bispectralPreprocess.m)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
   bisp_preprocess <- function(data, opts){
     data <- matrix(as.numeric(data[, 1:2]), ncol = 2)
     meta <- list(original_count = nrow(data), warnings = character(0),
-                 input_policy = opts$input_policy)
+        input_policy = opts$input_policy)
     if (opts$input_policy == "strict"){
       if (any(!is.finite(data))){
         stop("Strict input policy does not remove nonfinite rows.")
@@ -514,8 +520,8 @@ bispectral_analysis <- function(data = NULL,
     coarse_tol <- max(32 * bisp_eps(max(1, abs(med_dx))), 1e-10 * med_dx)
     if (dt > med_dx + coarse_tol){
       stop(paste0("sample_interval is coarser than the original median spacing. ",
-                  "Interpolation is not an anti-aliasing filter: low-pass filter ",
-                  "and resample the series first."))
+          "Interpolation is not an anti-aliasing filter: low-pass filter ",
+          "and resample the series first."))
     }
     max_err <- max(abs(dx - dt))
     rel_dep <- max_err / dt
@@ -542,12 +548,12 @@ bispectral_analysis <- function(data = NULL,
     }
     if (irregular && !do_interp){
       stop(paste0("Bispectral FFT estimators require regular sampling. Use ",
-                  "interpolate = 'auto' or 'always', or a suitable sample_interval."))
+          "interpolate = 'auto' or 'always', or a suitable sample_interval."))
     }
 
     if (do_interp){
       n_int <- floor((x[length(x)] - x[1]) / dt +
-                       100 * bisp_eps(max(1, abs(x[length(x)] / dt))))
+          100 * bisp_eps(max(1, abs(x[length(x)] / dt))))
       if (n_int + 1 < 32){
         stop("The requested interpolation interval leaves fewer than 32 samples.")
       } else if (n_int + 1 > 1e7){
@@ -569,16 +575,16 @@ bispectral_analysis <- function(data = NULL,
       y <- yr[keep]
       if (irregular){
         meta$warnings <- c(meta$warnings, sprintf(paste0(
-          "Coordinate-spacing departure %.6g ppm exceeded the %.6g ppm ",
-          "threshold. The data were interpolated onto a regular grid with ",
-          "sample interval %.9g using %s."), 1e6 * rel_dep, 1e6 * active_tol,
-          dt, toupper(im)))
+            "Coordinate-spacing departure %.6g ppm exceeded the %.6g ppm ",
+            "threshold. The data were interpolated onto a regular grid with ",
+            "sample interval %.9g using %s."), 1e6 * rel_dep, 1e6 * active_tol,
+            dt, toupper(im)))
       }
     }
     if (gap > opts$gap_warning_factor){
       meta$warnings <- c(meta$warnings, sprintf(paste0(
-        "Largest original gap is %.2f sampling intervals; interpolated values ",
-        "across large gaps should be interpreted cautiously."), gap))
+          "Largest original gap is %.2f sampling intervals; interpolated values ",
+          "across large gaps should be interpreted cautiously."), gap))
     }
 
     trend <- numeric(length(y))
@@ -679,9 +685,7 @@ bispectral_analysis <- function(data = NULL,
     yi
   }
 
-  # ---------------------------------------------------------------------------
   # estimator (bispectralEstimate.m)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -796,7 +800,7 @@ bispectral_analysis <- function(data = NULL,
     valid <- bin2 <= bin1 & (bin1 + bin2 <= max_bin)
     if (est == "frequency-smoothed"){
       valid <- valid & (bin1 - hw >= 1) & (bin2 - hw >= 1) &
-        (bin1 + bin2 + hw <= max_bin)
+          (bin1 + bin2 + hw <= max_bin)
     }
     if (!any(valid)){
       stop("No triads remain in the selected nonredundant principal domain.")
@@ -818,36 +822,36 @@ bispectral_analysis <- function(data = NULL,
     }
     if (est == "wosa" && opts$overlap > 0 && opts$significance == "analytical"){
       warn <- c(warn, paste0("Overlapped segments are correlated; analytical Beta ",
-                             "significance is approximate and retained only for ",
-                             "compatibility. Formal inference uses IAAFT ",
-                             "maximum-statistic FWER control."))
+          "significance is approximate and retained only for ",
+          "compatibility. Formal inference uses IAAFT ",
+          "maximum-statistic FWER control."))
     } else if (est == "frequency-smoothed"){
       warn <- c(warn, paste0("Frequency-smoothed triads share FFT coefficients; ",
-                             "the kernel effective count is diagnostic, not ",
-                             "strict degrees of freedom."))
+          "the kernel effective count is diagnostic, not ",
+          "strict degrees of freedom."))
     }
     meta <- list(estimator = est, record_length = n, sample_interval = dt,
-                 nyquist = 1 / (2 * dt), nfft = nfft,
-                 zero_padding_factor_actual = nfft / L,
-                 segment_length = L, segment_count = length(starts),
-                 segment_starts = starts, requested_overlap = opts$overlap,
-                 actual_median_overlap = actual_overlap, window = opts$window,
-                 window_enbw_bins = enbw, rayleigh_resolution = rayleigh,
-                 frequency_bin_stride = stride, computed_axis_bin_count = na,
-                 native_positive_frequency_maximum = pos_max / (nfft * dt),
-                 principal_sum_frequency_maximum = max(pb1 + pb2) / (nfft * dt),
-                 triad_count = length(pair_index),
-                 effective_realization_count = eff,
-                 smoothing_offsets = offsets, smoothing_weights = weights,
-                 smoothing_bandwidth = hw * rayleigh,
-                 unused_sample_count = sum(coverage == 0),
-                 minimum_coverage = min(coverage),
-                 maximum_coverage = max(coverage),
-                 warnings = warn)
+        nyquist = 1 / (2 * dt), nfft = nfft,
+        zero_padding_factor_actual = nfft / L,
+        segment_length = L, segment_count = length(starts),
+        segment_starts = starts, requested_overlap = opts$overlap,
+        actual_median_overlap = actual_overlap, window = opts$window,
+        window_enbw_bins = enbw, rayleigh_resolution = rayleigh,
+        frequency_bin_stride = stride, computed_axis_bin_count = na,
+        native_positive_frequency_maximum = pos_max / (nfft * dt),
+        principal_sum_frequency_maximum = max(pb1 + pb2) / (nfft * dt),
+        triad_count = length(pair_index),
+        effective_realization_count = eff,
+        smoothing_offsets = offsets, smoothing_weights = weights,
+        smoothing_bandwidth = hw * rayleigh,
+        unused_sample_count = sum(coverage == 0),
+        minimum_coverage = min(coverage),
+        maximum_coverage = max(coverage),
+        warnings = warn)
     list(estimator = est, n = n, dt = dt, nfft = nfft, seg_len = L,
-         starts = starts, window = win, axis_bins = axis_bins,
-         frequency = frequency, valid = valid, pair_index = pair_index,
-         pb1 = pb1, pb2 = pb2, offsets = offsets, weights = weights, meta = meta)
+        starts = starts, window = win, axis_bins = axis_bins,
+        frequency = frequency, valid = valid, pair_index = pair_index,
+        pb1 = pb1, pb2 = pb2, offsets = offsets, weights = weights, meta = meta)
   }
 
   # @keywords internal
@@ -939,30 +943,28 @@ bispectral_analysis <- function(data = NULL,
     mag <- Mod(B)
     biphase <- Arg(B)
     defined <- state$valid & is.finite(b2) & is.finite(Re(B)) &
-      is.finite(Im(B)) & mag > 0
+        is.finite(Im(B)) & mag > 0
     defined[is.na(defined)] <- FALSE
     biphase[!defined] <- NA
     valid <- state$valid & is.finite(b2)
     meta <- state$meta
     meta$invalid_denominator_triad_count <- sum(state$valid & !is.finite(b2))
     list(frequency = state$frequency,
-         bispectrum = B,
-         bispectrum_magnitude = mag,
-         biphase = biphase,
-         bicoherence_squared = b2,
-         denominator = den,
-         principal_domain_mask = state$valid,
-         valid_mask = valid,
-         invalid_denominator_mask = state$valid & !is.finite(b2),
-         power = p$power,
-         pair_index = state$pair_index,
-         pair_bicoherence_squared = p$b2,
-         meta = meta)
+        bispectrum = B,
+        bispectrum_magnitude = mag,
+        biphase = biphase,
+        bicoherence_squared = b2,
+        denominator = den,
+        principal_domain_mask = state$valid,
+        valid_mask = valid,
+        invalid_denominator_mask = state$valid & !is.finite(b2),
+        power = p$power,
+        pair_index = state$pair_index,
+        pair_bicoherence_squared = p$b2,
+        meta = meta)
   }
 
-  # ---------------------------------------------------------------------------
   # surrogates (bispectralSurrogate.m)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -1003,7 +1005,7 @@ bispectral_analysis <- function(data = NULL,
       }
       sur <- Re(stats::fft(spec, inverse = TRUE)) / n
       return(list(surrogate = sur, iterations = 1,
-                  relative_spectral_error = bisp_spectral_error(sur, target)))
+          relative_spectral_error = bisp_spectral_error(sur, target)))
     }
     target <- Mod(stats::fft(y))
     sorted_target <- sort(y)
@@ -1028,9 +1030,7 @@ bispectral_analysis <- function(data = NULL,
     list(surrogate = sur, iterations = completed, relative_spectral_error = err)
   }
 
-  # ---------------------------------------------------------------------------
   # significance (bispectralSignificance.m)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -1059,7 +1059,7 @@ bispectral_analysis <- function(data = NULL,
     out <- rep(NA_real_, length(query))
     ok <- is.finite(query)
     out[ok] <- length(sorted_values) -
-      findInterval(query[ok], sorted_values, left.open = TRUE)
+        findInterval(query[ok], sorted_values, left.open = TRUE)
     out
   }
 
@@ -1070,15 +1070,15 @@ bispectral_analysis <- function(data = NULL,
     na <- length(observed$frequency)
     empty <- matrix(NA_real_, na, na)
     sig <- list(method = method, conf_level = opts$conf_level, threshold = NA_real_,
-                threshold_matrix = empty, p_value = empty,
-                significant_mask = matrix(FALSE, na, na),
-                surrogate_maxima = numeric(0),
-                surrogate_spectral_errors = numeric(0),
-                attempt_spectral_errors = numeric(0),
-                surrogate_type = "none", n_sim = 0, attempt_count = 0,
-                rejected_count = 0, rejected_iaaft = 0, rejected_nonfinite = 0,
-                max_attempts = 0, family_triad_count = 0,
-                warnings = character(0))
+        threshold_matrix = empty, p_value = empty,
+        significant_mask = matrix(FALSE, na, na),
+        surrogate_maxima = numeric(0),
+        surrogate_spectral_errors = numeric(0),
+        attempt_spectral_errors = numeric(0),
+        surrogate_type = "none", n_sim = 0, attempt_count = 0,
+        rejected_count = 0, rejected_iaaft = 0, rejected_nonfinite = 0,
+        max_attempts = 0, family_triad_count = 0,
+        warnings = character(0))
     if (method == "none"){
       return(sig)
     }
@@ -1113,7 +1113,7 @@ bispectral_analysis <- function(data = NULL,
       sig$p_value <- pv
       sig$significant_mask <- sm & observed$valid_mask
       sig$warnings <- paste0("Analytical Beta inference is retained for ",
-                             "compatibility and method validation only.")
+          "compatibility and method validation only.")
       return(sig)
     }
 
@@ -1127,7 +1127,7 @@ bispectral_analysis <- function(data = NULL,
     }
     if (1 / (nsim + 1) > alpha){
       stop(sprintf("n_sim = %d cannot reach alpha = %.6g; use at least %d surrogates.",
-                   nsim, alpha, ceiling(1 / alpha - 1)))
+          nsim, alpha, ceiling(1 / alpha - 1)))
     }
     stype <- opts$surrogate_type
     if (is.null(opts$max_attempts)){
@@ -1197,12 +1197,12 @@ bispectral_analysis <- function(data = NULL,
     if (acc < nsim){
       if (rej_iaaft > 0){
         stop(sprintf(paste0("Only %d of %d surrogates passed after %d attempts; %d IAAFT ",
-                            "surrogate(s) exceeded spectral-error tolerance %.4g. ",
-                            "Increase iaaft_iter or adjust iaaft_tol/max_attempts."),
-                     acc, nsim, att, rej_iaaft, opts$iaaft_tol))
+            "surrogate(s) exceeded spectral-error tolerance %.4g. ",
+            "Increase iaaft_iter or adjust iaaft_tol/max_attempts."),
+            acc, nsim, att, rej_iaaft, opts$iaaft_tol))
       }
       stop(sprintf("Only %d of %d finite null surrogates were obtained after %d attempts.",
-                   acc, nsim, att))
+          acc, nsim, att))
     }
 
     pp <- (1 + exceed) / (1 + finite_count)
@@ -1232,9 +1232,9 @@ bispectral_analysis <- function(data = NULL,
       s[is.na(s)] <- FALSE
       sm[pidx] <- s
       sig$threshold_comparison <- paste0("strictly greater than the plus-one Monte ",
-                                         "Carlo critical order statistic, with p <= alpha")
+          "Carlo critical order statistic, with p <= alpha")
       sig$warnings <- paste0("Pointwise surrogate inference does not control the ",
-                             "family-wise error rate across the full map.")
+          "family-wise error rate across the full map.")
     } else {
       fmax <- sort(sur_max[is.finite(sur_max)])
       if (length(fmax) < ceiling(0.9 * nsim)){
@@ -1254,22 +1254,22 @@ bispectral_analysis <- function(data = NULL,
       sm[pidx] <- s
       sig$threshold <- thr
       sig$threshold_comparison <- paste0("strictly greater than the plus-one Monte ",
-                                         "Carlo critical order statistic, with ",
-                                         "global p <= alpha")
+          "Carlo critical order statistic, with ",
+          "global p <= alpha")
       if (stype == "ft"){
         sig$warnings <- paste0("FT phase maximum-statistic inference is retained for ",
-                               "compatibility and validation; formal maps use IAAFT.")
+            "compatibility and validation; formal maps use IAAFT.")
       }
     }
     if (rej_iaaft > 0){
       sig$warnings <- c(sig$warnings, sprintf(paste0(
-        "Rejected and replaced %d IAAFT surrogate(s) whose relative ",
-        "Fourier-amplitude error exceeded %.4g."), rej_iaaft, opts$iaaft_tol))
+          "Rejected and replaced %d IAAFT surrogate(s) whose relative ",
+          "Fourier-amplitude error exceeded %.4g."), rej_iaaft, opts$iaaft_tol))
     }
     if (rej_nonfinite > 0){
       sig$warnings <- c(sig$warnings, sprintf(paste0(
-        "Rejected and replaced %d surrogate estimate(s) lacking b^2 values ",
-        "required by the fixed inference family."), rej_nonfinite))
+          "Rejected and replaced %d surrogate estimate(s) lacking b^2 values ",
+          "required by the fixed inference family."), rej_nonfinite))
     }
     sig$threshold_matrix <- tm
     sig$p_value <- pv
@@ -1287,7 +1287,7 @@ bispectral_analysis <- function(data = NULL,
     sig
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(data)){
     stop("data must be a 2-column matrix [depth/time, value]")
   }
@@ -1303,31 +1303,31 @@ bispectral_analysis <- function(data = NULL,
     n_segments <- auto$n_segments
   }
   opts <- list(estimator = bisp_canonical_estimator(estimator),
-               n_segments = n_segments,
-               overlap = overlap,
-               window = bisp_canonical_window(window),
-               segment_detrend = bisp_canonical_segment_detrend(segment_detrend),
-               smoothing_span = smoothing_span,
-               smoothing_kernel = bisp_canonical_kernel(smoothing_kernel),
-               detrend = tolower(trimws(detrend)),
-               poly_order = poly_order,
-               standardize = standardize,
-               interpolate = tolower(trimws(interpolate)),
-               interp_method = tolower(trimws(interp_method)),
-               sample_interval = sample_interval,
-               irregular_tol = irregular_tol,
-               gap_warning_factor = gap_warning_factor,
-               input_policy = tolower(trimws(input_policy)),
-               nfft = nfft,
-               zero_pad = zero_pad,
-               max_freq_bins = max_freq_bins,
-               significance = bisp_canonical_significance(significance),
-               conf_level = conf_level,
-               n_sim = n_sim,
-               surrogate_type = bisp_canonical_surrogate(surrogate_type),
-               iaaft_iter = iaaft_iter,
-               iaaft_tol = iaaft_tol,
-               max_attempts = max_attempts)
+      n_segments = n_segments,
+      overlap = overlap,
+      window = bisp_canonical_window(window),
+      segment_detrend = bisp_canonical_segment_detrend(segment_detrend),
+      smoothing_span = smoothing_span,
+      smoothing_kernel = bisp_canonical_kernel(smoothing_kernel),
+      detrend = tolower(trimws(detrend)),
+      poly_order = poly_order,
+      standardize = standardize,
+      interpolate = tolower(trimws(interpolate)),
+      interp_method = tolower(trimws(interp_method)),
+      sample_interval = sample_interval,
+      irregular_tol = irregular_tol,
+      gap_warning_factor = gap_warning_factor,
+      input_policy = tolower(trimws(input_policy)),
+      nfft = nfft,
+      zero_pad = zero_pad,
+      max_freq_bins = max_freq_bins,
+      significance = bisp_canonical_significance(significance),
+      conf_level = conf_level,
+      n_sim = n_sim,
+      surrogate_type = bisp_canonical_surrogate(surrogate_type),
+      iaaft_iter = iaaft_iter,
+      iaaft_tol = iaaft_tol,
+      max_attempts = max_attempts)
   bisp_validate_options(opts)
 
   if (verbose == TRUE){

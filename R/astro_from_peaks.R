@@ -6,37 +6,59 @@
 #' precession constant k, the Earth-Moon distance and the length of day, with
 #' uncertainties.
 #'
-#' @param age approximate age in Ma: c(min, max), or a single value (then
-#'   `age_tol` Ma is used on either side)
-#' @param e405,e125,e95 c(min, max) wavelength (m) of the 405-kyr, ~125-kyr and
-#'   ~95-kyr eccentricity cycles (all three are required)
-#' @param obl c(min, max) wavelength (m) of the obliquity cycle, if identified
-#' @param prec_long,prec_mid,prec_short c(min, max) wavelength (m) of the
-#'   precession cycles, longest to shortest (k+g5; k+g2; k+g4/k+g3). Give what
-#'   you have; all three are needed for the precession test.
-#' @param age_tol half-width (Ma) used when `age` is a single value
-#' @param nsim,ptest,sampleorb,s3_uncertainty,seed,verbose passed to ctest()
-#' @param mode "auto" picks PT / T / P from what you supplied
-#' @param method how k is converted to an Earth-Moon state:
-#'   "angular_momentum" or "astrogeo22"
-#' @param data_dir folder with the AstroGeo22 table
+#' @param age Approximate age of the record in Ma (numeric): \code{c(min, max)}, or a single value, which is
+#'   widened by \code{age_tol} Ma on either side. Required, no default.
+#' @param e405,e125,e95 Wavelength ranges in metres of the 405-kyr, ~125-kyr and ~95-kyr eccentricity cycles
+#'   identified in the depth-domain spectrum (each a numeric vector \code{c(min, max)}). All three are required,
+#'   no default.
+#' @param obl Wavelength range in metres of the obliquity cycle (k+s3), if identified (numeric vector
+#'   \code{c(min, max)}); \code{NULL} if not identified. \code{Default=NULL}.
+#' @param prec_long,prec_mid,prec_short Wavelength ranges in metres of the precession cycles, from longest to
+#'   shortest (k+g5; k+g2; k+g4/k+g3), each a numeric vector \code{c(min, max)} or \code{NULL}. All three must be
+#'   given for the precession test to be used. \code{Default=NULL}.
+#' @param age_tol Half-width in Ma of the age range used when \code{age} is a single value (numeric, >= 0).
+#'   \code{Default=5}.
+#' @param nsim Number of accepted Monte Carlo samples to collect (integer, > 0); passed to \code{\link{ctest}}.
+#'   \code{Default=2000}.
+#' @param ptest Range of precession constants k to sample, in years (numeric vector \code{c(min, max)}); passed to
+#'   \code{\link{ctest}}. \code{Default=c(10000, 28000)}.
+#' @param mode Which cycles are used in the consistency test (character): \code{"auto"} picks the mode from the
+#'   cycles supplied, \code{"PT"} precession and obliquity (tilt), \code{"T"} obliquity only, \code{"P"} precession
+#'   only. Passed to \code{\link{ctest}}. \code{Default=c("auto", "PT", "T", "P")}, i.e. \code{"auto"}.
+#' @param sampleorb How the secular frequencies g2-g5 are sampled, passed to \code{\link{ctest}} (character):
+#'   \code{"U"} uniform within 2 sigma (as in the paper) or \code{"N"} normal. \code{Default="U"}.
+#' @param method How the sampled precession constants are converted into an Earth-Moon state (distance, length of
+#'   day) by \code{\link{ctest_earthmoon}} (character): \code{"angular_momentum"} (Earth-Moon angular-momentum
+#'   conservation) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve).
+#'   \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.
+#' @param s3_uncertainty How the uncertainty of s3 is sampled, passed to \code{\link{ctest}} (character):
+#'   \code{"published"} follows the published CTest code, in which the relative uncertainty is applied as an
+#'   absolute one in years (s3 is effectively fixed; use it to reproduce the paper); \code{"scaled"} applies it
+#'   relative to the s3 period, as for g2-g5, giving s3 a realistic spread.
+#'   \code{Default=c("published", "scaled")}, i.e. \code{"published"}.
+#' @param seed Seed of the random number generator (integer), passed to \code{\link{ctest}} so that the
+#'   Monte Carlo results can be reproduced; \code{NULL} leaves the current random state unchanged.
+#'   \code{Default=NULL}.
+#' @param verbose Print progress messages of the Monte Carlo sampling (logical, TRUE or FALSE).
+#'   \code{Default=TRUE}.
+#' @param data_dir Folder that contains the AstroGeo22 table \code{AstroGeo22.txt} (character path);
+#'   \code{NULL} uses the copy installed with the package. Passed to \code{\link{ctest_earthmoon}} and
+#'   \code{\link{astrogeo22}}. \code{Default=NULL}.
 #' @return object of class `astro_from_peaks`: `$frequencies` (g, s, k in both
 #'   arcsec/yr and yr), `$earthmoon` (distance, day length, months, days per
 #'   year), `$periods` (the astronomical periods implied), `$reference` (the
 #'   AstroGeo22 model at the same age) and the underlying `$ctest`
 #' @export
 astro_from_peaks <- function(age, e405, e125, e95, obl = NULL,
-                             prec_long = NULL, prec_mid = NULL, prec_short = NULL,
-                             age_tol = 5, nsim = 2000, ptest = c(10000, 28000),
-                             mode = c("auto", "PT", "T", "P"), sampleorb = "U",
-                             method = c("angular_momentum", "astrogeo22"),
-                             s3_uncertainty = c("published", "scaled"),
-                             seed = NULL, verbose = TRUE, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    prec_long = NULL, prec_mid = NULL, prec_short = NULL,
+    age_tol = 5, nsim = 2000, ptest = c(10000, 28000),
+    mode = c("auto", "PT", "T", "P"), sampleorb = "U",
+    method = c("angular_momentum", "astrogeo22"),
+    s3_uncertainty = c("published", "scaled"),
+    seed = NULL, verbose = TRUE, data_dir = NULL){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # One-call wrapper: spectral peaks + approximate age -> g, s, k, Earth-Moon
-  # ---------------------------------------------------------------------------
 
   # @title Mean, sd and 95% interval of a sample, NA when nothing is finite
   # @keywords internal
@@ -70,14 +92,14 @@ astro_from_peaks <- function(age, e405, e125, e95, obl = NULL,
     }
     rownames(pers) <- names(per)
     frequencies <- data.frame(term = names(per),
-                              freq_arcsec_yr = freqs[, "mean"], freq_sd = freqs[, "sd"],
-                              freq_lo95 = freqs[, 3], freq_hi95 = freqs[, 4],
-                              period_yr = pers[, "mean"], period_sd_yr = pers[, "sd"],
-                              row.names = NULL)
+        freq_arcsec_yr = freqs[, "mean"], freq_sd = freqs[, "sd"],
+        freq_lo95 = freqs[, 3], freq_hi95 = freqs[, 4],
+        period_yr = pers[, "mean"], period_sd_yr = pers[, "sd"],
+        row.names = NULL)
     frequencies$term[frequencies$term == "k"] <- "k (precession constant)"
 
     cols <- c("ecc405", "ecc130", "ecc124", "ecc99", "ecc95",
-              "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg3", "prec_kg4")
+        "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg3", "prec_kg4")
     use <- logical(length(cols))
     for (j in seq_along(cols)){
       use[j] <- any(is.finite(samples[[cols[j]]]))
@@ -92,12 +114,12 @@ astro_from_peaks <- function(age, e405, e125, e95, obl = NULL,
       }
     }
     periods <- data.frame(cycle = cols, period_kyr = periods[, "mean"],
-                          sd_kyr = periods[, "sd"], lo95 = periods[, 3],
-                          hi95 = periods[, 4], row.names = NULL)
+        sd_kyr = periods[, "sd"], lo95 = periods[, 3],
+        hi95 = periods[, 4], row.names = NULL)
     list(frequencies = frequencies, periods = periods)
   }
 
-  # ---- main code ----
+  # Main code
   mode <- match.arg(mode)
   method <- match.arg(method)
   s3_uncertainty <- match.arg(s3_uncertainty)
@@ -131,10 +153,10 @@ astro_from_peaks <- function(age, e405, e125, e95, obl = NULL,
     p3_in <- prec_short
   }
   input <- ctest_input(age = age, e405 = e405, e125 = e125, e95 = e95,
-                       obl = obl_in, p1 = p1_in, p2 = p2_in, p3 = p3_in)
+      obl = obl_in, p1 = p1_in, p2 = p2_in, p3 = p3_in)
   fit <- ctest(input, nsim = nsim, mode = mode, ptest = ptest,
-               sampleorb = sampleorb, seed = seed, verbose = verbose,
-               s3_uncertainty = s3_uncertainty)
+      sampleorb = sampleorb, seed = seed, verbose = verbose,
+      s3_uncertainty = s3_uncertainty)
   mid_age <- mean(age)
   em <- ctest_earthmoon(fit, age_ma = mid_age, method = method, data_dir = data_dir)
 
@@ -142,27 +164,28 @@ astro_from_peaks <- function(age, e405, e125, e95, obl = NULL,
   tabs <- .ctest_tables(fit$samples)
 
   out <- list(frequencies = tabs$frequencies, periods = tabs$periods,
-              earthmoon = em$summary, sedimentation_rate_m_kyr = .ctest_ci95(fit$samples$SR),
-              reference = astrogeo22(mid_age, data_dir = data_dir),
-              ctest = fit, em = em, age_ma = age, mode = mode, method = method)
+      earthmoon = em$summary, sedimentation_rate_m_kyr = .ctest_ci95(fit$samples$SR),
+      reference = astrogeo22(mid_age, data_dir = data_dir),
+      ctest = fit, em = em, age_ma = age, mode = mode, method = method)
   class(out) <- "astro_from_peaks"
   out
 }
 
 #' @title Print an astro_from_peaks result
-#' @param x an astro_from_peaks object
-#' @param ... ignored
+#' @param x Result to print: an object of class \code{astro_from_peaks}, as returned by
+#'   \code{\link{astro_from_peaks}} or \code{\link{astro_from_periods}}. Required, no default.
+#' @param ... Not used; present for compatibility with the generic \code{print()}.
 #' @return x, invisibly
 #' @export
 print.astro_from_peaks <- function(x, ...){
   cat(sprintf("\nAstronomical parameters from spectral peaks (CTest %s, %d samples, age %g-%g Ma)\n",
-              x$mode, x$ctest$nsim, x$age_ma[1], x$age_ma[2]))
+      x$mode, x$ctest$nsim, x$age_ma[1], x$age_ma[2]))
   if (grepl("time", x$mode)){
     cat(sprintf("Time-scale stretch vs the tuning target: %.4f +- %.4f\n",
-                x$sedimentation_rate_m_kyr["mean"], x$sedimentation_rate_m_kyr["sd"]))
+        x$sedimentation_rate_m_kyr["mean"], x$sedimentation_rate_m_kyr["sd"]))
   } else {
     cat(sprintf("Sedimentation rate: %.3f +- %.3f m/kyr\n",
-                x$sedimentation_rate_m_kyr["mean"], x$sedimentation_rate_m_kyr["sd"]))
+        x$sedimentation_rate_m_kyr["mean"], x$sedimentation_rate_m_kyr["sd"]))
   }
   if (!is.null(x$ctest$constraints)){
     cat(sprintf("Cycles used: %s\n", paste(names(x$ctest$constraints), collapse = ", ")))
@@ -170,20 +193,20 @@ print.astro_from_peaks <- function(x, ...){
   cat("\n")
   cat("Secular frequencies and precession constant\n")
   print(data.frame(term = x$frequencies$term,
-                   `arcsec/yr` = sprintf("%8.3f +- %.3f", x$frequencies$freq_arcsec_yr,
-                                         x$frequencies$freq_sd),
-                   `period (yr)` = sprintf("%9.0f +- %.0f", x$frequencies$period_yr,
-                                           x$frequencies$period_sd_yr),
-                   check.names = FALSE), row.names = FALSE)
+      `arcsec/yr` = sprintf("%8.3f +- %.3f", x$frequencies$freq_arcsec_yr,
+          x$frequencies$freq_sd),
+      `period (yr)` = sprintf("%9.0f +- %.0f", x$frequencies$period_yr,
+          x$frequencies$period_sd_yr),
+      check.names = FALSE), row.names = FALSE)
   cat("\nAstronomical periods implied (kyr)\n")
   print(data.frame(cycle = x$periods$cycle,
-                   kyr = sprintf("%6.2f +- %.2f", x$periods$period_kyr, x$periods$sd_kyr),
-                   check.names = FALSE), row.names = FALSE)
+      kyr = sprintf("%6.2f +- %.2f", x$periods$period_kyr, x$periods$sd_kyr),
+      check.names = FALSE), row.names = FALSE)
   cat(sprintf("\nEarth-Moon system (%s inversion)\n", x$method))
   print(round(x$earthmoon, 3))
   cat("\nAstroGeo22 model at the same age, for comparison\n")
   r <- x$reference
   cat(sprintf("  precession %.2f kyr | distance %.2f R_E (%.0f km) | solar day %.2f h | obliquity %.2f deg\n\n",
-              r$p_kyr, r$a_RE, r$a_km, r$lod_solar_h, r$obliquity_deg))
+      r$p_kyr, r$a_RE, r$a_km, r$lod_solar_h, r$obliquity_deg))
   invisible(x)
 }

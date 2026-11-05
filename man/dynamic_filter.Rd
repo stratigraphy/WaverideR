@@ -16,39 +16,44 @@ dynamic_filter(
 )
 }
 \arguments{
-\item{data}{Input data set, a matrix or data frame with 2 columns: the
-first column being depth/time (strictly increasing, regularly sampled to
-a relative spacing tolerance of 1e-5; interpolate beforehand otherwise)
-and the second column being the proxy value.}
+\item{data}{Input series (two-column matrix or data frame of finite numeric values: depth/time in column 1,
+strictly increasing and regularly sampled to a relative spacing tolerance of 1e-5, proxy value in column 2; at
+least 8 rows). Interpolate irregular data to a regular grid beforehand. Required (\code{Default=NULL}).}
 
-\item{controls}{Pass band control points. Either a matrix/data frame with
-columns \code{depth}, \code{f_low}, \code{f_high} and optionally
-\code{f_centre} (unnamed columns are taken in that order), or a list with
-elements \code{lower} and \code{upper}, each a 2-column matrix
-[depth, frequency] (Acycle's separate lower/upper boundary picks, which
-may be at different depths). Depths must be strictly increasing and lie
-within the data range. A single row gives a constant pass band. Because
-the Acycle Gaussian response is symmetric, a supplied \code{f_centre}
-must equal \code{(f_low + f_high) / 2} (it is only checked).}
+\item{controls}{Pass band control points, in cycles per depth/time unit. Either
+\itemize{
+\item a matrix or data frame with columns \code{depth}, \code{f_low}, \code{f_high} and optionally
+\code{f_centre} (unnamed columns are taken in that order), e.g. the output of
+\code{\link{dynamic_filter_controls}}, or
+\item a list with elements \code{lower} and \code{upper}, each a two-column matrix [depth, frequency]
+(separate lower/upper boundary picks, which may be at different depths).
+}
+Depths must be strictly increasing and lie within the data range, frequencies must be > 0, with
+\code{f_low < f_high} and \code{f_high} below the Nyquist frequency everywhere. Between control points the band
+is linearly interpolated, beyond the first/last point it is held constant; a single row gives a constant pass
+band. Because the Gaussian response is symmetric, a supplied \code{f_centre} must equal
+\code{(f_low + f_high) / 2} (it is only checked). Required (\code{Default=NULL}).}
 
-\item{window_length}{Window length in depth units (first-to-last sample
-span). \code{Default=NULL}: 20 percent of the record length (Acycle GUI
-default). A window of about two times the longest period of the target
-cycle is recommended.}
+\item{window_length}{Length of the sliding windows, in depth/time units (numeric, > 0, at most the record length
+and at least 8 samples). Longer windows give a sharper frequency resolution but follow changes in the pass band
+less closely; a window of about two times the longest period of the target cycle is recommended. \code{NULL}
+uses 20\% of the record length (Acycle GUI default). \code{Default=NULL}.}
 
-\item{step_length}{Step between successive windows in depth units.
-\code{Default=NULL}: 4 times the sample interval, or
-\code{(record length - window_length) / 500} when that gives more than
-500 steps (Acycle GUI default).}
+\item{step_length}{Step between successive windows, in depth/time units (numeric, > 0, between half a sample
+interval and \code{window_length}). \code{NULL} uses 4 times the sample interval, or
+\code{(record length - window_length) / 500} when that would give more than 500 steps (Acycle GUI default).
+\code{Default=NULL}.}
 
-\item{genplot}{Generate a plot using \code{\link{plot_dynamic_filter}}
-\code{Default=FALSE}.}
+\item{genplot}{Plot the data and the filtered signal with \code{\link{plot_dynamic_filter}} (logical, TRUE or
+FALSE). \code{Default=FALSE}.}
 
-\item{x_lab}{label for the x-axis \code{Default="depth"}.}
+\item{x_lab}{Label of the depth/time axis of the plot, passed to \code{\link{plot_dynamic_filter}} (character).
+Only used when \code{genplot=TRUE}. \code{Default="depth"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="proxy"}.}
+\item{y_lab}{Label of the proxy axis of the plot, passed to \code{\link{plot_dynamic_filter}} (character). Only
+used when \code{genplot=TRUE}. \code{Default="proxy"}.}
 
-\item{verbose}{Show a progress bar \code{Default=FALSE}.}
+\item{verbose}{Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

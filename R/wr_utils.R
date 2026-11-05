@@ -16,13 +16,13 @@
 #'   \item each task gets its own random seed, derived from the seed of the master session, so
 #'   results do not depend on the number of cores and \code{set.seed()} before a call gives
 #'   reproducible output;
-#'   \item forked workers (\code{mclapply}) on Linux and macOS, socket workers on Windows and in
+#'   \item socket (PSOCK) workers on every platform (Linux, macOS and Windows), also in
 #'   the RStudio GUI; the cluster is always stopped, also when an error occurs.
 #' }
 #'
 #' Options: \code{waverider.n_cores} (default number of cores when \code{run_multicore = TRUE}),
-#' \code{waverider.max_cores} (upper limit, default 4), \code{waverider.cluster_type}
-#' (\code{"fork"} or \code{"psock"}), \code{waverider.dev_new} (default of the \code{dev_new}
+#' \code{waverider.max_cores} (upper limit, default 4), \code{waverider.cluster_type} (no
+#' longer used: socket workers are always used), \code{waverider.dev_new} (default of the \code{dev_new}
 #' arguments of the plot functions).
 #'
 #' @name wr_utils
@@ -30,7 +30,7 @@
 #' @noRd
 NULL
 
-# ---- environment ------------------------------------------------------------------------------
+# Environment
 
 wr_in_rstudio <- function() {
   identical(.Platform$GUI, "RStudio") || identical(Sys.getenv("RSTUDIO"), "1")
@@ -56,9 +56,9 @@ wr_ram_available <- function() {
       out <- (get("Pages free") + get("Pages inactive") + get("Pages speculative")) * page
     } else if (sysname == "Windows") {
       r <- system2("powershell",
-                   c("-NoProfile", "-Command",
-                     "\"(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory\""),
-                   stdout = TRUE, stderr = FALSE)
+          c("-NoProfile", "-Command",
+              "\"(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory\""),
+          stdout = TRUE, stderr = FALSE)
       out <- as.numeric(gsub("[^0-9]", "", r[1])) * 1024
     }
   })
@@ -70,15 +70,20 @@ wr_ram_available <- function() {
 
 #' Number of cores to use
 #'
-#' @param n_cores requested number of cores (\code{NULL}: from option / \code{run_multicore}).
-#' @param run_multicore logical, kept for backwards compatibility: TRUE asks for an automatic
-#'   (safe) number of cores.
-#' @param n_tasks number of tasks (never use more cores than tasks).
-#' @param mem_per_worker estimated memory per worker in bytes (NA = unknown).
-#' @param verbose print a note when the number of cores is reduced.
+#' @param n_cores Requested number of cores (integer, >= 1); \code{NULL} takes the option \code{waverider.n_cores},
+#'   and if that is unset 1 core, or with \code{run_multicore = TRUE} the detected cores minus one, at most
+#'   \code{waverider.max_cores} (default 4). The result is capped by the detected cores, \code{n_tasks},
+#'   \code{_R_CHECK_LIMIT_CORES_} (2) and the free memory. \code{Default=NULL}.
+#' @param run_multicore Ask for an automatic (safe) number of cores when \code{n_cores} is \code{NULL} (logical, TRUE
+#'   or FALSE; kept for backwards compatibility). \code{Default=FALSE}.
+#' @param n_tasks Number of tasks (numeric); never more cores than tasks are used. \code{Default=Inf}.
+#' @param mem_per_worker Estimated memory needed per worker in bytes (numeric); the number of cores is limited to 60
+#'   percent of the free memory divided by this value. \code{NA} (unknown) applies no memory limit.
+#'   \code{Default=NA_real_}.
+#' @param verbose Print a message when the number of cores is reduced (logical, TRUE or FALSE). \code{Default=FALSE}.
 #' @noRd
 wr_n_cores <- function(n_cores = NULL, run_multicore = FALSE, n_tasks = Inf,
-                       mem_per_worker = NA_real_, verbose = FALSE) {
+    mem_per_worker = NA_real_, verbose = FALSE) {
   detected <- tryCatch(parallel::detectCores(logical = TRUE), error = function(e) NA_integer_)
   if (is.na(detected) || detected < 1L) {
     detected <- 1L
@@ -89,7 +94,7 @@ wr_n_cores <- function(n_cores = NULL, run_multicore = FALSE, n_tasks = Inf,
     n_cores <- getOption("waverider.n_cores", NULL)
   }
   if (is.null(n_cores)) {
-    n_cores <- if (isTRUE(run_multicore)) min(max(detected - 1L, 1L), max_cores) else 1L
+    n_cores <- if (isTRUE(run_multicore)) { min(max(detected - 1L, 1L), max_cores) } else { 1L }
   }
   n_cores <- as.integer(max(1, floor(n_cores)))
   requested <- n_cores
@@ -108,9 +113,9 @@ wr_n_cores <- function(n_cores = NULL, run_multicore = FALSE, n_tasks = Inf,
       if (mem_cap < n_cores) {
         if (verbose) {
           message("WaverideR: number of cores reduced from ", n_cores, " to ", mem_cap,
-                  " to stay within the free memory (about ",
-                  round(ram / 2^30, 1), " GB free, about ",
-                  round(mem_per_worker / 2^30, 2), " GB needed per worker).")
+              " to stay within the free memory (about ",
+              round(ram / 2^30, 1), " GB free, about ",
+              round(mem_per_worker / 2^30, 2), " GB needed per worker).")
         }
         n_cores <- mem_cap
       }
@@ -140,36 +145,46 @@ wr_env_size <- function(FUN) {
 
 # the task closure only carries FUN, X and the seed (it is serialised to socket workers)
 wr_make_task <- function(FUN, X, seed) {
-  force(FUN); force(X); force(seed)
+  force(FUN)
+  force(X)
+  force(seed)
   function(k) {
     set.seed(seed + k)
     FUN(X[[k]])
   }
 }
 
-# ---- parallel lapply -------------------------------------------------------------------------
+# Parallel lapply
 
 #' Run a function over many tasks (Monte Carlo), sequentially or in parallel
 #'
-#' @param X vector or list of task inputs (e.g. \code{seq_len(n_simulations)}).
-#' @param FUN function of one argument (one element of \code{X}).
-#' @param n_cores number of cores (\code{NULL}: see \code{wr_n_cores}).
-#' @param run_multicore backwards compatible switch (TRUE: automatic safe number of cores).
-#' @param combine \code{"list"}, \code{"cbind"} (bind the columns of the results) or
-#'   \code{"sum"} (add the results, only the running total is kept).
-#' @param progress show a text progress bar.
-#' @param seed integer seed for the task seeds; \code{NULL} draws it from the current RNG
-#'   state of the session (so \code{set.seed()} before the call makes the run reproducible).
-#' @param mem_per_worker estimated memory (bytes) a worker needs; \code{NA} estimates it from
-#'   the objects in the environment of \code{FUN}.
-#' @param batch_size number of tasks per batch (default: 4 per core).
-#' @param type \code{"auto"}, \code{"fork"} or \code{"psock"}.
-#' @param verbose print notes on the number of cores.
+#' @param X Task inputs (vector or list, e.g. \code{seq_len(n_simulations)}); \code{FUN} is called once per element.
+#'   Required, no default.
+#' @param FUN Function of one argument (one element of \code{X}) that runs one task (function or name of a function).
+#'   Required, no default.
+#' @param n_cores Number of cores (integer, >= 1); \code{NULL} decides with \code{wr_n_cores} from the options and
+#'   \code{run_multicore}. \code{Default=NULL}.
+#' @param run_multicore Backwards compatible switch (logical, TRUE or FALSE): \code{TRUE} uses an automatic safe
+#'   number of cores when \code{n_cores} is \code{NULL}. \code{Default=FALSE}.
+#' @param combine How the results are combined (character, one of \code{"list"}, \code{"cbind"}, \code{"sum"}):
+#'   \code{"list"} a list of all results, \code{"cbind"} the results bound as columns, \code{"sum"} the results added
+#'   (only the running total is kept). \code{Default="list"}.
+#' @param progress Show a text progress bar (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param seed Integer seed from which the task seeds are derived (task k uses \code{seed + k}); \code{NULL} draws it
+#'   from the current random state of the session (so \code{set.seed()} before the call makes the run reproducible).
+#'   The random state of the session is restored afterwards. \code{Default=NULL}.
+#' @param mem_per_worker Estimated memory (bytes) a worker needs (numeric); \code{NA} estimates it as twice the size of
+#'   the objects in the environment of \code{FUN} (at least 100 MB). \code{Default=NA_real_}.
+#' @param batch_size Number of tasks per batch (integer, at least the number of cores); results are combined after
+#'   every batch. \code{NULL} uses 4 tasks per core. \code{Default=NULL}.
+#' @param type Kept for compatibility (character); has no effect: socket (PSOCK) workers are used on every platform.
+#'   \code{Default=getOption("waverider.cluster_type", "auto")}.
+#' @param verbose Print notes on the number of cores (logical, TRUE or FALSE). \code{Default=FALSE}.
 #' @noRd
 wr_lapply <- function(X, FUN, n_cores = NULL, run_multicore = FALSE,
-                      combine = c("list", "cbind", "sum"), progress = FALSE, seed = NULL,
-                      mem_per_worker = NA_real_, batch_size = NULL,
-                      type = getOption("waverider.cluster_type", "auto"), verbose = FALSE) {
+    combine = c("list", "cbind", "sum"), progress = FALSE, seed = NULL,
+    mem_per_worker = NA_real_, batch_size = NULL,
+    type = getOption("waverider.cluster_type", "auto"), verbose = FALSE) {
   combine <- match.arg(combine)
   FUN <- match.fun(FUN)
   X <- as.list(X)
@@ -200,12 +215,9 @@ wr_lapply <- function(X, FUN, n_cores = NULL, run_multicore = FALSE,
 
   task <- wr_make_task(FUN, X, seed)
 
-  if (type == "auto") {
-    type <- if (.Platform$OS.type == "unix" && !wr_in_rstudio()) "fork" else "psock"
-  }
-  if (.Platform$OS.type != "unix" && type == "fork") {
-    type <- "psock"
-  }
+  # socket (PSOCK) workers on every platform: forked workers do not exist on Windows and are not used, so the
+  # results and their reproducibility are the same on Linux, macOS and Windows
+  type <- "psock"
 
   if (nc > 1L) {
     if (is.null(batch_size)) {
@@ -229,16 +241,9 @@ wr_lapply <- function(X, FUN, n_cores = NULL, run_multicore = FALSE,
 
   run_batch <- function(idx) {
     if (nc == 1L) {
-      lapply(idx, task)
-    } else if (is.null(cl)) {
-      res <- parallel::mclapply(idx, task, mc.cores = nc, mc.preschedule = TRUE,
-                                mc.set.seed = FALSE)
-      bad <- vapply(res, function(r) inherits(r, "try-error") || is.null(r), logical(1))
-      if (any(bad)) {
-        msg <- res[[which(bad)[1]]]
-        stop("WaverideR: simulation ", idx[which(bad)[1]], " failed",
-             if (inherits(msg, "try-error")) paste0(": ", sub("\\n$", "", as.character(msg)))
-             else " (the worker died, probably out of memory; use fewer cores)", call. = FALSE)
+      res <- vector("list", length(idx))
+      for (k in seq_along(idx)) {
+        res[k] <- list(task(idx[[k]]))
       }
       res
     } else {
@@ -251,14 +256,29 @@ wr_lapply <- function(X, FUN, n_cores = NULL, run_multicore = FALSE,
       c(acc, new)
     } else if (combine == "cbind") {
       add <- do.call(cbind, new)
-      if (is.null(acc)) add else cbind(acc, add)
+      if (is.null(acc)) {
+        add
+      } else {
+        cbind(acc, add)
+      }
     } else {
-      add <- Reduce(`+`, new)
-      if (is.null(acc)) add else acc + add
+      add <- NULL
+      for (k in seq_along(new)) {
+        if (k == 1L) {
+          add <- new[[1L]]
+        } else {
+          add <- add + new[[k]]
+        }
+      }
+      if (is.null(acc)) {
+        add
+      } else {
+        acc + add
+      }
     }
   }
 
-  acc <- if (combine == "list") list() else NULL
+  acc <- if (combine == "list") { list() } else { NULL }
   done <- 0L
   while (done < n) {
     idx <- (done + 1L):min(n, done + batch_size)
@@ -271,7 +291,7 @@ wr_lapply <- function(X, FUN, n_cores = NULL, run_multicore = FALSE,
   acc
 }
 
-# ---- plot windows ----------------------------------------------------------------------------
+# Plot windows
 
 #' Default of the dev_new arguments
 #'
@@ -293,39 +313,77 @@ wr_dev_new_default <- function() {
 #'
 #' Replaces the direct calls to \code{dev.new(noRStudioGD = TRUE)}. Nothing is opened when R is
 #' not interactive (knitr, Rscript, batch), so no stray Rplots.pdf files or blocked sessions
-#' are produced. For functions that need mouse input (\code{identify()}, used by the period
-#' tracking and the point selection functions) the device must be interactive; this is checked
-#' and a clear message is given if it is not (for example when X11 / XQuartz is missing).
+#' are produced. In an interactive session a separate window is tried first; if that is not
+#' possible or the window cannot take mouse input, the platform's own screen device and finally
+#' the RStudio plot pane (which also supports \code{identify()} / \code{locator()}) are used,
+#' silently, so that the user never sees a device message.
 #'
-#' @param width,height size in inches.
-#' @param interactive_input TRUE if the window is used with \code{identify()} / \code{locator()}.
+#' @param width,height Size of the new plot window in inches (numeric, > 0). \code{Default=7} for both.
+#' @param interactive_input The window is used for mouse input with \code{identify()} / \code{locator()} (logical,
+#'   TRUE or FALSE): it must then accept mouse input, and outside an interactive session an error is raised instead
+#'   of silently drawing nothing. \code{Default=FALSE}.
 #' @noRd
 wr_open_device <- function(width = 7, height = 7, interactive_input = FALSE) {
   if (!interactive()) {
     if (interactive_input) {
-      stop("This function needs mouse input (identify()) and can only be used in an ",
-           "interactive R session.", call. = FALSE)
+      stop("This function needs mouse clicks and can only be used in an interactive R session.",
+          call. = FALSE)
     }
     return(invisible(FALSE))
   }
-  ok <- tryCatch({
-    grDevices::dev.new(width = width, height = height, noRStudioGD = TRUE)
-    TRUE
-  }, error = function(e) {
-    warning("WaverideR: could not open a new graphics window (", conditionMessage(e),
-            "); plotting on the current device.", call. = FALSE)
-    FALSE
-  })
-  if (interactive_input && !isTRUE(grDevices::dev.interactive(orNone = FALSE))) {
-    sysname <- Sys.info()[["sysname"]]
-    hint <- switch(sysname,
-                   Darwin = "Install XQuartz (https://www.xquartz.org) or use the quartz device.",
-                   Linux = paste0("Start R in a session with an X server (DISPLAY is '",
-                                  Sys.getenv("DISPLAY"), "') or install the X11 device."),
-                   "Open an interactive graphics device (windows()).")
-    stop("The active graphics device does not support mouse selection. ", hint, call. = FALSE)
+  usable <- function() {
+    if (grDevices::dev.cur() == 1) {
+      return(FALSE)
+    }
+    !interactive_input || isTRUE(grDevices::dev.interactive(orNone = FALSE))
   }
-  invisible(ok)
+  try_open <- function(fun) {
+    before <- grDevices::dev.cur()
+    opened <- tryCatch({
+      suppressWarnings(suppressMessages(fun()))
+      TRUE
+    }, error = function(e) {
+      FALSE
+    })
+    if (opened && !usable()) {
+      if (grDevices::dev.cur() != before && grDevices::dev.cur() != 1) {
+        try(grDevices::dev.off(), silent = TRUE)
+      }
+      opened <- FALSE
+    }
+    opened
+  }
+  ## 1. a separate window
+  if (try_open(function() { grDevices::dev.new(width = width, height = height, noRStudioGD = TRUE) })) {
+    return(invisible(TRUE))
+  }
+  ## 2. the platform's own screen device
+  sysname <- Sys.info()[["sysname"]]
+  devs <- if (identical(sysname, "Windows")) {
+    "windows"
+  } else if (identical(sysname, "Darwin")) {
+    c("quartz", "X11")
+  } else {
+    "X11"
+  }
+  for (d in devs) {
+    f <- get0(d, envir = asNamespace("grDevices"), inherits = FALSE)
+    if (is.function(f)) {
+      g <- if (d == "X11") {
+        function() { f(width = width, height = height, type = "Xlib") }
+      } else {
+        function() { f(width = width, height = height) }
+      }
+      if (try_open(g)) {
+        return(invisible(TRUE))
+      }
+    }
+  }
+  ## 3. the RStudio plot pane (or the current device)
+  if (try_open(function() { grDevices::dev.new() })) {
+    return(invisible(TRUE))
+  }
+  invisible(FALSE)
 }
 
 
@@ -350,7 +408,7 @@ NULL
     if (palette_name %in% c("heat.colors", "terrain.colors", "topo.colors", "cm.colors")) {
       return(rev(get(palette_name, envir = asNamespace("grDevices"), mode = "function")(n = n.levels)))
     }
-    return(grDevices::hcl.colors(n = n.levels, palette = palette_name, alpha = NULL, rev = FALSE, fixup = TRUE))
+    return(.wr_hcl_cols(n.levels, palette_name))
   }
   if (color_brewer == "viridis") {
     return(rev(get(paste0("wr_viridis_", palette_name), mode = "function")(n = n.levels, direction = -1)))

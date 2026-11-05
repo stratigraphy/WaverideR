@@ -1,16 +1,19 @@
-# --- AstroGeo22 (Farhat et al. 2022 nominal model) ---------------------------
+# AstroGeo22 (Farhat et al. 2022 nominal model)
 
 #' Earth-Moon state from the AstroGeo22 model at a given age
 #'
-#' @param age_ma age in Ma (0 to 4429); vectorised
-#' @param interpolate TRUE (linear between the 1-Myr rows) or FALSE (nearest,
-#'   which is what calculate_orbit9.m does)
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param age_ma Age(s) in Ma at which the Earth-Moon state is returned (numeric vector, 0 to 4429; one output row
+#'   per value). Ages outside the table give \code{NA} when \code{interpolate=TRUE}. Required, no default.
+#' @param interpolate How values are taken from the 1-Myr rows of the AstroGeo22 table (logical): \code{TRUE}
+#'   interpolates linearly between rows, \code{FALSE} takes the nearest row (as calculate_orbit9.m of Acycle does).
+#'   \code{Default=TRUE}.
+#' @param data_dir Folder that contains the file \code{AstroGeo22.txt} (character path); \code{NULL} uses the copy
+#'   installed with the package (or the folder set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return data.frame: age_ma, a_RE, a_km, lod_h, obliquity_deg, p_arcsec,
 #'   p_kyr and the model's min/max envelope for each
 #' @export
 astrogeo22 <- function(age_ma, interpolate = TRUE, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -39,17 +42,17 @@ astrogeo22 <- function(age_ma, interpolate = TRUE, data_dir = NULL){
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .astrogeo22_table <- function(data_dir = NULL){
@@ -58,12 +61,12 @@ astrogeo22 <- function(age_ma, interpolate = TRUE, data_dir = NULL){
     }
     tab <- utils::read.table(file.path(data_dir, "AstroGeo22.txt"), comment.char = "%")
     names(tab)[1:13] <- c("t_ga", "a", "amin", "amax", "lod", "lodmin", "lodmax",
-                          "obli", "oblimin", "oblimax", "pre", "premin", "premax")
+        "obli", "oblimin", "oblimax", "pre", "premin", "premax")
     tab$age_ma <- tab$t_ga * 1000
     tab
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -80,7 +83,7 @@ astrogeo22 <- function(age_ma, interpolate = TRUE, data_dir = NULL){
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   tab <- .astrogeo22_table(data_dir)
   f <- function(col){
     if (interpolate){
@@ -95,12 +98,12 @@ astrogeo22 <- function(age_ma, interpolate = TRUE, data_dir = NULL){
     }
   }
   out <- data.frame(age_ma = age_ma,
-                    a_RE = f("a"), a_min_RE = f("amin"), a_max_RE = f("amax"),
-                    lod_h = f("lod"), lod_min_h = f("lodmin"), lod_max_h = f("lodmax"),
-                    obliquity_deg = f("obli"), obliquity_min_deg = f("oblimin"),
-                    obliquity_max_deg = f("oblimax"),
-                    p_arcsec = f("pre"), p_min_arcsec = f("premin"),
-                    p_max_arcsec = f("premax"))
+      a_RE = f("a"), a_min_RE = f("amin"), a_max_RE = f("amax"),
+      lod_h = f("lod"), lod_min_h = f("lodmin"), lod_max_h = f("lodmax"),
+      obliquity_deg = f("obli"), obliquity_min_deg = f("oblimin"),
+      obliquity_max_deg = f("oblimax"),
+      p_arcsec = f("pre"), p_min_arcsec = f("premin"),
+      p_max_arcsec = f("premax"))
   out$a_km <- out$a_RE * .AC$RE / 1000
   out$p_kyr <- 360 * 3600 / out$p_arcsec / 1000
   out$lod_solar_h <- out$lod_h

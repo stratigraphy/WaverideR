@@ -11,8 +11,8 @@ track_period(
   track_peaks = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   plot_horizontal = TRUE,
   plot_dir = TRUE,
   lowerPeriod = NULL,
@@ -25,56 +25,73 @@ track_period(
 )
 }
 \arguments{
-\item{scalogram}{A wavelet or superlet object created using
-\code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}.}
+\item{scalogram}{Scalogram in which the cycle is tracked: a wavelet object (class \code{analyze.wavelet}) created
+with \code{\link{analyse_wavelet}} or a superlet object (class \code{analyze.superlet}) created with
+\code{\link{analyse_superlet}}. The elements \code{x}, \code{y}, \code{Power}, \code{Period}, \code{axis.2} and
+\code{Power.avg} are used. Must be given (the \code{NULL} default fails). \code{Default=NULL}.}
 
-\item{astro_cycle}{Duration (in kyr) of the astronomical cycle that is being tracked.}
+\item{astro_cycle}{Duration of the astronomical cycle that is tracked (numeric, > 0, in kyr, e.g. 405 for the long
+eccentricity cycle). It is used to convert the tracked period into the sedimentation rate of the output
+(period / \code{astro_cycle} * 100, i.e. cm/kyr for a record in metres). \code{Default=405}.}
 
-\item{n.levels}{Number of colour levels used for plotting.
-Default is \code{100}.}
+\item{n.levels}{Number of colour levels of the power scale (integer, > 1); the breaks are quantiles of the power.
+\code{Default=100}.}
 
-\item{track_peaks}{Logical flag indicating whether tracking is restricted to spectral
-peaks (\code{TRUE}) or whether any point within the spectrum can be
-selected (\code{FALSE}). Default is \code{TRUE}.}
+\item{track_peaks}{Restrict the selection to spectral peaks (logical, TRUE or FALSE). With \code{TRUE} the local
+power maxima along the period axis are drawn as black circles and a click selects the nearest one; with
+\code{FALSE} any point of the scalogram can be clicked (the click is snapped to the nearest depth of the scalogram
+and its period is used as clicked). In both modes clicking a selected point again removes it; finish with
+right-click/Esc (or "Finish" in RStudio). \code{Default=TRUE}.}
 
-\item{periodlab}{Label for the period axis.
-Default is \code{"Period (metres)"}.}
+\item{periodlab}{Label of the period axis (character). \code{Default="Period (metres)"}.}
 
-\item{x_lab}{Label for the x-axis.
-Default is \code{"depth (metres)"}.}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth (metres)"}.}
 
-\item{palette_name}{Name of the colour palette used for plotting.}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the colour palette is selected.
-Supported packages are \code{RColorBrewer}, \code{grDevices},
-\code{ColorRamps}, and \code{viridis}.
-Default is \code{"grDevices"}.}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{plot_horizontal}{Logical flag indicating whether the spectrum is plotted horizontally
-or vertically. Default is \code{TRUE}.}
+\item{plot_horizontal}{Layout of the plot (logical, TRUE or FALSE): \code{TRUE} depth/time on the x-axis and period
+on the y-axis; \code{FALSE} period on the x-axis and depth/time on the y-axis. The output is the same in both layouts.
+\code{Default=TRUE}.}
 
-\item{plot_dir}{Logical flag defining the direction of the record.
-If time increases with increasing depth (e.g. borehole data),
-set to \code{TRUE}. If time decreases with increasing depth,
-set to \code{FALSE}. Default is \code{TRUE}.}
+\item{plot_dir}{Direction of the depth/time axis (logical, TRUE or FALSE): \code{TRUE} plots it from low to high
+values (e.g. borehole data that get older with increasing depth); \code{FALSE} reverses the axis (e.g. outcrop logs
+in which 0 m is the base of the section). \code{Default=TRUE}.}
 
-\item{lowerPeriod}{Lowest period value to be displayed.}
+\item{lowerPeriod}{Shortest period shown on the period axis (numeric, in the depth/time unit of the record);
+\code{NULL} uses the shortest period of \code{scalogram}. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value to be displayed.}
+\item{upperPeriod}{Longest period shown on the period axis (numeric, in the depth/time unit of the record);
+\code{NULL} uses the longest period of \code{scalogram}. \code{Default=NULL}.}
 
-\item{add_lines}{Optional matrix of additional lines to overlay on the spectrum.
-The first column must be depth or time, and subsequent columns
-contain period values.}
+\item{add_lines}{Optional lines to draw on the scalogram (matrix or data frame: depth/time in column 1, one or more
+columns of periods after it; one line per period column). \code{Default=NULL}.}
 
-\item{add_points}{Optional matrix of additional points to overlay on the spectrum.
-The first column must be depth or time, and subsequent columns
-contain period values.}
+\item{add_points}{Optional points to draw on the scalogram (matrix or data frame: depth/time in column 1, one or
+more columns of periods after it). \code{Default=NULL}.}
 
-\item{add_abline_h}{Optional numeric vector specifying horizontal reference lines.}
+\item{add_abline_h}{Optional horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5)}): periods in the
+horizontal layout, depths/times in the vertical layout (\code{plot_horizontal = FALSE}). \code{Default=NULL}.}
 
-\item{add_abline_v}{Optional numeric vector specifying vertical reference lines.}
+\item{add_abline_v}{Optional vertical reference lines (numeric vector): depths/times in the horizontal layout,
+periods in the vertical layout. \code{Default=NULL}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 A data frame with three columns:

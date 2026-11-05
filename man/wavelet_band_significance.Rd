@@ -19,27 +19,42 @@ wavelet_band_significance(
 \method{plot}{wr_band_significance}(x, ...)
 }
 \arguments{
-\item{object}{an object returned by \code{\link{analyse_wavelet}}.}
+\item{object}{Wavelet to test (list of class \code{analyze.wavelet}), the output of \code{\link{analyse_wavelet}}
+(Morlet wavelet; its \code{omega_nr}, \code{dj}, \code{dt}, \code{Scale}, \code{Power} and \code{y} are used).
+Required, no default.}
 
-\item{period_range}{numeric vector of length 2, lowest and highest period (in the units of the depth/time
-axis) of the band to be averaged, for example \code{c(0.3, 0.5)} for an obliquity band.}
+\item{period_range}{Band of periods to average (numeric vector of length 2, \code{c(lowest, highest)}, in the units
+of the depth/time axis; at least one scale of the wavelet must fall inside), for example \code{c(0.3, 0.5)} for an
+obliquity band. Required, no default.}
 
-\item{background}{\code{"ar1"} (default, red noise) or \code{"white"}.}
+\item{background}{Noise background of the null hypothesis (character, one of \code{"ar1"}, \code{"white"}):
+\code{"ar1"} red noise with the lag-1 autocorrelation \code{lag1}, \code{"white"} white noise (\code{lag1} is then
+set to 0). \code{Default="ar1"}.}
 
-\item{siglvl}{significance level, default 0.95.}
+\item{siglvl}{Significance level of the test (numeric, between 0 and 1, e.g. 0.95 for the 95\% level).
+\code{Default=0.95}.}
 
-\item{method}{\code{"exact"} (default) or \code{"torrence"}, see Details.}
+\item{method}{How the null distribution of the band average is computed (character, one of \code{"exact"},
+\code{"torrence"}): \code{"exact"} the weighted sum of exponential variables with a three-moment gamma fit,
+\code{"torrence"} the scaled chi-square distribution of Torrence and Compo (1998, eq. 28); see Details.
+\code{Default="exact"}.}
 
-\item{lag1}{lag-1 autocorrelation of the background. By default estimated from the record as in
-\code{\link{wavelet_significance}}.}
+\item{lag1}{Lag-1 autocorrelation of the AR(1) background (numeric, between 0 and 1). \code{NULL} estimates it from
+the record as in \code{\link{wavelet_significance}} (mean of the lag-1 autocorrelation and the square root of the
+lag-2 autocorrelation). Ignored for \code{background = "white"}. \code{Default=NULL}.}
 
-\item{delta_j0}{decorrelation length of \code{method = "torrence"}. Default \code{0.6 * 6 / omega_nr}.}
+\item{delta_j0}{Decorrelation length of the scales, only used by \code{method = "torrence"} (numeric, > 0);
+\code{NULL} uses \code{0.6 * 6 / omega_nr}, the value 0.6 of Torrence and Compo for \code{omega_nr = 6} rescaled to
+the \code{omega_nr} of \code{object}. \code{Default=NULL}.}
 
-\item{genplot}{logical, plot the result.}
+\item{genplot}{Plot the band-averaged power with the significance level (logical, TRUE or FALSE), using the
+\code{plot} method. \code{Default=FALSE}.}
 
-\item{x}{an object returned by \code{wavelet_band_significance}.}
+\item{x}{Result of \code{wavelet_band_significance} (object of class \code{wr_band_significance}) to plot.
+Required, no default.}
 
-\item{...}{passed to \code{plot}.}
+\item{...}{Further graphical arguments passed to \code{\link[graphics]{plot}} (e.g. \code{xlim}, \code{las};
+not \code{xlab}, \code{ylab}, \code{ylim} or \code{main}, which are set by the method).}
 }
 \value{
 An object of class \code{wr_band_significance}, a list with: \code{x} (depth/time axis), \code{power}

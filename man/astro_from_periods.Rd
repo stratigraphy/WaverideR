@@ -20,21 +20,51 @@ astro_from_periods(
 )
 }
 \arguments{
-\item{cycles}{named list of c(min, max) periods in kyr (see astro_mc())}
+\item{cycles}{Measured period ranges of the cycles you resolved in the tuned record, in kyr (named list;
+each element a numeric vector \code{c(min, max)}). Names are astronomical terms as accepted by
+\code{constraints} in \code{\link{astro_mc}} (e.g. \code{"e405"}, \code{"e125"}, \code{"e95"}, \code{"k+s3"}
+or \code{"obl"}, \code{"k+g5"}, \code{"k+g2"}, \code{"prec_short"}, \code{"k+g4|k+g3"},
+\code{"any:k+g5|k+g2"}). Passed to \code{\link{astro_mc}} as \code{constraints}. Required, no default.}
 
-\item{age}{approximate age in Ma}
+\item{age}{Approximate age of the record in Ma (numeric): \code{c(min, max)}, or a single value that is widened
+by \code{age_tol} (default 5 Ma, see \code{\link{astro_mc}}) on either side. Required, no default.}
 
-\item{anchor}{period assumed for the tuning target, kyr (405 by default)}
+\item{anchor}{Period in kyr assumed for the tuning target when the record was tuned (numeric, > 0); every
+measured period is stretched by (sampled period of \code{anchor_term})/\code{anchor}. \code{NULL} lets the time
+scale stretch freely (see \code{scale_range} in \code{\link{astro_mc}}). \code{Default=405}.}
 
-\item{anchor_term}{the term you tuned to}
+\item{anchor_term}{Astronomical term the record was tuned to (character), any term name accepted by
+\code{\link{astro_mc}}, e.g. \code{"e405"} (g2-g5). \code{Default="e405"}.}
 
-\item{nsim, ptest, s3_uncertainty, seed, verbose}{passed to astro_mc()}
+\item{nsim}{Number of accepted Monte Carlo samples to collect (integer, > 0); passed to \code{\link{astro_mc}}.
+\code{Default=2000}.}
 
-\item{method}{"angular_momentum" or "astrogeo22"}
+\item{ptest}{Range of precession constants k to sample, in years (numeric vector \code{c(min, max)}); passed to
+\code{\link{astro_mc}}. \code{Default=c(10000, 28000)}.}
 
-\item{data_dir}{folder with the AstroGeo22 table}
+\item{method}{How the sampled precession constants are converted into an Earth-Moon state (distance, length of
+day) by \code{\link{ctest_earthmoon}} (character): \code{"angular_momentum"} (Earth-Moon angular-momentum
+conservation) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve).
+\code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{...}{further arguments to astro_mc()}
+\item{s3_uncertainty}{How the uncertainty of s3 is sampled, passed to \code{\link{astro_mc}} (character):
+\code{"published"} follows the published CTest code, in which the relative uncertainty is applied as an
+absolute one in years (s3 is effectively fixed); \code{"scaled"} applies it relative to the s3 period, as for
+g2-g5, giving s3 a realistic spread. \code{Default=c("published", "scaled")}, i.e. \code{"published"}.}
+
+\item{seed}{Seed of the random number generator (integer), passed to \code{\link{astro_mc}} so that the
+Monte Carlo results can be reproduced; \code{NULL} leaves the current random state unchanged.
+\code{Default=NULL}.}
+
+\item{verbose}{Print progress messages of the Monte Carlo sampling (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
+
+\item{data_dir}{Folder that contains the AstroGeo22 table \code{AstroGeo22.txt} (character path);
+\code{NULL} uses the copy installed with the package. Passed to \code{\link{ctest_earthmoon}} and
+\code{\link{astrogeo22}}. \code{Default=NULL}.}
+
+\item{...}{Further arguments passed to \code{\link{astro_mc}}, e.g. \code{age_tol}, \code{sampleorb},
+\code{scale_range}, \code{block} or \code{max_attempts}.}
 }
 \value{
 object of class `astro_from_peaks` (see astro_from_peaks())

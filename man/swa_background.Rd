@@ -7,14 +7,17 @@
 swa_background(freq = NULL, log_power = NULL, n_data = NULL, verbose = FALSE)
 }
 \arguments{
-\item{freq}{Strictly increasing frequency vector (at least 33 values).}
+\item{freq}{Frequencies of the power spectrum (required): numeric vector, finite, strictly increasing, with at
+least 33 values (three initial windows of 11 ordinates), in cycles per depth/time unit. \code{Default=NULL}.}
 
-\item{log_power}{log10 power values belonging to \code{freq}.}
+\item{log_power}{log10 power belonging to \code{freq} (required): numeric vector of the same length as
+\code{freq}. \code{Default=NULL}.}
 
-\item{n_data}{Number of data points of the analysed series. Retained for
-compatibility with Acycle; it does not influence the fitted background.}
+\item{n_data}{Number of data points of the analysed series (required, a positive integer). Retained for
+compatibility with Acycle and returned in the result; it does not influence the fitted background.
+\code{Default=NULL}.}
 
-\item{verbose}{Print fit diagnostics. \code{Default=FALSE}}
+\item{verbose}{Print fit diagnostics (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

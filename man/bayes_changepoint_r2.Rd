@@ -20,41 +20,42 @@ bayes_changepoint_r2(
 )
 }
 \arguments{
-\item{data}{Input data set, a matrix with 2 columns: first column depth or
-time, second column the proxy. Data points are treated as equally spaced
-(the regression uses the sample index as predictor, as in Acycle).}
+\item{data}{Record to analyse (matrix or data frame with two columns: depth or time in column 1, proxy value
+in column 2; finite values only, at least two rows). Data points are treated as equally spaced (the
+regression uses the sample index as predictor, as in Acycle). Required, no default (\code{Default=NULL} gives
+an error).}
 
-\item{k_max}{Maximum number of change points \code{Default=10}}
+\item{k_max}{Maximum number of change points considered (integer, >= 1). \code{Default=10}.}
 
-\item{d_min}{Minimum distance (in data points) between adjacent change
-points, i.e. minimum segment length \code{Default=1}}
+\item{d_min}{Minimum distance in data points between adjacent change points, i.e. the minimum segment length
+(integer, >= 1). \code{Default=1}.}
 
-\item{k_0}{Hyperparameter (variance scaling) of the prior on the
-regression coefficients \code{Default=0.01}}
+\item{k_0}{Hyperparameter (variance scaling) of the normal prior on the regression coefficients (numeric,
+> 0); smaller values give a vaguer prior. \code{Default=0.01}.}
 
-\item{v_0}{Hyperparameter (pseudo data points) of the scaled inverse
-chi-square prior on the variance \code{Default=NULL} which equals
-\code{ceiling(abs(x[n]-x[1])/44)} as in Acycle.}
+\item{v_0}{Hyperparameter (number of pseudo data points) of the scaled inverse chi-square prior on the
+segment variance (numeric, > 0); \code{NULL} uses \code{ceiling(abs(x[n] - x[1]) / 44)}, with x the first
+column of \code{data}, as in Acycle. \code{Default=NULL}.}
 
-\item{sig_0}{Hyperparameter (pseudo data variance) of the scaled inverse
-chi-square prior on the variance \code{Default=NULL} which equals the
-variance of the proxy.}
+\item{sig_0}{Hyperparameter (pseudo data variance) of the scaled inverse chi-square prior on the segment
+variance (numeric, > 0); \code{NULL} uses the variance of the proxy. \code{Default=NULL}.}
 
-\item{n_sim}{Number of sampled solutions \code{Default=500}}
+\item{n_sim}{Number of solutions (number and positions of the change points with their segment regressions)
+drawn by stochastic backtrace (integer, >= 1). \code{Default=500}.}
 
-\item{seed}{Seed for the random number generator, \code{Default=NULL}
-(no seed is set).}
+\item{seed}{Seed of the random number generator (integer), so that the sampled solutions can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{stable}{Use numerically safe log-space arithmetic (shifted
-log-sum-exp, \code{lgamma}, log binomial coefficients). With the default
-\code{FALSE} the arithmetic of Acycle is reproduced exactly
-(\code{log(sum(exp(.)))} in linear space), which under- or overflows for
-long records or records with a very small/large variance; a warning is
-given when that happens. \code{Default=FALSE}}
+\item{stable}{Use numerically safe log-space arithmetic (shifted log-sum-exp, \code{lgamma}, log binomial
+coefficients) (logical, TRUE or FALSE). With \code{FALSE} the arithmetic of Acycle is reproduced exactly
+(\code{log(sum(exp(.)))} in linear space), which under- or overflows for long records or records with a very
+small or large variance; a warning is given when that happens. \code{Default=FALSE}.}
 
-\item{genplot}{Generate a plot \code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_bayes_changepoint}} (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{verbose}{Print a progress bar \code{Default=FALSE}}
+\item{verbose}{Show a text progress bar while the solutions are sampled (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 }
 \value{
 A matrix with columns \code{k_max} and \code{r2}.

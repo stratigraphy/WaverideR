@@ -27,70 +27,75 @@ astro_anchor(
 )
 }
 \arguments{
-\item{astro_solution}{Input is an astronomical solution which the proxy record will be anchored to,
-the input should be a matrix or data frame with the first column being
-age and the second column should be a insolation/angle/value}
+\item{astro_solution}{Astronomical solution to which the proxy record is anchored (matrix or data frame with
+two columns: age (e.g. in kyr) in column 1, insolation/angle/value in column 2). Its maxima or minima (see
+\code{astrosolution_min_or_max}) are the candidate tie points. Required, no default
+(\code{Default=NULL} gives an error).}
 
-\item{proxy_signal}{Input is the proxy data set which will
-be anchored to an astronomical solution, the input should be a matrix or
-data frame with the first column being  depth/time and the second column should be a proxy value.
-For the best results either the astronomical components need to be pre-extracted
-before anchoring. This means that a filtering/cycle extracting need to be applied to
-the input data or the  extract_proxy_signal option needs to be set to TRUE.}
+\item{proxy_signal}{Proxy record to be anchored (matrix or data frame with two columns: depth or time in
+column 1, proxy value in column 2). Its maxima or minima (see \code{proxy_min_or_max}) are tied one by one to
+the astronomical solution. For the best results the astronomical component should be extracted first, either
+beforehand (filtering/cycle extraction) or with \code{extract_proxy_signal = TRUE}. Required, no default
+(\code{Default=NULL} gives an error).}
 
-\item{proxy_min_or_max}{Tune proxy maxima or minima to the astronomical solution \code{Default="max"}.}
+\item{proxy_min_or_max}{Tie the maxima or the minima of the proxy record (character): \code{"max"} or
+\code{"min"}. \code{Default="max"}.}
 
-\item{clip_astrosolution}{Clip the astronomical solution \code{Default=FALSE}.}
+\item{clip_astrosolution}{Clip the astronomical solution to the age range \code{clip_low} to \code{clip_high}
+before anchoring (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{astrosolution_min_or_max}{Tune to maximum or minimum values of
-the astronomical solution \code{Default="max"}}
+\item{astrosolution_min_or_max}{Tie to the maxima or the minima of the astronomical solution (character):
+\code{"max"} or \code{"min"}. \code{Default="max"}.}
 
-\item{clip_high}{Upper value to clip to.}
+\item{clip_high}{Upper age limit of the clipped astronomical solution, in the unit of its first column
+(numeric); only used when \code{clip_astrosolution = TRUE}. \code{Default=NULL}.}
 
-\item{clip_low}{Lower value to clip to.}
+\item{clip_low}{Lower age limit of the clipped astronomical solution, in the unit of its first column
+(numeric); only used when \code{clip_astrosolution = TRUE}. \code{Default=NULL}.}
 
-\item{extract_astrosolution}{Extract a certain astronomical cycle/component from a
-astronomical solution prior to anchoring \code{Default=FALSE}.}
+\item{extract_astrosolution}{Extract one astronomical cycle from the astronomical solution before anchoring
+(logical, TRUE or FALSE): a wavelet transform (\code{\link{analyse_wavelet}}) is computed and the cycle
+\code{astro_period_cycle} is extracted with \code{\link{extract_signal_stable}}. \code{Default=FALSE}.}
 
-\item{astro_period_up}{Specifies the upper period of the astronomical cycle which is
-extracted from an astronomical solution. The astro_period_up is a
-factor with which the astronomical component is multiplied by.  \code{Default=1.2}}
+\item{astro_period_up}{Factor by which \code{astro_period_cycle} is multiplied to give the upper (longest)
+period of the band extracted from the astronomical solution (numeric, > 1). \code{Default=1.2}.}
 
-\item{astro_period_down}{Specified the lower period of the astronomical cycle which is
-extracted from an astronomical solution. The astro_period_down value is a
-factor with which the astronomical component is multiplied by. \code{Default=0.8}}
+\item{astro_period_down}{Factor by which \code{astro_period_cycle} is multiplied to give the lower (shortest)
+period of the band extracted from the astronomical solution (numeric, between 0 and 1). \code{Default=0.8}.}
 
-\item{astro_period_cycle}{Period (in kyr) of the to be extracted astronomical component
-from the astronomical solution.}
+\item{astro_period_cycle}{Period of the astronomical cycle to extract from the astronomical solution, in the
+unit of its first column (e.g. kyr) (numeric, > 0); required when \code{extract_astrosolution = TRUE}.
+\code{Default=NULL}.}
 
-\item{extract_proxy_signal}{Extract a certain astronomical cycle/component from a
-proxy signal  \code{Default=FALSE}.}
+\item{extract_proxy_signal}{Extract one astronomical cycle from the proxy record before anchoring (logical,
+TRUE or FALSE), with \code{\link{analyse_wavelet}} and \code{\link{extract_signal_stable}}.
+\code{Default=FALSE}.}
 
-\item{proxy_period_up}{Specifies the upper period of the astronomical cycle to be extracted
-from the proxy record. The upper bound value is a factor with which the
-(proxy_period_cycle) value is multiplied by. \code{Default=1.2}.}
+\item{proxy_period_up}{Factor by which \code{proxy_period_cycle} is multiplied to give the upper (longest)
+period of the band extracted from the proxy record (numeric, > 1). \code{Default=1.2}.}
 
-\item{proxy_period_down}{Specifies the upper period of the astronomical cycle to be
-extracted from the proxy record. The lower bound value is a factor with
-which the astronomical component (proxy_period_cycle) value is multiplied by. \code{Default=0.8}.}
+\item{proxy_period_down}{Factor by which \code{proxy_period_cycle} is multiplied to give the lower (shortest)
+period of the band extracted from the proxy record (numeric, between 0 and 1). \code{Default=0.8}.}
 
-\item{proxy_period_cycle}{Period in kyr of the astronomical cycle/component which is to be extracted
-from the proxy record.}
+\item{proxy_period_cycle}{Period of the cycle to extract from the proxy record, in the unit of the first
+column of the record that is filtered (numeric, > 0); required when \code{extract_proxy_signal = TRUE}.
+\code{Default=NULL}.}
 
-\item{pts}{The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-picked up by the algorithm \code{Default=3}}
+\item{pts}{Number of points to the left and right of a value that the peak detection
+(\code{\link{max_detect}}, \code{\link{min_detect}}) compares it with (integer, >= 1): a value is a peak if it
+is higher (or lower) than all of them. Larger values give more certain peaks but may miss minor peaks.
+\code{Default=3}.}
 
-\item{verbose}{print text \code{Default=FALSE} set verbose to TRUE to allow for anchoring using text feedback commands}
+\item{verbose}{Ask for confirmation in the console after every selected tie point and print feedback
+(logical, TRUE or FALSE); with \code{FALSE} every selection is accepted directly. \code{Default=FALSE}.}
 
-\item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-if time decreases with depth/time values (eg stratigraphic logs where 0m is the bottom of the section)
-then time_dir should be set to FALSE \code{time_dir=TRUE}}
+\item{time_dir}{Direction of time in the proxy record (logical): \code{TRUE} if time increases with increasing
+depth/time values (e.g. borehole data that get older with depth), \code{FALSE} if it decreases (e.g.
+stratigraphic logs with 0 m at the base of the section); the proxy record is then plotted with a reversed
+axis. \code{Default=TRUE}.}
 
-\item{genplot}{Generate plot \code{Default="FALSE"}}
+\item{genplot}{Plot the proxy record and the astronomical solution with the selected tie points connected
+after the anchoring (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 The output is a matrix with the 4 columns.
@@ -114,59 +119,59 @@ and/or \code{extract_proxy_signal=TRUE} options need to be set to TRUE to create
 Astronomical solutions option are:
 \itemize{
     \item La2004 Eccentricity solution available via the \link[astrochron]{getLaskar} function
-   \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function
-   \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function
-   \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function
-   \item La2010a Obliquity solution
-   \item La2010a Precession solution
-   \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function
-   \item La2010b Obliquity solution
-   \item La2010b Precession solution
-   \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function
-   \item La2010c Obliquity solution
-   \item La2010c Precession solution
-   \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function
-   \item La2010d Obliquity solution
-   \item La2010d Precession solution
-   \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function
-   \item ZB17a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17e Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17e Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17f Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17f Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17h Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17h Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17i Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17i Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17j Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17j Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17k Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17k Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17p Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB17p Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB18a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB18a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item ZB20d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-   \item 405kyr eccentricity 405 metronome can be generated using the formula:\cr
-     e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
-   \item 173kyr obliquity  metronome can be generated using using the formula:\cr
-    es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-   \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
-   }
+    \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function
+    \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function
+    \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function
+    \item La2010a Obliquity solution
+    \item La2010a Precession solution
+    \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function
+    \item La2010b Obliquity solution
+    \item La2010b Precession solution
+    \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function
+    \item La2010c Obliquity solution
+    \item La2010c Precession solution
+    \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function
+    \item La2010d Obliquity solution
+    \item La2010d Precession solution
+    \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function
+    \item ZB17a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17e Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17e Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17f Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17f Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17h Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17h Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17i Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17i Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17j Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17j Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17k Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17k Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17p Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB17p Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB18a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB18a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item ZB20d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+    \item 405kyr eccentricity 405 metronome can be generated using the formula:\cr
+      e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
+    \item 173kyr obliquity  metronome can be generated using using the formula:\cr
+     es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
+    \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
+    }
 }
 \examples{
 \donttest{

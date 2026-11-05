@@ -6,47 +6,53 @@
 #' package. The superlet transform increases time frequency resolution by
 #' combining multiple wavelet orders at each frequency.
 #'
-#' @param data_1 First input data set as a matrix or data frame. The first column must
-#' represent depth or time, and the second column the signal or proxy record.
+#' @param data_1 First record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2.
+#' Both records are sorted, rows with \code{NA} are removed and they are interpolated to a common, regular grid over
+#' their overlapping interval (spacing: the coarser of the two median sampling intervals); at least 10 common
+#' points are needed. Required (\code{Default=NULL} gives an error).
 #'
-#' @param data_2 Second  input data as a matrix or data frame. The first column must
-#' represent depth or time, and the second column the signal or proxy record.
+#' @param data_2 Second record, in the same format and depth/time unit as \code{data_1} (matrix or data frame:
+#' depth/time in column 1, proxy value in column 2). The cross phase is the phase of \code{data_1} minus that of
+#' \code{data_2}. Required (\code{Default=NULL} gives an error).
 #'
-#' @param upperPeriod Maximum period to be analysed. Controls the lowest
-#' analysed frequency.
+#' @param upperPeriod Longest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > \code{lowerPeriod}); sets the lowest analysed frequency. \code{Default=1024}.
 #'
-#' @param lowerPeriod Minimum period to be analysed. Controls the highest
-#' analysed frequency.
+#' @param lowerPeriod Shortest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > 0; at least twice the common sampling interval); sets the highest analysed frequency.
+#' \code{Default=2}.
 #'
-#' @param Nf Number of frequencies used to construct the superlet spectrum.
-#' Frequencies are logarithmically spaced between the limits defined by
-#' \code{upperPeriod} and \code{lowerPeriod}.
+#' @param Nf Number of frequencies of the superlet spectrum (integer, >= 1). Frequencies are logarithmically
+#' spaced between \code{1/upperPeriod} and \code{1/lowerPeriod}. \code{Default=128}.
 #'
-#' @param c1 Base number of cycles of the Morlet wavelet. Acts as the
-#' fundamental wavelet width.
+#' @param c1 Base number of cycles of the Morlet wavelet of order 1 (numeric, > 0, typically 2 to 5): the
+#' fundamental wavelet width. \code{Default=3}.
 #'
-#' @param o numeric vector of length two defining the minimum and
-#' maximum superlet order. If NULL, all frequencies are analysed using
-#' order one.
+#' @param o Minimum and maximum superlet order (numeric vector of length 2, values >= 1), from the lowest to the
+#' highest frequency; a single number gives a fixed order and \code{NULL} uses order 1 everywhere (see
+#' \code{\link{analyse_superlet}}). \code{Default=c(1, 10)}.
 #'
-#' @param mult Logical. If TRUE, the number of cycles increases
-#' multiplicatively with superlet order (\eqn{c_i = i c_1}). If FALSE, cycles increase
-#' additively (\eqn{c_i = c_1 + i - 1}, Moca et al., 2021).
+#' @param mult How the number of cycles grows with the order i within a superlet (logical, TRUE or FALSE):
+#' \code{TRUE} multiplicative (\eqn{c_i = i c_1}); \code{FALSE} additive (\eqn{c_i = c_1 + i - 1}, Moca et al.,
+#' 2021). \code{Default=TRUE}.
 #'
-#' @param order_scaling Character string defining how the number of wavelet
-#' cycles varies with scale. One of
-#' \code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
-#' or \code{"power"}.
+#' @param order_scaling How the superlet order increases from \code{o[1]} (lowest frequency) to \code{o[2]}
+#' (highest frequency) (character): \code{"none"} or \code{"log2"} (linear in log2(frequency)), \code{"linear"}
+#' (linear in frequency), \code{"sqrt"}, \code{"quadratic"} or \code{"power"} (see
+#' \code{\link{analyse_superlet}}). \code{Default="log2"}.
 #'
-#' @param order_alpha Numeric. Exponent used when \code{scaling = "power"}.
-#' Values greater than one emphasize high frequency sharpening, whereas
-#' values smaller than one emphasize low frequency sharpening.
+#' @param order_alpha Exponent of the \code{"power"} order scaling (numeric, > 0); only used when
+#' \code{order_scaling="power"}. Values greater than 1 raise the order mainly at the highest frequencies
+#' (sharpening short periods), values smaller than 1 already at low frequencies. \code{Default=1}.
 #'
-#' @param verbose Logical. If TRUE, print progress and interpolation
-#' information.
+#' @param verbose Print the sampling interval to which each record was interpolated and show progress bars
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
-#' @param detrend,standardize Passed to \code{\link{analyse_superlet}}: removal of a linear trend (or mean) and
-#' standardisation of both records before the transform \code{Default="linear"} and \code{TRUE}.
+#' @param detrend Removal of a trend from both records before the transform, passed to
+#' \code{\link{analyse_superlet}} (character): \code{"linear"}, \code{"mean"} or \code{"none"}.
+#' \code{Default="linear"}.
+#' @param standardize Divide both (detrended) records by their standard deviation before the transform, passed to
+#' \code{\link{analyse_superlet}} (logical, TRUE or FALSE). \code{Default=TRUE}.
 #'
 #' @return
 #'A list with class \code{"analyze.Xsuperlet"} containing
@@ -135,8 +141,10 @@
 #'  verbose = FALSE
 #')
 #'}
-#' @param wavelet Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
-#' \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
+#' @param wavelet Mother wavelet (character string or function), given as a name (PyWavelets style names with the
+#' order appended,
+#' such as \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a
+#' function
 #' \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 #' Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
 #' (default; aliases \code{"gabor"}, \code{"amor"}), \code{"morlet0"} (exactly zero mean Morlet, admissible for a
@@ -147,25 +155,32 @@
 #' (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 #' time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 #' Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+#' (real
 #' Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 #' (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 #' frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 #' spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
 #' well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.
-#' @param wavelet_order Parameter(s) of the wavelet (see \code{\link{analyse_superlet}}): \code{paul}: order m (default 4); \code{dog}: derivative m
+#' \code{Default="morlet"}.
+#' @param wavelet_order Parameter(s) of the wavelet (see \code{\link{analyse_superlet}}): \code{paul}: order m
+#' (default 4); \code{dog}: derivative m
 #' (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
 #' \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 #' (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 #' frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 #' \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0
+#' (default 5);
 #' \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 #' \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 #' \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
-#' (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.
+#' (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3).
+#' Passed to \code{\link{analyse_superlet}}; for the Morlet wavelet the number of cycles is set by \code{c1}, \code{o}
+#' and \code{mult}. \code{Default=NULL}.
 #'
-#' @param standardise British spelling of \code{standardize}; if given it overrides \code{standardize}.
+#' @param standardise British spelling of \code{standardize} (logical); if given (not \code{NULL}) it overrides
+#' \code{standardize}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats sd
 #' @importFrom stats median
@@ -174,22 +189,24 @@
 #' @importFrom astrochron etp
 
 analyse_Xsuperlet <- function(data_1 = NULL,
-                              data_2  = NULL,
-                              upperPeriod = 1024,
-                              lowerPeriod = 2,
-                              Nf = 128,
-                              c1 = 3,
-                              o = c(1, 10),
-                              mult = TRUE,
-                              order_scaling = "log2",
-                              order_alpha = 1,
-                              verbose = FALSE,
-                              detrend = "linear",
-                              standardize = TRUE,
-  standardise = NULL,
-                              wavelet = "morlet",
-                              wavelet_order = NULL) {
-  if (!is.null(standardise)) standardize <- standardise  # British spelling synonym
+    data_2  = NULL,
+    upperPeriod = 1024,
+    lowerPeriod = 2,
+    Nf = 128,
+    c1 = 3,
+    o = c(1, 10),
+    mult = TRUE,
+    order_scaling = "log2",
+    order_alpha = 1,
+    verbose = FALSE,
+    detrend = "linear",
+    standardize = TRUE,
+    standardise = NULL,
+    wavelet = "morlet",
+    wavelet_order = NULL) {
+  if (!is.null(standardise)) {
+    standardize <- standardise
+  }  # British spelling synonym
   data_1 <- na.omit(data_1[order(data_1[, 1]), ])
   data_2 <- na.omit(data_2[order(data_2[, 1]), ])
 
@@ -201,15 +218,17 @@ analyse_Xsuperlet <- function(data_1 = NULL,
   y1 <- approx(data_1[, 1], data_1[, 2], xout = common_grid, rule = 1)$y
   y2 <- approx(data_2[, 1], data_2[, 2], xout = common_grid, rule = 1)$y
   keep <- is.finite(y1) & is.finite(y2)
-  if (sum(keep) < 10) stop("the two records have (almost) no overlap")
+  if (sum(keep) < 10) {
+    stop("the two records have (almost) no overlap")
+  }
   data_1_common <- data.frame(x = common_grid[keep], proxy = y1[keep])
   data_2_common <- data.frame(x = common_grid[keep], proxy = y2[keep])
 
   run <- function(d) {
     analyse_superlet(data = d, upperPeriod = upperPeriod, lowerPeriod = lowerPeriod, Nf = Nf, c1 = c1, o = o,
-                     mult = mult, order_scaling = order_scaling, order_alpha = order_alpha, verbose = verbose,
-                     detrend = detrend, standardize = standardize,
-                     wavelet = wavelet, wavelet_order = wavelet_order)
+        mult = mult, order_scaling = order_scaling, order_alpha = order_alpha, verbose = verbose,
+        detrend = detrend, standardize = standardize,
+        wavelet = wavelet, wavelet_order = wavelet_order)
   }
   superlet_1 <- run(data_1_common)
   superlet_2 <- run(data_2_common)
@@ -222,29 +241,29 @@ analyse_Xsuperlet <- function(data_1 = NULL,
   Phase.xy <- Arg(Wave.xy)
 
   output <- list(
-    Wave = t(Wave.xy),
-    Power = t(Power.xy),
-    Phase = t(Phase.xy),
-    dt = superlet_1$dt,
-    dj = 1 / Nf,
-    Power.avg = rowMeans(Power.xy, na.rm = TRUE),
-    Scale = superlet_1$Scale,
-    Period = superlet_1$Period,
-    nc = superlet_1$nc,
-    nr = Nf,
-    axis.1 = superlet_1$axis.1,
-    axis.2 = superlet_1$axis.2,
-    c1 = c1,
-    o = o,
-    wavelet = superlet_1$wavelet,
-    wavelet_order = wavelet_order,
-    coi = superlet_1$coi,
-    coi.1 = superlet_1$coi.1,
-    coi.2 = superlet_1$coi.2,
-    x1 = superlet_1$x,
-    y1 = superlet_1$y,
-    x2 = superlet_2$x,
-    y2 = superlet_2$y
+      Wave = t(Wave.xy),
+      Power = t(Power.xy),
+      Phase = t(Phase.xy),
+      dt = superlet_1$dt,
+      dj = 1 / Nf,
+      Power.avg = rowMeans(Power.xy, na.rm = TRUE),
+      Scale = superlet_1$Scale,
+      Period = superlet_1$Period,
+      nc = superlet_1$nc,
+      nr = Nf,
+      axis.1 = superlet_1$axis.1,
+      axis.2 = superlet_1$axis.2,
+      c1 = c1,
+      o = o,
+      wavelet = superlet_1$wavelet,
+      wavelet_order = wavelet_order,
+      coi = superlet_1$coi,
+      coi.1 = superlet_1$coi.1,
+      coi.2 = superlet_1$coi.2,
+      x1 = superlet_1$x,
+      y1 = superlet_1$y,
+      x2 = superlet_2$x,
+      y2 = superlet_2$y
   )
   class(output) <- "analyze.Xsuperlet"
   return(output)

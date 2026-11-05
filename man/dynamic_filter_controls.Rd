@@ -12,23 +12,22 @@ dynamic_filter_controls(
 )
 }
 \arguments{
-\item{tracked}{Matrix or data frame whose first two columns are depth and
-period (in depth units) of the tracked cycle. Rows with non-finite values
-are dropped, rows are sorted by depth and duplicated depths are removed
-(first kept).}
+\item{tracked}{Tracked period curve of the cycle (matrix or data frame whose first two columns are depth/time and
+period in the same depth/time unit, period > 0; further columns are ignored), e.g. the output of
+\code{\link{track_period_wavelet}} or \code{\link{completed_series}}. Rows with non-finite values are dropped,
+rows are sorted by depth and duplicated depths are removed (first kept). Required (\code{Default=NULL}).}
 
-\item{rel_bandwidth}{Half-power bandwidth relative to the centre frequency,
-between 0 and 2 (exclusive) \code{Default=0.2}.}
+\item{rel_bandwidth}{Half-power bandwidth of the pass band relative to the centre frequency \code{1 / period}
+(numeric, > 0 and < 2): the band is \code{f_centre * (1 -/+ rel_bandwidth / 2)}, so larger values give a wider
+band. \code{Default=0.2}.}
 
-\item{n_points}{Optional maximum number of control points. When the
-tracked curve has more rows, it is linearly interpolated to
-\code{n_points} evenly spaced depths spanning the (clipped) curve
-\code{Default=NULL} (keep all rows).}
+\item{n_points}{Maximum number of control points (integer, >= 1, or \code{NULL}). When the tracked curve has more
+rows, it is linearly interpolated to \code{n_points} evenly spaced depths spanning the (clipped) curve
+(\code{n_points=1} gives one point at the middle). \code{NULL} keeps all rows. \code{Default=NULL}.}
 
-\item{data}{Optional data set (2-column matrix) that will be filtered.
-When given, control points outside its depth range are removed (the
-Acycle core requires control depths inside the data range)
-\code{Default=NULL}.}
+\item{data}{Series that will be filtered (two-column matrix or data frame, depth/time in column 1, or
+\code{NULL}). When given, control points outside its depth range are removed, because
+\code{\link{dynamic_filter}} requires control depths inside the data range. \code{Default=NULL}.}
 }
 \value{
 A matrix with columns \code{depth}, \code{f_low}, \code{f_high}

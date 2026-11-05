@@ -25,29 +25,66 @@ astro_mc(
 )
 }
 \arguments{
-\item{constraints}{named list of c(min, max) ranges. Names are astronomical
-terms: "e405", "e125" (= e130 and e124), "e95" (= e99 and e95), "k+s3"
-(or "obl"), "k+g5", "k+g2", "k+g4", "k+g3", "prec_short" (= k+g4 and
-k+g3). Several terms in one band: "k+g4|k+g3" (both must fit). A peak you
-cannot assign: "any:k+g5|k+g2" (at least one must fit).
-Units: kyr when `domain = "time"`, metres when `domain = "depth"`.}
+\item{constraints}{Measured ranges of the cycles you resolved (named list; each element a numeric vector
+\code{c(min, max)}). Names are astronomical terms: \code{"e405"}, \code{"e125"} (= e130 and e124), \code{"e95"}
+(= e99 and e95), \code{"k+s3"} (or \code{"obl"}, \code{"obliquity"}), \code{"k+g5"}, \code{"k+g2"},
+\code{"k+g4"}, \code{"k+g3"}, \code{"prec_short"} (= k+g4 and k+g3), \code{"prec_all"} (all four precession
+terms), any other term listed by \code{\link{astro_terms}} (e.g. \code{"g4-g3"}, \code{"s4-s3"}), or a
+combination such as \code{"2(g2-g5)"}. Several terms in one band: \code{"k+g4|k+g3"} (all must fit). A peak you
+cannot assign: \code{"any:k+g5|k+g2"} (at least one must fit). Units: kyr when \code{domain = "time"},
+metres when \code{domain = "depth"}. Required, no default.}
 
-\item{age}{approximate age in Ma, c(min, max) or a single value with `age_tol`}
+\item{age}{Approximate age of the record in Ma (numeric): \code{c(min, max)}, or a single value, which is
+widened by \code{age_tol} Ma on either side. Required, no default.}
 
-\item{domain}{"time" for a tuned record, "depth" for a depth-domain spectrum}
+\item{domain}{Domain of the measured cycles (character): \code{"time"} for a tuned record (cycles in kyr),
+\code{"depth"} for a depth-domain spectrum (cycles in metres; \code{scale_range} must then be given).
+\code{Default=c("time", "depth")}, i.e. \code{"time"}.}
 
-\item{anchor}{the period you assumed for the tuning target, in kyr
-(default 405 for a 405-kyr tuned record); NULL means the time scale is
-sampled freely within `scale_range`}
+\item{anchor}{Period in kyr that was assumed for the tuning target \code{anchor_term} when the record was tuned
+(numeric, > 0); with \code{domain = "time"} every predicted period is divided by (sampled period of
+\code{anchor_term})/\code{anchor}. \code{NULL} means that the time scale is sampled freely within
+\code{scale_range}. Ignored when \code{domain = "depth"}. \code{Default=405}.}
 
-\item{anchor_term}{the term you tuned to (default "e405" = g2-g5)}
+\item{anchor_term}{Astronomical term the record was tuned to (character, any name accepted in
+\code{constraints}). \code{Default="e405"} (= g2-g5).}
 
-\item{scale_range}{sedimentation rate range (m/kyr) when `domain = "depth"`,
-or the allowed stretch of the time scale when `anchor` is NULL}
+\item{scale_range}{Range sampled uniformly for the scale factor (numeric vector \code{c(min, max)}): the
+sedimentation rate in m/kyr when \code{domain = "depth"} (then required), or the allowed stretch of the time
+scale when \code{domain = "time"} and \code{anchor = NULL} (then \code{NULL} becomes \code{c(0.9, 1.1)}).
+\code{Default=NULL}.}
 
-\item{g4g3_range_kyr, s4s3_range_kyr}{accepted for a common interface}
+\item{g4g3_range_kyr, s4s3_range_kyr}{Not used by the calculation; accepted only for a common interface with
+other functions (numeric vector \code{c(min, max)} in kyr or \code{NULL}). \code{Default=NULL}.}
 
-\item{age_tol, nsim, ptest, sampleorb, s3_uncertainty, seed, block, max_attempts, verbose}{as in ctest()}
+\item{age_tol}{Half-width in Ma of the age range used when \code{age} is a single value (numeric, >= 0).
+\code{Default=5}.}
+
+\item{nsim}{Number of accepted (consistent) Monte Carlo samples to collect (integer, > 0). \code{Default=2000}.}
+
+\item{ptest}{Range of precession constants k to sample uniformly, in years (numeric vector \code{c(min, max)}).
+\code{Default=c(10000, 28000)}.}
+
+\item{sampleorb}{How the secular frequencies g2-g5 are sampled (character): \code{"U"} uniform within 2 sigma
+(as in Zeeden et al. 2023) or \code{"N"} normal with 1 sigma. Sigma is the Laskar et al. (2011) uncertainty
+scaled by sqrt(age/100 Myr). \code{Default=c("U", "N")}, i.e. \code{"U"}.}
+
+\item{s3_uncertainty}{How the uncertainty of s3 is sampled (only when a constraint involves k+s3; character):
+\code{"published"} follows the published CTest code, in which the relative uncertainty is applied as an
+absolute one in years (s3 is effectively fixed); \code{"scaled"} applies it relative to the s3 period, as for
+g2-g5, giving s3 a realistic spread. \code{Default=c("published", "scaled")}, i.e. \code{"published"}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
+
+\item{block}{Number of random draws per iteration of the vectorised search (integer; values below 1000 are
+raised to 1000). Larger blocks are faster but use more memory. \code{Default=1e5}.}
+
+\item{max_attempts}{Maximum total number of draws before the search stops with an error because fewer than
+\code{nsim} consistent samples were found (numeric, > 0). \code{Default=5e7}.}
+
+\item{verbose}{Print a progress message after each block with accepted samples (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
 }
 \value{
 object of class c("astro_mc", "ctest"), so print(), plot() and

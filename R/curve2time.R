@@ -2,13 +2,17 @@
 #'
 #' @description Converts the tracked curve to a depth time space.
 #'
-#' @param tracked_cycle_curve  Curve of the cycle tracked using the
-#' \code{\link{track_period_wavelet}} function \cr
-#' Any input (matrix or data frame) in which the first column is depth in
-#'  meters and the second column is period in meters can be used.
-#' @param tracked_cycle_period Period of the tracked curve in kyr.
-#' @param genplot Generates a plot with depth vs time \code{Default=FALSE}.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param tracked_cycle_curve Tracked period curve of one astronomical cycle (matrix or data frame, two columns):
+#' depth in metres in column 1 and the period of the tracked cycle in metres in column 2, e.g. the output of
+#' \code{\link{track_period_wavelet}} (preferably completed with \code{\link{completed_series}}). Rows with
+#' \code{NA} are dropped and the curve is interpolated to its median depth spacing. Required (\code{Default=NULL}
+#' gives an error).
+#' @param tracked_cycle_period Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+#' long eccentricity cycle), used to convert the tracked period to a sedimentation rate that is integrated to time.
+#' Required (\code{Default=NULL} gives an error).
+#' @param genplot Plot depth against time (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param keep_editable Keep the graphical parameters of the plot so that extra elements can be added afterwards
+#' (logical, TRUE or FALSE); \code{FALSE} restores the previous \code{par} settings. \code{Default=FALSE}.
 #'
 #' @author
 #'Based on the \link[astrochron]{sedrate2time}
@@ -72,11 +76,11 @@
 #' @importFrom astrochron sedrate2time
 
 curve2time <- function(tracked_cycle_curve = NULL,
-                       tracked_cycle_period = NULL,
-                       genplot = FALSE,
-                       keep_editable = FALSE) {
+    tracked_cycle_period = NULL,
+    genplot = FALSE,
+    keep_editable = FALSE) {
   tracked_cycle_curve[, 2] <-
-    tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
+      tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
   sedrates <- data.frame(tracked_cycle_curve)
   dat <- as.matrix(tracked_cycle_curve)
   dat <- na.omit(dat)
@@ -91,7 +95,7 @@ curve2time <- function(tracked_cycle_curve = NULL,
   xout <- seq(start, end, by = dt)
   npts <- length(xout)
   interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                   n = npts)
+      n = npts)
   sedrates <- as.data.frame(interp)
 
   npts <- length(sedrates[, 1])
@@ -114,12 +118,12 @@ curve2time <- function(tracked_cycle_curve = NULL,
     }
     par(mfrow = c(1, 1))
     plot(
-      x = out[, 1],
-      y = out[, 2],
-      cex = 1,
-      xlab = "meters",
-      ylab = "Time (ka)",
-      main = "Depth time"
+        x = out[, 1],
+        y = out[, 2],
+        cex = 1,
+        xlab = "meters",
+        ylab = "Time (ka)",
+        main = "Depth time"
     )
     lines(out)
   }

@@ -11,16 +11,19 @@ test_that("chirplet synchrosqueezing is sharper than the superlet-SST on a chirp
   expect_equal(dim(cs$Chirp), dim(cs$Power))
   conc <- function(m) {
     tot <- 0
-    for (p in c(23.7, 41)) for (i in seq_along(z)) {
-      b <- abs(log(m$Period / (p * sr[i]))) < log(1.03)
-      tot <- tot + sum(m$Power[b, i])
+    for (p in c(23.7, 41)) {
+      for (i in seq_along(z)) {
+        b <- abs(log(m$Period / (p * sr[i]))) < log(1.03)
+        tot <- tot + sum(m$Power[b, i])
+      }
     }
     tot / sum(m$Power)
   }
   expect_gt(conc(cs), conc(ss))
   expect_gt(conc(cs), 0.95)
   # the chirp map has the sign of the change of the period (period grows with depth here)
-  i <- which(z == 300); j <- which.min(abs(cs$Period - 23.7 * sr[i]))
+  i <- which(z == 300)
+  j <- which.min(abs(cs$Period - 23.7 * sr[i]))
   expect_gt(cs$Chirp[j, i], 0)
 })
 

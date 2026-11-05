@@ -10,13 +10,18 @@
 #' Also accepts cocoR \code{ecoco_adaptive} results. Translated from Acycle
 #' v3.1 ecocoplot.m (Mingsong Li); base graphics only.
 #'
-#' @param ecoco Result of \code{ecoco_blocked}, \code{ecoco_interleaved} or
-#' \code{ecoco_adaptive}. \code{Default=NULL}
-#' @param panels Which panels to draw (1 rho, 2 global p, 3 local p,
-#' 4 orbit count, 5 ridge score). \code{Default=1:5}
-#' @param reverse_depth Plot depth increasing downwards. \code{Default=FALSE}
-#' @param palette Colour vector for the maps.
-#' \code{Default=grDevices::hcl.colors(64, "viridis")}
+#' @param ecoco eCOCO result to plot: the list returned by \code{\link{ecoco_blocked}},
+#' \code{\link{ecoco_interleaved}} or \code{\link{ecoco_adaptive}} (with \code{sr}, \code{depth}, \code{rho},
+#' \code{p_global}, \code{p_local}, \code{norbit}, \code{score} and \code{track}). Required (\code{Default=NULL} gives
+#' an error).
+#' @param panels Which maps to draw, side by side in the order given (integer vector with values 1 to 5):
+#' 1 consensus correlation coefficient (rho), 2 SR-global p, 3 same-rate local p, 4 number of contributing orbital
+#' periods, 5 window-normalised ridge score with the tracked ridge. \code{Default=1:5}.
+#' @param reverse_depth Reverse the depth axis so that depth increases downwards (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param palette Colours of the colour scale of all maps (character vector of colours, e.g. the output of
+#' \code{\link[grDevices]{hcl.colors}}); the first colour is used for the lowest values and the length of the vector
+#' sets the number of colour levels. \code{Default=} 64 viridis colours (dark purple to yellow).
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' @references Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking
@@ -45,8 +50,8 @@
 #' @importFrom graphics mtext plot.new plot.window rect
 #' @importFrom grDevices hcl.colors
 plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
-                          palette = grDevices::hcl.colors(64, "viridis")){
-  # ---- internal helper functions (local to this function) ----
+    palette = .wr_hcl_cols(64, "viridis")){
+  # Internal helper functions (local to this function)
 
   ecocox_plog <- function(p, pfloor){
     if (is.null(p)){
@@ -128,7 +133,7 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
     out
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(ecoco)){
     stop("ecoco result required")
   }
@@ -160,11 +165,11 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
     }
   }
   maps <- list(rho = ecoco$rho,
-               p_global = ecocox_plog(ecoco$p_global, pfloor),
-               p_local = ecocox_plog(ecoco$p_local, pfloor),
-               norbit = ecoco$norbit, score = ns)
+      p_global = ecocox_plog(ecoco$p_global, pfloor),
+      p_local = ecocox_plog(ecoco$p_local, pfloor),
+      norbit = ecoco$norbit, score = ns)
   titles <- c("Consensus correlation", "Global p", "Local p",
-              "Contributing orbital periods", "Ridge score")
+      "Contributing orbital periods", "Ridge score")
   if (is.null(ecoco$forward)){
     titles[1] <- "Correlation coefficient"
   }
@@ -173,7 +178,7 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
   on.exit(graphics::par(op))
   np <- length(panels)
   graphics::layout(matrix(c(seq_len(np), np + seq_len(np)), 2, np,
-                          byrow = TRUE), heights = c(5, 1))
+      byrow = TRUE), heights = c(5, 1))
   graphics::par(mar = c(4, 4, 2.5, 1))
   ylim <- range(depth)
   if (reverse_depth){
@@ -196,8 +201,8 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
       ylab <- "Depth (m)"
     }
     graphics::image(sr, depth, zz, col = palette, zlim = zr, ylim = ylim,
-                    xlab = "Sedimentation rate (cm/kyr)", ylab = ylab,
-                    main = titles[pi_k], useRaster = FALSE)
+        xlab = "Sedimentation rate (cm/kyr)", ylab = ylab,
+        main = titles[pi_k], useRaster = FALSE)
     if (pi_k %in% c(2, 3) && nr > 1 && nw > 1){
       lev <- -log10(0.01)
       if (pi_k == 2){
@@ -207,7 +212,7 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
       zc[!is.finite(zc)] <- 0
       if (any(zc > lev) && any(zc < lev)){
         graphics::contour(sr, depth, zc, levels = lev, add = TRUE,
-                          drawlabels = FALSE, lwd = 0.6)
+            drawlabels = FALSE, lwd = 0.6)
       }
     }
     if (pi_k == 5 && !is.null(ridge)){
@@ -235,7 +240,7 @@ plot_ecoco_cv <- function(ecoco = NULL, panels = 1:5, reverse_depth = FALSE,
     graphics::plot.window(xlim = zr, ylim = c(0, 1), xaxs = "i")
     brk <- seq(zr[1], zr[2], length.out = length(palette) + 1)
     graphics::rect(brk[-length(brk)], 0, brk[-1], 1, col = palette,
-                   border = NA)
+        border = NA)
     graphics::box()
     if (pi_k %in% c(2, 3)){
       at <- pretty(zr)

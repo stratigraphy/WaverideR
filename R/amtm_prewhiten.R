@@ -7,7 +7,6 @@
 # https://github.com/gaprieto/multitaper) that amtm_signaldetect calls
 # (MTSpec with iadapt = 0: dpss normalisation, eigenspec, adaptspec, rspec, ftest).
 #
-# ---------------------------------------------------------------------------
 # Original licences (both MIT):
 #
 # amtm_signaldetect -- MIT License, Copyright (c) 2024 Hector A Salinas
@@ -30,7 +29,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# ---------------------------------------------------------------------------
 # The AR(1) background model, the AIC / MERIT model-selection criteria and the
 # AR(1) starting value follow the IDL package SPD_MTM (c) Simone Di Matteo 2020,
 # Apache License 2.0 (SPEDAS: general/science/spd_mtm/models/ar1/*.pro,
@@ -39,9 +37,6 @@
 # distributed with amtm_signaldetect.
 #
 # Uses from helpers_matlab_equivalents.R: acy_dpss(), acy_check_two_column().
-# ---------------------------------------------------------------------------
-
-
 
 #' @title Autoregressive prewhitening of a series for aMTM analysis
 #'
@@ -57,11 +52,19 @@
 #' correct_spec_for_pw()) distributed with amtm_signaldetect (MIT licence), itself
 #' based on an R prewhiten() routine (Wesley Burr / David Riegert).
 #'
-#' @param data Input data set: 2-column matrix [depth/time, value], evenly spaced
-#' @param order Order of the AR filter \code{Default=2}
-#' @param nw Time-bandwidth product of the spectrum used for the ACVS \code{Default=4}
-#' @param k Number of tapers of that spectrum \code{Default=7}
-#' @param nfft_add Zero-padding exponent increment \code{Default=2}
+#' @param data Series to prewhiten: a matrix or data frame with depth/time in column 1 and the proxy value in
+#' column 2, evenly spaced (extra columns are ignored, rows with non-finite values are dropped and the rows are
+#' sorted by depth/time). Required (\code{Default=NULL} gives an error).
+#' @param order Order p of the autoregressive (AR) prewhitening filter (integer, >= 1; the series must have more
+#' than \code{2*order + 2} values). Higher orders remove more of the red-noise background but also more of the
+#' signal; the first \code{2*order} samples are lost. \code{Default=2}.
+#' @param nw Time-bandwidth product of the multitaper spectrum from which the autocovariance sequence (ACVS) is
+#' computed (numeric, > 0, typically 2 to 4). \code{Default=4}.
+#' @param k Number of DPSS tapers of that spectrum (integer, >= 1, at most about \code{2*nw - 1}).
+#' \code{Default=7}.
+#' @param nfft_add Zero-padding exponent increment (integer, >= 0): the spectrum is computed on
+#' \code{2^(ceiling(log2(N)) + nfft_add)} frequencies, N being the number of samples. Larger values give a finer
+#' frequency grid and a longer, smoother ACVS. \code{Default=2}.
 #'
 #' @author Michiel Arts (R translation); original Python code: Hector A. Salinas et al.
 #' @references Percival, D. B., & Walden, A. T. (2020). Spectral Analysis for
@@ -79,11 +82,9 @@
 #' @export
 #' @importFrom stats fft
 amtm_prewhiten <- function(data = NULL, order = 2, nw = 4, k = 7, nfft_add = 2){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -294,7 +295,7 @@ amtm_prewhiten <- function(data = NULL, order = 2, nw = 4, k = 7, nfft_add = 2){
     ad <- amtm_adaptspec(sk, lamb)
     sscal <- xvar / (sum(ad$spec) * df)
     list(freq = freq, spec = sscal * ad$spec, wt = ad$wt, yk = yk, vn = vn,
-         lamb = lamb, nf = nf, nfft = nfft, df = df, xvar = xvar)
+        lamb = lamb, nf = nf, nfft = nfft, df = df, xvar = xvar)
   }
 
   # @title Adaptive weighting (Prieto utils.adaptspec, iadapt = 0)
@@ -331,13 +332,11 @@ amtm_prewhiten <- function(data = NULL, order = 2, nw = 4, k = 7, nfft_add = 2){
     list(spec = sbar, wt = wt)
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
   data <- acy_check_two_column(data)
   tt <- as.numeric(data[, 1])
   xt <- as.numeric(data[, 2])

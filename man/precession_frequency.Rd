@@ -13,16 +13,21 @@ precession_frequency(
 )
 }
 \arguments{
-\item{a_RE}{Earth-Moon distance in Earth radii}
+\item{a_RE}{Earth-Moon distance in Earth radii (numeric, > 0; the present value is about 60.14). Required, no
+default. It sets the lunar part of the precession torque and, when \code{lod_h = NULL}, the length of day.}
 
-\item{lod_h}{length of day; if NULL it is derived from `a_RE` by
-angular-momentum conservation}
+\item{lod_h}{Length of day in hours (numeric, > 0), of the type given by \code{lod_kind}. \code{NULL} derives the
+Earth's spin rate from \code{a_RE} by conservation of the angular momentum of the Earth-Moon system
+(\code{omega_from_moon_distance}). \code{Default=NULL}.}
 
-\item{obliquity_deg}{Earth's obliquity}
+\item{obliquity_deg}{Earth's obliquity in degrees (numeric); the precession rate scales with its cosine.
+\code{Default=.AC$obliquity0_deg}, the present value of 23.2545 degrees.}
 
-\item{Ed}{dynamical ellipticity at the present spin rate}
+\item{Ed}{Dynamical ellipticity of the Earth at the present spin rate (numeric, dimensionless); it is scaled with the
+square of the spin rate. \code{Default=.AC$Ed0}, i.e. 0.003243.}
 
-\item{lod_kind}{Type of day, `"solar"` or `"sidereal"`.}
+\item{lod_kind}{Type of day of \code{lod_h} (character): \code{"solar"} or \code{"sidereal"}; also used for the
+length of day returned. \code{Default="solar"}.}
 }
 \value{
 list: p in arcsec/yr and the precession period in kyr

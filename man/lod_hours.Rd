@@ -7,9 +7,12 @@
 lod_hours(omega, kind = c("solar", "sidereal"))
 }
 \arguments{
-\item{omega}{Angular velocity of the Earth (rad/s).}
+\item{omega}{Angular velocity of the rotation of the Earth in rad/s (numeric vector, > 0; the present-day value is
+about 7.29e-5), e.g. the output of \code{\link{omega_from_moon_distance}}. Required (no default).}
 
-\item{kind}{Type of day, `"solar"` or `"sidereal"`.}
+\item{kind}{Type of day that is returned, in hours (character): \code{"solar"} (mean solar day, corrected for the
+orbital motion of the Earth around the Sun) or \code{"sidereal"} (one rotation relative to the stars).
+\code{Default=c("solar", "sidereal")}, i.e. \code{"solar"}.}
 }
 \description{
 Length of day from Earth's angular velocity

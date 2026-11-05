@@ -7,9 +7,11 @@
 earth_omega(lod_h, kind = c("solar", "sidereal"))
 }
 \arguments{
-\item{lod_h}{Length of day in hours.}
+\item{lod_h}{Length of day, in hours (numeric, scalar or vector, > 0). Required (no default).}
 
-\item{kind}{"solar" (AstroGeo22 lod column) or "sidereal"}
+\item{kind}{Which length of day \code{lod_h} is (character): \code{"solar"} (solar day, as in the \code{lod}
+column of AstroGeo22, converted to the sidereal rotation with 1/T_sid = 1/T_sol + 1/yr) or \code{"sidereal"}
+(sidereal rotation period). \code{Default=c("solar", "sidereal")}, i.e. \code{"solar"}.}
 }
 \description{
 Earth's angular velocity from the length of day

@@ -1,32 +1,60 @@
 #' @title Monte Carlo consistency test for tuned (time-domain) or depth-domain cycles
 #'
-#' @param constraints named list of c(min, max) ranges. Names are astronomical
-#'   terms: "e405", "e125" (= e130 and e124), "e95" (= e99 and e95), "k+s3"
-#'   (or "obl"), "k+g5", "k+g2", "k+g4", "k+g3", "prec_short" (= k+g4 and
-#'   k+g3). Several terms in one band: "k+g4|k+g3" (both must fit). A peak you
-#'   cannot assign: "any:k+g5|k+g2" (at least one must fit).
-#'   Units: kyr when `domain = "time"`, metres when `domain = "depth"`.
-#' @param age approximate age in Ma, c(min, max) or a single value with `age_tol`
-#' @param domain "time" for a tuned record, "depth" for a depth-domain spectrum
-#' @param anchor the period you assumed for the tuning target, in kyr
-#'   (default 405 for a 405-kyr tuned record); NULL means the time scale is
-#'   sampled freely within `scale_range`
-#' @param anchor_term the term you tuned to (default "e405" = g2-g5)
-#' @param scale_range sedimentation rate range (m/kyr) when `domain = "depth"`,
-#'   or the allowed stretch of the time scale when `anchor` is NULL
-#' @param g4g3_range_kyr,s4s3_range_kyr accepted for a common interface
-#' @param age_tol,nsim,ptest,sampleorb,s3_uncertainty,seed,block,max_attempts,verbose
-#'   as in ctest()
+#' @param constraints Measured ranges of the cycles you resolved (named list; each element a numeric vector
+#'   \code{c(min, max)}). Names are astronomical terms: \code{"e405"}, \code{"e125"} (= e130 and e124), \code{"e95"}
+#'   (= e99 and e95), \code{"k+s3"} (or \code{"obl"}, \code{"obliquity"}), \code{"k+g5"}, \code{"k+g2"},
+#'   \code{"k+g4"}, \code{"k+g3"}, \code{"prec_short"} (= k+g4 and k+g3), \code{"prec_all"} (all four precession
+#'   terms), any other term listed by \code{\link{astro_terms}} (e.g. \code{"g4-g3"}, \code{"s4-s3"}), or a
+#'   combination such as \code{"2(g2-g5)"}. Several terms in one band: \code{"k+g4|k+g3"} (all must fit). A peak you
+#'   cannot assign: \code{"any:k+g5|k+g2"} (at least one must fit). Units: kyr when \code{domain = "time"},
+#'   metres when \code{domain = "depth"}. Required, no default.
+#' @param age Approximate age of the record in Ma (numeric): \code{c(min, max)}, or a single value, which is
+#'   widened by \code{age_tol} Ma on either side. Required, no default.
+#' @param domain Domain of the measured cycles (character): \code{"time"} for a tuned record (cycles in kyr),
+#'   \code{"depth"} for a depth-domain spectrum (cycles in metres; \code{scale_range} must then be given).
+#'   \code{Default=c("time", "depth")}, i.e. \code{"time"}.
+#' @param anchor Period in kyr that was assumed for the tuning target \code{anchor_term} when the record was tuned
+#'   (numeric, > 0); with \code{domain = "time"} every predicted period is divided by (sampled period of
+#'   \code{anchor_term})/\code{anchor}. \code{NULL} means that the time scale is sampled freely within
+#'   \code{scale_range}. Ignored when \code{domain = "depth"}. \code{Default=405}.
+#' @param anchor_term Astronomical term the record was tuned to (character, any name accepted in
+#'   \code{constraints}). \code{Default="e405"} (= g2-g5).
+#' @param scale_range Range sampled uniformly for the scale factor (numeric vector \code{c(min, max)}): the
+#'   sedimentation rate in m/kyr when \code{domain = "depth"} (then required), or the allowed stretch of the time
+#'   scale when \code{domain = "time"} and \code{anchor = NULL} (then \code{NULL} becomes \code{c(0.9, 1.1)}).
+#'   \code{Default=NULL}.
+#' @param g4g3_range_kyr,s4s3_range_kyr Not used by the calculation; accepted only for a common interface with
+#'   other functions (numeric vector \code{c(min, max)} in kyr or \code{NULL}). \code{Default=NULL}.
+#' @param age_tol Half-width in Ma of the age range used when \code{age} is a single value (numeric, >= 0).
+#'   \code{Default=5}.
+#' @param nsim Number of accepted (consistent) Monte Carlo samples to collect (integer, > 0). \code{Default=2000}.
+#' @param ptest Range of precession constants k to sample uniformly, in years (numeric vector \code{c(min, max)}).
+#'   \code{Default=c(10000, 28000)}.
+#' @param sampleorb How the secular frequencies g2-g5 are sampled (character): \code{"U"} uniform within 2 sigma
+#'   (as in Zeeden et al. 2023) or \code{"N"} normal with 1 sigma. Sigma is the Laskar et al. (2011) uncertainty
+#'   scaled by sqrt(age/100 Myr). \code{Default=c("U", "N")}, i.e. \code{"U"}.
+#' @param s3_uncertainty How the uncertainty of s3 is sampled (only when a constraint involves k+s3; character):
+#'   \code{"published"} follows the published CTest code, in which the relative uncertainty is applied as an
+#'   absolute one in years (s3 is effectively fixed); \code{"scaled"} applies it relative to the s3 period, as for
+#'   g2-g5, giving s3 a realistic spread. \code{Default=c("published", "scaled")}, i.e. \code{"published"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#'   \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param block Number of random draws per iteration of the vectorised search (integer; values below 1000 are
+#'   raised to 1000). Larger blocks are faster but use more memory. \code{Default=1e5}.
+#' @param max_attempts Maximum total number of draws before the search stops with an error because fewer than
+#'   \code{nsim} consistent samples were found (numeric, > 0). \code{Default=5e7}.
+#' @param verbose Print a progress message after each block with accepted samples (logical, TRUE or FALSE).
+#'   \code{Default=TRUE}.
 #' @return object of class c("astro_mc", "ctest"), so print(), plot() and
 #'   ctest_earthmoon() work on it
 #' @export
 astro_mc <- function(constraints, age, domain = c("time", "depth"),
-                     anchor = 405, anchor_term = "e405", scale_range = NULL,
-                     g4g3_range_kyr = NULL, s4s3_range_kyr = NULL,
-                     age_tol = 5, nsim = 2000, ptest = c(10000, 28000),
-                     sampleorb = c("U", "N"), s3_uncertainty = c("published", "scaled"),
-                     seed = NULL, block = 1e5, max_attempts = 5e7, verbose = TRUE){
-  # ---- internal helper functions (local to this function) ----
+    anchor = 405, anchor_term = "e405", scale_range = NULL,
+    g4g3_range_kyr = NULL, s4s3_range_kyr = NULL,
+    age_tol = 5, nsim = 2000, ptest = c(10000, 28000),
+    sampleorb = c("U", "N"), s3_uncertainty = c("published", "scaled"),
+    seed = NULL, block = 1e5, max_attempts = 5e7, verbose = TRUE){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -75,8 +103,8 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -119,7 +147,7 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -169,8 +197,8 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -222,9 +250,9 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
       freq <- k_mult * p + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult, offset = offset,
-         parts = first_parts, canonical = .canonical_term(term),
-         simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
+        has_k = k_mult != 0, k_mult = k_mult, offset = offset,
+        parts = first_parts, canonical = .canonical_term(term),
+        simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
   }
 
   # @title Expand a constraint name into the astronomical terms it stands for
@@ -238,12 +266,12 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     expanded <- NULL
     for (p in parts){
       expanded <- c(expanded, switch(p,
-        "e125" = c("e130", "e124"),
-        "e95"  = c("e99", "e95"),
-        "prec_short" = c("k+g4", "k+g3"),
-        "prec_all"   = c("k+g5", "k+g2", "k+g4", "k+g3"),
-        "obl" = "k+s3", "obliquity" = "k+s3",
-        p))
+          "e125" = c("e130", "e124"),
+          "e95"  = c("e99", "e95"),
+          "prec_short" = c("k+g4", "k+g3"),
+          "prec_all"   = c("k+g5", "k+g2", "k+g4", "k+g3"),
+          "obl" = "k+s3", "obliquity" = "k+s3",
+          p))
     }
     parts <- expanded
     # validates
@@ -253,7 +281,7 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     list(terms = parts, any_of = any_of)
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -268,7 +296,7 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -277,26 +305,25 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # =============================================================================
   # astro_mc(): the same consistency test, generalised
   #  * works on a TUNED record (cycles already in kyr) as well as on a
   #    depth-domain spectrum (cycles in m)
@@ -309,15 +336,14 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
   #    Monte Carlo draw instead of being sampled
   # ctest() remains the faithful port of the published code; use that to
   # reproduce Zeeden et al. (2023).
-  # =============================================================================
 
   # @title Astronomical terms known to astro_mc() without extra computation
   # @keywords internal
   # @noRd
   .ASTRO_TERMS <- c("e405", "e130", "e124", "e99", "e95",
-                    "k+s3", "k+g5", "k+g2", "k+g4", "k+g3")
+      "k+s3", "k+g5", "k+g2", "k+g4", "k+g3")
 
-  # ---- main code ----
+  # Main code
   domain <- match.arg(domain)
   sampleorb <- match.arg(sampleorb)
   s3_uncertainty <- match.arg(s3_uncertainty)
@@ -405,16 +431,16 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     }
     extra <- setdiff(all_terms, .ASTRO_TERMS)
     per <- list(
-      "e405" = 1 / (1 / G2 - 1 / G5) / 1000,
-      "e130" = 1 / (1 / G3 - 1 / G2) / 1000,
-      "e124" = 1 / (1 / G4 - 1 / G2) / 1000,
-      "e99"  = 1 / (1 / G3 - 1 / G5) / 1000,
-      "e95"  = 1 / (1 / G4 - 1 / G5) / 1000,
-      "k+s3" = 1 / (1 / p - 1 / S3) / 1000,
-      "k+g5" = 1 / (1 / p + 1 / G5) / 1000,
-      "k+g2" = 1 / (1 / p + 1 / G2) / 1000,
-      "k+g4" = 1 / (1 / p + 1 / G4) / 1000,
-      "k+g3" = 1 / (1 / p + 1 / G3) / 1000)
+        "e405" = 1 / (1 / G2 - 1 / G5) / 1000,
+        "e130" = 1 / (1 / G3 - 1 / G2) / 1000,
+        "e124" = 1 / (1 / G4 - 1 / G2) / 1000,
+        "e99"  = 1 / (1 / G3 - 1 / G5) / 1000,
+        "e95"  = 1 / (1 / G4 - 1 / G5) / 1000,
+        "k+s3" = 1 / (1 / p - 1 / S3) / 1000,
+        "k+g5" = 1 / (1 / p + 1 / G5) / 1000,
+        "k+g2" = 1 / (1 / p + 1 / G2) / 1000,
+        "k+g4" = 1 / (1 / p + 1 / G4) / 1000,
+        "k+g3" = 1 / (1 / p + 1 / G3) / 1000)
     if (length(extra)){
       # any other named term (g4-g3, s4-s3, s3-s6, k+s4, ...): the four sampled
       # g's and s3 vary, every other secular frequency is held at La2004
@@ -466,16 +492,16 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     }
     idx <- idx[seq_len(min(length(idx), nsim - got))]
     keep[[length(keep) + 1]] <- data.frame(
-      scale = scale[idx], k = p[idx], g2 = G2[idx], g3 = G3[idx], g4 = G4[idx],
-      g5 = G5[idx], s3 = S3[idx], age_yr = t[idx],
-      ecc405 = per$e405[idx], ecc130 = per$e130[idx], ecc124 = per$e124[idx],
-      ecc99 = per$e99[idx], ecc95 = per$e95[idx], obl_ks3 = per$`k+s3`[idx],
-      prec_kg5 = per$`k+g5`[idx], prec_kg2 = per$`k+g2`[idx],
-      prec_kg4 = per$`k+g4`[idx], prec_kg3 = per$`k+g3`[idx])
+        scale = scale[idx], k = p[idx], g2 = G2[idx], g3 = G3[idx], g4 = G4[idx],
+        g5 = G5[idx], s3 = S3[idx], age_yr = t[idx],
+        ecc405 = per$e405[idx], ecc130 = per$e130[idx], ecc124 = per$e124[idx],
+        ecc99 = per$e99[idx], ecc95 = per$e95[idx], obl_ks3 = per$`k+s3`[idx],
+        prec_kg5 = per$`k+g5`[idx], prec_kg2 = per$`k+g2`[idx],
+        prec_kg4 = per$`k+g4`[idx], prec_kg3 = per$`k+g3`[idx])
     got <- got + length(idx)
     if (verbose){
       message(sprintf("astro_mc: %d of %d samples (%.4f%% of draws accepted)",
-                      got, nsim, 100 * accepted / attempts))
+          got, nsim, 100 * accepted / attempts))
     }
   }
   samples <- do.call(rbind, keep)
@@ -487,13 +513,13 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
     c(range(v, na.rm = TRUE), mean(v, na.rm = TRUE), stats::sd(v, na.rm = TRUE))
   }
   sum_cols <- c("ecc405", "ecc124", "ecc130", "ecc95", "ecc99",
-                "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg4",
-                "prec_kg3", "g2", "g3", "g4", "g5", "s3", "k")
+      "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg4",
+      "prec_kg3", "g2", "g3", "g4", "g5", "s3", "k")
   sum_labels <- c("405 kyr ecc", "124 kyr ecc", "130 kyr ecc", "95 kyr ecc",
-                  "99 kyr ecc", "obliquity (k+s3)", "precession k+g5",
-                  "precession k+g2", "precession k+g4", "precession k+g3",
-                  "g2 (yr)", "g3 (yr)", "g4 (yr)", "g5 (yr)", "s3 (yr)",
-                  "precession constant k (yr)")
+      "99 kyr ecc", "obliquity (k+s3)", "precession k+g5",
+      "precession k+g2", "precession k+g4", "precession k+g3",
+      "g2 (yr)", "g3 (yr)", "g4 (yr)", "g5 (yr)", "s3 (yr)",
+      "precession constant k (yr)")
   rows <- vector("list", length(sum_cols) + 1)
   rows[[1]] <- ci(samples$scale)
   for (j in seq_along(sum_cols)){
@@ -506,9 +532,9 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
   rownames(summ) <- NULL
 
   out <- list(summary = summ, samples = samples, mode = paste0(domain, "-domain"),
-              nsim = nsim, attempts = attempts, acceptance = accepted / attempts,
-              ptest = ptest, sampleorb = sampleorb, age_ma = age,
-              constraints = constraints, anchor = anchor, domain = domain)
+      nsim = nsim, attempts = attempts, acceptance = accepted / attempts,
+      ptest = ptest, sampleorb = sampleorb, age_ma = age,
+      constraints = constraints, anchor = anchor, domain = domain)
   class(out) <- c("astro_mc", "ctest")
   out
 }

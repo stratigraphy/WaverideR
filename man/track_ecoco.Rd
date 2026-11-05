@@ -24,41 +24,59 @@ track_ecoco(
 )
 }
 \arguments{
-\item{ecoco}{An eCOCO result from \code{\link{ecoco_adaptive}}, \code{\link{ecoco_blocked}} or
-\code{\link{ecoco_interleaved}} (a list with \code{sr}, \code{depth} and rate-by-window matrices).}
+\item{ecoco}{eCOCO result to track (required): the list returned by \code{\link{ecoco_adaptive}},
+\code{\link{ecoco_blocked}} or \code{\link{ecoco_interleaved}}, with the vectors \code{sr} (sedimentation rates,
+cm/kyr) and \code{depth} (window centres) and rate-by-window matrices (one row per rate, one column per window).
+\code{Default=NULL}.}
 
-\item{map}{The map used for tracking and plotting: \code{"pcoco"}, \code{"rho"}, \code{"score"},
-\code{"p_global"} (shown as minus log10 p) or \code{"norbit"}. \code{Default="pcoco"}.}
+\item{map}{The eCOCO statistic used for tracking and plotting (character): \code{"pcoco"} (combined correlation and
+significance score), \code{"rho"} (correlation coefficient), \code{"score"}, \code{"p_global"} (global p-value, shown
+and tracked as minus log10 p) or \code{"norbit"} (number of contributing orbital periods); it must be present in
+\code{ecoco}. \code{Default=c("pcoco", "rho", "score", "p_global", "norbit")}, i.e. \code{"pcoco"}.}
 
-\item{track_peaks}{If \code{TRUE} only the local maxima along the sedimentation rate axis can be selected,
-otherwise every grid cell \code{Default=TRUE}.}
+\item{track_peaks}{Only allow the local maxima of the map along the sedimentation rate axis to be selected
+(logical); \code{FALSE} allows every grid cell. \code{Default=TRUE}.}
 
-\item{n_peaks}{Maximum number of peaks per window that can be selected (the highest ones) \code{Default=3}.}
+\item{n_peaks}{Maximum number of peaks per window that can be selected, the highest ones (integer, > 0; \code{Inf}
+keeps all); only used with \code{track_peaks = TRUE}. \code{Default=3}.}
 
-\item{rho_min, p_max, norbit_min}{Optional criteria a peak must meet: minimum correlation, maximum p-value
-(global) and minimum number of contributing orbital periods. \code{Default=NULL} (not used).}
+\item{rho_min}{Minimum correlation coefficient (\code{rho} of \code{ecoco}) a point must have to be selectable
+(numeric, or \code{NULL} for no criterion). \code{Default=NULL}.}
 
-\item{points}{Optional data frame or matrix with columns depth and sedimentation rate. If given, no mouse input
-is needed: the points are snapped to the nearest selectable point.}
+\item{p_max}{Maximum global p-value (\code{p_global} of \code{ecoco}) a point may have to be selectable (numeric,
+between 0 and 1, or \code{NULL} for no criterion). \code{Default=NULL}.}
 
-\item{interpolate}{Linearly interpolate the tracked sedimentation rate to all windows of the eCOCO result
-(constant outside the tracked interval) \code{Default=FALSE}.}
+\item{norbit_min}{Minimum number of contributing orbital periods (\code{norbit} of \code{ecoco}) a point must have
+to be selectable (integer, or \code{NULL} for no criterion). \code{Default=NULL}.}
 
-\item{n.levels}{Number of colour levels \code{Default=100}.}
+\item{points}{Points to select without mouse input (data frame or matrix with depth in column 1 and sedimentation
+rate in cm/kyr in column 2, or \code{NULL} for interactive selection). Each point is snapped to the nearest
+selectable point (distance scaled by the ranges of depth and rate). \code{Default=NULL}.}
 
-\item{plot_horizontal}{Plot depth on the x-axis (\code{TRUE}) or on the y-axis (\code{FALSE}) \code{Default=TRUE}.}
-
-\item{plot_dir}{Logical. \code{TRUE} if depth increases along the axis, \code{FALSE} to reverse the depth
-axis (for example for borehole data with depth increasing downwards) \code{Default=TRUE}.}
-
-\item{x_lab}{Label of the depth axis \code{Default="depth (metres)"}.}
-
-\item{y_lab}{Label of the sedimentation rate axis \code{Default="sedimentation rate (cm/kyr)"}.}
-
-\item{palette_name}{Name of the \code{\link[grDevices]{hcl.colors}} palette \code{Default="viridis"}.}
-
-\item{genplot}{Plot the result (only needed when \code{points} is used; the interactive mode always plots)
+\item{interpolate}{Linearly interpolate the tracked sedimentation rate to all windows of the eCOCO result, constant
+outside the tracked interval (logical); the result then only has the columns \code{depth} and \code{sedrate}.
 \code{Default=FALSE}.}
+
+\item{n.levels}{Number of colour levels of the map (integer, > 1); the breaks are evenly spaced. \code{Default=100}.}
+
+\item{plot_horizontal}{Orientation of the map (logical): depth on the x-axis (\code{TRUE}) or on the y-axis
+(\code{FALSE}). \code{Default=TRUE}.}
+
+\item{plot_dir}{Direction of the depth axis (logical): \code{TRUE} draws depth increasing along the axis, \code{FALSE}
+reverses it (for example for borehole data with depth increasing downwards). \code{Default=TRUE}.}
+
+\item{x_lab}{Label of the depth axis (character). \code{Default="depth (metres)"}.}
+
+\item{y_lab}{Label of the sedimentation rate axis (character). \code{Default="sedimentation rate (cm/kyr)"}.}
+
+\item{palette_name}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
+
+\item{genplot}{Plot the map with the selected points and the tracked curve when \code{points} is used (logical);
+the interactive mode always plots. \code{Default=FALSE}.}
 }
 \value{
 A data frame with the tracked windows: \code{depth}, \code{sedrate} (cm/kyr) and, when available in
@@ -85,7 +103,7 @@ ridge point, which makes a tracking reproducible and scriptable.
 sr <- seq(1, 10, by = 0.25)
 depth <- seq(0, 20, by = 0.5)
 true_sr <- 4 + 2 * depth / 20
-rho <- sapply(true_sr, function(s) 0.8 * exp(-(sr - s)^2 / 0.5))
+rho <- 0.8 * exp(-outer(sr, true_sr, "-")^2 / 0.5)
 ecoco <- list(sr = sr, depth = depth, rho = rho, pcoco = 2 * rho,
               p_global = matrix(0.01, length(sr), length(depth)),
               norbit = matrix(9, length(sr), length(depth)))
@@ -94,7 +112,9 @@ trk <- track_ecoco(ecoco, points = data.frame(depth = c(2, 10, 18), sr = c(4.2, 
 trk
 \donttest{
 # interactive tracking (needs a graphics device with mouse input)
-if (interactive()) trk <- track_ecoco(ecoco)
+if (interactive()) {
+  trk <- track_ecoco(ecoco)
+}
 }
 }
 \seealso{

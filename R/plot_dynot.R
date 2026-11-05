@@ -5,10 +5,13 @@
 #' y-axis) as in the Acycle DYNOT window.
 #' Translated from the plotting part of Acycle v3.1 DYNOS.m (Mingsong Li).
 #'
-#' @param dynot_res Output of \code{\link{dynot}}. \code{Default=NULL}
-#' @param plot_data Also plot the input data in an upper panel.
-#' \code{Default=TRUE}
-#' @param x_lab Label of the x-axis. \code{Default="time (kyr)"}
+#' @param dynot_res DYNOT result to plot: the list returned by \code{\link{dynot}} (its \code{data},
+#' \code{percentile}, \code{interval_count} and \code{median_index} elements are used). Required
+#' (\code{Default=NULL} gives an error).
+#' @param plot_data Also plot the input data in an upper panel above the noise model (logical, TRUE or FALSE); with
+#' \code{FALSE} only the noise panel (median and up to five confidence envelopes, reversed y-axis) is drawn.
+#' \code{Default=TRUE}.
+#' @param x_lab Label of the time axis of both panels (character). \code{Default="time (kyr)"}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle).
@@ -36,17 +39,17 @@
 #' @importFrom grDevices rgb
 
 plot_dynot <- function(dynot_res = NULL,
-                       plot_data = TRUE,
-                       x_lab = "time (kyr)"){
-  # ---- internal helper functions (local to this function) ----
+    plot_data = TRUE,
+    x_lab = "time (kyr)"){
+  # Internal helper functions (local to this function)
 
   # @keywords internal
   # @noRd
   dynot_band_plot <- function(percentile, n_interval, median_index, x_range,
-                              x_lab = "depth/time", y_lab = "", reverse = FALSE){
+      x_lab = "depth/time", y_lab = "", reverse = FALSE){
     colorcode <- grDevices::rgb(c(221, 201, 176, 126, 67),
-                                c(234, 227, 219, 201, 180),
-                                c(224, 209, 188, 146, 100), maxColorValue = 255)
+        c(234, 227, 219, 201, 180),
+        c(224, 209, 188, 146, 100), maxColorValue = 255)
     x <- percentile[, 1]
     pm <- percentile[, -1, drop = FALSE]
     np <- ncol(pm)
@@ -55,27 +58,27 @@ plot_dynot <- function(dynot_res = NULL,
       y_lim <- rev(y_lim)
     }
     graphics::plot(x, pm[, median_index], type = "n", xlim = x_range,
-                   ylim = y_lim, xlab = x_lab, ylab = y_lab)
+        ylim = y_lim, xlab = x_lab, ylab = y_lab)
     for (i in seq_len(min(n_interval, 5))){
       graphics::polygon(c(x, rev(x)), c(pm[, np + 1 - i], rev(pm[, i])),
-                        col = colorcode[i], border = NA)
+          col = colorcode[i], border = NA)
     }
     graphics::lines(x, pm[, median_index], col = grDevices::rgb(0, 120, 0,
-                    maxColorValue = 255), lwd = 1.5, lty = 2)
+        maxColorValue = 255), lwd = 1.5, lty = 2)
     invisible(NULL)
   }
 
-  # ---- main code ----
+  # Main code
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar))
   if (plot_data == TRUE){
     graphics::par(mfrow = c(2, 1), mar = c(4, 4, 1, 1))
     graphics::plot(dynot_res$data[, 1], dynot_res$data[, 2], type = "l",
-                   col = grDevices::rgb(0.2, 0.6, 1), xlab = x_lab,
-                   ylab = "value")
+        col = grDevices::rgb(0.2, 0.6, 1), xlab = x_lab,
+        ylab = "value")
   }
   dynot_band_plot(dynot_res$percentile, dynot_res$interval_count,
-                  dynot_res$median_index, range(dynot_res$data[, 1]),
-                  x_lab = x_lab, y_lab = "Noise", reverse = TRUE)
+      dynot_res$median_index, range(dynot_res$data[, 1]),
+      x_lab = x_lab, y_lab = "Noise", reverse = TRUE)
   invisible(NULL)
 }

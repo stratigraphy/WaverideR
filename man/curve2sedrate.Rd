@@ -7,10 +7,14 @@
 curve2sedrate(tracked_cycle_curve = NULL, tracked_cycle_period = NULL)
 }
 \arguments{
-\item{tracked_cycle_curve}{A tracked cycle  which is the result of using the \code{\link{track_period_wavelet}} function \cr
-Any input (matrix or data frame) in which the first column is depth in meters and the second column is period in meters}
+\item{tracked_cycle_curve}{Tracked period curve of one astronomical cycle (matrix or data frame, two columns):
+depth in metres in column 1 and the period of the tracked cycle in metres in column 2, e.g. the output of
+\code{\link{track_period_wavelet}} (preferably completed with \code{\link{completed_series}}). Required
+(\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period}{Period of the tracked cycle (in kyr).}
+\item{tracked_cycle_period}{Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+long eccentricity cycle); the sedimentation rate in cm/kyr is the period in metres divided by
+\code{tracked_cycle_period / 100}. Required (\code{Default=NULL} gives an error).}
 }
 \value{
 The output is a matrix with 2 columns

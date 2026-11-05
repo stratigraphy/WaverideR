@@ -7,14 +7,21 @@
 compare_published(age_ma, k_yr = NULL, obliquity_deg = NULL, data_dir = NULL)
 }
 \arguments{
-\item{age_ma}{age of the record (Ma)}
+\item{age_ma}{Age of the record in Ma (single numeric value, 0 to 4429), at which the published models
+(AstroGeo22 and the La2004 extrapolation) are evaluated. Required, no default.}
 
-\item{k_yr}{measured precession constant in years (optional)}
+\item{k_yr}{Measured precession constant of the record, given as its period in years (numeric, e.g. about 25700
+for today); when given, rows are added with the Earth-Moon state inverted from it (by angular momentum and on the
+AstroGeo22 curve, see \code{\link{earthmoon_from_precession}}). \code{NULL} gives only the published models.
+\code{Default=NULL}.}
 
-\item{obliquity_deg}{obliquity for the angular-momentum inversion; default
-is the AstroGeo22 value at `age_ma`}
+\item{obliquity_deg}{Obliquity in degrees (numeric) used for the angular-momentum inversion of \code{k_yr}; only
+used when \code{k_yr} is given. \code{NULL} uses the AstroGeo22 obliquity at \code{age_ma}.
+\code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+\code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 data.frame with one row per source: precession period and frequency,

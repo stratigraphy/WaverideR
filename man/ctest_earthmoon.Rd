@@ -14,19 +14,29 @@ ctest_earthmoon(
 )
 }
 \arguments{
-\item{x}{a ctest object, or a numeric vector of precession constants (yr)}
+\item{x}{Precession constants to convert: a \code{ctest} object from \code{\link{ctest}} (its samples of
+\code{k} are used) or a numeric vector of precession constants given as periods in years. Required, no default.}
 
-\item{age_ma}{age of the record; used for the obliquity of the
-angular-momentum inversion and for the comparison row}
+\item{age_ma}{Age of the record in Ma (numeric), used for the obliquity of the angular-momentum inversion (when
+\code{obliquity_deg} is \code{NULL}) and for the comparison with AstroGeo22 at that age (\code{model_at_age}).
+\code{NULL} uses the mean of the age range of a \code{ctest} object, or no age for a numeric vector (then the
+present-day obliquity is used and no comparison is made). \code{Default=NULL}.}
 
-\item{method}{"angular_momentum" (default) or "astrogeo22"}
+\item{method}{How the precession constant is converted to Earth-Moon distance and length of day (character):
+\code{"angular_momentum"} assumes conservation of the Earth-Moon angular momentum at the given obliquity;
+\code{"astrogeo22"} reads distance, length of day, obliquity and the equivalent model age off the AstroGeo22
+curve (last 1000 Myr). \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{obliquity_deg}{obliquity used in the angular-momentum inversion;
-NULL takes it from AstroGeo22 at `age_ma`}
+\item{obliquity_deg}{Obliquity in degrees (numeric) used in the angular-momentum inversion; \code{NULL} takes
+the AstroGeo22 value at \code{age_ma} (or the present-day 23.25 degrees when no age is known). Ignored by
+\code{method="astrogeo22"}. \code{Default=NULL}.}
 
-\item{probs}{quantiles to report}
+\item{probs}{Probabilities of the quantiles reported in the summary next to the mean (numeric vector, values
+between 0 and 1). \code{Default=c(0.025, 0.5, 0.975)}.}
 
-\item{data_dir}{folder with the AstroGeo22 table}
+\item{data_dir}{Folder that contains the astronomical data table \code{AstroGeo22.txt} (character path);
+\code{NULL} uses the table installed with the package (or the folder set with
+\code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 list with `summary`, `samples`, `method`, `age_ma` and, when an age

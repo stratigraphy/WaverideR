@@ -1,29 +1,44 @@
-# ---------------------------------------------------------------------------
 # Core evaluator (cocoAdaptiveEvaluate.m)
-# ---------------------------------------------------------------------------
 #' @title Evaluate Adaptive COCO for a batch of spectra (cocoAdaptiveEvaluate.m)
 #'
-#' @param data_power nf-by-k matrix: one-sided pad-point periodograms (cycles/m grid)
-#' @param n_target number of samples of the analysed record / window
-#' @param spacing depth sampling interval of that record (m)
-#' @param amplitude_mode "four-group-area" (Acycle default for Adaptive
-#'   COCO/eCOCO), "per-orbit" (adaptive9a), "fixed" (1.0/0.8/0.6 weights)
-#' @param target_model "coherent-nine" (default) or "phase-averaged"
-#' @param data_frequency Frequencies of the data spectrum.
-#' @param pad Zero-padding factor used for the spectrum.
-#' @param orbit9 Orbital periods (kyr) used as target frequencies.
-#' @param sr_grid Grid of sedimentation rates to evaluate.
-#' @param method Correlation method, `"Pearson"` or `"Spearman"`.
-#' @param max_frequency Maximum frequency evaluated (`NULL` = 1.2 times the maximum of `1/orbit9`).
-#' @param observed_p Observed p-value(s) to compare against.
+#' @param data_power One-sided periodograms of the data to evaluate (numeric matrix, one spectrum per column, with
+#' \code{floor(max(pad, n_target)/2) + 1} rows on the frequency grid \code{data_frequency}); negative values are set
+#' to zero. Required, no default.
+#' @param data_frequency Frequencies of the rows of \code{data_power}, in cycles per metre (numeric vector, evenly
+#' spaced from 0). Required, no default.
+#' @param n_target Number of samples of the analysed record or window (integer); the target sinusoids are
+#' synthesised on this many points. Required, no default.
+#' @param spacing Depth sampling interval of the analysed record, in metres (numeric, > 0). Required, no default.
+#' @param pad Length (number of points) to which the record was zero-padded for the periodogram (integer); the
+#' target spectra are padded to \code{max(pad, n_target)}. Required, no default.
+#' @param orbit9 Astronomical target periods in kyr (numeric vector; nine distinct values are needed for
+#' \code{amplitude_mode="four-group-area"} and for the grouped weights of \code{"fixed"}). Required, no default.
+#' @param sr_grid Sedimentation rates to evaluate, in cm/kyr (numeric vector, > 0). Required, no default.
+#' @param method Correlation coefficient between the data and target spectra (character): \code{"Pearson"} or
+#' \code{"Spearman"}. \code{Default="Pearson"}.
+#' @param max_frequency Highest frequency of the target that enters the correlation, in cycles/kyr (numeric, must be
+#' at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.
+#' @param target_model How the target spectrum is synthesised (character): \code{"coherent-nine"} (spectrum of the
+#' sum of the sinusoids, with their interference) or \code{"phase-averaged"} (sum of the individual spectra,
+#' averaged over sine and cosine phase). \code{Default=c("coherent-nine", "phase-averaged")}, i.e.
+#' \code{"coherent-nine"}.
+#' @param amplitude_mode How the target amplitudes are set (character): \code{"four-group-area"} (one amplitude
+#' per group of long eccentricity, short eccentricity, obliquity and precession, fitted to the band areas; Acycle
+#' default for Adaptive COCO/eCOCO; needs \code{target_model="coherent-nine"}), \code{"per-orbit"} (each amplitude
+#' fitted to the spectral peak at its own frequency, Acycle adaptive9a) or \code{"fixed"} (weights 1.0/0.8/0.6 from
+#' \code{\link{coco_fixed_target_weights}}). \code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e.
+#' \code{"four-group-area"}.
+#' @param observed_p Also compute the parametric p-value of the correlation for the first column of
+#' \code{data_power} at every rate (logical, TRUE or FALSE); used for the observed spectrum, not for the Monte Carlo
+#' spectra. \code{FALSE} returns \code{NA} p-values. \code{Default=FALSE}.
 #' @export
 coco_adaptive_evaluate <- function(data_power, data_frequency, n_target, spacing,
-                                   pad, orbit9, sr_grid,
-                                   method = "Pearson", max_frequency = NULL,
-                                   target_model = c("coherent-nine", "phase-averaged"),
-                                   amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
-                                   observed_p = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    pad, orbit9, sr_grid,
+    method = "Pearson", max_frequency = NULL,
+    target_model = c("coherent-nine", "phase-averaged"),
+    amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
+    observed_p = FALSE){
+  # Internal helper functions (local to this function)
 
   detrend_linear <- function(x){
     # Least-squares removal of a straight line from every column (MATLAB detrend(x,1)).
@@ -47,7 +62,7 @@ coco_adaptive_evaluate <- function(data_power, data_frequency, n_target, spacing
     }
   }
 
-  # --- Correlation helpers ------------------------------------------------------
+  # Correlation helpers
   cor_with_p <- function(x, y, method = c("Pearson", "Spearman")){
     method <- match.arg(method)
     ok <- is.finite(x) & is.finite(y)
@@ -167,12 +182,10 @@ coco_adaptive_evaluate <- function(data_power, data_frequency, n_target, spacing
     sweep(G, 2, cs, "*")
   }
 
-  # ---------------------------------------------------------------------------
   # Small helpers
-  # ---------------------------------------------------------------------------
   .eps <- .Machine$double.eps
 
-  # ---- main code ----
+  # Main code
   target_model <- match.arg(target_model)
   amplitude_mode <- match.arg(amplitude_mode)
   if (amplitude_mode == "four-group-area" && target_model != "coherent-nine"){
@@ -271,7 +284,7 @@ coco_adaptive_evaluate <- function(data_power, data_frequency, n_target, spacing
       for (j in 1:no){
         if (eligible[j]){
           cand[, j] <- abs(tf - center[j]) <= rbw_band &
-            tf <= max_frequency + 64 * .eps * max(1, max_frequency)
+              tf <= max_frequency + 64 * .eps * max(1, max_frequency)
         }
       }
       active <- eligible & colSums(cand) > 0

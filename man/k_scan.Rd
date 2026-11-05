@@ -13,15 +13,22 @@ k_scan(
 )
 }
 \arguments{
-\item{peaks}{numeric vector of measured spectral peak periods, kyr}
+\item{peaks}{Measured spectral peak periods in kyr (numeric vector, > 0). Required (no default).}
 
-\item{terms}{Frequency terms to scan, e.g. `"k+s3"`.}
+\item{terms}{Astronomical terms whose periods are predicted for every trial k (character vector), any of
+\code{"k+s3"} (obliquity), \code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"} and \code{"k+g3"} (precession).
+\code{Default=c("k+s3", "k+g5", "k+g2", "k+g4")}.}
 
-\item{k_grid}{Grid of precession constants (arcsec/yr).}
+\item{k_grid}{Grid of trial precession constants, expressed as periods in kyr (numeric vector, > 0; the output
+column \code{k_kyr}). \code{Default=seq(12, 40, by = 0.02)}.}
 
-\item{tol}{relative tolerance for a match (0.04 = 4\%)}
+\item{tol}{Relative tolerance for a match between a predicted and a measured period (numeric, > 0; 0.04 is
+4\%): a term counts as matched when some peak lies within a factor \code{1 + tol} of its predicted period.
+\code{Default=0.04}.}
 
-\item{gs}{Vector of fundamental g frequencies (`NULL` = LA2004 values).}
+\item{gs}{Secular frequencies in arcsec/yr: a list with elements \code{g} and \code{s}, each a numeric vector of
+the nine fundamental frequencies g1-g9 and s1-s9. The default \code{LA2004} is the La2004 table (Laskar et al.,
+2004) defined inside the function. \code{Default=LA2004}.}
 }
 \description{
 Scan k and count how many measured windows a single k can satisfy

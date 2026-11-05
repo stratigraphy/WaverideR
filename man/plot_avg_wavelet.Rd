@@ -12,13 +12,15 @@ plot_avg_wavelet(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet result whose time-averaged power (\code{Power.avg}) is plotted against period (log-scaled
+period axis): the list returned by \code{\link{analyse_wavelet}}. Required (\code{Default=NULL} gives an error).}
 
-\item{y_lab}{Label for the y-axis \code{Default="Power"}.}
+\item{y_lab}{Label of the y-axis (power axis) (character). \code{Default="Power"}.}
 
-\item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label of the x-axis (period axis) (character). \code{Default="period (metres)"}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) after plotting, so that extra elements can be added
+(logical). With \code{FALSE} the previous \code{par} settings are restored on exit. \code{Default=FALSE}.}
 }
 \value{
 The output is a plot of the average spectral power of a wavelet spectra

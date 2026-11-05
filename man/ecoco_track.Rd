@@ -28,47 +28,72 @@ ecoco_track(
 )
 }
 \arguments{
-\item{ecoco}{An eCOCO result list (from \code{ecoco_blocked},
-\code{ecoco_interleaved} or cocoR \code{ecoco_adaptive}) with elements
-sr, depth, rho, p_global, pcoco and norbit. \code{Default=NULL}}
+\item{ecoco}{eCOCO result (list) with elements \code{sr}, \code{depth}, \code{rho}, \code{p_global},
+\code{pcoco} and \code{norbit}, e.g. the output of \code{\link{ecoco_blocked}}, \code{\link{ecoco_interleaved}}
+or \code{\link{ecoco_adaptive}}. When given, it replaces \code{sr}, \code{depth}, \code{rho}, \code{p},
+\code{pcoco} and \code{norbit}. \code{NULL} means that these must be given explicitly. \code{Default=NULL}.}
 
-\item{sr, depth, rho, p, pcoco, norbit, score}{Explicit inputs used when
-\code{ecoco} is NULL: rate grid, window depths and rate-by-window maps
-(\code{score} is the map searched for peaks; default pcoco).
-\code{Default=NULL}}
+\item{sr}{Sedimentation-rate grid, in cm/kyr (numeric vector with a constant step, one value per row of the
+maps). Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.}
 
-\item{location}{Optional matrix of peak row indices (n_peaks x windows,
-NA = no peak), replacing the eccpeaks step. \code{Default=NULL}}
+\item{depth}{Depths of the window centres, in metres (numeric vector, one value per column of the maps); only used
+when \code{ecoco=NULL}. \code{NULL} then uses the window numbers \code{1, 2, ...}. \code{Default=NULL}.}
 
-\item{mode}{"slices" (ecocotrack) or "single" (ecocotrackn).
-\code{Default="slices"}}
+\item{rho}{Correlation coefficients (numeric matrix, rates in rows, windows in columns); used to filter peaks and
+paths with \code{rho_min}. Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.}
 
-\item{n_peaks}{Number of peaks per window. \code{Default=3}}
+\item{p}{P-values (numeric matrix of the same size as \code{rho}), e.g. global Monte Carlo p-values; used to filter
+peaks with \code{p_max} and paths with \code{p_track_max}. Only used (and then required) when \code{ecoco=NULL}.
+\code{Default=NULL}.}
 
-\item{rho_min}{Minimum correlation of a peak and of a path mean.
-\code{Default=0.3}}
+\item{pcoco}{pCOCO values (numeric matrix of the same size as \code{rho}); the path with the largest summed pCOCO
+is kept in each slice. Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.}
 
-\item{p_max}{Maximum p-value (same units as \code{p}) of a peak.
-\code{Default=0.05}}
+\item{norbit}{Number of contributing orbital periods (numeric matrix of the same size as \code{rho}); used to
+filter peaks and paths with \code{norbit_min}. Only used (and then required) when \code{ecoco=NULL}.
+\code{Default=NULL}.}
 
-\item{p_track_max}{Maximum mean p-value of a path. \code{Default=p_max}}
+\item{score}{Map searched for the per-window peaks (numeric matrix of the same size as \code{rho}); \code{NULL}
+uses \code{pcoco} (or the \code{pcoco} element of \code{ecoco}). \code{Default=NULL}.}
 
-\item{norbit_min}{Minimum orbit count of a peak and minimum summed orbit
-count of a path. \code{Default=3}}
+\item{location}{Peak locations that replace the automatic peak search (eccpeaks step): an integer matrix of row
+indices into \code{sr}, \code{n_peaks} rows by windows, \code{NA} where there is no peak; \code{NULL} finds the
+peaks from \code{score}. \code{Default=NULL}.}
 
-\item{sr_threshold}{Search radius and trial-rate spacing (cm/kyr).
-\code{Default=2.5}}
+\item{mode}{Tracking mode (character): \code{"slices"} (Acycle ecocotrack.m: the windows are divided into
+\code{n_slices} depth slices, paths are started from trial rates every \code{sr_threshold} and the best path is
+kept in each slice) or \code{"single"} (Acycle ecocotrackn.m: one path started at \code{initial_sr}).
+\code{Default="slices"}.}
 
-\item{n_slices}{Number of depth slices. \code{Default=5}}
+\item{n_peaks}{Number of peaks (largest score values passing the criteria) kept per window (integer, >= 1).
+\code{Default=3}.}
 
-\item{initial_sr}{Starting rate for \code{mode = "single"} (cm/kyr).
-\code{Default=NULL}: the best rate of the first window.}
+\item{rho_min}{Minimum correlation coefficient of a peak and of the mean of a path (numeric, -1 to 1).
+\code{Default=0.3}.}
 
-\item{reference}{"median5" (median of the previous five tracked rates) or
-"previous" (previous tracked rate) for \code{mode = "single"}.
-\code{Default="median5"}}
+\item{p_max}{Maximum p-value of a peak, on the same scale as \code{p} (numeric). \code{Default=0.05}.}
 
-\item{genplot}{Plot the tracked rates against depth. \code{Default=FALSE}}
+\item{p_track_max}{Maximum mean p-value of a path in \code{mode="slices"} (numeric). \code{Default=p_max}.}
+
+\item{norbit_min}{Minimum number of contributing orbital periods of a peak and minimum summed number of a path
+(numeric, >= 0). \code{Default=3}.}
+
+\item{sr_threshold}{Search radius around the reference rate when following the peaks, and spacing of the trial
+starting rates in \code{mode="slices"}, in cm/kyr (numeric, > 0). Larger values allow larger rate jumps between
+windows. \code{Default=2.5}.}
+
+\item{n_slices}{Number of depth slices (sharing their boundary windows) in which a path is tracked separately in
+\code{mode="slices"} (integer, >= 1). \code{Default=5}.}
+
+\item{initial_sr}{Starting sedimentation rate of the path in \code{mode="single"}, in cm/kyr (numeric);
+\code{NULL} uses the rate with the highest score in the first window. \code{Default=NULL}.}
+
+\item{reference}{Reference rate used to find the next peak in \code{mode="single"} (character):
+\code{"median5"} (median of the previous five tracked rates) or \code{"previous"} (previous tracked rate).
+\code{Default="median5"}.}
+
+\item{genplot}{Plot the tracked sedimentation rates against depth (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 }
 \value{
 A list with \code{depth}, \code{sr} (tracked rate per window,

@@ -7,9 +7,10 @@
 \method{plot}{coco_classic}(x, ...)
 }
 \arguments{
-\item{x}{object returned by coco_classic()}
+\item{x}{COCO result to plot: the output of \code{\link{coco_classic}} (an object of class
+\code{coco_classic}). Required, no default.}
 
-\item{...}{unused}
+\item{...}{Not used; present for compatibility with the generic \code{plot} function.}
 }
 \value{
 invisible NULL

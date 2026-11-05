@@ -13,16 +13,20 @@ extract_power_stable(
 )
 }
 \arguments{
-\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
-or \code{\link{track_period}} function}
+\item{scalogram}{Wavelet or superlet object (list of class \code{analyze.wavelet} or \code{analyze.superlet})
+created with \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}, whose power is summed. Required
+(\code{Default=NULL}).}
 
-\item{cycle}{Period of cycle for which the power will be extracted from the record.}
+\item{cycle}{Constant period of the cycle whose power is extracted, in the depth/time unit of the scalogram
+(numeric, > 0). Required (\code{Default=NULL}).}
 
-\item{period_up}{Species the upper period of the to be extracted power \code{Default=1.2}.}
+\item{period_up}{Upper boundary of the band whose power is summed, as a factor of \code{cycle} (numeric,
+> \code{period_down}). \code{Default=1.2}.}
 
-\item{period_down}{specifies the lower period of the to be extracted power \code{Default=0.8}.}
+\item{period_down}{Lower boundary of the band whose power is summed, as a factor of \code{cycle} (numeric, > 0).
+\code{Default=0.8}.}
 
-\item{...}{additional input parameters from older versions}
+\item{...}{Old argument names of earlier versions: \code{wavelet} (used as \code{scalogram}).}
 }
 \value{
 Returns a matrix with 3 columns.

@@ -12,16 +12,24 @@
 #' Under the null hypothesis (no cycles) the record itself is used as the noise model; this is conservative when strong
 #' cycles are present, because they increase the variance attributed to noise.
 #'
-#' @param wavelet Object made by \code{\link{analyse_wavelet_sst}}, \code{\link{analyse_superlet_sst}} or
-#' \code{\link{analyse_conceft}}.
-#' @param n_sim Number of simulated noise records \code{Default=50}.
-#' @param alpha Significance level \code{Default=0.05}.
-#' @param ar_order_max Maximum order of the AR noise model \code{Default=5}; 1 gives the classical red noise (AR1).
-#' @param local_variance Scale the threshold with the local variance of the noise \code{Default=FALSE}.
-#' @param window Length (in depth/time units) of the moving window of the local variance \code{Default=NULL}: twice
-#' the longest period of the transform.
-#' @param seed Seed of the simulations \code{Default=1}.
-#' @param verbose Print messages.
+#' @param wavelet Transform to test (required, no default): the list returned by \code{\link{analyse_wavelet_sst}},
+#' \code{\link{analyse_superlet_sst}} or \code{\link{analyse_conceft}} (it must contain the \code{transform} and
+#' \code{settings} elements, which are used to transform the noise records with exactly the same settings).
+#' @param n_sim Number of simulated noise records (integer, > 0); more simulations give a more stable threshold but
+#' take proportionally longer. \code{Default=50}.
+#' @param alpha Significance level (numeric, between 0 and 1): the threshold of every period is the (1 - \code{alpha})
+#' quantile of the pooled noise power. \code{Default=0.05}.
+#' @param ar_order_max Maximum order of the autoregressive noise model (integer, >= 1); the order is chosen by AIC with
+#' \code{\link[stats]{ar}} (Yule-Walker) up to this value. \code{1} gives the classical red noise (AR1).
+#' \code{Default=5}.
+#' @param local_variance Let the noise variance change along the record (logical): the simulated noise is scaled by
+#' the moving standard deviation of the AR innovations and the threshold by the local noise variance.
+#' \code{Default=FALSE}.
+#' @param window Length of the moving window of the local variance, in depth/time units (numeric, > 0); only used with
+#' \code{local_variance = TRUE}. \code{NULL} uses twice the longest period of the transform. \code{Default=NULL}.
+#' @param seed Seed of the random number generator (integer) used for the noise simulations, so that the result can be
+#' reproduced; the previous random state is restored afterwards. \code{Default=1}.
+#' @param verbose Print a message after every simulation (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @return The input object with \code{Power}, \code{Wave}, \code{Ampl} and \code{Power.avg} restricted to the
 #' significant coefficients, and the extra elements \code{significant} (logical matrix), \code{Power_all} (the
@@ -44,13 +52,13 @@
 #' }
 #' @export
 sst_significance <- function(wavelet,
-                             n_sim = 50,
-                             alpha = 0.05,
-                             ar_order_max = 5,
-                             local_variance = FALSE,
-                             window = NULL,
-                             seed = 1,
-                             verbose = FALSE) {
+    n_sim = 50,
+    alpha = 0.05,
+    ar_order_max = 5,
+    local_variance = FALSE,
+    window = NULL,
+    seed = 1,
+    verbose = FALSE) {
   if (is.null(wavelet$transform) || is.null(wavelet$settings)) {
     stop("wavelet must be made by analyse_wavelet_sst(), analyse_superlet_sst() or analyse_conceft()")
   }
@@ -63,15 +71,17 @@ sst_significance <- function(wavelet,
   innov <- fit$resid
   innov[is.na(innov)] <- 0
   dt <- wavelet$dt
-  if (is.null(window)) window <- 2 * max(wavelet$Period)
+  if (is.null(window)) {
+    window <- 2 * max(wavelet$Period)
+  }
   L <- max(5, 2 * floor(window / dt / 2) + 1)
   L <- min(L, 2 * floor((n - 1) / 2) + 1)
   local_sd <- sqrt(as.numeric(stats::filter(innov^2, rep(1 / L, L), sides = 2)))
   ok <- which(is.finite(local_sd))
   local_sd <- stats::approx(ok, local_sd[ok], seq_len(n), rule = 2)$y
   local_sd <- local_sd / sqrt(mean(local_sd^2))
-  old <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv()) else NULL
-  on.exit(if (!is.null(old)) assign(".Random.seed", old, envir = globalenv()), add = TRUE)
+  old <- if (exists(".Random.seed", envir = globalenv())) { get(".Random.seed", envir = globalenv()) } else { NULL }
+  on.exit(if (!is.null(old)) { assign(".Random.seed", old, envir = globalenv()) }, add = TRUE)
   set.seed(seed)
   ns <- length(wavelet$Period)
   # pool the noise power per period: a fixed random subset of positions of every simulation keeps memory small
@@ -80,27 +90,40 @@ sst_significance <- function(wavelet,
   sd_innov <- sqrt(fit$var.pred)
   for (i in seq_len(n_sim)) {
     e <- stats::rnorm(n + 200) * sd_innov
-    sim <- if (fit$order > 0) as.numeric(stats::filter(e, fit$ar, method = "recursive"))[-(1:200)] else e[-(1:200)]
-    if (local_variance) sim <- sim * local_sd
+    sim <- if (fit$order > 0) { as.numeric(stats::filter(e, fit$ar, method = "recursive"))[-(1:200)] } else { e[-(1:200)] }
+    if (local_variance) {
+      sim <- sim * local_sd
+    }
     args <- c(list(data = data.frame(z, sim)), wavelet$settings)
     w <- do.call(fun, args)
     P <- w$Power
-    if (local_variance) P <- P / matrix(local_sd^2, ns, n, byrow = TRUE)
+    if (local_variance) {
+      P <- P / matrix(local_sd^2, ns, n, byrow = TRUE)
+    }
     pool[, (i - 1) * length(take) + seq_along(take)] <- P[, take]
-    if (verbose) cat("simulation", i, "of", n_sim, "\n")
+    if (verbose) {
+      cat("simulation", i, "of", n_sim, "\n")
+    }
   }
-  thr <- apply(pool, 1, stats::quantile, probs = 1 - alpha, na.rm = TRUE)
+  thr <- numeric(nrow(pool))
+  for (ri in seq_len(nrow(pool))) {
+    thr[ri] <- stats::quantile(pool[ri, ], probs = 1 - alpha, na.rm = TRUE)
+  }
   # synchrosqueezed noise power is sparse: when more than a fraction (1 - alpha) of the noise pixels of a period
   # are zero the quantile is zero and every non-zero pixel is significant at that level (use a smaller alpha for a
   # stricter test)
   Tm <- matrix(thr, ns, n)
-  if (local_variance) Tm <- Tm * matrix(local_sd^2, ns, n, byrow = TRUE)
+  if (local_variance) {
+    Tm <- Tm * matrix(local_sd^2, ns, n, byrow = TRUE)
+  }
   sig <- wavelet$Power > Tm
   out <- wavelet
   out$Power_all <- wavelet$Power
   out$Power <- wavelet$Power * sig
   out$Wave <- wavelet$Wave * sig
-  if (!is.null(out$Ampl)) out$Ampl <- out$Ampl * sig
+  if (!is.null(out$Ampl)) {
+    out$Ampl <- out$Ampl * sig
+  }
   out$Power.avg <- rowMeans(out$Power)
   out$significant <- sig
   out$threshold_period <- thr

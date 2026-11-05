@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 .Rd2pdf22904
+_backup*/
+_to_delete/
+*.Rcheck/

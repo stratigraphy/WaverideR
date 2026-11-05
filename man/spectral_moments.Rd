@@ -23,64 +23,68 @@ spectral_moments(
 )
 }
 \arguments{
-\item{data}{Input data set, a matrix with 2 columns: first column depth or
-time (strictly increasing, uniformly sampled), second column the proxy.}
+\item{data}{Uniformly sampled record (required): matrix or data frame with depth or time in column 1 (strictly
+increasing, all values finite) and the proxy in column 2; at least three rows. \code{Default=NULL}.}
 
-\item{window}{Length of the running window in the unit of the first
-column. \code{Default=NULL} which equals 25\% of the record length (the
-Acycle GUI default).}
+\item{window}{Length of the running window, in the unit of the first column of \code{data} (numeric, > 0). In the
+strict core it is rounded to an integer number of sampling intervals. \code{NULL} uses 25\% of the record length
+(the Acycle GUI default). \code{Default=NULL}.}
 
-\item{step}{Step of the running window in the unit of the first column.
-\code{Default=NULL} which equals the sampling interval.}
+\item{step}{Step of the running window, in the unit of the first column (numeric, > 0); rounded to an integer number
+of samples in the strict core. \code{NULL} uses the median sampling interval. \code{Default=NULL}.}
 
-\item{pad}{Zero-padding factor: NFFT is \code{pad} times the number of
-samples in a window. \code{Default=5}}
+\item{pad}{Zero-padding factor of the periodogram (numeric, >= 1): NFFT is \code{pad} times the number of samples in
+a window (+1 if odd). Larger values give a finer frequency grid. \code{Default=5}.}
 
-\item{edge_padding}{Padding of the record edges by half a window:
-\code{"none"}, \code{"zero"} (strict core), or \code{"mirror"},
-\code{"mean"} (legacy path, as in the Acycle GUI). \code{Default="none"}}
+\item{edge_padding}{Padding of the record edges by half a window (character, case-insensitive): \code{"none"} or
+\code{"zero"} (zeros; strict core), \code{"mirror"} (mirrored data) or \code{"mean"} (the mean value) (both use the
+legacy path, as in the Acycle GUI). \code{Default="none"}.}
 
-\item{sr_mean}{Mean sedimentation rate (e.g. cm/kyr). When given the
-legacy path is used and the bandwidth trend and a sedimentation-rate
-curve are returned. \code{Default=NULL}}
+\item{sr_mean}{Mean sedimentation rate (numeric, e.g. in cm/kyr). When given the legacy path is used and the
+bandwidth trend and an Acycle-style sedimentation rate curve scaled to \code{sr_mean} are returned; \code{NULL}
+computes the moments only. \code{Default=NULL}.}
 
-\item{freq_range}{Frequency band (cycles per depth unit) over which the moments are taken; by default the whole
-spectrum up to the Nyquist frequency, as in the paper. The moments of a record with white noise are biased towards
-the cutoff frequency (section 2.3.3 of the paper), so a band around the astronomical lines makes them follow the
-sedimentation rate rather than the noise. \code{Default=NULL}}
+\item{freq_range}{Frequency band over which the moments are taken, in cycles per depth unit (numeric vector
+\code{c(lower, upper)}); \code{NULL} uses the whole spectrum up to the Nyquist frequency, as in the paper. The
+moments of a record with white noise are biased towards the cutoff frequency (section 2.3.3 of the paper), so a band
+around the astronomical lines makes them follow the sedimentation rate rather than the noise. \code{Default=NULL}.}
 
-\item{noise_floor}{Subtract the median of every window's periodogram (an estimate of the white-noise floor)
-before the moments are taken \code{Default=FALSE}. In the synthetic test of the examples (precession, obliquity,
-eccentricity, white noise 0.3 times the signal, rate varying 1-3 cm/kyr, Nyquist 25 cycles/m) the anchored bandwidth
-trend correlates 0.00 with the true rate over the whole spectrum (the noise plateau up to the Nyquist frequency
-dominates the second moment), 0.97 over \code{freq_range = c(0.1, 8)}, and 0.99 with the floor removed as well
-(91 \% of the record within 20 \%); the mean frequency is less sensitive (0.98 over the whole spectrum).}
+\item{noise_floor}{Subtract the median of every window's periodogram (an estimate of the white-noise floor) before
+the moments are taken; negative values are set to zero (logical). In the synthetic test of the examples (precession,
+obliquity, eccentricity, white noise 0.3 times the signal, rate varying 1-3 cm/kyr, Nyquist 25 cycles/m) the
+anchored bandwidth trend correlates 0.00 with the true rate over the whole spectrum (the noise plateau up to the
+Nyquist frequency dominates the second moment), 0.97 over \code{freq_range = c(0.1, 8)}, and 0.99 with the floor
+removed as well (91 \% of the record within 20 \%); the mean frequency is less sensitive (0.98 over the whole
+spectrum). \code{Default=FALSE}.}
 
-\item{anchor}{The sedimentation rate of Sinnesael et al. (2018): the smoothed trend of the bandwidth (or of the mean
-frequency, see \code{moment}) is anchored at one depth where an astronomical component is identified, since every
-spatial frequency, and so every moment, scales with 1 / sedimentation rate (their equation 12):
-\code{c(depth, period_kyr, frequency)} (the component with period \code{period_kyr} sits at \code{frequency} cycles
-per depth unit at \code{depth}, so the rate there is \code{1 / (period_kyr * frequency)}), or
-\code{list(depth = , rate = )} with the rate in depth units per kyr. The result then holds \code{moment_trend} and
-\code{sedrate_anchored}. This is the procedure of the paper (U1437: the 0.45 cycle/m precession line read as 21 kyr;
-ODP 982 and the synthetic insolation: the obliquity line at the top of the record), as opposed to the Acycle
-\code{sr_mean} path, which rescales by the first raw bandwidth value and re-centres the curve additively on a mean
-rate. \code{Default=NULL}}
+\item{anchor}{Anchor point that turns the smoothed trend of the moment into a sedimentation rate curve, as in
+Sinnesael et al. (2018): every spatial frequency, and so every moment, scales with 1 / sedimentation rate (their
+equation 12). Give either a numeric vector \code{c(depth, period_kyr, frequency)} (the component with period
+\code{period_kyr} sits at \code{frequency} cycles per depth unit at \code{depth}, so the rate there is
+\code{1 / (period_kyr * frequency)}), or \code{list(depth = , rate = )} with the rate in depth units per kyr. The
+result then holds \code{moment_trend} and \code{sedrate_anchored}. This is the procedure of the paper (U1437: the 0.45
+cycle/m precession line read as 21 kyr; ODP 982 and the synthetic insolation: the obliquity line at the top of the
+record), as opposed to the Acycle \code{sr_mean} path, which rescales by the first raw bandwidth value and
+re-centres the curve additively on a mean rate. \code{NULL} gives no anchored rate. \code{Default=NULL}.}
 
-\item{moment}{Which moment carries the sedimentation rate: \code{"bandwidth"} (the paper's choice, less sensitive
-to the noise bias than the mean frequency) or \code{"mean_frequency"} \code{Default="bandwidth"}.}
+\item{moment}{Which moment carries the sedimentation rate when \code{anchor} is given (character):
+\code{"bandwidth"} (the paper's choice, less sensitive to the noise bias than the mean frequency) or
+\code{"mean_frequency"}. \code{Default=c("bandwidth", "mean_frequency")}, i.e. \code{"bandwidth"}.}
 
-\item{trend}{Smoothing of the moment before anchoring: \code{"poly"} (the overlap-add polynomial baseline of
-Verhelst 2000 used in the paper) or \code{"lowess"} \code{Default="poly"}.}
+\item{trend}{Smoothing of the moment before anchoring (character): \code{"poly"} (the overlap-add polynomial
+baseline of Verhelst 2000 used in the paper; falls back to lowess when the trend window is not shorter than the
+series) or \code{"lowess"} (\code{\link[stats]{lowess}} with span \code{trend_window} / record length).
+\code{Default=c("poly", "lowess")}, i.e. \code{"poly"}.}
 
-\item{trend_window}{Length (depth units) of the smoothing window of the trend; by default three analysis
-windows. The paper takes a long-term trend: the result is the first-order change of the rate, not its detail.}
+\item{trend_window}{Length of the smoothing window of the trend, in depth units (numeric, > 0); only used with
+\code{anchor}. The paper takes a long-term trend: the result is the first-order change of the rate, not its detail.
+\code{NULL} uses three analysis windows (\code{3 * window}). \code{Default=NULL}.}
 
-\item{trend_order}{Polynomial order of the baseline \code{Default=2}.}
+\item{trend_order}{Polynomial order of the \code{"poly"} baseline (integer, >= 0). \code{Default=2}.}
 
-\item{genplot}{Generate a plot of the result (\code{\link{plot_spectral_moments}}) \code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_spectral_moments}} (logical). \code{Default=FALSE}.}
 
-\item{verbose}{Print a progress bar \code{Default=FALSE}}
+\item{verbose}{Show a progress bar (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements
@@ -159,11 +163,13 @@ sm_sr <- spectral_moments(data = cbind(depth, proxy), window = 200,
 plot_spectral_moments(sm_sr, x_lab = "depth (cm)")
 # the sedimentation rate of Sinnesael et al. (2018): the obliquity line is identified at
 # 5 m (41 kyr at f_obl cycles/m), the bandwidth trend is anchored there; moments over a band
-set.seed(3); t <- seq(0, 3000, 0.5)
+set.seed(3)
+t <- seq(0, 3000, 0.5)
 x <- 0.8 * sin(2 * pi * t / 41) + sin(2 * pi * t / 23.7) + 0.5 * sin(2 * pi * t / 405) +
   0.3 * rnorm(length(t))
 rate <- 0.02 + 0.01 * sin(2 * pi * t / 1500)
-z <- cumsum(c(0, rate[-1] * diff(t))); zg <- seq(0, max(z), 0.02)
+z <- cumsum(c(0, rate[-1] * diff(t)))
+zg <- seq(0, max(z), 0.02)
 d <- data.frame(zg, approx(z, x, zg)$y)
 f_obl <- 1 / (41 * approx(z, rate, 5)$y)     # the obliquity line at 5 m depth
 sm <- spectral_moments(d, window = 5, step = 0.1, anchor = c(5, 41, f_obl),

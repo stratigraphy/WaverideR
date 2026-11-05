@@ -16,22 +16,30 @@ lithlog_disc(
 )
 }
 \arguments{
-\item{litholog}{litholog input matrix with 3 columns column 1 is bottom of the bed,
-column 2 is top of bed, column is depth rank/proxy value}
+\item{litholog}{Litholog as a three-column matrix or data frame (the bed format of 'StratigrapheR'), one row per
+bed ordered from the base of the section upwards: column 1 the base (bottom) depth of the bed, column 2 the top
+depth of the bed (larger than column 1, e.g. in metres) and column 3 the depth rank or proxy value of the bed.
+Required (\code{Default=NULL}).}
 
-\item{subset_fact}{subset factor which is x times the greatest common divider \code{Default=10}.}
+\item{subset_fact}{Divisor of the greatest common divisor of the bed thicknesses (numeric, > 0): the litholog is
+discretised with a step of (greatest common divisor) / \code{subset_fact}, so larger values give a finer, larger
+series. \code{Default=10}.}
 
-\item{lin_interp}{Linear interpolation of the data set \code{Default=FALSE}}
+\item{lin_interp}{Linearly interpolate the discretised series to the regular step \code{dt}, e.g. to reduce a very
+finely sampled series (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{dt}{step size  \code{Default=NULL}.}
+\item{dt}{Sampling interval of the interpolated series, in the depth unit of \code{litholog} (numeric, > 0);
+required when \code{lin_interp = TRUE}, otherwise ignored. \code{Default=NULL}.}
 
-\item{genplot}{generate plot  \code{Default=FALSE}}
+\item{genplot}{Plot the discretised series, value against depth (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{x_lab}{label for the y-axis \code{Default="rank"}}
+\item{x_lab}{Label of the x-axis (rank or proxy value) of the plot (character). \code{Default="rank"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="depth (m)"}}
+\item{y_lab}{Label of the y-axis (depth) of the plot (character). \code{Default="depth (m)"}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+\code{Default=FALSE}.}
 }
 \value{
 Returns a matrix with 2 columns, the first column is depth the second columns is the depth/rank proxy

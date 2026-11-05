@@ -20,46 +20,65 @@ extract_amplitude(
 )
 }
 \arguments{
-\item{signal}{Matrix/data frame: column 1 = depth/time, column 2 = proxy.}
+\item{signal}{Input series (matrix or data frame: depth/time in column 1, proxy value in column 2). Rows with
+\code{NA} are removed, the rows sorted and the series linearly interpolated to its median sample spacing.
+Required (\code{Default=NULL}).}
 
-\item{cycle}{What to measure the amplitude of. \code{NULL} (default) = the
-whole signal, i.e. the Hilbert-equivalent envelope. A single number = the
-cycle of that period (e.g. \code{cycle = 405}). A 2-column matrix
-(depth/time, period) = a tracked period curve, e.g. from
-\code{track_period_wavelet()} + \code{completed_series()}, for records
-whose sedimentation rate varies. \code{"ridge"} = follow the strongest
-cycle at each depth (only for records dominated by one cycle).}
+\item{cycle}{What to measure the amplitude of:
+\itemize{
+\item \code{NULL}: the whole signal, i.e. the Hilbert-equivalent envelope;
+\item a single number: the cycle of that period, in the depth/time unit of \code{signal} (e.g.
+\code{cycle = 405} for kyr data);
+\item a two-column matrix or data frame (depth/time, period): a tracked period curve, e.g. from
+\code{\link{track_period_wavelet}} + \code{\link{completed_series}}, for records whose sedimentation rate
+varies (linearly interpolated to the depth/time axis);
+\item \code{"ridge"}: follow the strongest cycle (maximum wavelet modulus) at each depth (only for records
+dominated by one cycle).
+}
+\code{Default=NULL}.}
 
-\item{band}{Period band kept around \code{cycle}, as factors of it.
-\code{Default = c(0.5, 2)}. Narrow it (e.g. \code{c(0.8, 1.2)}) for noisy
-records or cycles close together; a wide band is needed when the cycle is
-strongly modulated. Ignored when \code{cycle = NULL}.}
+\item{band}{Period band kept around \code{cycle}, as factors of its period (numeric vector \code{c(low, high)},
+> 0, e.g. \code{c(0.5, 2)} keeps periods from half to twice the cycle period). Narrow it (e.g.
+\code{c(0.8, 1.2)}) for noisy records or cycles close together; a wide band is needed when the cycle is strongly
+modulated. Ignored when \code{cycle=NULL}. \code{Default=c(0.5, 2)}.}
 
-\item{periods}{Period range analysed, \code{c(lower, upper)}. Default:
-\code{2*dt} to half the record. Use it to keep noise or a trend out of the
-whole-record envelope, or to stop \code{cycle = "ridge"} wandering.}
+\item{periods}{Period range of the wavelet transform, \code{c(lower, upper)} in the depth/time unit of
+\code{signal} (numeric, upper > lower; an \code{NA} element keeps its default). \code{NULL} uses \code{2 * dt} to
+half the record length; for a single-number \code{cycle} the range is widened if needed to contain the band.
+Use it to keep noise or a trend out of the whole-record envelope, or to stop \code{cycle="ridge"} wandering.
+\code{Default=NULL}.}
 
-\item{omega_nr}{Cycles in the Morlet wavelet; >= 5 keeps it analytic.
-\code{Default = 6}.}
+\item{omega_nr}{Number of cycles in the Morlet wavelet (numeric, >= 5 keeps it analytic; smaller values give a
+warning and biased amplitudes). Larger values give a better period resolution but a poorer depth/time
+resolution. \code{Default=6}.}
 
-\item{dj}{Scale spacing. \code{Default = 1/100}.}
+\item{dj}{Spacing between successive scales, in octaves (numeric, > 0); smaller values give more scales and a
+longer computation time. \code{Default=1/100}.}
 
-\item{pad}{End treatment: \code{"AR"} (default) extends the record with a
-forward/backward linear-prediction forecast so the wavelet does not see a
-step to zero, \code{"reflect"} mirrors it, \code{"zero"} is the classic
-zero padding. Falls back automatically if the AR fit fails.}
+\item{pad}{Treatment of the record ends before the transform (character): \code{"AR"} extends the record with a
+forward/backward autoregressive (linear prediction) forecast so that the wavelet does not see a step to zero,
+\code{"reflect"} mirrors it, \code{"zero"} is the classic zero padding. \code{"AR"} falls back to
+\code{"reflect"} (and then to \code{"zero"}) if the fit fails. \code{Default=c("AR", "reflect", "zero")}, i.e.
+\code{"AR"}.}
 
-\item{mask_coi}{Return NA inside the cone of influence. \code{Default = FALSE}.}
+\item{mask_coi}{Set the amplitude to \code{NA} inside the cone of influence (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{genplot}{Plot the signal with its +/- envelope, and the envelope.}
+\item{genplot}{Plot the signal with its +/- envelope (top) and the amplitude (bottom) (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{ver_results}{Print the median ratio to the Hilbert envelope (outside the cone of influence).}
+\item{ver_results}{Print the median ratio of the CWT amplitude to the FFT Hilbert envelope outside the cone of
+influence, as a check (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep plot parameters editable. \code{Default = FALSE}.}
+\item{keep_editable}{Keep the plot layout (two panels) active after the call so that the plot can be edited or
+added to (logical, TRUE or FALSE); \code{FALSE} restores the previous graphical parameters.
+\code{Default=FALSE}.}
 
-\item{...}{Ignored, with a note; lets old calls using \code{pts},
-\code{remean}, \code{tracked_cycle_curve}, \code{lowerPeriod} etc. keep
-working (the old names are mapped onto the new ones where possible).}
+\item{...}{Old argument names of earlier versions, mapped onto the new ones where possible:
+\code{tracked_cycle_curve} (with \code{extract_cycle} and \code{tracked_cycle_period}) and \code{extract_cycle}
+to \code{cycle}, \code{lowerPeriod}/\code{upperPeriod} to \code{periods}, \code{period_down}/\code{period_up} to
+\code{band}; \code{pts}, \code{remean}, \code{add_mean}, \code{wavelet} and \code{method} are ignored with a
+message.}
 }
 \value{
 Matrix, column 1 = depth/time, column 2 = amplitude. In cycle mode

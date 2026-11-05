@@ -1,12 +1,16 @@
 #' The menu of named astronomical terms at a given age
 #'
-#' @param age_ma age in Ma; the precession constant comes from AstroGeo22
-#' @param k_yr optional: your own precession constant (yr) instead of the model
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param age_ma Age in Ma (numeric, single value, 0 to 4429) at which the periods are computed; the precession
+#'   constant used for the k-bearing (obliquity and precession) terms is taken from \code{\link{astrogeo22}} at
+#'   this age unless \code{k_yr} is given. \code{Default=0}.
+#' @param k_yr Your own precession constant k, as a period in years (numeric, > 0), used instead of the
+#'   AstroGeo22 value at \code{age_ma}; \code{NULL} uses the AstroGeo22 value. \code{Default=NULL}.
+#' @param data_dir Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#'   path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.
 #' @return data.frame from the longest to the shortest period
 #' @export
 astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -55,8 +59,8 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -99,7 +103,7 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -149,8 +153,8 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -162,7 +166,7 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -177,7 +181,7 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -186,26 +190,26 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   if (is.null(k_yr)){
     p <- astrogeo22(age_ma, data_dir = data_dir)$p_arcsec
   } else {
@@ -213,42 +217,42 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
   }
   row <- function(term, alias, family, description, order = 1){
     data.frame(term = term, alias = alias, family = family,
-               description = description, order = order, stringsAsFactors = FALSE)
+        description = description, order = order, stringsAsFactors = FALSE)
   }
   tab <- rbind(
-    row("g4-g3", "e2400", "eccentricity", "'2.4 Myr' eccentricity modulation"),
-    row("s4-s3", "m1200", "obliquity modulation", "'1.2 Myr' obliquity modulation"),
-    row("g1-g5", "e973", "eccentricity (minor)", "Mercury term"),
-    row("g2-g1", "e696", "eccentricity (minor)", "Mercury term"),
-    row("g2-g5", "e405", "eccentricity", "405 kyr, the metronome"),
-    row("2(g2-g5)-(g4-g3)", "e222", "eccentricity (minor)", "~200 kyr family, 6th order", 3),
-    row("2(g2-g5)", "e203/e200", "eccentricity (minor)", "harmonic of the 405 kyr cycle", 2),
-    row("(g3-g2)-(g2-g5)", "e193", "eccentricity (minor)", "~200 kyr family, 4th order", 2),
-    row("2(g2-g5)+(g4-g3)", "e187", "eccentricity (minor)", "~200 kyr family, 6th order", 3),
-    row("(g4-g2)-(g2-g5)", "e178", "eccentricity (minor)", "~200 kyr family, 4th order", 2),
-    row("s3-s6", "m173", "obliquity modulation", "'173 kyr' obliquity modulation"),
-    row("g3-g2", "e130/e125", "eccentricity", "short eccentricity"),
-    row("g4-g2", "e124", "eccentricity", "short eccentricity"),
-    row("g3-g1", "e110", "eccentricity (minor)", "Mercury term"),
-    row("g4-g1", "e105", "eccentricity (minor)", "Mercury term"),
-    row("g3-g5", "e99", "eccentricity", "short eccentricity"),
-    row("g4-g5", "e95", "eccentricity", "short eccentricity"),
-    row("(g2-g5)+(g3-g5)", "e79", "eccentricity (minor)", "405 + 99 kyr combination tone", 2),
-    row("(g2-g5)+(g4-g5)", "e77", "eccentricity (minor)", "405 + 95 kyr combination tone", 2),
-    row("(g3-g2)+(g3-g5)", "e56", "eccentricity (minor)", "131 + 99 kyr combination tone", 2),
-    row("(g3-g2)+(g4-g5)", "e55", "eccentricity (minor)", "131 + 95 kyr combination tone", 2),
-    row("(g4-g2)+(g4-g5)", "e54", "eccentricity (minor)", "124 + 95 kyr combination tone", 2),
-    row("k+s6", "", "obliquity", "secondary obliquity term"),
-    row("k+s3", "obl", "obliquity", "main obliquity term"),
-    row("k+s4", "", "obliquity", "secondary obliquity term"),
-    row("k+s2", "", "obliquity (minor)", "minor obliquity term"),
-    row("k+s1", "", "obliquity (minor)", "minor obliquity term"),
-    row("k+g5", "prec", "precession", "longest precession term"),
-    row("k+g1", "", "precession (minor)", "Mercury precession term"),
-    row("k+g2", "", "precession", "precession"),
-    row("k+g3", "", "precession", "precession"),
-    row("k+g4", "", "precession", "shortest precession term"),
-    row("2(k+g5)", "", "precession harmonic", "half-precession", 2))
+      row("g4-g3", "e2400", "eccentricity", "'2.4 Myr' eccentricity modulation"),
+      row("s4-s3", "m1200", "obliquity modulation", "'1.2 Myr' obliquity modulation"),
+      row("g1-g5", "e973", "eccentricity (minor)", "Mercury term"),
+      row("g2-g1", "e696", "eccentricity (minor)", "Mercury term"),
+      row("g2-g5", "e405", "eccentricity", "405 kyr, the metronome"),
+      row("2(g2-g5)-(g4-g3)", "e222", "eccentricity (minor)", "~200 kyr family, 6th order", 3),
+      row("2(g2-g5)", "e203/e200", "eccentricity (minor)", "harmonic of the 405 kyr cycle", 2),
+      row("(g3-g2)-(g2-g5)", "e193", "eccentricity (minor)", "~200 kyr family, 4th order", 2),
+      row("2(g2-g5)+(g4-g3)", "e187", "eccentricity (minor)", "~200 kyr family, 6th order", 3),
+      row("(g4-g2)-(g2-g5)", "e178", "eccentricity (minor)", "~200 kyr family, 4th order", 2),
+      row("s3-s6", "m173", "obliquity modulation", "'173 kyr' obliquity modulation"),
+      row("g3-g2", "e130/e125", "eccentricity", "short eccentricity"),
+      row("g4-g2", "e124", "eccentricity", "short eccentricity"),
+      row("g3-g1", "e110", "eccentricity (minor)", "Mercury term"),
+      row("g4-g1", "e105", "eccentricity (minor)", "Mercury term"),
+      row("g3-g5", "e99", "eccentricity", "short eccentricity"),
+      row("g4-g5", "e95", "eccentricity", "short eccentricity"),
+      row("(g2-g5)+(g3-g5)", "e79", "eccentricity (minor)", "405 + 99 kyr combination tone", 2),
+      row("(g2-g5)+(g4-g5)", "e77", "eccentricity (minor)", "405 + 95 kyr combination tone", 2),
+      row("(g3-g2)+(g3-g5)", "e56", "eccentricity (minor)", "131 + 99 kyr combination tone", 2),
+      row("(g3-g2)+(g4-g5)", "e55", "eccentricity (minor)", "131 + 95 kyr combination tone", 2),
+      row("(g4-g2)+(g4-g5)", "e54", "eccentricity (minor)", "124 + 95 kyr combination tone", 2),
+      row("k+s6", "", "obliquity", "secondary obliquity term"),
+      row("k+s3", "obl", "obliquity", "main obliquity term"),
+      row("k+s4", "", "obliquity", "secondary obliquity term"),
+      row("k+s2", "", "obliquity (minor)", "minor obliquity term"),
+      row("k+s1", "", "obliquity (minor)", "minor obliquity term"),
+      row("k+g5", "prec", "precession", "longest precession term"),
+      row("k+g1", "", "precession (minor)", "Mercury precession term"),
+      row("k+g2", "", "precession", "precession"),
+      row("k+g3", "", "precession", "precession"),
+      row("k+g4", "", "precession", "shortest precession term"),
+      row("2(k+g5)", "", "precession harmonic", "half-precession", 2))
   f <- numeric(nrow(tab))
   for (j in seq_len(nrow(tab))){
     f[j] <- .term_frequency(tab$term[j], p, data_dir = data_dir)$freq
@@ -260,7 +264,7 @@ astro_terms <- function(age_ma = 0, k_yr = NULL, data_dir = NULL){
   # A secular difference is (k+g_i) - (k+g_j): k cancels in its frequency, but
   # it returns in the ratio to a precession term (bundling / AM sidebands).
   tab$k_route <- ifelse(tab$carries_k, "direct (k + this term)",
-                        "only via its ratio to a precession term (bundling)")
+      "only via its ratio to a precession term (bundling)")
   tab <- tab[order(-tab$period_kyr), ]
   rownames(tab) <- NULL
   attr(tab, "age_ma") <- age_ma

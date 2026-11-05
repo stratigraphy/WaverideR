@@ -1,10 +1,13 @@
 #' Earth-Moon distance from the number of lunar months per year
 #' (the observable of tidal rhythmites)
-#' @param months Number of months per year.
-#' @param kind Type of month, `"sidereal"` or `"synodic"`.
+#' @param months Number of lunar months per year (numeric vector, > 0; about 13.37 sidereal or 12.37 synodic
+#' months today), e.g. counted in tidal rhythmites. Required (no default).
+#' @param kind Type of lunar month counted in \code{months} (character): \code{"sidereal"} (relative to the stars)
+#' or \code{"synodic"} (new moon to new moon; converted with sidereal = synodic + 1).
+#' \code{Default=c("sidereal", "synodic")}, i.e. \code{"sidereal"}.
 #' @export
 moon_distance_from_months <- function(months, kind = c("sidereal", "synodic")){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   astro_constants <- function(){
     AU <- 1.495978707e11            # m
@@ -18,22 +21,22 @@ moon_distance_from_months <- function(months, kind = c("sidereal", "synodic")){
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   kind <- match.arg(kind)
   if (kind == "sidereal"){
     sid <- months

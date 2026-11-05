@@ -45,39 +45,57 @@ analyze_chirp_wavelet(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Input record in the depth domain: a matrix or data frame with depth in column 1 and the proxy value
+in column 2 (further columns are ignored). Incomplete rows are removed, the rows are sorted, the record is
+interpolated to the median depth spacing and standardised. Required, no default.}
 
-\item{lowerPeriod, upperPeriod, dj}{Period grid.}
+\item{lowerPeriod, upperPeriod}{Shortest and longest period of the scalogram, in depth units (numeric,
+0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice the sampling interval). Required,
+no default.}
 
-\item{omega_nr}{Morlet omega_0 \code{Default=10} (long wavelets: the de-chirping pays off most for them).}
+\item{dj}{Spacing of the period axis and of the rate grid in octaves (numeric, > 0). \code{Default=1/50}.}
 
-\item{chirp}{Relative rate gradients g (per depth unit) \code{Default=seq(-0.05, 0.05, by = 0.005)}.}
+\item{omega_nr}{Number of cycles omega_0 of the (chirped) Morlet wavelets (numeric, > 0). Long wavelets
+(large values) gain most from the de-chirping. \code{Default=10}.}
 
-\item{astro_periods}{Astronomical periods (vector, or data frame with \code{period} and \code{weight}).}
+\item{chirp}{Relative rate gradients g = d ln(rate) / d depth that are tried, per depth unit (numeric vector; 0
+is always added). \code{Default=seq(-0.05, 0.05, by = 0.005)}.}
 
-\item{sedrate}{Rate range searched \code{c(lower, upper)} (depth units per kyr).}
+\item{astro_periods}{Astronomical periods of the template in kyr: a numeric vector (equal weights) or a data
+frame with columns \code{period} and \code{weight}. Required, no default.}
 
-\item{step}{Spacing of the positions at which the template is scored \code{Default=5 dz}.}
+\item{sedrate}{Range of sedimentation rates searched, in depth units per kyr (numeric vector
+\code{c(lower, upper)}, lower < upper); the rate grid is spaced by \code{dj} in log2. Required, no default.}
 
-\item{smooth_depth}{Smoothing of the power along the record before the template is scored (depth units)
-\code{Default=2 x shortest period x geometric mean rate}.}
+\item{step}{Spacing in depth units of the positions at which the template is scored (numeric, > 0); \code{NULL}
+uses 5 times the sampling interval. \code{Default=NULL}.}
 
-\item{local_octaves}{Half width (octaves) of the running median that defines the local continuum
-\code{Default=0.75}.}
+\item{smooth_depth}{Length in depth units of the moving average applied to the power along the record before
+the template is scored (numeric, >= 0); \code{NULL} uses 2 x the shortest astronomical period x the geometric
+mean of \code{sedrate}. \code{Default=NULL}.}
 
-\item{chirp_max}{Largest dimensionless chirp of a wavelet (\code{|g| x scale x omega_0}) \code{Default=1.5}: a
-wavelet that would have to sweep by more than this within its own length is not matched (the plain wavelet is
-used), because the linear-chirp model does not hold over a wavelet longer than the scale of the rate changes
-(the 405-kyr wavelet spans a whole 1.2-Myr oscillation in CIP Case 3).}
+\item{local_octaves}{Half width in octaves of the running median that defines the local continuum
+(numeric, > 0). \code{Default=0.75}.}
 
-\item{steer}{Optional track (\code{\link{track_chirp_hmm}}, \code{\link{track_astro_hmm}}): the scalogram of the
-wavelets matched to its gradient is returned in \code{Power}.}
+\item{chirp_max}{Largest dimensionless chirp of a wavelet, \code{|g| x scale x omega_0} (numeric, > 0): a wavelet
+that would have to sweep by more than this within its own length is not matched (the plain wavelet is used),
+because the linear-chirp model does not hold over a wavelet longer than the scale of the rate changes (the
+405-kyr wavelet spans a whole 1.2-Myr oscillation in CIP Case 3). \code{Default=1.5}.}
 
-\item{squeeze}{With \code{steer}: also synchrosqueeze the steered scalogram \code{Default=FALSE}.}
+\item{steer}{Optional sedimentation-rate track: a \code{wr_track} (\code{\link{track_chirp_hmm}},
+\code{\link{track_astro_hmm}}) or a \code{\link{track_astro_auto}} result, with \code{depth} and \code{sedrate}.
+The scalogram of the wavelets matched to its (smoothed) gradient is then returned in \code{Power}; \code{NULL}
+returns the plain (g = 0) Morlet scalogram. \code{Default=NULL}.}
 
-\item{continuum}{Continuum estimate of a position's spectrum, see \code{\link{analyse_chirp_eha}}.}
+\item{squeeze}{Also synchrosqueeze the steered scalogram with the instantaneous period of the matched wavelets
+(logical, TRUE or FALSE), returned as \code{Power_sst}; only used when \code{steer} is given.
+\code{Default=FALSE}.}
 
-\item{verbose}{Print the progress.}
+\item{continuum}{Continuum estimate of the spectrum at a position (character), \code{"lowess"} or
+\code{"median"}, see \code{\link{analyse_chirp_eha}}. \code{Default="lowess"} (the first element of
+\code{c("lowess", "median")}).}
+
+\item{verbose}{Print the progress every 50 scales (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list of class \code{analyze.wavelet} with \code{Power} (the steered scalogram if \code{steer} is given,
@@ -114,6 +132,7 @@ cw <- analyse_chirp_wavelet(data.frame(z, x), lowerPeriod = 10, upperPeriod = 30
     chirp = seq(-0.004, 0.004,
                             by = 0.0005), astro_periods = c(41, 23.7, 19), sedrate = c(0.8, 5))
 tr <- track_chirp_hmm(cw)
-plot(tr$depth, tr$sedrate, type = "l"); lines(z, approx(zt, sr, z)$y, col = 2)
+plot(tr$depth, tr$sedrate, type = "l")
+lines(z, approx(zt, sr, z)$y, col = 2)
 }
 }

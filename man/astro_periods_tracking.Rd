@@ -11,13 +11,19 @@ astro_periods_tracking(
 )
 }
 \arguments{
-\item{age_ma}{Age in Ma \code{Default=0}.}
+\item{age_ma}{Age of the record in Ma (numeric, >= 0); the precession constant, and with it the obliquity and
+precession periods, are taken from the AstroGeo22 solution at this age (passed to \code{\link{astro_terms}}).
+Ignored for the precession constant when \code{k_yr} is given. \code{Default=0} (present-day periods).}
 
-\item{k_yr}{Optional precession constant (arcsec/yr) instead of the AstroGeo22 value for \code{age_ma}.}
+\item{k_yr}{Optional precession constant (numeric, single value) used instead of the AstroGeo22 value for
+\code{age_ma}, given as the period of the axial precession in years (passed to \code{\link{astro_terms}}, which
+converts it to arcsec/yr as 360 * 3600 / \code{k_yr}), e.g. estimated with \code{\link{test_tuned}};
+\code{NULL} uses AstroGeo22. \code{Default=NULL}.}
 
-\item{include}{Which families to include \code{Default=c("eccentricity", "obliquity", "precession")}.
-When only \code{"eccentricity"} is included, the 405-kyr cycle gets weight 1 (instead of 0.5): in records in which
-only the eccentricity is resolved, the stable 405-kyr cycle carries the age model.}
+\item{include}{Which families of cycles to return (character vector, any of \code{"eccentricity"},
+\code{"obliquity"}, \code{"precession"}). When only \code{"eccentricity"} is included, the 405-kyr cycle gets
+weight 1 (instead of 0.5): in records in which only the eccentricity is resolved, the stable 405-kyr cycle carries
+the age model. \code{Default=c("eccentricity", "obliquity", "precession")}.}
 }
 \value{
 A data frame with \code{term}, \code{family}, \code{period} (kyr) and \code{weight}.

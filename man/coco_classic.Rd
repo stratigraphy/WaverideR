@@ -22,37 +22,58 @@ coco_classic(
 )
 }
 \arguments{
-\item{data}{two-column matrix/data.frame: depth (m), proxy value; evenly spaced}
+\item{data}{Record to analyse (matrix or data frame; the first two columns are used): depth in metres in column 1
+and the proxy in column 2, evenly spaced (it is not interpolated; incomplete rows are dropped and the rows sorted
+by depth). Required, no default.}
 
-\item{target}{two-column target periodogram (cycles/kyr, power), from
-coco_target_from_periods() or coco_target_from_series()}
+\item{target}{Astronomical target periodogram (two-column matrix or data frame): frequency in cycles/kyr in
+column 1 and power in column 2, e.g. the output of \code{\link{coco_target_from_periods}},
+\code{\link{coco_target_from_series}}. Its peaks higher than half the mean
+power are rebuilt as Gaussian peaks with the Rayleigh width of the data at every tested rate. Required, no
+default.}
 
-\item{orbit}{orbital periods (kyr); used to count the number of contributing
-astronomical parameters. Default: the periods stored with the target
-(coco_target_from_periods), else orbit7_default()}
+\item{orbit}{Astronomical periods in kyr (numeric vector), used to count how many astronomical parameters
+contribute at each rate (and, with \code{adjust=1}, to define the target bands; then seven periods are needed).
+\code{NULL} uses the periods stored with the target (attribute \code{"orbit"}, set by
+\code{\link{coco_target_from_periods}}), or else the seven periods of Li et al. (2018) (400, 120.5, 93.1, 38.6,
+23.0, 21.8 and 18.5 kyr). \code{Default=NULL}.}
 
-\item{sr}{tested sedimentation rates (cm/kyr)}
+\item{sr}{Sedimentation rates to test, in cm/kyr (numeric vector, > 0). \code{Default=seq(0.2, 20, by = 0.2)}.}
 
-\item{dt}{sampling interval \code{Default=NULL} (median spacing)}
+\item{dt}{Sampling interval of \code{data}, in metres (numeric, > 0); \code{NULL} uses the median spacing of the
+depth column. \code{Default=NULL}.}
 
-\item{pad}{zero padding of the data periodogram}
+\item{pad}{Length (number of points) to which the data (or each slice) is zero-padded for the periodogram
+(integer, at least the number of samples); a larger value gives a finer frequency grid. \code{Default=5000}.}
 
-\item{red}{0 none, 1 subtract AR(1) (default, as in paper), 2 ratio AR(1),
-3 robust AR(1), 50-99 remove red-noise confidence level}
+\item{red}{Red-noise treatment of the data periodogram (integer): \code{0} none; \code{1} the AR(1) background
+is subtracted (as in Li et al. 2018); \code{2} the periodogram is divided by the AR(1) background minus 1;
+\code{3} a robust AR(1) background (median-smoothed spectrum) is subtracted; a value from \code{50} to
+\code{99} divides by that AR(1) confidence level (in \%) minus 1, so only power above it remains. Negative values
+are set to zero. \code{Default=1}.}
 
-\item{nsim}{number of Monte Carlo simulations (paper: 2000)}
+\item{nsim}{Number of Monte Carlo simulations of the null hypothesis of no astronomical forcing (random
+spectra with as many peaks as the data spectrum), used for the p-value \code{p_h0} and pCOCO (integer, >= 0;
+2000 in Li et al. 2018); \code{0} skips them. \code{Default=0}.}
 
-\item{slices}{number of equal slices whose periodograms are averaged}
+\item{slices}{Number of equal-depth slices whose periodograms are averaged (integer, >= 1); \code{1} uses the
+whole record. \code{Default=1}.}
 
-\item{adjust}{1 = adjust target band power to data (7-period target only)}
+\item{adjust}{Adjust the power of the target in four bands (long eccentricity, short eccentricity, obliquity,
+precession) to the power of the data in those bands at each rate (integer): \code{0} no, \code{1} yes (only for a
+seven-period target). \code{Default=0}.}
 
-\item{method}{"Pearson" (paper) or "Spearman"}
+\item{method}{Correlation coefficient between the data and target spectra (character): \code{"Pearson"} (as in
+Li et al. 2018) or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.}
 
-\item{seed}{random seed \code{Default=NULL}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{keep_null}{return the Monte Carlo null matrix \code{Default=FALSE}}
+\item{keep_null}{Return the Monte Carlo null correlations (matrix, rates in rows, simulations in columns) as
+element \code{null} of the output (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{verbose}{progress messages \code{Default=TRUE}}
+\item{verbose}{Print progress messages of the Monte Carlo simulations (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
 }
 \value{
 list with data.frame `result` (sr, rho, p_param, p_h0, norbit, pcoco)

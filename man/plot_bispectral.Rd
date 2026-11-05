@@ -22,40 +22,59 @@ plot_bispectral(
 )
 }
 \arguments{
-\item{result}{Output of \code{\link{bispectral_analysis}}.}
+\item{result}{Bispectral analysis result to plot: the list returned by \code{\link{bispectral_analysis}}. Required
+(\code{Default=NULL} gives an error).}
 
-\item{quantity}{"overview", "bicoherence", "magnitude", "biphase", "real"
-or "imaginary". \code{Default="overview"}}
+\item{quantity}{What to plot (character, case-insensitive):
+\itemize{
+\item \code{"overview"}: the Acycle layout with two multitaper power spectra above the bispectrum magnitude and
+bicoherence maps;
+\item \code{"bicoherence"} (aliases \code{"bicoherence-squared"}, \code{"b2"}): map of the squared bicoherence;
+\item \code{"magnitude"} (alias \code{"bispectrum-magnitude"}): map of log10|B|;
+\item \code{"biphase"} (alias \code{"phase"}): map of the biphase in radians;
+\item \code{"real"} (alias \code{"bispectrum-real"}) or \code{"imaginary"} (alias \code{"bispectrum-imaginary"}):
+map of the real or imaginary part of the bispectrum.
+}
+\code{Default="overview"}.}
 
-\item{keep_bispectrum}{Fraction (0,1] of strongest |B| values shown.
-\code{Default=0.5}}
+\item{keep_bispectrum}{Fraction of the strongest |B| values that is shown on the magnitude, real and imaginary
+maps (numeric, in (0, 1]); weaker cells are left blank and the colour scale is stretched over the retained values.
+1 shows all cells. \code{Default=0.5}.}
 
-\item{keep_bicoherence}{Fraction (0,1] of strongest b^2 values shown.
-\code{Default=0.5}}
+\item{keep_bicoherence}{Fraction of the strongest squared bicoherence values that is shown on the bicoherence and
+biphase maps (numeric, in (0, 1]); weaker cells are left blank. 1 shows all cells. \code{Default=0.5}.}
 
-\item{color_grid}{Number of colours (4-256). \code{Default=32}}
+\item{color_grid}{Number of colours of the colour scale of the maps (integer, 4 to 256). \code{Default=32}.}
 
-\item{freq_min}{Lower plotted frequency. \code{Default=0}}
+\item{freq_min}{Lowest frequency shown on both frequency axes of the maps and on the power spectra, in cycles per
+unit of the depth/time column (numeric, >= 0; negative values are set to 0). \code{Default=0}.}
 
-\item{freq_max}{Upper plotted frequency; \code{NULL} shows the full
-computed axis. \code{Default=NULL}}
+\item{freq_max}{Highest frequency shown, in cycles per unit of the depth/time column (numeric, > \code{freq_min});
+\code{NULL}, or a value above the computed range, shows the full computed frequency axis. \code{Default=NULL}.}
 
-\item{reference_periods}{Periods drawn as guide lines f1 + f2 = 1/period.
-\code{Default=NULL}}
+\item{reference_periods}{Periods (numeric vector, in depth/time units) drawn as dashed guide lines
+f1 + f2 = 1/period on the maps, to show where interactions that produce these periods plot; \code{NULL} draws none.
+\code{Default=NULL}.}
 
-\item{frequency_pairs}{Matrix [f1 f2] of coordinates marked with guides.
-\code{Default=NULL}}
+\item{frequency_pairs}{Frequency coordinates marked with dotted vertical (f1) and horizontal (f2) guide lines: a
+two-column matrix (or a numeric vector that is read as one) with f1 in column 1 and f2 in column 2, in cycles per
+unit; \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{peak_count}{Number of bicoherence peaks annotated. \code{Default=5}}
+\item{peak_count}{Maximum number of the strongest (significant, if inference was calculated) squared bicoherence
+peaks that are marked and labelled with their (f1, f2) on the bicoherence map (integer, >= 0; 0 marks none).
+\code{Default=5}.}
 
-\item{show_period_axes}{Add a period axis on top of the maps.
-\code{Default=TRUE}}
+\item{show_period_axes}{Add a period axis (1/frequency) on top of the maps (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
 
-\item{show_significance}{Draw the significance boundary. \code{Default=TRUE}}
+\item{show_significance}{Draw the boundary of the significant region as a black contour, when
+\code{\link{bispectral_analysis}} calculated significance (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{title}{Figure title. \code{Default=NULL}}
+\item{title}{Title of the figure (character); \code{NULL} uses \code{"Bispectral analysis"}. For a single map the
+name of the map is appended. \code{Default=NULL}.}
 
-\item{colour_grid}{British spelling of \code{color_grid}; if given it overrides \code{color_grid}.}
+\item{colour_grid}{British spelling of \code{color_grid}; if given (not \code{NULL}) it overrides \code{color_grid}.
+\code{Default=NULL}.}
 }
 \value{
 Invisibly returns \code{NULL}; the plot is drawn on the current device.

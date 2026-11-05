@@ -17,23 +17,30 @@ plot_mesa_spectrum(
 )
 }
 \arguments{
-\item{x}{output of \code{\link{mesa_spectrum}}.}
+\item{x}{Maximum entropy spectrum to plot: the list returned by \code{\link{mesa_spectrum}}. Required, no default.}
 
-\item{xaxis}{\code{"period"} (default) or \code{"frequency"}.}
+\item{xaxis}{Quantity on the x axis (character): \code{"period"} (in the depth/time unit of the input record) or
+\code{"frequency"} (cycles per unit). \code{Default="period"} (the first element of
+\code{c("period", "frequency")}).}
 
-\item{peaks}{If TRUE (default) the peaks of \code{x$peaks} are marked and labelled with their period.}
+\item{peaks}{Mark the spectral peaks of \code{x$peaks} that fall inside \code{xlim} with red triangles and label
+the strongest ones with their period (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{n_label}{Number of strongest peaks to label (default 5).}
+\item{n_label}{Number of strongest peaks (inside \code{xlim}) that are labelled with their period (integer, >= 0).
+\code{Default=5}.}
 
-\item{xlim}{Optional limits of the x axis (in the units of \code{xaxis}).}
+\item{xlim}{Range of the x axis, in the unit of \code{xaxis} (numeric vector of length 2); \code{NULL} uses the
+full range of positive frequencies (or the corresponding periods). \code{Default=NULL}.}
 
-\item{log_x}{If TRUE the x axis is logarithmic (default FALSE).}
+\item{log_x}{Draw the x axis on a logarithmic scale (logical, TRUE or FALSE); the power axis is always
+logarithmic. \code{Default=FALSE}.}
 
-\item{col}{Line colour.}
+\item{col}{Colour of the spectrum line (a colour name, hexadecimal string or number). \code{Default="black"}.}
 
-\item{main}{Title. The default describes the order and criterion.}
+\item{main}{Title of the plot (character); \code{NULL} gives a title with the AR order and the order-selection
+criterion. \code{Default=NULL}.}
 
-\item{...}{further arguments passed to \code{plot}.}
+\item{...}{Further graphical arguments passed to \code{\link[graphics]{plot}} (e.g. \code{lwd}, \code{ylim}).}
 }
 \value{
 Called for its plot; invisibly returns \code{x}.

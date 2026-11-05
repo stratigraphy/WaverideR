@@ -16,25 +16,47 @@
 #' reassignment, smoothing of 0.01 octave) gave the most concentrated and best separated ridges in synthetic tests with
 #' eccentricity-modulated precession, obliquity, changing sedimentation rates and red noise (see NEWS).
 #'
-#' @param data Input is a time series with the first column being depth or time and the second column being a proxy.
-#' @param lowerPeriod,upperPeriod Shortest and longest period.
-#' @param dj Spacing of the period axis in octaves \code{Default=1/100}.
-#' @param c1,o,mult Superlet style definition of the orders, used when \code{omega_nr = NULL}: \code{o} orders with
-#' \code{i * c1} cycles (\code{mult = TRUE}) or \code{c1 + i - 1} cycles (\code{mult = FALSE}); cycles are converted to
-#' omega_0 = 2 pi cycles / 5, as in \code{\link{analyse_superlet}}.
-#' @param omega_nr omega_0 (Morlet equivalent central angular frequencies) of the orders \code{Default=c(8, 12, 16)}.
-#' Set to \code{NULL} to use \code{c1}, \code{o} and \code{mult}.
-#' @param wavelet,wavelet_order Mother wavelet, see \code{\link{analyse_wavelet}} \code{Default="morlet0"} (the exactly
-#' zero-mean Morlet wavelet, which stays admissible for few cycles). The orders of other wavelets get the same relative
-#' bandwidth as the Morlet wavelet with the same number of cycles.
-#' @param sst_order Order of the synchrosqueezing (1 or 2) \code{Default=2}.
-#' @param n_iter Iterations of the frequency reassignment (multisynchrosqueezing) of every order, see
-#' \code{\link{analyse_wavelet_sst}} \code{Default=4}.
-#' @param threshold Noise threshold of the synchrosqueezing, see \code{\link{analyse_wavelet_sst}}.
-#' @param smooth Standard deviation (in octaves) of the Gaussian smoothing along the period axis before the orders are
-#' combined. It absorbs the small differences in the period estimated by the different orders \code{Default=0.01}.
-#' @param combine \code{"geometric"} (default, as superlets), \code{"min"} (strictest consensus) or \code{"mean"}.
-#' @param verbose Print messages.
+#' @param data Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+#' (further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+#' linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+#' error).
+#' @param lowerPeriod,upperPeriod Shortest and longest period of the transform, in the same unit as the depth/time
+#' column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+#' the sampling interval). Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}: \code{Default=1024}.
+#' @param dj Spacing of the period axis in octaves (numeric, > 0; \code{1/x} gives x periods per doubling of the
+#' period). \code{Default=1/100}.
+#' @param c1 Base number of cycles of the superlet-style orders (numeric, > 0); only used when
+#' \code{omega_nr=NULL}. Cycles are converted to omega_0 = 2 pi cycles / 5, as in \code{\link{analyse_superlet}}.
+#' \code{Default=4}.
+#' @param o Number of orders of the superlet-style definition (integer, >= 1); only used when
+#' \code{omega_nr=NULL}. Order i has \code{i * c1} cycles (\code{mult=TRUE}) or \code{c1 + i - 1} cycles
+#' (\code{mult=FALSE}). \code{Default=5}.
+#' @param mult Multiplicative (\code{TRUE}) or additive (\code{FALSE}) growth of the number of cycles with the
+#' order (logical); only used when \code{omega_nr=NULL}. \code{Default=TRUE}.
+#' @param omega_nr Central angular frequencies omega_0 (Morlet-equivalent number of cycles) of the orders that are
+#' combined (numeric vector, values > 0, e.g. \code{c(8, 12, 16)}); each value gives one synchrosqueezed transform.
+#' Set to \code{NULL} to define the orders with \code{c1}, \code{o} and \code{mult} instead.
+#' \code{Default=c(8, 12, 16)}.
+#' @param wavelet,wavelet_order Mother wavelet (character string or function) and its parameter(s) (numeric or
+#' \code{NULL}), see \code{\link{analyse_wavelet}}; the wavelet must be analytic (real wavelets give an error).
+#' The default \code{"morlet0"} is the exactly zero-mean Morlet wavelet, which stays admissible for few cycles. The
+#' orders of other wavelets get the same relative bandwidth as the Morlet wavelet with the same number of cycles.
+#' \code{wavelet}: \code{Default="morlet0"}; \code{wavelet_order}: \code{Default=NULL}.
+#' @param sst_order Order of the synchrosqueezing of every order (numeric, \code{1} or \code{2}), see
+#' \code{\link{analyse_wavelet_sst}}; \code{2} follows fast changes of the period better. \code{Default=2}.
+#' @param n_iter Number of iterations of the frequency reassignment (multisynchrosqueezing) of every order (integer,
+#' >= 1), see \code{\link{analyse_wavelet_sst}}. \code{Default=4}.
+#' @param threshold Noise threshold of the synchrosqueezing: \code{"riskshrink"}, \code{"none"} or a number (numeric,
+#' in standard deviations of the standardised record), see \code{\link{analyse_wavelet_sst}}.
+#' \code{Default="riskshrink"}.
+#' @param smooth Standard deviation, in octaves, of the Gaussian smoothing along the period axis applied to every
+#' order before the orders are combined (numeric, >= 0; 0 switches it off). It absorbs the small differences in the
+#' period estimated by the different orders. \code{Default=0.01}.
+#' @param combine How the squeezed amplitudes of the orders are combined (character), one of \code{"geometric"}
+#' (geometric mean, as in superlets), \code{"min"} (minimum: strictest consensus) or \code{"mean"} (arithmetic
+#' mean: least suppression of noise). \code{Default="geometric"} (the first element of
+#' \code{c("geometric", "min", "mean")}).
+#' @param verbose Print a message when each order is done (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @return A list of class \code{analyze.wavelet} (see \code{\link{analyse_wavelet_sst}}) that can be plotted with
 #' \code{\link{plot_wavelet}} and used by the tracking functions, with the extra elements \code{superlet = TRUE},
@@ -59,21 +81,21 @@
 #' }
 #' @export
 analyse_superlet_sst <- function(data = NULL,
-                                 lowerPeriod = 2,
-                                 upperPeriod = 1024,
-                                 dj = 1 / 100,
-                                 c1 = 4,
-                                 o = 5,
-                                 mult = TRUE,
-                                 omega_nr = c(8, 12, 16),
-                                 wavelet = "morlet0",
-                                 wavelet_order = NULL,
-                                 sst_order = 2,
-                                 n_iter = 4,
-                                 threshold = "riskshrink",
-                                 smooth = 0.01,
-                                 combine = c("geometric", "min", "mean"),
-                                 verbose = FALSE) {
+    lowerPeriod = 2,
+    upperPeriod = 1024,
+    dj = 1 / 100,
+    c1 = 4,
+    o = 5,
+    mult = TRUE,
+    omega_nr = c(8, 12, 16),
+    wavelet = "morlet0",
+    wavelet_order = NULL,
+    sst_order = 2,
+    n_iter = 4,
+    threshold = "riskshrink",
+    smooth = 0.01,
+    combine = c("geometric", "min", "mean"),
+    verbose = FALSE) {
   settings <- mget(setdiff(names(formals(sys.function())), c("data", "verbose")))
   combine <- match.arg(combine)
   dat <- as.matrix(data)
@@ -85,7 +107,7 @@ analyse_superlet_sst <- function(data = NULL,
   n <- length(xi)
   xs <- (xi - mean(xi)) / stats::sd(xi)
   if (is.null(omega_nr)) {
-    cycles <- if (mult) c1 * seq_len(o) else c1 + seq_len(o) - 1
+    cycles <- if (mult) { c1 * seq_len(o) } else { c1 + seq_len(o) - 1 }
     omega_nr <- 2 * pi * cycles / 5
   }
   J <- as.integer(log2(upperPeriod / lowerPeriod) / dj)
@@ -93,14 +115,18 @@ analyse_superlet_sst <- function(data = NULL,
   ns <- length(periods)
   # Gaussian smoothing kernel along the period axis
   sb <- smooth / dj
-  kh <- if (sb > 0) max(1, ceiling(3 * sb)) else 0
-  kern <- if (kh > 0) exp(-((-kh):kh)^2 / (2 * sb^2)) else 1
+  kh <- if (sb > 0) { max(1, ceiling(3 * sb)) } else { 0 }
+  kern <- if (kh > 0) { exp(-((-kh):kh)^2 / (2 * sb^2)) } else { 1 }
   kern <- kern / sum(kern)
   smooth_rows <- function(M) {
-    if (kh == 0) return(M)
+    if (kh == 0) {
+      return(M)
+    }
     Mp <- rbind(matrix(0, kh, ncol(M)), M, matrix(0, kh, ncol(M)))
     out <- matrix(0, nrow(M), ncol(M))
-    for (i in seq_along(kern)) out <- out + kern[i] * Mp[i:(i + nrow(M) - 1), , drop = FALSE]
+    for (i in seq_along(kern)) {
+      out <- out + kern[i] * Mp[i:(i + nrow(M) - 1), , drop = FALSE]
+    }
     out
   }
   amps <- vector("list", length(omega_nr))
@@ -108,20 +134,52 @@ analyse_superlet_sst <- function(data = NULL,
   wdef1 <- NULL
   for (i in seq_along(omega_nr)) {
     wdef <- .wr_wavelet_equiv(wavelet, omega_nr[i], wavelet_order, ngrid = 8001)
-    if (!wdef$analytic) stop("superlet synchrosqueezing needs an analytic wavelet")
-    if (is.null(wdef1)) wdef1 <- wdef
+    if (!wdef$analytic) {
+      stop("superlet synchrosqueezing needs an analytic wavelet")
+    }
+    if (is.null(wdef1)) {
+      wdef1 <- wdef
+    }
     scales <- periods / wdef$fourier_factor
     r <- .wr_sst_core(xs, dt, wdef, scales, dj, sst_order, "sst", threshold, n_iter)
     T_i <- r$tx / sqrt(scales)                      # reconstruction contributions, comparable between orders
     amps[[i]] <- smooth_rows(Mod(T_i))
     phasor <- phasor + smooth_rows(Re(T_i)) + 1i * smooth_rows(Im(T_i))
-    if (verbose) cat("order", i, "omega_0 =", round(omega_nr[i], 2), "done\n")
+    if (verbose) {
+      cat("order", i, "omega_0 =", round(omega_nr[i], 2), "done\n")
+    }
   }
-  eps <- 1e-6 * max(sapply(amps, max))
+  amp_max <- numeric(length(amps))
+  for (i in seq_along(amps)) {
+    amp_max[i] <- max(amps[[i]])
+  }
+  eps <- 1e-6 * max(amp_max)
   G <- switch(combine,
-    geometric = exp(Reduce(`+`, lapply(amps, function(a) log(a + eps))) / length(amps)) - eps,
-    min = Reduce(pmin, amps),
-    mean = Reduce(`+`, amps) / length(amps))
+      geometric = {
+        acc <- log(amps[[1]] + eps)
+        for (i in seq_along(amps)[-1]) {
+          acc <- acc + log(amps[[i]] + eps)
+        }
+        exp(acc / length(amps)) - eps
+      },
+      min = {
+        acc <- amps[[1]]
+        for (i in seq_along(amps)[-1]) {
+          acc <- pmin(acc, amps[[i]])
+        }
+        acc
+      },
+      mean = {
+        acc <- amps[[1]]
+        for (i in seq_along(amps)[-1]) {
+          acc <- acc + amps[[i]]
+        }
+        acc / length(amps)
+      })
+  power_orders <- vector("list", length(amps))
+  for (i in seq_along(amps)) {
+    power_orders[[i]] <- amps[[i]]^2
+  }
   G[G < 0] <- 0
   unit <- ifelse(Mod(phasor) > 0, phasor / Mod(phasor), 0)
   scales <- periods / wdef1$fourier_factor
@@ -135,13 +193,13 @@ analyse_superlet_sst <- function(data = NULL,
   yl <- c(lp[ns] + 0.5 * logyint, lp[1] - 0.5 * logyint)
   coi.y <- c(yl, log2(coi), rev(yl))
   out <- list(Wave = Wave, Phase = Arg(Wave), Ampl = G, Power = Power, dt = dt, dj = dj,
-              Power.avg = rowMeans(Power), Period = periods, Scale = scales,
-              coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = xout, axis.2 = lp,
-              omega_nr = omega_nr[1], wavelet = wdef1$name, wavelet_order = wavelet_order,
-              fourier_factor = wdef1$fourier_factor, psi0 = wdef1$psi0, x = xout, y = xi,
-              Power.avg.pval = NULL, Power.pval = NULL, synchrosqueezed = TRUE, superlet = TRUE,
-              sst_order = sst_order, combine = combine, omega_nr_all = omega_nr,
-              Power_orders = lapply(amps, function(a) a^2))
+      Power.avg = rowMeans(Power), Period = periods, Scale = scales,
+      coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = xout, axis.2 = lp,
+      omega_nr = omega_nr[1], wavelet = wdef1$name, wavelet_order = wavelet_order,
+      fourier_factor = wdef1$fourier_factor, psi0 = wdef1$psi0, x = xout, y = xi,
+      Power.avg.pval = NULL, Power.pval = NULL, synchrosqueezed = TRUE, superlet = TRUE,
+      sst_order = sst_order, combine = combine, omega_nr_all = omega_nr,
+      Power_orders = power_orders)
   out$settings <- settings
   out$transform <- "analyse_superlet_sst"
   class(out) <- "analyze.wavelet"

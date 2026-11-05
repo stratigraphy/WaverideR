@@ -13,9 +13,12 @@ test_that("as_wr_track builds consistent tracks from period, rate and age curves
 
 test_that("check_agemodel finds a rate step the age model does not know", {
   skip_on_cran()
-  set.seed(2); t <- seq(0, 3000, 1)
+  set.seed(2)
+  t <- seq(0, 3000, 1)
   x <- cos(2 * pi * t / 405) + 0.8 * cos(2 * pi * t / 100) + 0.6 * cos(2 * pi * t / 41) + rnorm(length(t), 0, 0.7)
-  rate <- ifelse(t < 1500, 0.05, 0.08); z <- cumsum(rate); data <- data.frame(z, x)
+  rate <- ifelse(t < 1500, 0.05, 0.08)
+  z <- cumsum(rate)
+  data <- data.frame(z, x)
   track <- as_wr_track(data.frame(z, 0.065), "sedrate")
   chk <- check_agemodel(data, track, age_ma = 0, transforms = c("wavelet", "superlet_sst"), retrack = FALSE, verbose = FALSE)
   expect_s3_class(chk, "wr_agemodel_check")
@@ -23,5 +26,9 @@ test_that("check_agemodel finds a rate step the age model does not know", {
   expect_lt(median(p$correction[p$depth < 60], na.rm = TRUE), 0.85)
   expect_gt(median(p$correction[p$depth > 100], na.rm = TRUE), 1.12)
   expect_true(nrow(chk$intervals) >= 2)
-  expect_silent({ png(tempfile(fileext = ".png")); plot_agemodel_check(chk); dev.off() })
+  expect_silent({
+    png(tempfile(fileext = ".png"))
+    plot_agemodel_check(chk)
+    dev.off()
+  })
 })

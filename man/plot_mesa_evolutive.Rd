@@ -26,49 +26,71 @@ plot_mesa_evolutive(
 )
 }
 \arguments{
-\item{x}{output of \code{\link{mesa_evolutive}}.}
+\item{x}{Evolutive maximum entropy spectrum to plot: the list returned by \code{\link{mesa_evolutive}} (one or
+more window lengths). Required, no default.}
 
-\item{vertical}{If TRUE (default) the position is the vertical axis, increasing downwards (as
-for a depth log), and the windows are panels side by side. If FALSE the position is horizontal
-and the windows are stacked.}
+\item{vertical}{Orientation of the plot (logical). \code{TRUE}: the position (depth/time) is the vertical axis,
+increasing downwards as for a depth log, and the window lengths are panels side by side; \code{FALSE}: the
+position is the horizontal axis and the window lengths are stacked panels. \code{Default=TRUE}.}
 
-\item{xaxis}{\code{"period"} (default) or \code{"frequency"}: the spectral axis.}
+\item{xaxis}{Spectral axis (character): \code{"period"} or \code{"frequency"} (cycles per unit of position).
+\code{Default="period"} (the first element of \code{c("period", "frequency")}).}
 
-\item{period_lim}{Limits of the period axis (default: from twice the sampling interval to the
-longest window).}
+\item{period_lim}{Range of the period axis, in the unit of the position axis (numeric vector of length 2,
+\code{c(min, max)}); used when \code{xaxis = "period"}. \code{NULL} runs from twice the sampling interval to the
+longest window length. \code{Default=NULL}.}
 
-\item{frequency_lim}{Limits of the frequency axis, used when \code{xaxis = "frequency"}.}
+\item{frequency_lim}{Range of the frequency axis, in cycles per unit of position (numeric vector of length 2);
+used when \code{xaxis = "frequency"}. \code{NULL} uses the full frequency range. \code{Default=NULL}.}
 
-\item{log_scale}{Kept for compatibility: \code{TRUE} is \code{scale = "log"}.}
+\item{log_scale}{Kept for compatibility (logical): \code{TRUE} is the same as \code{scale = "log"}; \code{FALSE}
+uses \code{scale}. \code{Default=FALSE}.}
 
-\item{peaks}{If TRUE the peaks of every position are drawn as white points.}
+\item{peaks}{Draw the spectral peaks of every window position as white points (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{peak_min}{Smallest relative power (0 to 1) of a peak that is drawn (default 0.3).}
+\item{peak_min}{Smallest relative power of a peak that is drawn with \code{peaks = TRUE} (numeric, 0 to 1, power
+relative to the maximum of the spectrum at the same position). \code{Default=0.3}.}
 
-\item{track}{A \code{mesa_track} from \code{\link{track_mesa}} or a list of them, drawn as lines.}
+\item{track}{Ridge track(s) drawn as red lines on the panel of the matching window length: a \code{mesa_track}
+object returned by \code{\link{track_mesa}} or a list of them; \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{average}{If TRUE the average amplitude spectrum of every window is drawn next to its image,
-with the period of its strongest peaks marked.}
+\item{average}{Draw the average amplitude spectrum of every window length (\code{\link{mesa_average}}) beside or
+below its image, with the periods (or frequencies) of its three strongest peaks labelled (logical).
+\code{Default=FALSE}.}
 
-\item{colors}{Optional vector of colours to interpolate (overrides \code{palette}).}
+\item{colors}{Colours to interpolate for the colour scale (character vector of colours, e.g.
+\code{c("white", "orange", "red")}); if given it overrides \code{palette}. \code{NULL} uses \code{palette}.
+\code{Default=NULL}.}
 
-\item{position_lim}{Limits of the position axis.}
+\item{position_lim}{Range of the position (depth/time) axis (numeric vector of length 2); \code{NULL} uses the
+full range of window positions. \code{Default=NULL}.}
 
-\item{main}{Overall title.}
+\item{main}{Overall title, drawn in the outer top margin (character); \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{log_axis}{Period or frequency axis on a log2 scale \code{Default=TRUE}: the spectrum of a cyclostratigraphic
-record spans several octaves, and on a linear axis the long periods take most of the plot.}
+\item{log_axis}{Draw the period or frequency axis on a log2 scale (logical): the spectrum of a
+cyclostratigraphic record spans several octaves, and on a linear axis the long periods take most of the plot.
+\code{Default=TRUE}.}
 
-\item{scale}{Colour scale as in all image plots of the package (see \code{\link{plot_wavelet}}) \code{Default="auto"};
-a maximum-entropy spectrum spans many decades, so \code{"auto"} is logarithmic for it.}
+\item{scale}{Spacing of the colour breaks of the colour scale, as in all image plots of the package (character):
+\code{"quantile"} (histogram-equalised), \code{"log"}, \code{"sqrt"}, \code{"linear"} or \code{"auto"}
+(logarithmic for mostly empty maps or values spanning more than three orders of magnitude, quantiles otherwise;
+see \code{\link{plot_wavelet}}). A maximum-entropy spectrum spans many decades, so \code{"auto"} is usually
+logarithmic for it. \code{Default="auto"}.}
 
-\item{palette}{\code{hcl.colors} palette \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{normalise}{\code{"window"} (each analysis window relative to its maximum, default), \code{"period"} (each
-period relative to its mean along the record, which removes the red-noise slope and shows where a cycle is
-stronger or weaker) or \code{"none"}.}
+\item{normalise}{How the spectrum is scaled before plotting (character), one of:
+\code{"window"} (the spectrum of each window position divided by its maximum, so the ridges show along the whole
+record), \code{"period"} (each period divided by its mean along the record, which removes the red-noise slope and
+shows where a cycle is stronger or weaker) or \code{"none"} (raw power).
+\code{Default="window"} (the first element of \code{c("window", "period", "none")}).}
 
-\item{...}{currently unused.}
+\item{...}{Not used; accepted (and ignored) so that extra arguments do not give an error.}
 }
 \value{
 Called for its plot; invisibly returns \code{x}.

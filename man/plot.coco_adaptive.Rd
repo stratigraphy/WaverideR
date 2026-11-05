@@ -7,9 +7,10 @@
 \method{plot}{coco_adaptive}(x, ...)
 }
 \arguments{
-\item{x}{object returned by coco_adaptive()}
+\item{x}{Adaptive COCO result to plot: the output of \code{\link{coco_adaptive}} (an object of class
+\code{coco_adaptive}). Required, no default.}
 
-\item{...}{unused}
+\item{...}{Not used; present for compatibility with the generic \code{plot} function.}
 }
 \value{
 invisible NULL

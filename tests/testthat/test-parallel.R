@@ -6,7 +6,8 @@ test_that("wr_lapply is deterministic and independent of cores", {
   expect_equal(dim(a), c(5, 6))
 })
 test_that("wr_lapply restores the master RNG state", {
-  set.seed(10); x1 <- stats::runif(1)
+  set.seed(10)
+  x1 <- stats::runif(1)
   set.seed(10)
   WaverideR:::wr_lapply(1:3, function(i) stats::rnorm(1), n_cores = 1, seed = 5)
   expect_equal(stats::runif(1), x1)

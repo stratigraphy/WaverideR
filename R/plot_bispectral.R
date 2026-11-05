@@ -12,26 +12,44 @@
 #' Acycle (no interpolated display mesh or alpha ramp).
 #' Translated from Acycle v3.1 bispectralPlot.m (Mingsong Li).
 #'
-#' @param result Output of \code{\link{bispectral_analysis}}.
-#' @param quantity "overview", "bicoherence", "magnitude", "biphase", "real"
-#' or "imaginary". \code{Default="overview"}
-#' @param keep_bispectrum Fraction (0,1] of strongest |B| values shown.
-#' \code{Default=0.5}
-#' @param keep_bicoherence Fraction (0,1] of strongest b^2 values shown.
-#' \code{Default=0.5}
-#' @param color_grid Number of colours (4-256). \code{Default=32}
-#' @param freq_min Lower plotted frequency. \code{Default=0}
-#' @param freq_max Upper plotted frequency; \code{NULL} shows the full
-#' computed axis. \code{Default=NULL}
-#' @param reference_periods Periods drawn as guide lines f1 + f2 = 1/period.
-#' \code{Default=NULL}
-#' @param frequency_pairs Matrix [f1 f2] of coordinates marked with guides.
-#' \code{Default=NULL}
-#' @param peak_count Number of bicoherence peaks annotated. \code{Default=5}
-#' @param show_period_axes Add a period axis on top of the maps.
-#' \code{Default=TRUE}
-#' @param show_significance Draw the significance boundary. \code{Default=TRUE}
-#' @param title Figure title. \code{Default=NULL}
+#' @param result Bispectral analysis result to plot: the list returned by \code{\link{bispectral_analysis}}. Required
+#' (\code{Default=NULL} gives an error).
+#' @param quantity What to plot (character, case-insensitive):
+#' \itemize{
+#' \item \code{"overview"}: the Acycle layout with two multitaper power spectra above the bispectrum magnitude and
+#' bicoherence maps;
+#' \item \code{"bicoherence"} (aliases \code{"bicoherence-squared"}, \code{"b2"}): map of the squared bicoherence;
+#' \item \code{"magnitude"} (alias \code{"bispectrum-magnitude"}): map of log10|B|;
+#' \item \code{"biphase"} (alias \code{"phase"}): map of the biphase in radians;
+#' \item \code{"real"} (alias \code{"bispectrum-real"}) or \code{"imaginary"} (alias \code{"bispectrum-imaginary"}):
+#' map of the real or imaginary part of the bispectrum.
+#' }
+#' \code{Default="overview"}.
+#' @param keep_bispectrum Fraction of the strongest |B| values that is shown on the magnitude, real and imaginary
+#' maps (numeric, in (0, 1]); weaker cells are left blank and the colour scale is stretched over the retained values.
+#' 1 shows all cells. \code{Default=0.5}.
+#' @param keep_bicoherence Fraction of the strongest squared bicoherence values that is shown on the bicoherence and
+#' biphase maps (numeric, in (0, 1]); weaker cells are left blank. 1 shows all cells. \code{Default=0.5}.
+#' @param color_grid Number of colours of the colour scale of the maps (integer, 4 to 256). \code{Default=32}.
+#' @param freq_min Lowest frequency shown on both frequency axes of the maps and on the power spectra, in cycles per
+#' unit of the depth/time column (numeric, >= 0; negative values are set to 0). \code{Default=0}.
+#' @param freq_max Highest frequency shown, in cycles per unit of the depth/time column (numeric, > \code{freq_min});
+#' \code{NULL}, or a value above the computed range, shows the full computed frequency axis. \code{Default=NULL}.
+#' @param reference_periods Periods (numeric vector, in depth/time units) drawn as dashed guide lines
+#' f1 + f2 = 1/period on the maps, to show where interactions that produce these periods plot; \code{NULL} draws none.
+#' \code{Default=NULL}.
+#' @param frequency_pairs Frequency coordinates marked with dotted vertical (f1) and horizontal (f2) guide lines: a
+#' two-column matrix (or a numeric vector that is read as one) with f1 in column 1 and f2 in column 2, in cycles per
+#' unit; \code{NULL} draws none. \code{Default=NULL}.
+#' @param peak_count Maximum number of the strongest (significant, if inference was calculated) squared bicoherence
+#' peaks that are marked and labelled with their (f1, f2) on the bicoherence map (integer, >= 0; 0 marks none).
+#' \code{Default=5}.
+#' @param show_period_axes Add a period axis (1/frequency) on top of the maps (logical, TRUE or FALSE).
+#' \code{Default=TRUE}.
+#' @param show_significance Draw the boundary of the significant region as a black contour, when
+#' \code{\link{bispectral_analysis}} calculated significance (logical, TRUE or FALSE). \code{Default=TRUE}.
+#' @param title Title of the figure (character); \code{NULL} uses \code{"Bispectral analysis"}. For a single map the
+#' name of the map is appended. \code{Default=NULL}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle bispectral module).
@@ -54,7 +72,8 @@
 #' @return
 #' Invisibly returns \code{NULL}; the plot is drawn on the current device.
 #'
-#' @param colour_grid British spelling of \code{color_grid}; if given it overrides \code{color_grid}.
+#' @param colour_grid British spelling of \code{color_grid}; if given (not \code{NULL}) it overrides \code{color_grid}.
+#' \code{Default=NULL}.
 #' @export
 #' @importFrom graphics layout
 #' @importFrom graphics par
@@ -74,25 +93,25 @@
 #' @importFrom grDevices dev.flush
 
 plot_bispectral <- function(result = NULL,
-                            quantity = "overview",
-                            keep_bispectrum = 0.5,
-                            keep_bicoherence = 0.5,
-                            color_grid = 32,
-                            freq_min = 0,
-                            freq_max = NULL,
-                            reference_periods = NULL,
-                            frequency_pairs = NULL,
-                            peak_count = 5,
-                            show_period_axes = TRUE,
-                            show_significance = TRUE,
-                            title = NULL,
-  colour_grid = NULL){
-  if (!is.null(colour_grid)) color_grid <- colour_grid  # British spelling synonym
-  # ---- internal helper functions (local to this function) ----
+    quantity = "overview",
+    keep_bispectrum = 0.5,
+    keep_bicoherence = 0.5,
+    color_grid = 32,
+    freq_min = 0,
+    freq_max = NULL,
+    reference_periods = NULL,
+    frequency_pairs = NULL,
+    peak_count = 5,
+    show_period_axes = TRUE,
+    show_significance = TRUE,
+    title = NULL,
+    colour_grid = NULL){
+  if (!is.null(colour_grid)) {
+    color_grid <- colour_grid
+  }  # British spelling synonym
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -227,9 +246,7 @@ plot_bispectral <- function(result = NULL,
     x
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB periodogram / pmtm (one-sided, adaptive weights)
-  # ---------------------------------------------------------------------------
 
   acy_datawrap <- function(x, nfft){
     n <- length(x)
@@ -275,7 +292,7 @@ plot_bispectral <- function(result = NULL,
   }
 
   acy_pmtm <- function(x, nw = 4, nfft = NULL, fs = NULL, drop_last = TRUE,
-                       method = "adapt"){
+      method = "adapt"){
     x <- as.numeric(x)
     n <- length(x)
     if (is.null(nfft)){
@@ -341,9 +358,7 @@ plot_bispectral <- function(result = NULL,
     sign(x) * floor(abs(x) + 0.5)
   }
 
-  # ---------------------------------------------------------------------------
   # plotting helpers (bispectralPlot.m, simplified)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -374,14 +389,14 @@ plot_bispectral <- function(result = NULL,
   # @keywords internal
   # @noRd
   bisp_positive_map <- function(n){
-    grDevices::colorRampPalette(c("#FFFFFF", "#FAD1B8", "#EB6133", "#A61414"))(n)
+    .wr_hcl_cols(n, "viridis")
   }
 
   # @keywords internal
   # @noRd
   bisp_diverging_map <- function(n){
     grDevices::colorRampPalette(c("#1A3D9E", "#6BADD6", "#FFFFFF", "#F29461",
-                                  "#A61414"))(n)
+        "#A61414"))(n)
   }
 
   # @keywords internal
@@ -417,8 +432,8 @@ plot_bispectral <- function(result = NULL,
   # @keywords internal
   # @noRd
   bisp_draw_map <- function(result, quantity, keep, ngrid, fmin, fmax,
-                            reference_periods, frequency_pairs, peak_count,
-                            show_period_axes, show_significance){
+      reference_periods, frequency_pairs, peak_count,
+      show_period_axes, show_significance){
     f <- result$frequency
     rescale <- FALSE
     if (quantity %in% c("bicoherence", "bicoherence-squared", "b2")){
@@ -497,19 +512,19 @@ plot_bispectral <- function(result = NULL,
     zd <- pmin(pmax(zd, lim[1]), lim[2])
     graphics::par(mar = c(4.2, 4.5, 4.2, 1.5))
     graphics::image(f, f, t(zd), col = cols, zlim = lim, xlim = c(fmin, fmax),
-                    ylim = c(fmin, fmax), xlab = "f1 (cycles/unit)",
-                    ylab = "f2 (cycles/unit)", useRaster = FALSE, asp = NA)
+        ylim = c(fmin, fmax), xlab = "f1 (cycles/unit)",
+        ylab = "f2 (cycles/unit)", useRaster = FALSE, asp = NA)
     if (quantity %in% c("bicoherence", "magnitude") && any(is.finite(zd))){
       lev <- seq(lim[1], lim[2], length.out = 7)[2:6]
       graphics::contour(f, f, t(zd), levels = lev, add = TRUE, drawlabels = FALSE,
-                        col = "#4D3D33", lwd = 0.45)
+          col = "#4D3D33", lwd = 0.45)
     }
     has_inf <- !is.null(result$significance) && result$significance$method != "none"
     if (show_significance == TRUE && has_inf && any(result$significant_mask)){
       src <- matrix(NA_real_, length(f), length(f))
       src[result$valid_mask] <- as.numeric(result$significant_mask[result$valid_mask])
       graphics::contour(f, f, t(src), levels = 0.5, add = TRUE, drawlabels = FALSE,
-                        col = "black", lwd = 2)
+          col = "black", lwd = 2)
     }
     if (peak_count > 0 && quantity == "bicoherence"){
       b2 <- result$bicoherence_squared
@@ -536,7 +551,7 @@ plot_bispectral <- function(result = NULL,
             chosen <- rbind(chosen, np)
             graphics::points(p1, p2, pch = 21, bg = "white", cex = 0.8)
             graphics::text(p1, p2, sprintf("  %.3g, %.3g", p1, p2), pos = 4,
-                           cex = 0.75, offset = 0.2)
+                cex = 0.75, offset = 0.2)
             if (nrow(chosen) >= peak_count){
               break
             }
@@ -554,7 +569,7 @@ plot_bispectral <- function(result = NULL,
       frequency_pairs <- matrix(frequency_pairs, ncol = 2)
       for (i in seq_len(nrow(frequency_pairs))){
         graphics::abline(v = frequency_pairs[i, 1], h = frequency_pairs[i, 2],
-                         lty = 3, col = "grey20")
+            lty = 3, col = "grey20")
       }
     }
     if (show_period_axes == TRUE){
@@ -576,23 +591,21 @@ plot_bispectral <- function(result = NULL,
     lv <- seq(map$limits[1], map$limits[2], length.out = length(map$colors) + 1)
     mid <- (lv[-1] + lv[-length(lv)]) / 2
     graphics::image(mid, 1, matrix(mid, ncol = 1), col = map$colors,
-                    zlim = map$limits, xlab = "", ylab = "", yaxt = "n")
+        zlim = map$limits, xlab = "", ylab = "", yaxt = "n")
     graphics::mtext(map$label, side = 2, las = 1, line = 0.5, cex = 0.8)
     graphics::box()
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
   if (is.null(result) || is.null(result$bicoherence_squared)){
     stop("result must be the output of bispectral_analysis()")
   }
   if (!(keep_bispectrum > 0 && keep_bispectrum <= 1 &&
-        keep_bicoherence > 0 && keep_bicoherence <= 1)){
+      keep_bicoherence > 0 && keep_bicoherence <= 1)){
     stop("keep fractions must lie in (0,1]")
   }
   if (!(color_grid >= 4 && color_grid <= 256 && color_grid == round(color_grid))){
@@ -620,28 +633,28 @@ plot_bispectral <- function(result = NULL,
 
   if (quantity == "overview"){
     graphics::layout(matrix(c(1, 2, 3, 4, 5, 6), 3, 2, byrow = TRUE),
-                     heights = c(1.1, 3, 0.55))
+        heights = c(1.1, 3, 0.55))
     graphics::par(oma = c(0, 0, 2, 0))
     mtm <- bisp_mtm_power(result)
     vis <- mtm$f >= fmin & mtm$f <= fmax & is.finite(mtm$p) & mtm$p > 0
     ylim <- bisp_log_power_limits(mtm$p[vis], 0.2)
     ttl <- c("Complex bispectrum amplitude, |B|",
-             "Magnitude-squared bicoherence, b^2")
+        "Magnitude-squared bicoherence, b^2")
     for (k in 1:2){
       graphics::par(mar = c(2.2, 4.5, 2, 1.5))
       pp <- mtm$p
       pp[!(is.finite(pp) & pp > 0)] <- NA
       graphics::plot(mtm$f, pp, type = "l", log = "y", xlim = c(fmin, fmax),
-                     ylim = ylim, xaxs = "i", xlab = "",
-                     ylab = "2pi MTM power", main = ttl[k], font.main = 1,
-                     cex.main = 1)
+          ylim = ylim, xaxs = "i", xlab = "",
+          ylab = "2pi MTM power", main = ttl[k], font.main = 1,
+          cex.main = 1)
     }
     m1 <- bisp_draw_map(result, "magnitude", keep_bispectrum, color_grid,
-                        fmin, fmax, reference_periods, frequency_pairs,
-                        peak_count, show_period_axes, show_significance)
+        fmin, fmax, reference_periods, frequency_pairs,
+        peak_count, show_period_axes, show_significance)
     m2 <- bisp_draw_map(result, "bicoherence", keep_bicoherence, color_grid,
-                        fmin, fmax, reference_periods, frequency_pairs,
-                        peak_count, show_period_axes, show_significance)
+        fmin, fmax, reference_periods, frequency_pairs,
+        peak_count, show_period_axes, show_significance)
     bisp_colorbar(m1)
     bisp_colorbar(m2)
     graphics::mtext(title, side = 3, outer = TRUE, font = 2, line = 0.5)
@@ -653,10 +666,10 @@ plot_bispectral <- function(result = NULL,
       keep <- keep_bicoherence
     }
     m <- bisp_draw_map(result, quantity, keep, color_grid, fmin, fmax,
-                       reference_periods, frequency_pairs, peak_count,
-                       show_period_axes, show_significance)
+        reference_periods, frequency_pairs, peak_count,
+        show_period_axes, show_significance)
     graphics::mtext(paste0(title, ": ", m$title), side = 3, line = 2.9,
-                    font = 2)
+        font = 2)
     bisp_colorbar(m)
   }
   invisible(NULL)

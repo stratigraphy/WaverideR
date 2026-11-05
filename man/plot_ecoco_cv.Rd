@@ -8,20 +8,25 @@ plot_ecoco_cv(
   ecoco = NULL,
   panels = 1:5,
   reverse_depth = FALSE,
-  palette = grDevices::hcl.colors(64, "viridis")
+  palette = .wr_hcl_cols(64, "viridis")
 )
 }
 \arguments{
-\item{ecoco}{Result of \code{ecoco_blocked}, \code{ecoco_interleaved} or
-\code{ecoco_adaptive}. \code{Default=NULL}}
+\item{ecoco}{eCOCO result to plot: the list returned by \code{\link{ecoco_blocked}},
+\code{\link{ecoco_interleaved}} or \code{\link{ecoco_adaptive}} (with \code{sr}, \code{depth}, \code{rho},
+\code{p_global}, \code{p_local}, \code{norbit}, \code{score} and \code{track}). Required (\code{Default=NULL} gives
+an error).}
 
-\item{panels}{Which panels to draw (1 rho, 2 global p, 3 local p,
-4 orbit count, 5 ridge score). \code{Default=1:5}}
+\item{panels}{Which maps to draw, side by side in the order given (integer vector with values 1 to 5):
+1 consensus correlation coefficient (rho), 2 SR-global p, 3 same-rate local p, 4 number of contributing orbital
+periods, 5 window-normalised ridge score with the tracked ridge. \code{Default=1:5}.}
 
-\item{reverse_depth}{Plot depth increasing downwards. \code{Default=FALSE}}
+\item{reverse_depth}{Reverse the depth axis so that depth increases downwards (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{palette}{Colour vector for the maps.
-\code{Default=grDevices::hcl.colors(64, "viridis")}}
+\item{palette}{Colours of the colour scale of all maps (character vector of colours, e.g. the output of
+\code{\link[grDevices]{hcl.colors}}); the first colour is used for the lowest values and the length of the vector
+sets the number of colour levels. \code{Default=} 64 viridis colours (dark purple to yellow).}
 }
 \value{
 Invisibly, the list of plotted matrices (rho, -log10 p maps,

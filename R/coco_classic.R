@@ -1,38 +1,57 @@
-# ---------------------------------------------------------------------------
 # 3. COCO (one record)
-# ---------------------------------------------------------------------------
 
 #' @title COCO analysis (Li et al. 2018)
 #' @description Correlation coefficient between the (AR(1)-corrected) data
 #'   periodogram and an astronomical target over a grid of sedimentation rates,
 #'   with the H0 (no orbital forcing) Monte Carlo test of Li et al. (2018).
 #'   Translated from Acycle corrcoefslices.m / cyclecorr.m (Mingsong Li).
-#' @param data two-column matrix/data.frame: depth (m), proxy value; evenly spaced
-#' @param target two-column target periodogram (cycles/kyr, power), from
-#'   coco_target_from_periods() or coco_target_from_series()
-#' @param orbit orbital periods (kyr); used to count the number of contributing
-#'   astronomical parameters. Default: the periods stored with the target
-#'   (coco_target_from_periods), else orbit7_default()
-#' @param sr tested sedimentation rates (cm/kyr)
-#' @param dt sampling interval \code{Default=NULL} (median spacing)
-#' @param pad zero padding of the data periodogram
-#' @param red 0 none, 1 subtract AR(1) (default, as in paper), 2 ratio AR(1),
-#'   3 robust AR(1), 50-99 remove red-noise confidence level
-#' @param nsim number of Monte Carlo simulations (paper: 2000)
-#' @param slices number of equal slices whose periodograms are averaged
-#' @param adjust 1 = adjust target band power to data (7-period target only)
-#' @param method "Pearson" (paper) or "Spearman"
-#' @param seed random seed \code{Default=NULL}
-#' @param keep_null return the Monte Carlo null matrix \code{Default=FALSE}
-#' @param verbose progress messages \code{Default=TRUE}
+#' @param data Record to analyse (matrix or data frame; the first two columns are used): depth in metres in column 1
+#' and the proxy in column 2, evenly spaced (it is not interpolated; incomplete rows are dropped and the rows sorted
+#' by depth). Required, no default.
+#' @param target Astronomical target periodogram (two-column matrix or data frame): frequency in cycles/kyr in
+#' column 1 and power in column 2, e.g. the output of \code{\link{coco_target_from_periods}},
+#' \code{\link{coco_target_from_series}}. Its peaks higher than half the mean
+#' power are rebuilt as Gaussian peaks with the Rayleigh width of the data at every tested rate. Required, no
+#' default.
+#' @param orbit Astronomical periods in kyr (numeric vector), used to count how many astronomical parameters
+#' contribute at each rate (and, with \code{adjust=1}, to define the target bands; then seven periods are needed).
+#' \code{NULL} uses the periods stored with the target (attribute \code{"orbit"}, set by
+#' \code{\link{coco_target_from_periods}}), or else the seven periods of Li et al. (2018) (400, 120.5, 93.1, 38.6,
+#' 23.0, 21.8 and 18.5 kyr). \code{Default=NULL}.
+#' @param sr Sedimentation rates to test, in cm/kyr (numeric vector, > 0). \code{Default=seq(0.2, 20, by = 0.2)}.
+#' @param dt Sampling interval of \code{data}, in metres (numeric, > 0); \code{NULL} uses the median spacing of the
+#' depth column. \code{Default=NULL}.
+#' @param pad Length (number of points) to which the data (or each slice) is zero-padded for the periodogram
+#' (integer, at least the number of samples); a larger value gives a finer frequency grid. \code{Default=5000}.
+#' @param red Red-noise treatment of the data periodogram (integer): \code{0} none; \code{1} the AR(1) background
+#' is subtracted (as in Li et al. 2018); \code{2} the periodogram is divided by the AR(1) background minus 1;
+#' \code{3} a robust AR(1) background (median-smoothed spectrum) is subtracted; a value from \code{50} to
+#' \code{99} divides by that AR(1) confidence level (in \%) minus 1, so only power above it remains. Negative values
+#' are set to zero. \code{Default=1}.
+#' @param nsim Number of Monte Carlo simulations of the null hypothesis of no astronomical forcing (random
+#' spectra with as many peaks as the data spectrum), used for the p-value \code{p_h0} and pCOCO (integer, >= 0;
+#' 2000 in Li et al. 2018); \code{0} skips them. \code{Default=0}.
+#' @param slices Number of equal-depth slices whose periodograms are averaged (integer, >= 1); \code{1} uses the
+#' whole record. \code{Default=1}.
+#' @param adjust Adjust the power of the target in four bands (long eccentricity, short eccentricity, obliquity,
+#' precession) to the power of the data in those bands at each rate (integer): \code{0} no, \code{1} yes (only for a
+#' seven-period target). \code{Default=0}.
+#' @param method Correlation coefficient between the data and target spectra (character): \code{"Pearson"} (as in
+#' Li et al. 2018) or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param keep_null Return the Monte Carlo null correlations (matrix, rates in rows, simulations in columns) as
+#' element \code{null} of the output (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param verbose Print progress messages of the Monte Carlo simulations (logical, TRUE or FALSE).
+#' \code{Default=TRUE}.
 #' @return list with data.frame `result` (sr, rho, p_param, p_h0, norbit, pcoco)
 #' @export
 coco_classic <- function(data, target, orbit = NULL,
-                         sr = seq(0.2, 20, by = 0.2), dt = NULL, pad = 5000,
-                         red = 1, nsim = 0, slices = 1, adjust = 0,
-                         method = c("Pearson", "Spearman"), seed = NULL,
-                         keep_null = FALSE, verbose = TRUE){
-  # ---- internal helper functions (local to this function) ----
+    sr = seq(0.2, 20, by = 0.2), dt = NULL, pad = 5000,
+    red = 1, nsim = 0, slices = 1, adjust = 0,
+    method = c("Pearson", "Spearman"), seed = NULL,
+    keep_null = FALSE, verbose = TRUE){
+  # Internal helper functions (local to this function)
 
   `%||%` <- function(a, b){
     if (is.null(a)){
@@ -42,7 +61,7 @@ coco_classic <- function(data, target, orbit = NULL,
     }
   }
 
-  # --- Detrending ---------------------------------------------------------------
+  # Detrending
   detrend_mean <- function(x){
     if (is.matrix(x)){
       sweep(x, 2, colMeans(x))
@@ -51,7 +70,7 @@ coco_classic <- function(data, target, orbit = NULL,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -87,7 +106,7 @@ coco_classic <- function(data, target, orbit = NULL,
     list(p = p_out, f = f)
   }
 
-  # --- Peak finder (strict local maxima, plateaus counted once) -----------------
+  # Peak finder (strict local maxima, plateaus counted once)
   ml_findpeaks <- function(y){
     y <- as.vector(y)
     n <- length(y)
@@ -108,7 +127,7 @@ coco_classic <- function(data, target, orbit = NULL,
     list(pks = vals[idx], locs = starts[idx])
   }
 
-  # --- Interpolation ------------------------------------------------------------
+  # Interpolation
   interp1_na <- function(x, y, xi){
     # Linear interpolation, NA outside range (MATLAB interp1 default).
     o <- order(x)
@@ -116,10 +135,10 @@ coco_classic <- function(data, target, orbit = NULL,
     y <- y[o]
     keep <- !duplicated(x)
     stats::approx(x[keep], y[keep], xout = xi, method = "linear", rule = 1,
-                  ties = "ordered")$y
+        ties = "ordered")$y
   }
 
-  # --- Moving median with shrinking endpoints -----------------------------------
+  # Moving median with shrinking endpoints
   move_median <- function(x, w){
     x <- as.vector(x)
     n <- length(x)
@@ -138,7 +157,7 @@ coco_classic <- function(data, target, orbit = NULL,
     out
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -175,7 +194,7 @@ coco_classic <- function(data, target, orbit = NULL,
         rss <- colSums(base^2)
         ls <- log(s0_g)
         matrix(rss, length(rho_g), length(s0_g)) + 2 * outer(rs, ls) +
-          length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
+            length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
       }
     }
     nn <- 50
@@ -225,7 +244,7 @@ coco_classic <- function(data, target, orbit = NULL,
     fit$s0 * (1 - fit$rho^2) / (1 - 2 * fit$rho * cos(pi * ft / fn) + fit$rho^2)
   }
 
-  # --- Correlation helpers ------------------------------------------------------
+  # Correlation helpers
   cor_with_p <- function(x, y, method = c("Pearson", "Spearman")){
     method <- match.arg(method)
     ok <- is.finite(x) & is.finite(y)
@@ -249,7 +268,7 @@ coco_classic <- function(data, target, orbit = NULL,
     c(rho = r, p = p)
   }
 
-  # --- Monte Carlo p-value and pCOCO -------------------------------------------
+  # Monte Carlo p-value and pCOCO
   pcoco_value <- function(rho, p){
     ps <- p
     ps[!is.finite(ps) | ps <= 0] <- NA
@@ -314,7 +333,7 @@ coco_classic <- function(data, target, orbit = NULL,
   # Adjust target band powers to data (targetadj_real.m; 7-period target only)
   target_adjust_real <- function(target, f, power, orbit7, rayleigh, sr){
     orbit5 <- c(0, 2 / (orbit7[1] + orbit7[2]), 2 / (orbit7[3] + orbit7[4]),
-                2 / (orbit7[4] + orbit7[6]), 0.06)
+        2 / (orbit7[4] + orbit7[6]), 0.06)
     aimarx <- f * sr / 100
     p4 <- numeric(4)
     for (i in 1:4){
@@ -334,7 +353,7 @@ coco_classic <- function(data, target, orbit = NULL,
     tp <- target[, 2]
     out <- numeric(length(tx))
     bands <- list(tx <= orbit5[2], tx > orbit5[2] & tx <= orbit5[3],
-                  tx > orbit5[3] & tx <= orbit5[4], tx > orbit5[4] & tx <= orbit5[5])
+        tx > orbit5[3] & tx <= orbit5[4], tx > orbit5[4] & tx <= orbit5[5])
     for (b in 1:4){
       idx <- which(bands[[b]])
       if (length(idx) && is.finite(p4[b])){
@@ -368,9 +387,7 @@ coco_classic <- function(data, target, orbit = NULL,
     out
   }
 
-  # ---------------------------------------------------------------------------
   # 2. Data spectrum with AR(1) background removed
-  # ---------------------------------------------------------------------------
   coco_data_spectrum <- function(dat, dt, pad, red = 1, slices = 1){
     x <- dat[, 1]
     v <- dat[, 2]
@@ -408,10 +425,10 @@ coco_classic <- function(data, target, orbit = NULL,
       ps <- cbind(ps, p)
     }
     list(f = f, p = rowMeans(ps), p_slices = ps,
-         rayleigh = 1 / (nslice * dt), nyquist = 1 / (2 * dt))
+        rayleigh = 1 / (nslice * dt), nyquist = 1 / (2 * dt))
   }
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   if (!is.null(seed)){
     set.seed(seed)
@@ -499,11 +516,11 @@ coco_classic <- function(data, target, orbit = NULL,
     }
   }
   res <- data.frame(sr = sr, rho = rho, p_param = p_param, p_h0 = p_h0,
-                    norbit = length(orbit) - nmi)
+      norbit = length(orbit) - nmi)
   res$pcoco <- pcoco_value(res$rho, res$p_h0)
   out <- list(result = res, spectrum = cbind(f = xx, power = yy), target = target,
-              target_peaks = tn, sr0 = sr0, rayleigh = dat_ray, npeaks = npks,
-              nsim = nsim, orbit = orbit, method = method, dt = dt)
+      target_peaks = tn, sr0 = sr0, rayleigh = dat_ray, npeaks = npks,
+      nsim = nsim, orbit = orbit, method = method, dt = dt)
   if (keep_null){
     out$null <- null
   }
@@ -514,19 +531,21 @@ coco_classic <- function(data, target, orbit = NULL,
 #' @title Plot a COCO result (Li et al. 2018 method)
 #' @description Correlation, H0 significance, number of contributing parameters
 #'   and pCOCO against sedimentation rate.
-#' @param x object returned by coco_classic()
-#' @param ... unused
+#' @param x COCO result to plot: the output of \code{\link{coco_classic}} (an object of class
+#' \code{coco_classic}). Required, no default.
+#' @param ... Not used; present for compatibility with the generic \code{plot} function.
 #' @return invisible NULL
 #' @export
 plot.coco_classic <- function(x, ...){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   .coco_panels <- function(sr, rho, p_list, norbit, pcoco, norb, main = "COCO"){
     np <- 2 + length(p_list) + !is.null(pcoco)
-    op <- graphics::par(mfrow = c(np, 1), mar = c(3.2, 4.2, 1.8, 1), mgp = c(2.1, 0.7, 0))
-    on.exit(graphics::par(op))
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(op), add = TRUE)
+    graphics::par(mfrow = c(np, 1), mar = c(3.2, 4.2, 1.8, 1), mgp = c(2.1, 0.7, 0))
     graphics::plot(sr, rho, type = "l", col = "red", lwd = 1.2,
-                   xlab = "Sedimentation rate (cm/kyr)", ylab = "Correlation coefficient", main = main)
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "Correlation coefficient", main = main)
     for (nm in names(p_list)){
       p <- p_list[[nm]]
       if (all(!is.finite(p))){
@@ -534,15 +553,15 @@ plot.coco_classic <- function(x, ...){
       }
       yl <- c(1, max(1e-4, 0.5 * min(p, na.rm = TRUE)))
       graphics::plot(sr, p, type = "l", col = "red", lwd = 1.2, log = "y", ylim = yl,
-                     xlab = "Sedimentation rate (cm/kyr)", ylab = nm, main = nm)
+          xlab = "Sedimentation rate (cm/kyr)", ylab = nm, main = nm)
       graphics::abline(h = c(0.1, 0.05, 0.01, 0.001), lty = c(3, 3, 2, 3), col = "grey30")
     }
     graphics::plot(sr, norbit, type = "s", col = "blue", lwd = 1.2, ylim = c(0, norb + 0.5),
-                   xlab = "Sedimentation rate (cm/kyr)", ylab = "#",
-                   main = "Number of contributing astronomical parameters")
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "#",
+        main = "Number of contributing astronomical parameters")
     if (!is.null(pcoco) && any(is.finite(pcoco))){
       graphics::plot(sr, pcoco, type = "l", col = "red", lwd = 1.5,
-                     xlab = "Sedimentation rate (cm/kyr)", ylab = "pCOCO", main = "pCOCO")
+          xlab = "Sedimentation rate (cm/kyr)", ylab = "pCOCO", main = "pCOCO")
       b <- which.max(pcoco)
       graphics::points(sr[b], pcoco[b], pch = 19, col = "darkred")
       graphics::text(sr[b], pcoco[b], sprintf("%.3g cm/kyr", sr[b]), pos = 4, cex = 0.9)
@@ -550,7 +569,7 @@ plot.coco_classic <- function(x, ...){
     invisible(NULL)
   }
 
-  # ---- main code ----
+  # Main code
   r <- x$result
   if (x$nsim > 0){
     pc <- r$pcoco
@@ -558,7 +577,7 @@ plot.coco_classic <- function(x, ...){
     pc <- NULL
   }
   .coco_panels(r$sr, r$rho, list("H0 significance level" = r$p_h0), r$norbit,
-               pc, length(x$orbit), "COCO (Li et al. 2018)")
+      pc, length(x$orbit), "COCO (Li et al. 2018)")
 }
 
 #' @export
@@ -572,6 +591,6 @@ print.coco_classic <- function(x, ...){
   }
   cat(sprintf("COCO (Li et al. 2018): %d rates, %d MC sims, %s correlation\n", nrow(r), x$nsim, x$method))
   cat(sprintf("Best rate %.4g cm/kyr: rho = %.3f, H0 p = %.3g, %d of %d parameters\n",
-              r$sr[b], r$rho[b], r$p_h0[b], r$norbit[b], length(x$orbit)))
+      r$sr[b], r$rho[b], r$p_h0[b], r$norbit[b], length(x$orbit)))
   invisible(x)
 }

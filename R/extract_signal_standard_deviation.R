@@ -8,47 +8,50 @@
 #' continuous wavelet transform using a Morlet wavelet.
 #'
 #'
-#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#' @param tracked_cycle_curve Curve of the cycle tracked using the
-#' \code{\link{track_period_wavelet}} function. Any input (matrix or data frame)
-#'  in which the first column is depth or time and the second column is period should work.
-#' @param multi multiple of the standard deviation to be used as boundaries for the cycle extraction
-#'  \code{Default=1}.
-#' @param extract_cycle Period of the cycle to be extracted.
-#' @param tracked_cycle_period Period of the tracked cycle.
-#' @param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
-#' @param tune Tune data set using the \code{Default=tracked_cycle_curve} curve \code{Default=FALSE}.
-#' @param genplot_uncertainty_wt Generate a wavelet spectra plot with the tracked curve and its
-#' analytical uncertainty based the Gabor uncertainty principle applied
-#' continuous wavelet transform using a Morlet wavelet on superimposed on top of it.
-#' In the plot the red curve and blue curves are the upper and lower bounds
-#'based on the \code{multi} parameter which x-times the standard deviation of uncertainty.
-#'The black curve is the \code{Default=FALSE} curve.
-#' @param genplot_extracted Generates a plot with the data set and
-#' the extracted cycle on top \code{Default=FALSE} of it.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
+#' @param wavelet Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+#' its coefficients and its number of cycles \code{omega_nr} sets the Gabor (Morlet) uncertainty. Required
+#' (\code{Default=NULL}).
+#' @param tracked_cycle_curve Tracked period of the cycle along the record (matrix or data frame: depth/time in
+#' column 1, period in column 2, in the depth/time unit of the wavelet), e.g. the output of
+#' \code{\link{track_period_wavelet}} completed with \code{\link{completed_series}}. Rows with \code{NA} are dropped
+#' and the curve is linearly interpolated (and extrapolated) to the depth/time axis of the wavelet. Required
+#' (\code{Default=NULL}).
+#' @param multi Multiple of the standard deviation of the analytical frequency uncertainty of the Morlet wavelet
+#' that sets the band boundaries, \code{1 / (f0 -/+ multi * sd)} around the frequency \code{f0} of the (rescaled)
+#' tracked period (numeric, > 0); larger values give a wider band. \code{Default=1}.
+#' @param extract_cycle Duration of the cycle to extract (numeric, > 0), in the same unit as
+#' \code{tracked_cycle_period}; use the same value to extract the tracked cycle itself. The tracked curve is
+#' multiplied by \code{extract_cycle / tracked_cycle_period}. Required (\code{Default=NULL}).
+#' @param tracked_cycle_period Duration in time of the tracked cycle, e.g. 405 (kyr) for the long eccentricity cycle
+#' (numeric, > 0), in the same unit as \code{extract_cycle}; also used for the tuning when \code{tune=TRUE}.
+#' Required (\code{Default=NULL}).
+#' @param add_mean Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+#' \code{FALSE} returns it centred on zero. \code{Default=TRUE}.
+#' @param tune Convert the extracted cycle (and the plots) from the depth to the time domain with
+#' \code{\link{curve2tune}}, using \code{tracked_cycle_curve} and \code{tracked_cycle_period} (logical, TRUE or
+#' FALSE). \code{Default=FALSE}.
+#' @param genplot_uncertainty_wt Plot the wavelet scalogram (with \code{\link{plot_wavelet}}) with the tracked curve
+#' (black) and the upper (red) and lower (blue) boundaries set by \code{multi} times the standard deviation of the
+#' uncertainty superimposed (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param genplot_extracted Plot the data with the extracted cycle (blue) on top of it (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param keep_editable Keep the plot settings active after the call so that extra features can be added to the
+#' plots (logical, TRUE or FALSE); \code{FALSE} restores the previous graphical parameters. \code{Default=FALSE}.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
@@ -69,7 +72,7 @@
 #'
 #'Gabor, Dennis. "Theory of communication. Part 1: The analysis of information."
 #' Journal of the Institution of Electrical Engineers-part III: radio and
-#' communication engineering 93, no. 26 (1946): 429-441.\url{https://doi.org/10.1049/ji-3-2.1946.0074}
+#' communication engineering 93, no. 26 (1946): 429-441. \doi{10.1049/ji-3-2.1946.0074}
 #'
 #'Russell, Brian, and Jiajun Han. "Jean Morlet and the continuous wavelet transform.
 #'" CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
@@ -156,7 +159,8 @@
 #'If \code{genplot_extracted=TRUE} plot with the data set and
 #'the extracted cycle on top of it will be plotted.
 #'
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats na.omit
 #' @importFrom graphics par
@@ -175,19 +179,21 @@
 
 
 extract_signal_standard_deviation <- function(wavelet = NULL,
-                                              tracked_cycle_curve = NULL,
-                                              multi = 1,
-                                              extract_cycle = NULL,
-                                              tracked_cycle_period = NULL,
-                                              add_mean = TRUE,
-                                              tune = FALSE,
-                                              genplot_uncertainty_wt = FALSE,
-                                              genplot_extracted = FALSE,
-                                              keep_editable = FALSE,
-                                              palette_name="rainbow",
-                                              color_brewer="grDevices",
-  colour_brewer = NULL) {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+    tracked_cycle_curve = NULL,
+    multi = 1,
+    extract_cycle = NULL,
+    tracked_cycle_period = NULL,
+    add_mean = TRUE,
+    tune = FALSE,
+    genplot_uncertainty_wt = FALSE,
+    genplot_extracted = FALSE,
+    keep_editable = FALSE,
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   my.w <- wavelet
   my.data <- cbind(wavelet$x, wavelet$y)
   filtered_cycle <- my.data[, 1]
@@ -196,14 +202,14 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
   completed_series <- na.omit(tracked_cycle_curve)
   completed_series[, 2] <-
-    completed_series[, 2] * (extract_cycle / tracked_cycle_period)
+      completed_series[, 2] * (extract_cycle / tracked_cycle_period)
   app <-
-    wr_approx_extrap(
-      x = completed_series[, 1],
-      y = completed_series[, 2],
-      xout = my.data[, 1],
-      method = "linear"
-    )
+      wr_approx_extrap(
+          x = completed_series[, 1],
+          y = completed_series[, 2],
+          xout = my.data[, 1],
+          method = "linear"
+      )
   interpolated <- cbind(app$x, app$y)
 
   Wave = my.w$Wave
@@ -222,7 +228,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / .wr_psi0(my.w)
+        dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
 
@@ -241,9 +247,9 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
 
   fact_high <-
-    1 / (interpolated$f0 - (interpolated$sd_morlet * multi))
+      1 / (interpolated$f0 - (interpolated$sd_morlet * multi))
   fact_low <-
-    1 / (interpolated$f0 + (interpolated$sd_morlet * multi))
+      1 / (interpolated$f0 + (interpolated$sd_morlet * multi))
 
   fact_high[fact_high > max(my.w$Period)] <- max(my.w$Period)
   fact_low[fact_low < min(my.w$Period)] <- min(my.w$Period)
@@ -255,7 +261,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
   for (i in 1:nrow(filtered_cycle)) {
     row_nr_high <- wr_closest(Period[], interpolated[i, 3], which = TRUE)
     row_nr_low <-
-      wr_closest(Period[], interpolated[i, 4], which = TRUE)
+        wr_closest(Period[], interpolated[i, 4], which = TRUE)
 
     row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]
@@ -269,7 +275,7 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
   rec_value  <- colSums(rec.waves, na.rm = T)
 
   filtered_cycle[, 2] <-
-    (filtered_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
+      (filtered_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
 
   if (add_mean == TRUE) {
     filtered_cycle[, 2] <- filtered_cycle[, 2] + mean(my.data[, 2])
@@ -282,49 +288,49 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
       on.exit(par(oldpar))
     }
     plot_wavelet(
-      wavelet = wavelet,
-      n.levels = 100,
-      palette_name = palette_name,
-      color_brewer= color_brewer,
-      useRaster = TRUE,
-      periodlab = "Period (metres)",
-      x_lab = "depth (metres)",
-      keep_editable = TRUE
+        wavelet = wavelet,
+        n.levels = 100,
+        palette_name = palette_name,
+        color_brewer= color_brewer,
+        useRaster = TRUE,
+        periodlab = "Period (metres)",
+        x_lab = "depth (metres)",
+        keep_editable = TRUE
     )
 
 
 
     combined_sedrate <-
-      cbind(interpolated[, 1],
+        cbind(interpolated[, 1],
             1 / interpolated[, 2],
             interpolated$sd_morlet * multi)
 
     xcords <-
-      c(combined_sedrate[, 1],
-        sort(combined_sedrate[, 1], decreasing = TRUE))
+        c(combined_sedrate[, 1],
+            sort(combined_sedrate[, 1], decreasing = TRUE))
     xcords
     data_sort1 <-
-      combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
+        combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
     ycords <-
-      c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
-        1 / (data_sort1[, 2] - data_sort1[, 3]))
+        c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
+            1 / (data_sort1[, 2] - data_sort1[, 3]))
 
     polygon(
-      x = xcords,
-      y = log2(ycords),
-      col = rgb(0.5, 0.5, 0.5, 0.5),
-      border = "black"
+        x = xcords,
+        y = log2(ycords),
+        col = rgb(0.5, 0.5, 0.5, 0.5),
+        border = "black"
     )
 
     lines(interpolated[, 1], log2(interpolated[, 2]), lwd = 2)
     lines(interpolated[, 1],
-          log2(interpolated[, 3]),
-          col = "red",
-          lwd = 2)
+        log2(interpolated[, 3]),
+        col = "red",
+        lwd = 2)
     lines(interpolated[, 1],
-          log2(interpolated[, 4]),
-          col = "blue",
-          lwd = 2)
+        log2(interpolated[, 4]),
+        col = "blue",
+        lwd = 2)
 
   }
 
@@ -336,10 +342,10 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
     }
     data_set <- cbind(wavelet$x, wavelet$y)
     data_set_time <- curve2tune(
-      data = data_set,
-      tracked_cycle_curve = tracked_cycle_curve,
-      tracked_cycle_period = tracked_cycle_period,
-      genplot = FALSE
+        data = data_set,
+        tracked_cycle_curve = tracked_cycle_curve,
+        tracked_cycle_period = tracked_cycle_period,
+        genplot = FALSE
     )
 
     dat <- as.matrix(data_set_time)
@@ -356,76 +362,76 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
     xout <- seq(start, end, by = dt)
     npts <- length(xout)
     interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                     n = npts)
+        n = npts)
     data_set_time <- as.data.frame(interp)
 
     data_set_time_wt <-
-      analyse_wavelet(
-        data = data_set_time,
-        dj = 1 / 200,
-        lowerPeriod = steps_size,
-        upperPeriod =  data_set_time[nrow(data_set_time), 1] - data_set_time[1, 1],
-        verbose = FALSE,
-        omega_nr = wavelet$omega_nr
-      )
+        analyse_wavelet(
+            data = data_set_time,
+            dj = 1 / 200,
+            lowerPeriod = steps_size,
+            upperPeriod =  data_set_time[nrow(data_set_time), 1] - data_set_time[1, 1],
+            verbose = FALSE,
+            omega_nr = wavelet$omega_nr
+        )
 
     plot_wavelet(
-      wavelet = data_set_time_wt,
-      n.levels = 100,
-      palette_name = "rainbow",
-      color_brewer= "grDevices",
-      useRaster = TRUE,
-      periodlab = "Period (kyr)",
-      x_lab = "depth (metres)",
-      keep_editable = TRUE
+        wavelet = data_set_time_wt,
+        n.levels = 100,
+        palette_name = "viridis",
+        color_brewer = "viridis",
+        useRaster = TRUE,
+        periodlab = "Period (kyr)",
+        x_lab = "depth (metres)",
+        keep_editable = TRUE
     )
 
 
     interpolated_time <- curve2tune(
-      data = interpolated[, c(1, 2)],
-      tracked_cycle_curve = tracked_cycle_curve,
-      tracked_cycle_period = tracked_cycle_period,
-      genplot = FALSE
+        data = interpolated[, c(1, 2)],
+        tracked_cycle_curve = tracked_cycle_curve,
+        tracked_cycle_period = tracked_cycle_period,
+        genplot = FALSE
     )
 
 
     combined_sedrate <-
-      cbind(
-        interpolated_time[, 1],
-        1 / (
-          interpolated[, 2] / (tracked_cycle_curve[, 2] * tracked_cycle_period)
+        cbind(
+            interpolated_time[, 1],
+            1 / (
+                interpolated[, 2] / (tracked_cycle_curve[, 2] * tracked_cycle_period)
+            )
+            ,
+            interpolated$sd_morlet * multi * (tracked_cycle_curve[, 2] * tracked_cycle_period)
         )
-        ,
-        interpolated$sd_morlet * multi * (tracked_cycle_curve[, 2] * tracked_cycle_period)
-      )
     xcords <-
-      c(combined_sedrate[, 1],
-        sort(combined_sedrate[, 1], decreasing = TRUE))
+        c(combined_sedrate[, 1],
+            sort(combined_sedrate[, 1], decreasing = TRUE))
     data_sort1 <-
-      combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
+        combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
     ycords <-
-      c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
-        1 / (data_sort1[, 2] - data_sort1[, 3]))
+        c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
+            1 / (data_sort1[, 2] - data_sort1[, 3]))
     polygon(
-      x = xcords,
-      y = log2(1 / ycords),
-      col = rgb(0.5, 0.5, 0.5, 0.5),
-      border = "black"
+        x = xcords,
+        y = log2(1 / ycords),
+        col = rgb(0.5, 0.5, 0.5, 0.5),
+        border = "black"
     )
 
     lines(interpolated_time[, 1], log2(interpolated[, 2]), lwd = 2)
     lines(interpolated_time[, 1],
-          log2((
+        log2((
             combined_sedrate[, 2] + combined_sedrate[, 3]
-          )),
-          col = "red",
-          lwd = 2)
+        )),
+        col = "red",
+        lwd = 2)
     lines(interpolated_time[, 1],
-          log2((
+        log2((
             combined_sedrate[, 2] - combined_sedrate[, 3]
-          )),
-          col = "blue",
-          lwd = 2)
+        )),
+        col = "blue",
+        lwd = 2)
 
   }
 
@@ -433,10 +439,10 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
 
   if (tune == TRUE) {
     filtered_cycle <- curve2tune(
-      data = filtered_cycle,
-      tracked_cycle_curve = tracked_cycle_curve,
-      tracked_cycle_period = tracked_cycle_period,
-      genplot = FALSE
+        data = filtered_cycle,
+        tracked_cycle_curve = tracked_cycle_curve,
+        tracked_cycle_period = tracked_cycle_period,
+        genplot = FALSE
     )
   }
 
@@ -449,10 +455,10 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
     wr_open_device(width = 7, height = 4)
     if (tune == TRUE) {
       my.data_time <- curve2tune(
-        data = my.data,
-        tracked_cycle_curve = tracked_cycle_curve,
-        tracked_cycle_period = tracked_cycle_period,
-        genplot = FALSE
+          data = my.data,
+          tracked_cycle_curve = tracked_cycle_curve,
+          tracked_cycle_period = tracked_cycle_period,
+          genplot = FALSE
       )
       plot(my.data_time, type = "l")
     } else{
@@ -463,8 +469,8 @@ extract_signal_standard_deviation <- function(wavelet = NULL,
       lines(filtered_cycle[, 1], filtered_cycle[, 2], col = "blue")
     } else{
       lines(filtered_cycle[, 1],
-            filtered_cycle[, 2] + mean(my.data[, 2]),
-            col = "blue")
+          filtered_cycle[, 2] + mean(my.data[, 2]),
+          col = "blue")
     }
 
 

@@ -11,12 +11,19 @@
 #' wavelet transform. Units are free: with the record length in metres (or kyr) the frequencies are in
 #' cycles per metre (or per kyr).
 #'
-#' @param T_length Length of the record (time or depth). Alternatively give \code{N} and \code{fs}.
-#' @param N Number of samples (used with \code{fs} when \code{T_length} is not given).
-#' @param fs Sampling frequency (samples per unit time or depth), \code{Default=1}.
-#' @param f Optional frequency (or frequencies) of interest in cycles per unit. Gives the relative
-#' uncertainty and the corresponding period range.
-#' @param period Optional period(s) of interest, an alternative to \code{f} (\code{f = 1 / period}).
+#' @param T_length Length of the record \eqn{T} in time or depth (numeric, > 0; a vector gives one row per value),
+#' in any
+#' unit (e.g. metres or kyr); the frequencies of the output are in cycles per that unit. If \code{NULL}, it is computed
+#' as \code{N / fs}, so either \code{T_length} or \code{N} must be given. \code{Default=NULL}.
+#' @param N Number of samples of the record (numeric, > 0); only used when \code{T_length} is \code{NULL}, together with
+#' \code{fs}, to compute \code{T_length = N / fs}. \code{Default=NULL}.
+#' @param fs Sampling frequency, i.e. samples per unit of time or depth (numeric, > 0; the inverse of the sampling
+#' interval); only used with \code{N}. \code{Default=1}.
+#' @param f Frequency or frequencies of interest in cycles per unit of \code{T_length} (numeric vector, > 0). If given,
+#' the output also contains the relative uncertainties and the period ranges at these frequencies. \code{NULL} gives
+#' only the absolute uncertainties. \code{Default=NULL}.
+#' @param period Period(s) of interest in the unit of \code{T_length} (numeric vector, > 0), an alternative to \code{f}
+#' (converted with \code{f = 1 / period}); ignored when \code{f} is given. \code{Default=NULL}.
 #'
 #' @return A data frame with the record length, the practical uncertainty \code{df_practical},
 #' the Heisenberg-Gabor limit \code{df_gabor}, their ratio and, when \code{f} or \code{period} is given, the
@@ -35,16 +42,22 @@
 #' @export
 fft_frequency_uncertainty <- function(T_length = NULL, N = NULL, fs = 1, f = NULL, period = NULL) {
   if (is.null(T_length)) {
-    if (is.null(N)) stop("give T_length or N (and fs)")
+    if (is.null(N)) {
+      stop("give T_length or N (and fs)")
+    }
     T_length <- N / fs
   }
-  if (any(T_length <= 0)) stop("the record length must be positive")
-  if (is.null(f) && !is.null(period)) f <- 1 / period
+  if (any(T_length <= 0)) {
+    stop("the record length must be positive")
+  }
+  if (is.null(f) && !is.null(period)) {
+    f <- 1 / period
+  }
   n <- max(length(T_length), length(f))
   T_length <- rep_len(T_length, n)
   out <- data.frame(T_length = T_length,
-                    df_practical = 1 / T_length,
-                    df_gabor = 1 / (4 * pi * T_length))
+      df_practical = 1 / T_length,
+      df_gabor = 1 / (4 * pi * T_length))
   out$ratio <- out$df_practical / out$df_gabor
   if (!is.null(f)) {
     out$f <- rep_len(f, n)
@@ -70,17 +83,29 @@ fft_frequency_uncertainty <- function(T_length = NULL, N = NULL, fs = 1, f = NUL
 #' frequencies are converted to curves of period (sedimentation rate) and with
 #' \code{\link{curve2time}} to uncertain time models.
 #'
-#' @param tracked_cycle Curve of the tracked cycle: a matrix or data frame whose first column is depth or time and the
-#' second column the period.
-#' @param period_of_tracked_cycle Period of the tracked cycle in time (e.g. 405 kyr).
-#' @param signal_length Length of the record (or window) that sets the frequency uncertainty, in the unit of the
-#' depth column. \code{Default=NULL}: the extent of \code{tracked_cycle}.
-#' @param type \code{"practical"} (1/T, default) or \code{"gabor"} (1/(4 pi T), the theoretical limit).
-#' @param multi Multiple of the uncertainty that is used \code{Default=1}.
-#' @param verbose Print text \code{Default=FALSE}.
-#' @param genplot_time Plot the time curves with the upper and lower uncertainty \code{Default=FALSE}.
-#' @param genplot_uncertainty Plot the period curves with the upper and lower uncertainty \code{Default=FALSE}.
-#' @param keep_editable Keep the plot settings after plotting \code{Default=FALSE}.
+#' @param tracked_cycle Curve of the tracked cycle, e.g. the output of \code{\link{track_period_wavelet}}: a matrix or
+#' data frame with depth in column 1 and the period of the tracked cycle (in the same depth unit, e.g. metres) in
+#' column 2; further columns are ignored. Required (\code{Default=NULL}).
+#' @param period_of_tracked_cycle Duration of one cycle of the tracked cycle in time (numeric, > 0, e.g. 405 for the
+#' 405-kyr eccentricity cycle); passed to \code{\link{curve2time}} and sets the time unit of the output. Required
+#' (\code{Default=NULL}).
+#' @param signal_length Length of the record (or of the window of an evolutive spectrum) that sets the frequency
+#' uncertainty, in the depth unit of \code{tracked_cycle} (numeric, > 0). \code{NULL} uses the depth range of
+#' \code{tracked_cycle}. \code{Default=NULL}.
+#' @param type Definition of the frequency uncertainty (character): \code{"practical"} uses the FFT bin spacing
+#' \eqn{1/T}; \code{"gabor"} uses the Heisenberg-Gabor limit \eqn{1/(4 \pi T)}, which is about 12.6 times smaller.
+#' \code{Default=c("practical", "gabor")}, i.e. \code{"practical"}.
+#' @param multi Multiple of the frequency uncertainty that is added to and subtracted from the frequency of the tracked
+#' cycle (numeric, > 0; e.g. 2 for twice the uncertainty). \code{Default=1}.
+#' @param verbose Print the total duration, its uncertainty and the frequency uncertainty (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param genplot_time Plot the time-depth curves of the mean, lower and upper uncertainty (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param genplot_uncertainty Plot the period-depth curves of the tracked cycle with its lower and upper uncertainty
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param keep_editable Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+#' features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+#' \code{Default=FALSE}.
 #'
 #' @return A data frame with the columns "depth", "period", "frequency", "uncertainty in frequency", "uncertainty in
 #' frequency x_times", "time mean", "time plus x_times" and "time min x_times" (the same layout as
@@ -91,19 +116,21 @@ fft_frequency_uncertainty <- function(T_length = NULL, N = NULL, fs = 1, f = NUL
 #' tail(unc, 2)
 #' @export
 fft_uncertainty <- function(tracked_cycle = NULL,
-                            period_of_tracked_cycle = NULL,
-                            signal_length = NULL,
-                            type = c("practical", "gabor"),
-                            multi = 1,
-                            verbose = FALSE,
-                            genplot_time = FALSE,
-                            genplot_uncertainty = FALSE,
-                            keep_editable = FALSE) {
+    period_of_tracked_cycle = NULL,
+    signal_length = NULL,
+    type = c("practical", "gabor"),
+    multi = 1,
+    verbose = FALSE,
+    genplot_time = FALSE,
+    genplot_uncertainty = FALSE,
+    keep_editable = FALSE) {
   type <- match.arg(type)
   data <- as.data.frame(tracked_cycle[, c(1, 2)])
-  if (is.null(signal_length)) signal_length <- diff(range(data[, 1]))
+  if (is.null(signal_length)) {
+    signal_length <- diff(range(data[, 1]))
+  }
   u <- fft_frequency_uncertainty(T_length = signal_length)
-  df <- if (type == "practical") u$df_practical else u$df_gabor
+  df <- if (type == "practical") { u$df_practical } else { u$df_gabor }
   data$f0 <- 1 / data[, 2]
   data$df <- rep(df, nrow(data))
   data$df_multi <- data$df * multi
@@ -128,7 +155,7 @@ fft_uncertainty <- function(tracked_cycle = NULL,
     }
     wr_open_device(width = 7, height = 7)
     plot(time_min, type = "l", col = "red", ylim = c(0, max(time_plus[, 2], time_min[, 2])),
-         xlab = "depth", ylab = "time")
+        xlab = "depth", ylab = "time")
     lines(time_plus, col = "blue")
     lines(time, col = "black", lwd = 3)
   }
@@ -147,8 +174,8 @@ fft_uncertainty <- function(tracked_cycle = NULL,
   data$time_min <- time_min[, 2]
   data$time_plus <- time_plus[, 2]
   colnames(data) <- c("depth", "period", "frequency", "uncertainty in frequency",
-                      "uncertainty in frequency x_times", "time mean",
-                      "time min x_times", "time plus x_times")
+      "uncertainty in frequency x_times", "time mean",
+      "time min x_times", "time plus x_times")
   attr(data, "type") <- type
   data
 }

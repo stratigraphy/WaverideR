@@ -1,16 +1,21 @@
 #' Luni-solar precession frequency (Farhat et al. 2022, eq. A.7)
 #'
-#' @param a_RE Earth-Moon distance in Earth radii
-#' @param lod_h length of day; if NULL it is derived from `a_RE` by
-#'   angular-momentum conservation
-#' @param obliquity_deg Earth's obliquity
-#' @param Ed dynamical ellipticity at the present spin rate
-#' @param lod_kind Type of day, `"solar"` or `"sidereal"`.
+#' @param a_RE Earth-Moon distance in Earth radii (numeric, > 0; the present value is about 60.14). Required, no
+#'   default. It sets the lunar part of the precession torque and, when \code{lod_h = NULL}, the length of day.
+#' @param lod_h Length of day in hours (numeric, > 0), of the type given by \code{lod_kind}. \code{NULL} derives the
+#'   Earth's spin rate from \code{a_RE} by conservation of the angular momentum of the Earth-Moon system
+#'   (\code{omega_from_moon_distance}). \code{Default=NULL}.
+#' @param obliquity_deg Earth's obliquity in degrees (numeric); the precession rate scales with its cosine.
+#'   \code{Default=.AC$obliquity0_deg}, the present value of 23.2545 degrees.
+#' @param Ed Dynamical ellipticity of the Earth at the present spin rate (numeric, dimensionless); it is scaled with the
+#'   square of the spin rate. \code{Default=.AC$Ed0}, i.e. 0.003243.
+#' @param lod_kind Type of day of \code{lod_h} (character): \code{"solar"} or \code{"sidereal"}; also used for the
+#'   length of day returned. \code{Default="solar"}.
 #' @return list: p in arcsec/yr and the precession period in kyr
 #' @export
 precession_frequency <- function(a_RE, lod_h = NULL, obliquity_deg = .AC$obliquity0_deg,
-                                 Ed = .AC$Ed0, lod_kind = "solar"){
-  # ---- internal helper functions (local to this function) ----
+    Ed = .AC$Ed0, lod_kind = "solar"){
+  # Internal helper functions (local to this function)
 
   astro_constants <- function(){
     AU <- 1.495978707e11            # m
@@ -24,17 +29,17 @@ precession_frequency <- function(a_RE, lod_h = NULL, obliquity_deg = .AC$obliqui
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   omega0 <- function(){
@@ -43,7 +48,7 @@ precession_frequency <- function(a_RE, lod_h = NULL, obliquity_deg = .AC$obliqui
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   if (is.null(lod_h)){
     omega <- omega_from_moon_distance(a_RE)
   } else {
@@ -51,8 +56,8 @@ precession_frequency <- function(a_RE, lod_h = NULL, obliquity_deg = .AC$obliqui
   }
   aM <- a_RE * .AC$RE
   p_rad_s <- 1.5 * (.AC$GMS / .AC$aE^3 + .AC$GMM / aM^3) * Ed *
-    omega / omega0()^2 * cos(obliquity_deg * pi / 180)
+      omega / omega0()^2 * cos(obliquity_deg * pi / 180)
   p_arcsec <- p_rad_s * .AC$arcsec_per_rad * .AC$yr
   list(p_arcsec = p_arcsec, p_kyr = 360 * 3600 / p_arcsec / 1000,
-       lod_h = lod_hours(omega, lod_kind), omega = omega)
+      lod_h = lod_hours(omega, lod_kind), omega = omega)
 }

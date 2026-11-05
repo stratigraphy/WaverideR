@@ -9,8 +9,8 @@ plot_wavelet_coherence(
   lowerPeriod = NULL,
   upperPeriod = NULL,
   n.levels = 100,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   useRaster = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
@@ -36,99 +36,106 @@ plot_wavelet_coherence(
 )
 }
 \arguments{
-\item{wavelet_coh}{wavelet_coh object created using the \code{\link{analyse_wavelet_coherence}} function.}
+\item{wavelet_coh}{Wavelet coherence object to plot (required): the list returned by
+\code{\link{analyse_wavelet_coherence}}. Its \code{Coherence}, \code{Phase}, \code{Period}, \code{x1}/\code{y1} and
+\code{x2}/\code{y2} elements are used. \code{Default=NULL}.}
 
-\item{lowerPeriod}{Lowest period value which will be plotted}
+\item{lowerPeriod}{Shortest period shown on the period axis, in the depth/time unit of the records (numeric, > 0).
+\code{NULL} uses the shortest period of \code{wavelet_coh}. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value which will be plotted}
+\item{upperPeriod}{Longest period shown on the period axis, in the depth/time unit of the records (numeric,
+> \code{lowerPeriod}). \code{NULL} uses the longest period of \code{wavelet_coh}. \code{Default=NULL}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the coherence scale (integer, > 1); the breaks are quantiles of the
+coherence. \code{Default=100}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function
-The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
-“bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
-”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
-“hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
-”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
-”vik”,”vikO”
-The R package 'Viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{useRaster}{Plot as a raster or vector image \code{Default=TRUE}.
-WARNING plotting as a vector image is computationally intensive.}
+\item{useRaster}{Draw the scalogram as a raster image (\code{TRUE}) or as a vector image of individual cells
+(\code{FALSE}) (logical). Vector images are slow to draw and give large files. \code{Default=TRUE}.}
 
-\item{periodlab}{Label for the y-axis \code{Default="Period (metres)"}.}
+\item{periodlab}{Label of the period axis (character). \code{Default="Period (metres)"}.}
 
-\item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth (metres)"}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}, layout) of the plot after the function returns, so that
+extra elements can be added to the plot afterwards (logical). With \code{FALSE} the previous graphical parameters
+are restored on exit. \code{Default=FALSE}.}
 
 \item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
 than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
 opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
 on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
-\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
+\code{options(waverider.dev_new = TRUE/FALSE)}. Logical.
+\code{Default=wr_dev_new_default()}: TRUE in the RStudio GUI, FALSE elsewhere.}
 
-\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
+\item{plot_dir}{Direction of the depth/time axis (logical): \code{TRUE} draws it with values increasing from left to
+right (or top to bottom in a vertical plot), \code{FALSE} reverses the axis. \code{Default=TRUE}.}
 
-\item{plot_arrows}{add the phase arrows of the cross superlet transform \code{Default=TRUE}}
+\item{plot_arrows}{Draw phase arrows on the scalogram (logical). Arrows are drawn at the local coherence maxima along
+the period axis whose coherence is above the \code{pwr_quant} quantile; their direction gives the phase difference
+between the two records (pointing right: in phase, left: anti-phase). \code{Default=TRUE}.}
 
-\item{pwr_quant}{Power quantile above which the arrows are plotted  \code{Default= 0.85}}
+\item{pwr_quant}{Quantile of the coherence (numeric, between 0 and 1) above which phase arrows are drawn; higher values
+give fewer arrows. \code{Default=0.85}.}
 
-\item{n_arrows}{number arrows width wise plotted on the time axis \code{Default= 50}}
+\item{n_arrows}{Approximate number of arrow positions along the depth/time axis (integer, > 0); the columns of the
+scalogram are thinned to about this number. \code{Default=75}.}
 
-\item{T_unit}{length of the arrows in depth/time units \code{Default=NULL}: automatic, a fixed visual length of 0.3 inch whatever the record length}
+\item{T_unit}{Horizontal size of the arrows in depth/time units (numeric). \code{NULL} (or \code{P_unit = NULL}) uses an
+automatic, fixed visual length of 0.3 inch whatever the record length. \code{Default=NULL}.}
 
-\item{P_unit}{length of the arrows in log2 period units \code{Default=NULL}: automatic (see \code{T_unit})}
+\item{P_unit}{Vertical size of the arrows in log2 period units (numeric). \code{NULL} (or \code{T_unit = NULL}) uses the
+automatic size (see \code{T_unit}). \code{Default=NULL}.}
 
-\item{arrow_length}{length of the slanted part of the arrow  \code{Default= 0.1}}
+\item{arrow_length}{Length of the edges of the arrow head, in inches (numeric; \code{length} of
+\code{\link[graphics]{arrows}}). \code{Default=0.075}.}
 
-\item{arrow_lwd}{thickness of the arrow \code{Default= 2}}
+\item{arrow_lwd}{Line width of the arrows (numeric). \code{Default=1.9}.}
 
-\item{arrow_angle}{angle of the slanted part of the arrow \code{Default= 25}}
+\item{arrow_angle}{Angle between the shaft and the edges of the arrow head, in degrees (numeric; \code{angle} of
+\code{\link[graphics]{arrows}}). \code{Default=25}.}
 
-\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-should be period values  \code{Default=NULL}}
+\item{add_lines}{Lines to draw on the scalogram, e.g. tracked periods (matrix or data frame, or \code{NULL} for none):
+depth/time in column 1 and one or more columns of period values after it; each period column is drawn as a separate
+line. \code{Default=NULL}.}
 
-\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-should be period values \code{Default=NULL}}
+\item{add_points}{Points to draw on the scalogram (matrix or data frame, or \code{NULL} for none): depth/time in
+column 1 and one or more columns of period values after it. \code{Default=NULL}.}
 
-\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_h}{Positions of extra horizontal lines (numeric vector, e.g. \code{c(2, 3, 5)}, or \code{NULL} for none).
+In a horizontal plot these are periods; in a vertical plot (\code{plot_horizontal = FALSE}) they are depth/time
+values. \code{Default=NULL}.}
 
-\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_v}{Positions of extra vertical lines (numeric vector or \code{NULL} for none). In a horizontal plot
+these are depth/time values; in a vertical plot they are periods. \code{Default=NULL}.}
 
-\item{add_data}{Plot the data on top of the wavelet \code{Default=TRUE}}
+\item{add_data}{Draw the two data series in a panel next to the scalogram, the second one in red (logical).
+\code{Default=TRUE}.}
 
-\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+\item{add_avg}{Draw the average coherence per period (\code{Coh.avg}) in a panel to the side of the scalogram
+(logical). \code{Default=FALSE}.}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the plot (logical): \code{TRUE} puts depth/time on the x-axis and period on the
+y-axis; \code{FALSE} draws a vertical plot with depth/time on the y-axis. \code{Default=TRUE}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 The output is a plot of a cross wavelet scalogram.

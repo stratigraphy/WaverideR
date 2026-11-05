@@ -26,28 +26,57 @@ astro_from_peaks(
 )
 }
 \arguments{
-\item{age}{approximate age in Ma: c(min, max), or a single value (then
-`age_tol` Ma is used on either side)}
+\item{age}{Approximate age of the record in Ma (numeric): \code{c(min, max)}, or a single value, which is
+widened by \code{age_tol} Ma on either side. Required, no default.}
 
-\item{e405, e125, e95}{c(min, max) wavelength (m) of the 405-kyr, ~125-kyr and
-~95-kyr eccentricity cycles (all three are required)}
+\item{e405, e125, e95}{Wavelength ranges in metres of the 405-kyr, ~125-kyr and ~95-kyr eccentricity cycles
+identified in the depth-domain spectrum (each a numeric vector \code{c(min, max)}). All three are required,
+no default.}
 
-\item{obl}{c(min, max) wavelength (m) of the obliquity cycle, if identified}
+\item{obl}{Wavelength range in metres of the obliquity cycle (k+s3), if identified (numeric vector
+\code{c(min, max)}); \code{NULL} if not identified. \code{Default=NULL}.}
 
-\item{prec_long, prec_mid, prec_short}{c(min, max) wavelength (m) of the
-precession cycles, longest to shortest (k+g5; k+g2; k+g4/k+g3). Give what
-you have; all three are needed for the precession test.}
+\item{prec_long, prec_mid, prec_short}{Wavelength ranges in metres of the precession cycles, from longest to
+shortest (k+g5; k+g2; k+g4/k+g3), each a numeric vector \code{c(min, max)} or \code{NULL}. All three must be
+given for the precession test to be used. \code{Default=NULL}.}
 
-\item{age_tol}{half-width (Ma) used when `age` is a single value}
+\item{age_tol}{Half-width in Ma of the age range used when \code{age} is a single value (numeric, >= 0).
+\code{Default=5}.}
 
-\item{nsim, ptest, sampleorb, s3_uncertainty, seed, verbose}{passed to ctest()}
+\item{nsim}{Number of accepted Monte Carlo samples to collect (integer, > 0); passed to \code{\link{ctest}}.
+\code{Default=2000}.}
 
-\item{mode}{"auto" picks PT / T / P from what you supplied}
+\item{ptest}{Range of precession constants k to sample, in years (numeric vector \code{c(min, max)}); passed to
+\code{\link{ctest}}. \code{Default=c(10000, 28000)}.}
 
-\item{method}{how k is converted to an Earth-Moon state:
-"angular_momentum" or "astrogeo22"}
+\item{mode}{Which cycles are used in the consistency test (character): \code{"auto"} picks the mode from the
+cycles supplied, \code{"PT"} precession and obliquity (tilt), \code{"T"} obliquity only, \code{"P"} precession
+only. Passed to \code{\link{ctest}}. \code{Default=c("auto", "PT", "T", "P")}, i.e. \code{"auto"}.}
 
-\item{data_dir}{folder with the AstroGeo22 table}
+\item{sampleorb}{How the secular frequencies g2-g5 are sampled, passed to \code{\link{ctest}} (character):
+\code{"U"} uniform within 2 sigma (as in the paper) or \code{"N"} normal. \code{Default="U"}.}
+
+\item{method}{How the sampled precession constants are converted into an Earth-Moon state (distance, length of
+day) by \code{\link{ctest_earthmoon}} (character): \code{"angular_momentum"} (Earth-Moon angular-momentum
+conservation) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve).
+\code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
+
+\item{s3_uncertainty}{How the uncertainty of s3 is sampled, passed to \code{\link{ctest}} (character):
+\code{"published"} follows the published CTest code, in which the relative uncertainty is applied as an
+absolute one in years (s3 is effectively fixed; use it to reproduce the paper); \code{"scaled"} applies it
+relative to the s3 period, as for g2-g5, giving s3 a realistic spread.
+\code{Default=c("published", "scaled")}, i.e. \code{"published"}.}
+
+\item{seed}{Seed of the random number generator (integer), passed to \code{\link{ctest}} so that the
+Monte Carlo results can be reproduced; \code{NULL} leaves the current random state unchanged.
+\code{Default=NULL}.}
+
+\item{verbose}{Print progress messages of the Monte Carlo sampling (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
+
+\item{data_dir}{Folder that contains the AstroGeo22 table \code{AstroGeo22.txt} (character path);
+\code{NULL} uses the copy installed with the package. Passed to \code{\link{ctest_earthmoon}} and
+\code{\link{astrogeo22}}. \code{Default=NULL}.}
 }
 \value{
 object of class `astro_from_peaks`: `$frequencies` (g, s, k in both

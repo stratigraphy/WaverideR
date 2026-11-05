@@ -30,58 +30,85 @@ check_agemodel(
 )
 }
 \arguments{
-\item{data}{Data frame or matrix with depth and the proxy.}
+\item{data}{Record to check (matrix or data frame): depth in column 1 and the proxy in column 2, in the same
+depth unit as \code{track}; incomplete rows are dropped and the rows are sorted by depth. Required, no default.}
 
-\item{track}{The existing track (\code{wr_track} or \code{\link{track_astro_auto}} result).}
+\item{track}{The existing age model as a track: a \code{wr_track} data frame with columns \code{depth},
+\code{sedrate} (depth units per kyr) and \code{time} (kyr), e.g. from \code{\link{as_wr_track}}, or the output of
+\code{\link{track_astro_auto}}. Required, no default.}
 
-\item{age_ma}{Age (Ma) used to pick the astronomical periods with \code{\link{astro_periods_tracking}} when
-\code{astro_periods} is not given \code{Default=0}.}
+\item{age_ma}{Age of the record in Ma (numeric, 0 to 4429), used to pick the astronomical periods with
+\code{\link{astro_periods_tracking}} when \code{astro_periods} is \code{NULL}, and passed to
+\code{\link{track_astro_auto}} for the blind re-track. \code{Default=0}.}
 
-\item{astro_periods}{Periods (kyr) of the cycles to measure; by default the 405, 124 and 95 kyr eccentricity
-cycles, the main obliquity term and the two strongest precession terms for \code{age_ma}.}
+\item{astro_periods}{Periods of the astronomical cycles to measure, in kyr (numeric vector, at least two values);
+cycles shorter than 2.5 times the sample spacing in the time of the track are dropped. \code{NULL} uses the 405.7,
+123.9 and 94.9 kyr eccentricity cycles, the strongest obliquity term and the two strongest precession terms for
+\code{age_ma}. \code{Default=NULL}.}
 
-\item{transforms}{Which transforms of \code{\link{analyse_dechirped}} to use
+\item{transforms}{Transforms of \code{\link{analyse_dechirped}} on which the offsets are measured (character
+vector, any of \code{"wavelet"}, \code{"superlet_sst"}, \code{"wavelet_sst"}, \code{"chirplet_sst"}, \code{"eha"},
+\code{"combined"}); each is computed separately, so fewer transforms run faster.
 \code{Default=c("wavelet", "eha", "superlet_sst", "chirplet_sst")}.}
 
-\item{band}{Half-width (octaves) of the band around each (shifted) expected period in which a cycle's own ridge is
-looked for; it is narrowed where two cycles are closer than that \code{Default=0.3}.}
+\item{band}{Half-width of the band around each (shifted) expected period in which the ridge of that cycle is
+looked for, in octaves (numeric, > 0); it is narrowed to half the distance to a neighbouring cycle where two
+cycles are closer. \code{Default=0.3}.}
 
-\item{max_shift}{Largest common shift (octaves) of the comb that is searched, i.e. a rate error of up to a factor
-\code{2^max_shift}; a best shift at the edge of the grid is discarded \code{Default=1.2}.}
+\item{max_shift}{Largest common shift of the comb that is searched, in octaves (numeric, > 0), i.e. a rate error
+of up to a factor \code{2^max_shift} either way; a best shift at the edge of the search grid is discarded.
+\code{Default=1.2}.}
 
-\item{tolerance}{Relative rate correction above which an interval is flagged \code{Default=0.1}.}
+\item{tolerance}{Relative rate correction above which an interval is flagged (numeric, > 0; \code{0.1} means a
+correction factor above 1.1 or below 1/1.1). \code{Default=0.1}.}
 
-\item{min_cycles, min_transforms}{Minimum number of cycles and transforms supporting a flag \code{Default=2}.}
+\item{min_cycles}{Minimum number of cycles (integer) whose ridges must support a correction for an interval to be
+flagged. \code{Default=2}.}
 
-\item{min_strength}{Minimum ridge prominence (ratio of the band maximum to the median of the column) for an
-offset to count; squeezed transforms use a tenth of it on their sparse maps \code{Default=1.5}.}
+\item{min_transforms}{Minimum number of transforms (integer) that must agree on the direction of a correction
+larger than \code{tolerance} for an interval to be flagged. \code{Default=2}.}
 
-\item{min_contrast}{Minimum contrast of the best shift (its score above the median over all shifts, in MADs) for a
-column to count \code{Default=1.5}.}
+\item{min_strength}{Minimum ridge prominence for an offset to count (numeric, > 1): the ratio of the maximum in
+the band to the median of the time column; the squeezed transforms (\code{"superlet_sst"},
+\code{"wavelet_sst"}, \code{"chirplet_sst"}) use a tenth of it on their sparse maps. \code{Default=1.5}.}
 
-\item{eha_window}{Window (kyr) of the multitaper EHA in the time of the track; by default 2.5 times the longest
-cycle, so that the 405-kyr cycle is resolved \code{Default=NULL}.}
+\item{min_contrast}{Minimum contrast of the best comb shift for a time column to count (numeric, > 0): the score
+of the best shift above the median score over all shifts, in median absolute deviations. \code{Default=1.5}.}
 
-\item{n_max}{Records longer than this are resampled in depth before the transforms \code{Default=6000}.}
+\item{eha_window}{Window length of the multitaper EHA, in kyr of the track (numeric, > 0); passed as
+\code{window} to \code{\link{analyse_dechirped}} and only used by \code{"eha"} and \code{"combined"}. \code{NULL}
+uses 2.5 times the longest cycle (at most a third of the duration of the track), so that the 405-kyr cycle is
+resolved. \code{Default=NULL}.}
 
-\item{clip}{Restrict the record to the depth range of the track (beyond it the track is extrapolated with its
-end rates, which can dominate the time axis) \code{Default=TRUE}.}
+\item{n_max}{Maximum number of samples (integer); a longer record is smoothed with a moving average and resampled
+to \code{n_max} evenly spaced depths before the transforms, to keep the run time down. \code{Default=6000}.}
 
-\item{min_length}{Shortest flagged interval kept and shortest gap merged, in kyr of the track; by default half the
-longest cycle \code{Default=NULL}.}
+\item{clip}{Restrict the record to the depth range of \code{track} (logical, TRUE or FALSE); beyond that range the
+track would be extrapolated with its end rates, which can dominate the time axis. \code{Default=TRUE}.}
 
-\item{harmonics}{Add the 203 and 135 kyr harmonics of the 405-kyr cycle to the comb (weight 0.4), so that a
-non-sinusoidal long eccentricity cycle is not read as shifted 124 and 95 kyr cycles \code{Default=TRUE}.}
+\item{min_length}{Shortest flagged interval that is kept, and longest gap between two flags of the same sign that
+is closed, in kyr of the track (numeric, >= 0). \code{NULL} uses half the longest cycle. \code{Default=NULL}.}
 
-\item{retrack}{Run a blind chirp-matched re-track for comparison \code{Default=TRUE}.}
+\item{harmonics}{Add the 202.9 and 135.2 kyr harmonics of the 405.7-kyr cycle to the comb with weight 0.4
+(logical, TRUE or FALSE), so that a non-sinusoidal long eccentricity cycle is not read as shifted 124 and 95 kyr
+cycles; only used when a 405-kyr cycle is in \code{astro_periods}. \code{Default=TRUE}.}
 
-\item{sedrate}{Rate range for the blind re-track; by default half to twice the range of the existing track.}
+\item{retrack}{Also run a blind chirp-matched re-track with \code{\link{track_astro_auto}}
+(\code{method="chirp"}) for comparison (logical, TRUE or FALSE); its rate is added to the profile as
+\code{sedrate_retrack}. \code{Default=TRUE}.}
 
-\item{dj}{Period resolution (octaves) \code{Default=1/50}.}
+\item{sedrate}{Range of the sedimentation rate searched by the blind re-track, \code{c(lower, upper)} in depth
+units per kyr (numeric vector of length 2); only used when \code{retrack=TRUE}. \code{NULL} uses half the lowest
+to twice the highest rate of \code{track}. \code{Default=NULL}.}
 
-\item{verbose}{Print progress \code{Default=TRUE}.}
+\item{dj}{Spacing of the period axis, and of the grid of comb shifts, in octaves (numeric, > 0; smaller is finer
+but slower); passed to \code{\link{analyse_dechirped}} and \code{\link{track_astro_auto}}. \code{Default=1/50}.}
 
-\item{...}{Passed to \code{\link{analyse_dechirped}}.}
+\item{verbose}{Print progress messages (logical, TRUE or FALSE). \code{Default=TRUE}.}
+
+\item{...}{Further arguments passed to \code{\link{analyse_dechirped}} (e.g. \code{omega_nr}, \code{n_sim},
+\code{seed}) and from there to the transform function; \code{lowerPeriod}, \code{upperPeriod}, \code{dj} and
+\code{window} are set by \code{check_agemodel} and cannot be given here.}
 }
 \value{
 A list of class \code{wr_agemodel_check}: \code{profile} (data frame with \code{depth}, \code{time},
@@ -122,7 +149,8 @@ t <- seq(0, 3000, 1)
 x <- cos(2 * pi * t / 405) + 0.8 * cos(2 * pi * t / 100) + 0.6 * cos(2 * pi * t / 41) +
   rnorm(length(t), 0, 0.8)
 rate <- ifelse(t < 1500, 0.05, 0.08)      # a step in the rate the age model does not know
-z <- cumsum(rate); data <- data.frame(z, x)
+z <- cumsum(rate)
+data <- data.frame(z, x)
 track <- as_wr_track(data.frame(z, 0.065), "sedrate")   # a constant-rate age model
 chk <- check_agemodel(data, track, age_ma = 0, transforms = c("wavelet", "superlet_sst"),
     retrack = FALSE)

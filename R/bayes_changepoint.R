@@ -26,33 +26,34 @@
 #' nCk.m (Mingsong Li, modified from the code of Eric Ruggieri); default
 #' hyperparameters as in the Acycle "Changepoint" menu (AC.m).
 #'
-#' @param data Input data set, a matrix with 2 columns: first column depth or
-#' time, second column the proxy. Data points are treated as equally spaced
-#' (the regression uses the sample index as predictor, as in Acycle).
-#' @param k_max Maximum number of change points \code{Default=10}
-#' @param d_min Minimum distance (in data points) between adjacent change
-#' points, i.e. minimum segment length \code{Default=1}
-#' @param k_0 Hyperparameter (variance scaling) of the prior on the
-#' regression coefficients \code{Default=0.01}
-#' @param v_0 Hyperparameter (pseudo data points) of the scaled inverse
-#' chi-square prior on the variance \code{Default=NULL} which equals
-#' \code{ceiling(abs(x[n]-x[1])/44)} as in Acycle.
-#' @param sig_0 Hyperparameter (pseudo data variance) of the scaled inverse
-#' chi-square prior on the variance \code{Default=NULL} which equals the
-#' variance of the proxy.
-#' @param n_sim Number of sampled solutions \code{Default=500}
-#' @param seed Seed for the random number generator, \code{Default=NULL}
-#' (no seed is set).
-#' @param ci Probabilities of the pointwise credible interval of the model
-#' \code{Default=c(0.025,0.975)}
-#' @param stable Use numerically safe log-space arithmetic (shifted
-#' log-sum-exp, \code{lgamma}, log binomial coefficients). With the default
-#' \code{FALSE} the arithmetic of Acycle is reproduced exactly
-#' (\code{log(sum(exp(.)))} in linear space), which under- or overflows for
-#' long records or records with a very small/large variance; a warning is
-#' given when that happens. \code{Default=FALSE}
-#' @param genplot Generate a plot \code{Default=FALSE}
-#' @param verbose Print a progress bar \code{Default=FALSE}
+#' @param data Record to analyse (matrix or data frame with two columns: depth or time in column 1, proxy value
+#' in column 2; finite values only, at least two rows). Data points are treated as equally spaced (the
+#' regression uses the sample index as predictor, as in Acycle). Required, no default (\code{Default=NULL} gives
+#' an error).
+#' @param k_max Maximum number of change points considered (integer, >= 1). \code{Default=10}.
+#' @param d_min Minimum distance in data points between adjacent change points, i.e. the minimum segment length
+#' (integer, >= 1). \code{Default=1}.
+#' @param k_0 Hyperparameter (variance scaling) of the normal prior on the regression coefficients (numeric,
+#' > 0); smaller values give a vaguer prior. \code{Default=0.01}.
+#' @param v_0 Hyperparameter (number of pseudo data points) of the scaled inverse chi-square prior on the
+#' segment variance (numeric, > 0); \code{NULL} uses \code{ceiling(abs(x[n] - x[1]) / 44)}, with x the first
+#' column of \code{data}, as in Acycle. \code{Default=NULL}.
+#' @param sig_0 Hyperparameter (pseudo data variance) of the scaled inverse chi-square prior on the segment
+#' variance (numeric, > 0); \code{NULL} uses the variance of the proxy. \code{Default=NULL}.
+#' @param n_sim Number of solutions (number and positions of the change points with their segment regressions)
+#' drawn by stochastic backtrace (integer, >= 1). \code{Default=500}.
+#' @param seed Seed of the random number generator (integer), so that the sampled solutions can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param ci Lower and upper probabilities of the pointwise credible interval of the model (numeric vector of
+#' length 2, between 0 and 1). \code{Default=c(0.025,0.975)}.
+#' @param stable Use numerically safe log-space arithmetic (shifted log-sum-exp, \code{lgamma}, log binomial
+#' coefficients) (logical, TRUE or FALSE). With \code{FALSE} the arithmetic of Acycle is reproduced exactly
+#' (\code{log(sum(exp(.)))} in linear space), which under- or overflows for long records or records with a very
+#' small or large variance; a warning is given when that happens. \code{Default=FALSE}.
+#' @param genplot Plot the result with \code{\link{plot_bayes_changepoint}} (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param verbose Show a text progress bar while the solutions are sampled (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Eric Ruggieri,
 #' modified for Acycle by Mingsong Li.
@@ -108,22 +109,20 @@
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 bayes_changepoint <- function(data = NULL,
-                              k_max = 10,
-                              d_min = 1,
-                              k_0 = 0.01,
-                              v_0 = NULL,
-                              sig_0 = NULL,
-                              n_sim = 500,
-                              seed = NULL,
-                              ci = c(0.025, 0.975),
-                              stable = FALSE,
-                              genplot = FALSE,
-                              verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    k_max = 10,
+    d_min = 1,
+    k_0 = 0.01,
+    v_0 = NULL,
+    sig_0 = NULL,
+    n_sim = 500,
+    seed = NULL,
+    ci = c(0.025, 0.975),
+    stable = FALSE,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -160,7 +159,7 @@ bayes_changepoint <- function(data = NULL,
       stop("k_0, v_0 and sig_0 must be positive")
     }
     list(x = x, y = y, k_max = k_max, d_min = d_min, k_0 = k_0, v_0 = v_0,
-         sig_0 = sig_0, n_sim = n_sim)
+        sig_0 = sig_0, n_sim = n_sim)
   }
 
   # @keywords internal
@@ -253,13 +252,13 @@ bayes_changepoint <- function(data = NULL,
       b2 <- bh$b2
       g <- b1 + b2 * i - y[i]
       ssr <- s_zz[sel] - 2 * g * s_z[sel] - 2 * b2 * s_uz[sel] + a * g * g +
-        2 * g * b2 * s_u[sel] + b2 * b2 * s_uu[sel]
+          2 * g * b2 * s_u[sel] + b2 * b2 * s_uu[sel]
       ssr[ssr < 0] <- 0
       s_n <- v_0 * sig_0 + k_0 * (b1 * b1 + b2 * b2) + ssr
       v_n <- v_0 + a
       dj <- bcp_det2(j11, j12, j22)
       py[i, (j0):nn] <- const + lgamma(v_n / 2) - v_n * log(s_n / 2) / 2 -
-        a * log(2 * pi) / 2 - log(dj) / 2
+          a * log(2 * pi) / 2 - log(dj) / 2
     }
     py
   }
@@ -353,7 +352,7 @@ bayes_changepoint <- function(data = NULL,
   # @keywords internal
   # @noRd
   bcp_sample <- function(y, py, pp, kprob, n_sim, k_0, stable = FALSE,
-                         keep_models = TRUE, verbose = FALSE){
+      keep_models = TRUE, verbose = FALSE){
     # stochastic backtrace (bayes_cpt.m step 5)
     nn <- length(y)
     k_max <- nrow(pp)
@@ -434,25 +433,25 @@ bayes_changepoint <- function(data = NULL,
     model <- beta1 + tt_all * beta2
     r2 <- 1 - sum((y - model)^2) / sum(y^2)
     list(samp_holder = samp_holder, chgpt_loc = chgpt_loc, beta1 = beta1,
-         beta2 = beta2, model = model, r2 = r2, n_cpt = n_cpt, models = models)
+        beta2 = beta2, model = model, r2 = r2, n_cpt = n_cpt, models = models)
   }
 
-  # ---- main code ----
+  # Main code
   prep <- bcp_prepare(data, k_max, d_min, k_0, v_0, sig_0, n_sim)
   if (!is.null(seed)){
     set.seed(seed)
   }
   py <- bcp_log_py(prep$y, prep$d_min, prep$k_0, prep$v_0, prep$sig_0,
-                   stable = stable)
+      stable = stable)
   pp <- bcp_partition(py, prep$k_max, stable = stable)
   kprob <- bcp_k_posterior(pp, py, prep$k_max, prep$d_min, stable = stable)
   if (any(!is.finite(kprob))){
     warning(paste0("Non-finite posterior probabilities: the Acycle ",
-                   "(linear-space) arithmetic under/overflowed. Use ",
-                   "stable = TRUE."))
+        "(linear-space) arithmetic under/overflowed. Use ",
+        "stable = TRUE."))
   }
   smp <- bcp_sample(prep$y, py, pp, kprob, prep$n_sim, prep$k_0,
-                    stable = stable, keep_models = TRUE, verbose = verbose)
+      stable = stable, keep_models = TRUE, verbose = verbose)
 
   x <- prep$x
   nn <- length(x)
@@ -481,21 +480,21 @@ bayes_changepoint <- function(data = NULL,
   beta <- cbind(intercept = smp$beta1, slope = smp$beta2)
 
   out <- list(model = model,
-              cpt = cpt,
-              r2 = smp$r2,
-              k_posterior = k_post,
-              model_ci = model_ci,
-              beta = beta,
-              samples = smp$samp_holder,
-              samples_x = samples_x,
-              n_cpt = smp$n_cpt,
-              sample_models = smp$models,
-              log_partition = pp,
-              data = cbind(x = x, y = prep$y),
-              param = list(k_max = prep$k_max, d_min = prep$d_min,
-                           k_0 = prep$k_0, v_0 = prep$v_0,
-                           sig_0 = prep$sig_0, n_sim = prep$n_sim,
-                           ci = ci, stable = stable))
+      cpt = cpt,
+      r2 = smp$r2,
+      k_posterior = k_post,
+      model_ci = model_ci,
+      beta = beta,
+      samples = smp$samp_holder,
+      samples_x = samples_x,
+      n_cpt = smp$n_cpt,
+      sample_models = smp$models,
+      log_partition = pp,
+      data = cbind(x = x, y = prep$y),
+      param = list(k_max = prep$k_max, d_min = prep$d_min,
+          k_0 = prep$k_0, v_0 = prep$v_0,
+          sig_0 = prep$sig_0, n_sim = prep$n_sim,
+          ci = ci, stable = stable))
   if (genplot == TRUE){
     plot_bayes_changepoint(out)
   }

@@ -5,25 +5,25 @@
 #' \code{\link{retrack_wt_MC}} function to a depth time space while also
 #' taking into account the uncertainty of the tracked astronomical cycle
 #'
-#' @param tracked_cycle_curve  Curve of the cycle tracked using the
-#' \code{\link{retrack_wt_MC}} function \cr
-#' Any input (matrix or data frame) with 3 columns in which column 1 is the
-#' x-axis, column 2 is the  mean tracked frequency (in cycles/metres) column 3
-#' 1 standard deviation
-#'@param tracked_cycle_period Period of the tracked curve in kyr.
-#'@param tracked_cycle_period_unc uncertainty in the period of the tracked cycle
-#'@param tracked_cycle_period_unc_dist distribution of the uncertainty of the
-#'tracked cycle value need to be either "u" for uniform distribution or
-#'"n" for normal distribution  \code{Default="n"}
-#'@param n_simulations number of time series to be modeled
-#'@param output If output = 1 a matrix with the predicted ages given the input for each run
-#'is given. If output = 2 a matrix with 6 columns is generated,
-#'the first column is depth/height, the other columns are the quantile
-#'(0.025,0.373,0.5,0.6827,0.975) age values of the runs
-#'if output = 3 a matrix with 4 columns is generated with the first column
-#'being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
-#'is mean duration + 1 standard deviation and column 4  is mean duration -  1
-#'standard deviation
+#' @param tracked_cycle_curve Re-tracked cycle with its uncertainty (matrix or data frame, three columns): depth in
+#' metres in column 1, the mean tracked frequency in cycles per metre in column 2 and its standard deviation (1
+#' sigma, cycles per metre) in column 3, e.g. the output of \code{\link{retrack_wt_MC}}. Rows with \code{NA} are
+#' dropped and the curve is interpolated to its median depth spacing. Required (\code{Default=NULL} gives an
+#' error).
+#' @param tracked_cycle_period Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+#' long eccentricity cycle). Required (\code{Default=NULL} gives an error).
+#' @param tracked_cycle_period_unc Uncertainty of \code{tracked_cycle_period} in kyr (single numeric value,
+#' >= 0): the standard deviation when \code{tracked_cycle_period_unc_dist="n"}, the half-width of the range when
+#' \code{"u"}. Required (\code{Default=NULL} gives an error).
+#' @param tracked_cycle_period_unc_dist Distribution from which the duration of the tracked cycle is drawn in every
+#' simulation (character): \code{"n"} normal or \code{"u"} uniform. \code{Default="n"}.
+#' @param n_simulations Number of age models to simulate (integer, > 0); in every simulation one duration and one
+#' quantile of the frequency uncertainty (applied along the whole curve) are drawn. Simulations whose age model is
+#' not monotonic are discarded. Required (\code{Default=NULL} gives an error).
+#' @param output Form of the result (integer): \code{1} a matrix with the simulated ages (kyr) at every depth, one
+#' column per kept simulation; \code{2} a matrix with depth, the mean tracked frequency and the 0.02275, 0.373,
+#' 0.5, 0.6827 and 0.97725 quantiles of the simulated ages; \code{3} a matrix with depth, the mean and the
+#' standard deviation of the simulated ages. \code{Default=1}.
 #'
 #' @author
 #'Based on the \link[astrochron]{sedrate2time}
@@ -328,11 +328,11 @@
 #' @importFrom stats pnorm
 
 curve2time_unc <- function(tracked_cycle_curve = NULL,
-                           tracked_cycle_period = NULL,
-                           tracked_cycle_period_unc = NULL,
-                           tracked_cycle_period_unc_dist = "n",
-                           n_simulations = NULL,
-                           output = 1) {
+    tracked_cycle_period = NULL,
+    tracked_cycle_period_unc = NULL,
+    tracked_cycle_period_unc_dist = "n",
+    n_simulations = NULL,
+    output = 1) {
   dat <- as.matrix(tracked_cycle_curve[,])
   dat <- na.omit(dat)
   dat <- dat[order(dat[, 1], na.last = NA, decreasing = F), ]
@@ -346,54 +346,54 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
   xout <- seq(start, end, by = dt)
   npts <- length(xout)
   interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                   n = npts)
+      n = npts)
 
   interp_2 <- approx(dat[, 1], dat[, 3], xout, method = "linear",
-                     n = npts)
+      n = npts)
 
   tracked_cycle_curve_2 <-
-    cbind(interp[[1]], interp[[2]], interp_2[[2]])
+      cbind(interp[[1]], interp[[2]], interp_2[[2]])
   out <-
-    matrix(
-      data = NA,
-      nrow = nrow(tracked_cycle_curve_2),
-      ncol = n_simulations
-    )
+      matrix(
+          data = NA,
+          nrow = nrow(tracked_cycle_curve_2),
+          ncol = n_simulations
+      )
 
 
   for (i in 1:n_simulations) {
     if (tracked_cycle_period_unc_dist == "u") {
       tracked_cycle_period_new <-
-        runif(
-          1,
-          min = tracked_cycle_period - tracked_cycle_period_unc,
-          max = tracked_cycle_period + tracked_cycle_period_unc
-        )
+          runif(
+              1,
+              min = tracked_cycle_period - tracked_cycle_period_unc,
+              max = tracked_cycle_period + tracked_cycle_period_unc
+          )
     }
 
     if (tracked_cycle_period_unc_dist == "n") {
       tracked_cycle_period_new <-
-        rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
+          rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
     }
 
 
     new_curve <- tracked_cycle_curve_2[, c(1, 2)]
     val <-
-      rnorm(1, mean = tracked_cycle_curve_2[1, 2], sd = tracked_cycle_curve_2[1, 3])
+        rnorm(1, mean = tracked_cycle_curve_2[1, 2], sd = tracked_cycle_curve_2[1, 3])
     pnorm_val <- 1 - pnorm(val,
-                           mean = tracked_cycle_curve_2[1, 2],
-                           sd = tracked_cycle_curve_2[1, 3],
-                           lower.tail = FALSE)
+        mean = tracked_cycle_curve_2[1, 2],
+        sd = tracked_cycle_curve_2[1, 3],
+        lower.tail = FALSE)
 
     for (j in 1:nrow(new_curve)) {
       new_curve[j, 2] <-
-        1 / (qnorm(pnorm_val, mean = tracked_cycle_curve_2[j, 2], sd = tracked_cycle_curve_2[j, 3]))
+          1 / (qnorm(pnorm_val, mean = tracked_cycle_curve_2[j, 2], sd = tracked_cycle_curve_2[j, 3]))
     }
 
 
     tracked_cycle_curve_3 <- new_curve
     tracked_cycle_curve_3[, 2] <-
-      (new_curve[, 2] / (tracked_cycle_period_new / 100))
+        (new_curve[, 2] / (tracked_cycle_period_new / 100))
 
 
 
@@ -401,11 +401,11 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
     dat <- na.omit(dat)
     dat <- dat[order(dat[, 1], na.last = NA, decreasing = F), ]
     interp <-
-      approx(dat[, 1],
-             dat[, 2],
-             tracked_cycle_curve_2[, 1],
-             method = "linear",
-             n = npts)
+        approx(dat[, 1],
+            dat[, 2],
+            tracked_cycle_curve_2[, 1],
+            method = "linear",
+            n = npts)
     sedrates <- as.data.frame(interp)
     npts <- length(sedrates[, 1])
     sedrates[1] = sedrates[1] * 100
@@ -432,11 +432,11 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
   if (output == 2) {
     res <- tracked_cycle_curve_2[, c(1, 2)]
     res <-
-      cbind(res, wr_row_quantiles(
-        out_2,
-        probs = c(0.02275, 0.373, 0.5, 0.6827, 0.97725),
-        na.rm = TRUE
-      ))
+        cbind(res, wr_row_quantiles(
+            out_2,
+            probs = c(0.02275, 0.373, 0.5, 0.6827, 0.97725),
+            na.rm = TRUE
+        ))
   }
 
   if (output == 3) {

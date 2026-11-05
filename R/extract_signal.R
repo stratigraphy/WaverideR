@@ -2,17 +2,30 @@
 #'
 #' @description Extract signal power from the wavelet in the depth domain using the traced period.
 #'
-#'@param tracked_cycle_curve Traced period result from the \code{track_period_wavelet}
-#'function completed using the \code{completed_series}.
-#'The input can be pre-smoothed using the the \code{loess_auto} function.
-#'@param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
-#'@param period_up Upper period as a factor of the to be extracted cycle \code{Default=1.2}.
-#'@param period_down Lower period as a factor of the to be extracted cycle \code{Default=0.8}.
-#'@param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
-#'@param tracked_cycle_period Period in time of the traced cycle.
-#'@param extract_cycle Period of the to be extracted cycle.
-#'@param tune Convert record from the depth to the time domain using the traced period \code{Default=FALSE}.
-#'@param plot_residual Plot the residual signal after extraction of set cycle \code{Default=FALSE}.
+#' @param tracked_cycle_curve Tracked period of the cycle along the record (matrix or data frame: depth/time in
+#' column 1, period in column 2, in the depth/time unit of the wavelet), e.g. the output of
+#' \code{\link{track_period_wavelet}} completed with \code{\link{completed_series}}, optionally smoothed with
+#' \code{\link{loess_auto}}. Rows with \code{NA} are dropped and the curve is linearly interpolated (and
+#' extrapolated) to the depth/time axis of the wavelet. Required (\code{Default=NULL}).
+#' @param wavelet Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+#' its coefficients. Required (\code{Default=NULL}).
+#' @param period_up Upper boundary of the band that is reconstructed, as a factor of the (rescaled) tracked period
+#' (numeric, > \code{period_down}). \code{Default=1.2}.
+#' @param period_down Lower boundary of the band that is reconstructed, as a factor of the (rescaled) tracked period
+#' (numeric, > 0). \code{Default=0.8}.
+#' @param add_mean Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+#' \code{FALSE} returns it centred on zero. \code{Default=TRUE}.
+#' @param tracked_cycle_period Duration in time of the tracked cycle, e.g. 405 (kyr) for the long eccentricity cycle
+#' (numeric, > 0), in the same unit as \code{extract_cycle}. The tracked curve is multiplied by
+#' \code{extract_cycle / tracked_cycle_period}; also used for the tuning when \code{tune=TRUE}. Required
+#' (\code{Default=NULL}).
+#' @param extract_cycle Duration of the cycle to extract (numeric, > 0), in the same unit as
+#' \code{tracked_cycle_period}; use the same value to extract the tracked cycle itself. Required
+#' (\code{Default=NULL}).
+#' @param tune Convert the extracted cycle from the depth to the time domain with \code{\link{curve2tune}}, using
+#' \code{tracked_cycle_curve} and \code{tracked_cycle_period} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param plot_residual Plot the residual (extracted cycle minus data) against depth and its histogram (logical,
+#' TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
@@ -96,14 +109,14 @@
 
 
 extract_signal <- function(tracked_cycle_curve = NULL,
-                           wavelet=NULL,
-                           period_up =1.2,
-                           period_down = 0.8,
-                           add_mean=TRUE,
-                           tracked_cycle_period=NULL,
-                           extract_cycle=NULL,
-                           tune=FALSE,
-                           plot_residual=FALSE){
+    wavelet=NULL,
+    period_up =1.2,
+    period_down = 0.8,
+    add_mean=TRUE,
+    tracked_cycle_period=NULL,
+    extract_cycle=NULL,
+    tune=FALSE,
+    plot_residual=FALSE){
 
 
 
@@ -117,7 +130,7 @@ extract_signal <- function(tracked_cycle_curve = NULL,
   completed_series <- na.omit(tracked_cycle_curve)
   completed_series[,2] <- completed_series[,2]*(extract_cycle/tracked_cycle_period)
   app <- wr_approx_extrap(x=completed_series[,1],y=completed_series[,2],xout=my.data[,1],
-                      method="linear")
+      method="linear")
   interpolated <- cbind(app$x,app$y)
 
   Wave = my.w$Wave
@@ -136,7 +149,8 @@ extract_signal <- function(tracked_cycle_curve = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ])/sqrt(Scale[s.ind])) *
-      dj * sqrt(dt)/.wr_psi0(my.w)}
+        dj * sqrt(dt)/.wr_psi0(my.w)
+  }
 
 
   interpolated <- as.data.frame(interpolated)
@@ -166,10 +180,12 @@ extract_signal <- function(tracked_cycle_curve = NULL,
 
   if(plot_residual==TRUE){
     residual <- filtered_cycle[,2]-my.data[,2]
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar), add = TRUE)
     layout.matrix <- matrix(c(1,2), nrow = 2, ncol = 1)
     graphics::layout(mat = layout.matrix,
-                     heights = c(1, 1), # Heights of the two rows
-                     widths = c(1,1))
+        heights = c(1, 1), # Heights of the two rows
+        widths = c(1,1))
     par(mar = c(4, 4, 1, 1))
     plot(x=filtered_cycle[,1],y=residual,xlab="depth m")
     hist(residual)
@@ -179,10 +195,10 @@ extract_signal <- function(tracked_cycle_curve = NULL,
 
   if(tune==TRUE){
     filtered_cycle <- curve2tune(
-      data = filtered_cycle,
-      tracked_cycle_curve = tracked_cycle_curve,
-      tracked_cycle_period = tracked_cycle_period,
-      genplot = FALSE)
+        data = filtered_cycle,
+        tracked_cycle_curve = tracked_cycle_curve,
+        tracked_cycle_period = tracked_cycle_period,
+        genplot = FALSE)
 
   }
 

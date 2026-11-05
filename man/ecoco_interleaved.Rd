@@ -26,53 +26,65 @@ ecoco_interleaved(
 )
 }
 \arguments{
-\item{data}{Two-column matrix: depth (m) and proxy value. Raw
-(possibly irregular) data; do not interpolate beforehand.}
+\item{data}{Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+column 2 (at least 16 unique depths). Give the raw, possibly irregular data; do not interpolate beforehand,
+because the odd and even observations are split before each fold is regularised. Non-finite rows are dropped,
+rows sorted and duplicated depths averaged. Required (\code{Default=NULL}).}
 
-\item{orbit9}{Nine orbital periods (kyr).
-\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}}
+\item{orbit9}{The nine astronomical target periods in kyr (numeric vector of nine distinct positive values: long
+eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+\code{\link{orbit9_at_age}} for the age of the record.
+\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.}
 
-\item{window}{Sliding-window length (m). \code{Default=NULL}: 25\% of the
-record length.}
+\item{window}{Length of the sliding window, in metres (numeric, > 0, at most the record span; windows with fewer
+than 16 observations are left empty). \code{NULL} uses 25\% of the record length. \code{Default=NULL}.}
 
-\item{sr}{Sedimentation-rate grid (cm/kyr) with a constant step.
-\code{Default=NULL}: the Acycle GUI default range.}
+\item{sr}{Sedimentation rates to test, in cm/kyr (numeric vector, > 0, strictly increasing with a constant step).
+\code{NULL} uses the Acycle GUI default: from \code{2 * dt * 0.065 * 100} up to 100 cm/kyr (reduced so that the
+longest period fits in the record), in steps of 0.1 cm/kyr or at most 300 steps. \code{Default=NULL}.}
 
-\item{step_depth}{Spacing of the window centres (m) in physical-depth
-mode. \code{Default=NULL}: the Acycle GUI default.}
+\item{step_depth}{Spacing of the window centres, in metres (numeric, > 0); only used with
+\code{window_mode="physical-depth"}. \code{NULL} uses \code{dt}, or \code{dt * ceiling(n / 300)} for more than
+300 samples. \code{Default=NULL}.}
 
-\item{step}{Integer sample step for \code{window_mode = "legacy-count"}.
-\code{Default=1}}
+\item{step}{Step between successive windows, in samples (integer, >= 1); only used with
+\code{window_mode="legacy-count"}. \code{Default=1}.}
 
-\item{pad}{Periodogram length; each fold uses max(pad, fold length).
-\code{Default=NULL}: Acycle's defaultPad.}
+\item{pad}{Length (number of points) to which the periodogram of each fold is zero-padded; each fold uses
+\code{max(pad, fold length)} (integer, > 0). \code{NULL} uses the Acycle default: 5000 for up to 2500 samples,
+10000 for up to 5000 samples, and \code{floor(n / 5000) * 5000 + 5000} above that. \code{Default=NULL}.}
 
-\item{red}{Background removal: 0 none, 1 classical AR(1), 2 robust AR(1),
-3 smoothed-window average (SWA). \code{Default=0}}
+\item{red}{Background (red-noise) removal applied to every spectrum (integer): \code{0} none, \code{1} classical
+AR(1) background, \code{2} robust AR(1) background, \code{3} smoothed-window-average (SWA) background.
+\code{Default=0}.}
 
-\item{n_sim}{Number of Monte Carlo simulations per window.
-\code{Default=2000}}
+\item{n_sim}{Number of AR(1) Monte Carlo simulations per window used for the global and local p-values (integer,
+>= 0). \code{Default=2000}.}
 
-\item{method}{Correlation, "Pearson" or "Spearman". \code{Default="Pearson"}}
+\item{method}{Correlation coefficient between the data and target spectra (character): \code{"Pearson"} or
+\code{"Spearman"}. \code{Default="Pearson"}.}
 
-\item{max_frequency}{Maximum temporal frequency (cycles/kyr).
-\code{Default=NULL}: 1.2/min(orbit9).}
+\item{max_frequency}{Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+(numeric, at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.}
 
-\item{seed}{Parent random seed. Each window uses a derived seed
-(Acycle deriveWindowSeed) passed to \code{set.seed}; NULL leaves the RNG
-state. \code{Default=1}}
+\item{seed}{Parent seed of the random number generator (integer). Each window uses a seed derived from it and
+from the window position (Acycle deriveWindowSeed), so results are reproducible and independent of the other
+windows; \code{NULL} leaves the current random state unchanged. \code{Default=1}.}
 
-\item{window_mode}{"physical-depth" or "legacy-count".
-\code{Default="physical-depth"}}
+\item{window_mode}{How the windows are defined (character): \code{"physical-depth"} (windows of fixed length in
+metres centred every \code{step_depth}) or \code{"legacy-count"} (windows of a fixed, even number of points,
+\code{window / dt + 1} rounded, at least 16, moved by \code{step} samples). \code{Default="physical-depth"}.}
 
-\item{dt}{Nominal sampling interval used by legacy-count mode and for the
-default step. \code{Default=NULL}: median spacing of the cleaned data.}
+\item{dt}{Nominal sampling interval, in metres (numeric, > 0), used for the number of points per window in
+\code{"legacy-count"} mode and for the defaults of \code{step_depth} and \code{sr}. \code{NULL} uses the median
+spacing of the cleaned data. \code{Default=NULL}.}
 
-\item{batch_size}{Monte Carlo simulations per batch. \code{Default=20}}
+\item{batch_size}{Number of Monte Carlo simulations processed together (integer, >= 1); larger batches are faster
+but use more memory. \code{Default=20}.}
 
-\item{genplot}{Plot the result with \code{plot_ecoco_cv}. \code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_ecoco_cv}} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{verbose}{Print progress. \code{Default=FALSE}}
+\item{verbose}{Print messages and a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list (class "ecoco_cv") with \code{method}, \code{sr},

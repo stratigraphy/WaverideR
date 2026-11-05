@@ -9,37 +9,37 @@
 #'After tracking the lower and upper boundaries of the cycle the \code{\link{dynamic_extraction}} function
 #'will extract the signal in between the boundaries. the output can then used as input for the
 #'\code{\link{minimal_tuning}} function to create an age model.
-#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#' @param n.levels Number of color levels \code{Default=100}.
-#' @param add_peaks Setting which indicates whether spectral peaks should be
-#' added to the tracking plot  \code{Default=FALSE}.
-#' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
-#' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
-#'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}
-#'@param smooth smooth the tracked period using the "loess_auto" function
-#'@param add_mean add the mean to the extracted signal
+#' @param wavelet Wavelet object (list) created with \code{\link{analyse_wavelet}}; its scalogram is plotted for
+#' the tracking and its reconstructed components are summed between the tracked boundaries. Required
+#' (\code{Default=NULL}).
+#' @param n.levels Number of colour levels of the power scale (integer, > 1); the levels are quantiles of the
+#' power. \code{Default=100}.
+#' @param add_peaks Add the spectral peaks (local power maxima along the period axis of each column of the
+#' scalogram) as points to the tracking plot, to help the tracking (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param periodlab Label of the period axis (character). \code{Default="Period (metres)"}.
+#' @param x_lab Label of the depth/time axis (character). \code{Default="depth (metres)"}.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
+#' @param plot_horizontal Orientation of the tracking plot (logical): \code{TRUE} draws depth/time on the x-axis
+#' and period on the y-axis, \code{FALSE} draws period on the x-axis and depth/time on the y-axis.
+#' \code{Default=TRUE}.
+#' @param smooth Smooth each of the two tracked boundaries with \code{\link{loess_auto}} after interpolating them
+#' to the depth/time grid of the wavelet (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param add_mean Add the mean of the original data series to the extracted signal (logical, TRUE or FALSE);
+#' \code{FALSE} returns the signal centred on zero. \code{Default=TRUE}.
 #'
 #'@return Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
 #'The first column is depth/time
@@ -82,7 +82,8 @@
 #')
 #'}
 #'
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -107,17 +108,19 @@
 #' @importFrom grDevices hcl.colors
 
 dynamic_extraction <- function(wavelet = NULL,
-                               n.levels = 100,
-                               add_peaks = FALSE,
-                               periodlab = "Period (metres)",
-                               x_lab = "depth (metres)",
-                               palette_name = "rainbow",
-                               color_brewer = "grDevices",
-                               plot_horizontal = TRUE,
-                               smooth = FALSE,
-                               add_mean = TRUE,
-  colour_brewer = NULL) {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+    n.levels = 100,
+    add_peaks = FALSE,
+    periodlab = "Period (metres)",
+    x_lab = "depth (metres)",
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    plot_horizontal = TRUE,
+    smooth = FALSE,
+    add_mean = TRUE,
+    colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   plot.COI = TRUE
 
   key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
@@ -132,26 +135,26 @@ dynamic_extraction <- function(wavelet = NULL,
   lwd.axis = 1
 
   legend.params = list(
-    width = 1.2,
-    shrink = 0.9,
-    mar = 5.1,
-    n.ticks = 6,
-    label.digits = 3,
-    label.format = "f",
-    lab = NULL,
-    lab.line = 2.5
+      width = 1.2,
+      shrink = 0.9,
+      mar = 5.1,
+      n.ticks = 6,
+      label.digits = 3,
+      label.format = "f",
+      lab = NULL,
+      lab.line = 2.5
   )
   axis.1 <- wavelet$axis.1
   axis.2 <- wavelet$axis.2
   Power = wavelet$Power ^ exponent
   wavelet.levels = quantile(Power, probs = seq(
-    from = 0,
-    to = 1,
-    length.out = n.levels + 1
+      from = 0,
+      to = 1,
+      length.out = n.levels + 1
   ))
 
   oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))
+  on.exit(par(oldpar), add = TRUE)
 
   image.plt = par()$plt
   legend.plt = NULL
@@ -169,63 +172,63 @@ dynamic_extraction <- function(wavelet = NULL,
       legend.plt[2] = 1 - legend.mar
       legend.plt[1] = legend.plt[2] - legend.width
       vmar = (legend.plt[4] - legend.plt[3]) * ((1 - legend.params$shrink) /
-                                                  2)
+          2)
       legend.plt[4] = legend.plt[4] - vmar
       legend.plt[3] = legend.plt[3] + vmar
       image.plt[2] = min(image.plt[2], legend.plt[1] - hoffset)
       par(plt = legend.plt)
       key.marks = round(seq(
-        from = 0,
-        to = 1,
-        length.out = legend.params$n.ticks
+          from = 0,
+          to = 1,
+          length.out = legend.params$n.ticks
       ) *
-        n.levels)
+          n.levels)
       key.labels = formatC(
-        as.numeric(wavelet.levels),
-        digits = legend.params$label.digits,
-        format = legend.params$label.format
+          as.numeric(wavelet.levels),
+          digits = legend.params$label.digits,
+          format = legend.params$label.format
       )[key.marks +
           1]
       image(
-        1,
-        seq(from = 0, to = n.levels),
-        matrix(wavelet.levels,
-               nrow = 1),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = useRaster,
-        xaxt = "n",
-        yaxt = "n",
-        xlab = "",
-        ylab = ""
+          1,
+          seq(from = 0, to = n.levels),
+          matrix(wavelet.levels,
+              nrow = 1),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = useRaster,
+          xaxt = "n",
+          yaxt = "n",
+          xlab = "",
+          ylab = ""
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = key.marks,
-        labels = NA,
-        tck = 0.02,
-        tcl = (par()$usr[2] - par()$usr[1]) *
+          4,
+          lwd = lwd.axis,
+          at = key.marks,
+          labels = NA,
+          tck = 0.02,
+          tcl = (par()$usr[2] - par()$usr[1]) *
           legend.params$width - 0.04
       )
       mtext(
-        key.labels,
-        side = 4,
-        at = key.marks,
-        line = 0.5,
-        las = 2,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          key.labels,
+          side = 4,
+          at = key.marks,
+          line = 0.5,
+          las = 2,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
       text(
-        x = par()$usr[2] + (1.5 + legend.params$lab.line) *
+          x = par()$usr[2] + (1.5 + legend.params$lab.line) *
           par()$cxy[1],
-        y = n.levels / 2,
-        labels = legend.params$lab,
-        xpd = NA,
-        srt = 270,
-        font = par()$font.lab,
-        cex = par()$cex.lab
+          y = n.levels / 2,
+          labels = legend.params$lab,
+          xpd = NA,
+          srt = 270,
+          font = par()$font.lab,
+          cex = par()$cex.lab
       )
       box(lwd = lwd.axis)
       par(new = TRUE, plt = image.plt)
@@ -234,25 +237,25 @@ dynamic_extraction <- function(wavelet = NULL,
     par(mar = c(4, 4, 3, 5))
 
     image(
-      x = wavelet$x,
-      y = axis.2,
-      z = t(Power),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n" ,
-      main = main
+        x = wavelet$x,
+        y = axis.2,
+        z = t(Power),
+        col = key.cols,
+        breaks = wavelet.levels,
+        useRaster = TRUE,
+        ylab = periodlab,
+        xlab = x_lab,
+        axes = TRUE,
+        yaxt = "n" ,
+        main = main
     )
 
 
     if (plot.COI == T) {
       polygon(wavelet$coi.1 ,
-              wavelet$coi.2,
-              border = NA,
-              col = rgb(1, 1, 1, 0.5))
+          wavelet$coi.2,
+          border = NA,
+          col = rgb(1, 1, 1, 0.5))
     }
 
 
@@ -263,29 +266,29 @@ dynamic_extraction <- function(wavelet = NULL,
     period.tick = na.omit(period.tick)
     period.tick.label = 2 ^ (period.tick)
     axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        2,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        4,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 1,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        period.tick.label,
+        side = 2,
+        at = period.tick,
+        las = 1,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
 
@@ -296,14 +299,14 @@ dynamic_extraction <- function(wavelet = NULL,
         data  <- cbind(log2(wavelet$Period), Pwert[, j])
         data_dif <- data[1:(nrow(data) - 1), 2] - data[2:(nrow(data)), 2]
         data_dif_v2 <-
-          data_dif[1:(length(data_dif) - 1)] - data_dif[2:(length(data_dif))]
+            data_dif[1:(length(data_dif) - 1)] - data_dif[2:(length(data_dif))]
         Pwert[, j] <-
-          c(data_dif_v2, data_dif_v2[length(data_dif_v2)], data_dif_v2[length(data_dif_v2)]) *
-          -1
+            c(data_dif_v2, data_dif_v2[length(data_dif_v2)], data_dif_v2[length(data_dif_v2)]) *
+            -1
       }
 
       maxdetect <-
-        matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+          matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
@@ -332,12 +335,12 @@ dynamic_extraction <- function(wavelet = NULL,
 
     if (add_peaks == TRUE) {
       points(
-        x = maxdetect2$x_val,
-        y = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
+          x = maxdetect2$x_val,
+          y = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
       )
     }
 
@@ -349,8 +352,8 @@ dynamic_extraction <- function(wavelet = NULL,
     n <- length(wavelet$x)
 
 
-    defaultW <- getOption("warn")
-    options(warn = -1)
+    oldop <- options(warn = -1)
+    on.exit(options(oldop), add = TRUE)
     xy <- xy.coords(x, y)
     x <- xy$x
     y <- xy$y
@@ -359,13 +362,14 @@ dynamic_extraction <- function(wavelet = NULL,
 
     while (sum(sel) < n) {
       ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
+          y,
+          n = 1,
+          plot = F,
+          tolerance = 0.1)
 
-      if (!length(ans))
+      if (!length(ans)) {
         break
+      }
 
 
       if (sel[ans, 1] == FALSE) {
@@ -377,26 +381,26 @@ dynamic_extraction <- function(wavelet = NULL,
       }
 
       image(
-        x = wavelet$x,
-        y = axis.2,
-        z = t(Power),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = TRUE,
-        ylab = periodlab,
-        xlab = x_lab,
-        axes = TRUE,
-        yaxt = "n" ,
-        main = main
+          x = wavelet$x,
+          y = axis.2,
+          z = t(Power),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = TRUE,
+          ylab = periodlab,
+          xlab = x_lab,
+          axes = TRUE,
+          yaxt = "n" ,
+          main = main
       )
 
 
       if (plot.COI == T) {
         polygon(
-          wavelet$coi.1 ,
-          wavelet$coi.2,
-          border = NA,
-          col = rgb(1, 1, 1, 0.5)
+            wavelet$coi.1 ,
+            wavelet$coi.2,
+            border = NA,
+            col = rgb(1, 1, 1, 0.5)
         )
       }
 
@@ -408,39 +412,39 @@ dynamic_extraction <- function(wavelet = NULL,
       period.tick = na.omit(period.tick)
       period.tick.label = 2 ^ (period.tick)
       axis(
-        2,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          2,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          4,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       mtext(
-        period.tick.label,
-        side = 2,
-        at = period.tick,
-        las = 1,
-        line = par()$mgp[2] - 0.5,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          period.tick.label,
+          side = 2,
+          at = period.tick,
+          las = 1,
+          line = par()$mgp[2] - 0.5,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
 
       if (add_peaks == TRUE) {
         points(
-          x = maxdetect2$x_val,
-          y = maxdetect2$y_val,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "0.5"
+            x = maxdetect2$x_val,
+            y = maxdetect2$y_val,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "0.5"
         )
       }
 
@@ -459,9 +463,9 @@ dynamic_extraction <- function(wavelet = NULL,
       out <- out[order(out[, 1]),]
       out <- na.omit(out)
       out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
+          by = list(name = out[, 1]),
+          data = out,
+          FUN = mean)
       out <- out[, c(2, 3)]
       out[, 2] <- 2 ^ out[, 2]
       colnames(out) <- c("depth", "period")
@@ -479,63 +483,63 @@ dynamic_extraction <- function(wavelet = NULL,
       legend.plt[2] = 1 - legend.mar
       legend.plt[1] = legend.plt[2] - legend.width
       vmar = (legend.plt[4] - legend.plt[3]) * ((1 - legend.params$shrink) /
-                                                  2)
+          2)
       legend.plt[4] = legend.plt[4] - vmar
       legend.plt[3] = legend.plt[3] + vmar
       image.plt[2] = min(image.plt[2], legend.plt[1] - hoffset)
       par(plt = legend.plt)
       key.marks = round(seq(
-        from = 0,
-        to = 1,
-        length.out = legend.params$n.ticks
+          from = 0,
+          to = 1,
+          length.out = legend.params$n.ticks
       ) *
-        n.levels)
+          n.levels)
       key.labels = formatC(
-        as.numeric(wavelet.levels),
-        digits = legend.params$label.digits,
-        format = legend.params$label.format
+          as.numeric(wavelet.levels),
+          digits = legend.params$label.digits,
+          format = legend.params$label.format
       )[key.marks +
           1]
       image(
-        1,
-        seq(from = 0, to = n.levels),
-        matrix(wavelet.levels,
-               nrow = 1),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = useRaster,
-        xaxt = "n",
-        yaxt = "n",
-        xlab = "",
-        ylab = ""
+          1,
+          seq(from = 0, to = n.levels),
+          matrix(wavelet.levels,
+              nrow = 1),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = useRaster,
+          xaxt = "n",
+          yaxt = "n",
+          xlab = "",
+          ylab = ""
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = key.marks,
-        labels = NA,
-        tck = 0.02,
-        tcl = (par()$usr[2] - par()$usr[1]) *
+          4,
+          lwd = lwd.axis,
+          at = key.marks,
+          labels = NA,
+          tck = 0.02,
+          tcl = (par()$usr[2] - par()$usr[1]) *
           legend.params$width - 0.04
       )
       mtext(
-        key.labels,
-        side = 4,
-        at = key.marks,
-        line = 0.5,
-        las = 2,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          key.labels,
+          side = 4,
+          at = key.marks,
+          line = 0.5,
+          las = 2,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
       text(
-        x = par()$usr[2] + (1.5 + legend.params$lab.line) *
+          x = par()$usr[2] + (1.5 + legend.params$lab.line) *
           par()$cxy[1],
-        y = n.levels / 2,
-        labels = legend.params$lab,
-        xpd = NA,
-        srt = 270,
-        font = par()$font.lab,
-        cex = par()$cex.lab
+          y = n.levels / 2,
+          labels = legend.params$lab,
+          xpd = NA,
+          srt = 270,
+          font = par()$font.lab,
+          cex = par()$cex.lab
       )
       box(lwd = lwd.axis)
       par(new = TRUE, plt = image.plt)
@@ -544,110 +548,6 @@ dynamic_extraction <- function(wavelet = NULL,
     par(mar = c(4, 4, 3, 5))
 
     image(
-      x = wavelet$x,
-      y = axis.2,
-      z = t(Power),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n" ,
-      main = main
-    )
-
-    lines(out_1[, 1],
-          log2(out_1[, 2]),
-          col = "black",
-          lwd = 2)
-
-
-    if (plot.COI == T) {
-      polygon(wavelet$coi.1 ,
-              wavelet$coi.2,
-              border = NA,
-              col = rgb(1, 1, 1, 0.5))
-    }
-
-
-
-    box(lwd = lwd.axis)
-    period.tick = unique(trunc(axis.2))
-    period.tick[period.tick < log2(wavelet$Period[1])] = NA
-    period.tick = na.omit(period.tick)
-    period.tick.label = 2 ^ (period.tick)
-    axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
-    )
-    mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 1,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
-    )
-
-
-    if (add_peaks == TRUE) {
-      points(
-        x = maxdetect2$x_val,
-        y = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
-      )
-    }
-
-    x  <- rep(wavelet$x, each = length(wavelet$axis.2))
-    y  <- rep(wavelet$axis.2, times = length(wavelet$x))
-    n <- length(wavelet$x)
-
-
-    defaultW <- getOption("warn")
-    options(warn = -1)
-    xy <- xy.coords(x, y)
-    x <- xy$x
-    y <- xy$y
-    sel <- cbind(rep(FALSE, length(x)), rep(FALSE, length(x)))
-
-
-    while (sum(sel) < n) {
-      ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
-
-      if (!length(ans))
-        break
-
-
-      if (sel[ans, 1] == FALSE) {
-        sel[ans, 1] <- TRUE
-        sel[ans, 2] <- FALSE
-      } else{
-        sel[ans, 1] <- FALSE
-        sel[ans, 2] <- TRUE
-      }
-
-      image(
         x = wavelet$x,
         y = axis.2,
         z = t(Power),
@@ -659,19 +559,124 @@ dynamic_extraction <- function(wavelet = NULL,
         axes = TRUE,
         yaxt = "n" ,
         main = main
+    )
+
+    lines(out_1[, 1],
+        log2(out_1[, 2]),
+        col = "black",
+        lwd = 2)
+
+
+    if (plot.COI == T) {
+      polygon(wavelet$coi.1 ,
+          wavelet$coi.2,
+          border = NA,
+          col = rgb(1, 1, 1, 0.5))
+    }
+
+
+
+    box(lwd = lwd.axis)
+    period.tick = unique(trunc(axis.2))
+    period.tick[period.tick < log2(wavelet$Period[1])] = NA
+    period.tick = na.omit(period.tick)
+    period.tick.label = 2 ^ (period.tick)
+    axis(
+        2,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
+    )
+    axis(
+        4,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
+    )
+    mtext(
+        period.tick.label,
+        side = 2,
+        at = period.tick,
+        las = 1,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
+    )
+
+
+    if (add_peaks == TRUE) {
+      points(
+          x = maxdetect2$x_val,
+          y = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
+      )
+    }
+
+    x  <- rep(wavelet$x, each = length(wavelet$axis.2))
+    y  <- rep(wavelet$axis.2, times = length(wavelet$x))
+    n <- length(wavelet$x)
+
+
+    oldop <- options(warn = -1)
+    on.exit(options(oldop), add = TRUE)
+    xy <- xy.coords(x, y)
+    x <- xy$x
+    y <- xy$y
+    sel <- cbind(rep(FALSE, length(x)), rep(FALSE, length(x)))
+
+
+    while (sum(sel) < n) {
+      ans <- identify(x,
+          y,
+          n = 1,
+          plot = F,
+          tolerance = 0.1)
+
+      if (!length(ans)) {
+        break
+      }
+
+
+      if (sel[ans, 1] == FALSE) {
+        sel[ans, 1] <- TRUE
+        sel[ans, 2] <- FALSE
+      } else{
+        sel[ans, 1] <- FALSE
+        sel[ans, 2] <- TRUE
+      }
+
+      image(
+          x = wavelet$x,
+          y = axis.2,
+          z = t(Power),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = TRUE,
+          ylab = periodlab,
+          xlab = x_lab,
+          axes = TRUE,
+          yaxt = "n" ,
+          main = main
       )
 
       lines(out_1[, 1],
-            log2(out_1[, 2]),
-            col = "black",
-            lwd = 2)
+          log2(out_1[, 2]),
+          col = "black",
+          lwd = 2)
 
       if (plot.COI == T) {
         polygon(
-          wavelet$coi.1 ,
-          wavelet$coi.2,
-          border = NA,
-          col = rgb(1, 1, 1, 0.5)
+            wavelet$coi.1 ,
+            wavelet$coi.2,
+            border = NA,
+            col = rgb(1, 1, 1, 0.5)
         )
       }
 
@@ -683,39 +688,39 @@ dynamic_extraction <- function(wavelet = NULL,
       period.tick = na.omit(period.tick)
       period.tick.label = 2 ^ (period.tick)
       axis(
-        2,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          2,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          4,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       mtext(
-        period.tick.label,
-        side = 2,
-        at = period.tick,
-        las = 1,
-        line = par()$mgp[2] - 0.5,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          period.tick.label,
+          side = 2,
+          at = period.tick,
+          las = 1,
+          line = par()$mgp[2] - 0.5,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
 
       if (add_peaks == TRUE) {
         points(
-          x = maxdetect2$x_val,
-          y = maxdetect2$y_val,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "0.5"
+            x = maxdetect2$x_val,
+            y = maxdetect2$y_val,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "0.5"
         )
       }
 
@@ -734,9 +739,9 @@ dynamic_extraction <- function(wavelet = NULL,
       out <- out[order(out[, 1]),]
       out <- na.omit(out)
       out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
+          by = list(name = out[, 1]),
+          data = out,
+          FUN = mean)
       out <- out[, c(2, 3)]
       out[, 2] <- 2 ^ out[, 2]
       colnames(out) <- c("depth", "period")
@@ -760,63 +765,63 @@ dynamic_extraction <- function(wavelet = NULL,
       legend.plt[2] = 1 - legend.mar
       legend.plt[1] = legend.plt[2] - legend.width
       vmar = (legend.plt[4] - legend.plt[3]) * ((1 - legend.params$shrink) /
-                                                  2)
+          2)
       legend.plt[4] = legend.plt[4] - vmar
       legend.plt[3] = legend.plt[3] + vmar
       image.plt[2] = min(image.plt[2], legend.plt[1] - hoffset)
       par(plt = legend.plt)
       key.marks = round(seq(
-        from = 0,
-        to = 1,
-        length.out = legend.params$n.ticks
+          from = 0,
+          to = 1,
+          length.out = legend.params$n.ticks
       ) *
-        n.levels)
+          n.levels)
       key.labels = formatC(
-        as.numeric(wavelet.levels),
-        digits = legend.params$label.digits,
-        format = legend.params$label.format
+          as.numeric(wavelet.levels),
+          digits = legend.params$label.digits,
+          format = legend.params$label.format
       )[key.marks +
           1]
       image(
-        1,
-        seq(from = 0, to = n.levels),
-        matrix(wavelet.levels,
-               nrow = 1),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = useRaster,
-        xaxt = "n",
-        yaxt = "n",
-        xlab = "",
-        ylab = ""
+          1,
+          seq(from = 0, to = n.levels),
+          matrix(wavelet.levels,
+              nrow = 1),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = useRaster,
+          xaxt = "n",
+          yaxt = "n",
+          xlab = "",
+          ylab = ""
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = key.marks,
-        labels = NA,
-        tck = 0.02,
-        tcl = (par()$usr[2] - par()$usr[1]) *
+          4,
+          lwd = lwd.axis,
+          at = key.marks,
+          labels = NA,
+          tck = 0.02,
+          tcl = (par()$usr[2] - par()$usr[1]) *
           legend.params$width - 0.04
       )
       mtext(
-        key.labels,
-        side = 4,
-        at = key.marks,
-        line = 0.5,
-        las = 2,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          key.labels,
+          side = 4,
+          at = key.marks,
+          line = 0.5,
+          las = 2,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
       text(
-        x = par()$usr[2] + (1.5 + legend.params$lab.line) *
+          x = par()$usr[2] + (1.5 + legend.params$lab.line) *
           par()$cxy[1],
-        y = n.levels / 2,
-        labels = legend.params$lab,
-        xpd = NA,
-        srt = 270,
-        font = par()$font.lab,
-        cex = par()$cex.lab
+          y = n.levels / 2,
+          labels = legend.params$lab,
+          xpd = NA,
+          srt = 270,
+          font = par()$font.lab,
+          cex = par()$cex.lab
       )
       box(lwd = lwd.axis)
       par(new = TRUE, plt = image.plt)
@@ -825,25 +830,25 @@ dynamic_extraction <- function(wavelet = NULL,
     par(mar = c(4, 4, 3, 5))
 
     image(
-      y = wavelet$x,
-      x = axis.2,
-      z = (Power),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      axes = TRUE,
-      xaxt = "n" ,
-      main = main
+        y = wavelet$x,
+        x = axis.2,
+        z = (Power),
+        col = key.cols,
+        breaks = wavelet.levels,
+        useRaster = TRUE,
+        xlab = periodlab,
+        ylab = x_lab,
+        axes = TRUE,
+        xaxt = "n" ,
+        main = main
     )
 
 
     if (plot.COI == T) {
       polygon(wavelet$coi.2 ,
-              wavelet$coi.1,
-              border = NA,
-              col = rgb(1, 1, 1, 0.5))
+          wavelet$coi.1,
+          border = NA,
+          col = rgb(1, 1, 1, 0.5))
     }
 
 
@@ -854,29 +859,29 @@ dynamic_extraction <- function(wavelet = NULL,
     period.tick = na.omit(period.tick)
     period.tick.label = 2 ^ (period.tick)
     axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        1,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        1,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 1,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        period.tick.label,
+        side = 1,
+        at = period.tick,
+        las = 1,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
 
@@ -885,7 +890,7 @@ dynamic_extraction <- function(wavelet = NULL,
       Pwert <- wavelet$Power
 
       maxdetect <-
-        matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+          matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
@@ -913,12 +918,12 @@ dynamic_extraction <- function(wavelet = NULL,
 
     if (add_peaks == TRUE) {
       points(
-        x = maxdetect2$x_val,
-        y = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
+          x = maxdetect2$x_val,
+          y = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
       )
     }
 
@@ -930,8 +935,8 @@ dynamic_extraction <- function(wavelet = NULL,
     n <- length(wavelet$x)
 
 
-    defaultW <- getOption("warn")
-    options(warn = -1)
+    oldop <- options(warn = -1)
+    on.exit(options(oldop), add = TRUE)
     xy <- xy.coords(x, y)
     y <- xy$y
     x <- xy$x
@@ -939,13 +944,14 @@ dynamic_extraction <- function(wavelet = NULL,
 
     while (sum(sel) < n) {
       ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
+          y,
+          n = 1,
+          plot = F,
+          tolerance = 0.1)
 
-      if (!length(ans))
+      if (!length(ans)) {
         break
+      }
 
 
       if (sel[ans, 1] == FALSE) {
@@ -958,26 +964,26 @@ dynamic_extraction <- function(wavelet = NULL,
 
 
       image(
-        y = wavelet$x,
-        x = axis.2,
-        z = (Power),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = TRUE,
-        xlab = periodlab,
-        ylab = x_lab,
-        axes = TRUE,
-        xaxt = "n" ,
-        main = main
+          y = wavelet$x,
+          x = axis.2,
+          z = (Power),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = TRUE,
+          xlab = periodlab,
+          ylab = x_lab,
+          axes = TRUE,
+          xaxt = "n" ,
+          main = main
       )
 
 
       if (plot.COI == T) {
         polygon(
-          wavelet$coi.2 ,
-          wavelet$coi.1,
-          border = NA,
-          col = rgb(1, 1, 1, 0.5)
+            wavelet$coi.2 ,
+            wavelet$coi.1,
+            border = NA,
+            col = rgb(1, 1, 1, 0.5)
         )
       }
 
@@ -989,40 +995,40 @@ dynamic_extraction <- function(wavelet = NULL,
       period.tick = na.omit(period.tick)
       period.tick.label = 2 ^ (period.tick)
       axis(
-        1,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          1,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       axis(
-        1,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          1,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       mtext(
-        period.tick.label,
-        side = 1,
-        at = period.tick,
-        las = 1,
-        line = par()$mgp[2] - 0.5,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          period.tick.label,
+          side = 1,
+          at = period.tick,
+          las = 1,
+          line = par()$mgp[2] - 0.5,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
 
 
       if (add_peaks == TRUE) {
         points(
-          x = maxdetect2$x_val,
-          y = maxdetect2$y_val,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "0.5"
+            x = maxdetect2$x_val,
+            y = maxdetect2$y_val,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "0.5"
         )
       }
 
@@ -1040,9 +1046,9 @@ dynamic_extraction <- function(wavelet = NULL,
       out <- out[order(out[, 1]),]
       out <- na.omit(out)
       out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
+          by = list(name = out[, 1]),
+          data = out,
+          FUN = mean)
       out <- out[, c(2, 3)]
       out[, 2] <- 2 ^ out[, 2]
       colnames(out) <- c("depth", "period")
@@ -1060,63 +1066,63 @@ dynamic_extraction <- function(wavelet = NULL,
       legend.plt[2] = 1 - legend.mar
       legend.plt[1] = legend.plt[2] - legend.width
       vmar = (legend.plt[4] - legend.plt[3]) * ((1 - legend.params$shrink) /
-                                                  2)
+          2)
       legend.plt[4] = legend.plt[4] - vmar
       legend.plt[3] = legend.plt[3] + vmar
       image.plt[2] = min(image.plt[2], legend.plt[1] - hoffset)
       par(plt = legend.plt)
       key.marks = round(seq(
-        from = 0,
-        to = 1,
-        length.out = legend.params$n.ticks
+          from = 0,
+          to = 1,
+          length.out = legend.params$n.ticks
       ) *
-        n.levels)
+          n.levels)
       key.labels = formatC(
-        as.numeric(wavelet.levels),
-        digits = legend.params$label.digits,
-        format = legend.params$label.format
+          as.numeric(wavelet.levels),
+          digits = legend.params$label.digits,
+          format = legend.params$label.format
       )[key.marks +
           1]
       image(
-        1,
-        seq(from = 0, to = n.levels),
-        matrix(wavelet.levels,
-               nrow = 1),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = useRaster,
-        xaxt = "n",
-        yaxt = "n",
-        xlab = "",
-        ylab = ""
+          1,
+          seq(from = 0, to = n.levels),
+          matrix(wavelet.levels,
+              nrow = 1),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = useRaster,
+          xaxt = "n",
+          yaxt = "n",
+          xlab = "",
+          ylab = ""
       )
       axis(
-        4,
-        lwd = lwd.axis,
-        at = key.marks,
-        labels = NA,
-        tck = 0.02,
-        tcl = (par()$usr[2] - par()$usr[1]) *
+          4,
+          lwd = lwd.axis,
+          at = key.marks,
+          labels = NA,
+          tck = 0.02,
+          tcl = (par()$usr[2] - par()$usr[1]) *
           legend.params$width - 0.04
       )
       mtext(
-        key.labels,
-        side = 4,
-        at = key.marks,
-        line = 0.5,
-        las = 2,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          key.labels,
+          side = 4,
+          at = key.marks,
+          line = 0.5,
+          las = 2,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
       text(
-        x = par()$usr[2] + (1.5 + legend.params$lab.line) *
+          x = par()$usr[2] + (1.5 + legend.params$lab.line) *
           par()$cxy[1],
-        y = n.levels / 2,
-        labels = legend.params$lab,
-        xpd = NA,
-        srt = 270,
-        font = par()$font.lab,
-        cex = par()$cex.lab
+          y = n.levels / 2,
+          labels = legend.params$lab,
+          xpd = NA,
+          srt = 270,
+          font = par()$font.lab,
+          cex = par()$cex.lab
       )
       box(lwd = lwd.axis)
       par(new = TRUE, plt = image.plt)
@@ -1125,31 +1131,31 @@ dynamic_extraction <- function(wavelet = NULL,
     par(mar = c(4, 4, 3, 5))
 
     image(
-      y = wavelet$x,
-      x = axis.2,
-      z = (Power),
-      col = key.cols,
-      breaks = wavelet.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = x_lab,
-      axes = TRUE,
-      xaxt = "n" ,
-      main = main
+        y = wavelet$x,
+        x = axis.2,
+        z = (Power),
+        col = key.cols,
+        breaks = wavelet.levels,
+        useRaster = TRUE,
+        xlab = periodlab,
+        ylab = x_lab,
+        axes = TRUE,
+        xaxt = "n" ,
+        main = main
     )
 
     lines(
-      y = out_1[, 1],
-      x = log2(out_1[, 2]),
-      col = "black",
-      lwd = 2
+        y = out_1[, 1],
+        x = log2(out_1[, 2]),
+        col = "black",
+        lwd = 2
     )
 
     if (plot.COI == T) {
       polygon(wavelet$coi.2 ,
-              wavelet$coi.1,
-              border = NA,
-              col = rgb(1, 1, 1, 0.5))
+          wavelet$coi.1,
+          border = NA,
+          col = rgb(1, 1, 1, 0.5))
     }
 
 
@@ -1160,41 +1166,41 @@ dynamic_extraction <- function(wavelet = NULL,
     period.tick = na.omit(period.tick)
     period.tick.label = 2 ^ (period.tick)
     axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        1,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        1,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 1,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        period.tick.label,
+        side = 1,
+        at = period.tick,
+        las = 1,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
 
 
     if (add_peaks == TRUE) {
       points(
-        x = maxdetect2$x_val,
-        y = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
+          x = maxdetect2$x_val,
+          y = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
       )
     }
 
@@ -1206,8 +1212,8 @@ dynamic_extraction <- function(wavelet = NULL,
     n <- length(wavelet$x)
 
 
-    defaultW <- getOption("warn")
-    options(warn = -1)
+    oldop <- options(warn = -1)
+    on.exit(options(oldop), add = TRUE)
     xy <- xy.coords(x, y)
     y <- xy$y
     x <- xy$x
@@ -1215,13 +1221,14 @@ dynamic_extraction <- function(wavelet = NULL,
 
     while (sum(sel) < n) {
       ans <- identify(x,
-                      y,
-                      n = 1,
-                      plot = F,
-                      tolerance = 0.1)
+          y,
+          n = 1,
+          plot = F,
+          tolerance = 0.1)
 
-      if (!length(ans))
+      if (!length(ans)) {
         break
+      }
 
 
       if (sel[ans, 1] == FALSE) {
@@ -1234,32 +1241,32 @@ dynamic_extraction <- function(wavelet = NULL,
 
 
       image(
-        y = wavelet$x,
-        x = axis.2,
-        z = (Power),
-        col = key.cols,
-        breaks = wavelet.levels,
-        useRaster = TRUE,
-        xlab = periodlab,
-        ylab = x_lab,
-        axes = TRUE,
-        xaxt = "n" ,
-        main = main
+          y = wavelet$x,
+          x = axis.2,
+          z = (Power),
+          col = key.cols,
+          breaks = wavelet.levels,
+          useRaster = TRUE,
+          xlab = periodlab,
+          ylab = x_lab,
+          axes = TRUE,
+          xaxt = "n" ,
+          main = main
       )
 
       lines(
-        y = out_1[, 1],
-        x = log2(out_1[, 2]),
-        col = "black",
-        lwd = 2
+          y = out_1[, 1],
+          x = log2(out_1[, 2]),
+          col = "black",
+          lwd = 2
       )
 
       if (plot.COI == T) {
         polygon(
-          wavelet$coi.2 ,
-          wavelet$coi.1,
-          border = NA,
-          col = rgb(1, 1, 1, 0.5)
+            wavelet$coi.2 ,
+            wavelet$coi.1,
+            border = NA,
+            col = rgb(1, 1, 1, 0.5)
         )
       }
 
@@ -1271,40 +1278,40 @@ dynamic_extraction <- function(wavelet = NULL,
       period.tick = na.omit(period.tick)
       period.tick.label = 2 ^ (period.tick)
       axis(
-        1,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          1,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       axis(
-        1,
-        lwd = lwd.axis,
-        at = period.tick,
-        labels = NA,
-        tck = periodtck,
-        tcl = periodtcl
+          1,
+          lwd = lwd.axis,
+          at = period.tick,
+          labels = NA,
+          tck = periodtck,
+          tcl = periodtcl
       )
       mtext(
-        period.tick.label,
-        side = 1,
-        at = period.tick,
-        las = 1,
-        line = par()$mgp[2] - 0.5,
-        font = par()$font.axis,
-        cex = par()$cex.axis
+          period.tick.label,
+          side = 1,
+          at = period.tick,
+          las = 1,
+          line = par()$mgp[2] - 0.5,
+          font = par()$font.axis,
+          cex = par()$cex.axis
       )
 
 
       if (add_peaks == TRUE) {
         points(
-          x = maxdetect2$x_val,
-          y = maxdetect2$y_val,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "0.5"
+            x = maxdetect2$x_val,
+            y = maxdetect2$y_val,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "0.5"
         )
       }
 
@@ -1322,9 +1329,9 @@ dynamic_extraction <- function(wavelet = NULL,
       out <- out[order(out[, 1]),]
       out <- na.omit(out)
       out <- aggregate(out,
-                       by = list(name = out[, 1]),
-                       data = out,
-                       FUN = mean)
+          by = list(name = out[, 1]),
+          data = out,
+          FUN = mean)
       out <- out[, c(2, 3)]
       out[, 2] <- 2 ^ out[, 2]
       colnames(out) <- c("depth", "period")
@@ -1342,28 +1349,28 @@ dynamic_extraction <- function(wavelet = NULL,
   yright_com <- res_1[nrow(res_1), 2]
 
   seq <-
-    seq(
-      from = min(x_axis),
-      to = max(x_axis),
-      by = abs(x_axis[2] - x_axis[1])
-    )
+      seq(
+          from = min(x_axis),
+          to = max(x_axis),
+          by = abs(x_axis[2] - x_axis[1])
+      )
   app <-
-    approx(
-      x = res_1[, 1],
-      y = res_1[, 2],
-      xout = seq,
-      method = "linear",
-      yleft = yleft_comp,
-      yright = yright_com
-    )
+      approx(
+          x = res_1[, 1],
+          y = res_1[, 2],
+          xout = seq,
+          method = "linear",
+          yleft = yleft_comp,
+          yright = yright_com
+      )
   completed_series_1 <- as.data.frame(cbind(app$x, app$y))
 
   if (smooth == TRUE) {
     completed_series_1 <- loess_auto(
-      time_series = completed_series_1,
-      genplot = FALSE,
-      print_span = FALSE,
-      keep_editable = FALSE
+        time_series = completed_series_1,
+        genplot = FALSE,
+        print_span = FALSE,
+        keep_editable = FALSE
     )
   }
 
@@ -1374,29 +1381,29 @@ dynamic_extraction <- function(wavelet = NULL,
   yright_com <- res_2[nrow(res_2), 2]
 
   app <-
-    approx(
-      x = res_2[, 1],
-      y = res_2[, 2],
-      xout = seq,
-      method = "linear",
-      yleft = yleft_comp,
-      yright = yright_com
-    )
+      approx(
+          x = res_2[, 1],
+          y = res_2[, 2],
+          xout = seq,
+          method = "linear",
+          yleft = yleft_comp,
+          yright = yright_com
+      )
   completed_series_2 <- as.data.frame(cbind(app$x, app$y))
 
   if (smooth == TRUE) {
     completed_series_2 <- loess_auto(
-      time_series = completed_series_2,
-      genplot = FALSE,
-      print_span = FALSE,
-      keep_editable = FALSE
+        time_series = completed_series_2,
+        genplot = FALSE,
+        print_span = FALSE,
+        keep_editable = FALSE
     )
   }
 
 
 
   completed_series <-
-    cbind(completed_series_2[, c(1, 2)], completed_series_1[, 2])
+      cbind(completed_series_2[, c(1, 2)], completed_series_1[, 2])
 
 
   my.w <- wavelet
@@ -1422,7 +1429,7 @@ dynamic_extraction <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind,] = (Re(Wave[s.ind,]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / .wr_psi0(my.w)
+        dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
 
@@ -1446,7 +1453,7 @@ dynamic_extraction <- function(wavelet = NULL,
   rec_value  <- colSums(rec.waves, na.rm = T)
 
   filtered_cycle[, 2] <-
-    (filtered_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
+      (filtered_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
 
   if (add_mean == TRUE) {
     filtered_cycle[, 2] <- filtered_cycle[, 2] + mean(my.data[, 2])
@@ -1455,8 +1462,6 @@ dynamic_extraction <- function(wavelet = NULL,
 
   return(cbind(filtered_cycle, interpolated[, c(2, 3)]))
 }
-
-
 
 
 

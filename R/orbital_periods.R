@@ -1,19 +1,27 @@
-# --- Forward: precession constant + secular frequencies -> periods -----------
+# Forward: precession constant + secular frequencies -> periods
 
 #' All principal astronomical periods for a given precession constant
 #'
-#' @param k_yr precession constant (period of p) in years, e.g. 20700 for the
-#'   Devonian estimate of Zeeden et al. (2023); or give `p_arcsec`
-#' @param g,s secular frequencies in arcsec/yr (default: La2004, La04gisi.csv)
-#' @param terms "nine" (the Acycle ORBIT9 set) or "all" (every g_i-g_j and
-#'   k+s_i / k+g_i combination for i = 1..5)
-#' @param p_arcsec Precession constant in arcsec/yr.
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param k_yr Precession constant k expressed as the period of the axial precession, in years (numeric, > 0), e.g.
+#' 20700 for the Devonian estimate of Zeeden et al. (2023); ignored when \code{p_arcsec} is given. One of
+#' \code{k_yr} and \code{p_arcsec} is required. \code{Default=NULL}.
+#' @param p_arcsec Precession constant as a frequency in arcsec/yr (numeric, > 0; about 50.5 today); if given it is
+#' used instead of \code{k_yr}. \code{Default=NULL}.
+#' @param g Secular frequencies g1-g9 of the planetary perihelia in arcsec/yr (numeric vector of length 9).
+#' \code{NULL} uses the La2004 values of \code{La04gisi.csv}. \code{Default=NULL}.
+#' @param s Secular frequencies s1-s9 of the planetary nodes in arcsec/yr (numeric vector of length 9).
+#' \code{NULL} uses the La2004 values of \code{La04gisi.csv}. \code{Default=NULL}.
+#' @param terms Which terms are returned (character): \code{"nine"} (the Acycle ORBIT9 set: g2-g5, g3-g2, g4-g2,
+#' g3-g5, g4-g5, k+s3, k+g5, k+g2, k+g4) or \code{"all"} (every gi-gj eccentricity term and every k+si and k+gi term
+#' for i = 1 to 5). \code{Default=c("nine", "all")}, i.e. \code{"nine"}.
+#' @param data_dir Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#' path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+#' \code{Default=NULL}.
 #' @return data.frame: term, group, frequency (arcsec/yr), period (kyr)
 #' @export
 orbital_periods <- function(k_yr = NULL, p_arcsec = NULL, g = NULL, s = NULL,
-                            terms = c("nine", "all"), data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    terms = c("nine", "all"), data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -40,7 +48,7 @@ orbital_periods <- function(k_yr = NULL, p_arcsec = NULL, g = NULL, s = NULL,
     list(g = gisi[1:9], s = gisi[10:18])
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -55,7 +63,7 @@ orbital_periods <- function(k_yr = NULL, p_arcsec = NULL, g = NULL, s = NULL,
     NULL
   })
 
-  # ---- main code ----
+  # Main code
   terms <- match.arg(terms)
   if (is.null(p_arcsec)){
     if (is.null(k_yr)){
@@ -74,10 +82,10 @@ orbital_periods <- function(k_yr = NULL, p_arcsec = NULL, g = NULL, s = NULL,
   }
   if (terms == "nine"){
     freq <- c(g[2] - g[5], g[3] - g[2], g[4] - g[2], g[3] - g[5], g[4] - g[5],
-              p_arcsec + s[3], p_arcsec + g[5], p_arcsec + g[2], p_arcsec + g[4])
+        p_arcsec + s[3], p_arcsec + g[5], p_arcsec + g[2], p_arcsec + g[4])
     nm <- c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5", "k+s3", "k+g5", "k+g2", "k+g4")
     grp <- c("long eccentricity", rep("short eccentricity", 4), "obliquity",
-             rep("precession", 3))
+        rep("precession", 3))
   } else {
     ecc <- utils::combn(5, 2)
     nm <- freq <- grp <- NULL
@@ -100,6 +108,6 @@ orbital_periods <- function(k_yr = NULL, p_arcsec = NULL, g = NULL, s = NULL,
     }
   }
   out <- data.frame(term = nm, group = grp, freq_arcsec_yr = freq,
-                    period_kyr = 360 * 3600 / abs(freq) / 1000)
+      period_kyr = 360 * 3600 / abs(freq) / 1000)
   out[order(-out$period_kyr), ]
 }

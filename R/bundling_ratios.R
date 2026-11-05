@@ -1,4 +1,3 @@
-# =============================================================================
 # Eccentricity-precession interdependence
 #
 # The eccentricity frequencies ARE difference tones of the climatic precession
@@ -24,23 +23,33 @@
 # Hinnov, L.A. (2000) New perspectives on orbitally forced stratigraphy.
 #   Annu. Rev. Earth Planet. Sci. 28, 419-475 (section 3.5: changes in k are
 #   observable in the frequency and amplitude modulations of precession).
-# =============================================================================
 
 #' @title Precession cycles per eccentricity bundle, predicted
 #'
-#' @param age_ma age in Ma (the precession constant comes from AstroGeo22)
-#' @param k_yr optional: your own precession constant (yr) instead of the model
-#' @param ecc_terms eccentricity terms (rows)
-#' @param prec_terms precession and obliquity terms (columns)
-#' @param data_dir folder with the data tables
+#' @param age_ma Age at which the ratios are predicted, in Ma (single numeric value, 0 to 4429); the precession
+#' constant at that age is taken from the AstroGeo22 model (\code{\link{astrogeo22}}, linear interpolation).
+#' Ignored when \code{k_yr} is given. \code{Default=0}.
+#' @param k_yr Your own value of the precession constant, given as its period in years (numeric, e.g. about
+#' 25700 for today), used instead of the AstroGeo22 value; \code{NULL} uses the model value at \code{age_ma}.
+#' \code{Default=NULL}.
+#' @param ecc_terms Eccentricity terms that form the rows of the output (character vector). Each is a secular
+#' frequency combination such as \code{"g2-g5"}, \code{"g3-g2"}, combined terms such as \code{"2(g2-g5)"} or
+#' \code{"(g3-g2)-(g2-g5)"}, or an alias such as \code{"e405"}, \code{"e125"}, \code{"e95"} (see
+#' \code{\link{astro_terms}}). \code{Default=c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5")}.
+#' @param prec_terms Precession and obliquity terms that form the columns of the output (character vector), each
+#' of the form \code{"k+gi"} (precession) or \code{"k+si"} (obliquity), or an alias such as \code{"prec"} or
+#' \code{"obl"}. \code{Default=c("k+g5", "k+g2", "k+g3", "k+g4", "k+s3")}.
+#' @param data_dir Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+#' \code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+#' set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return matrix of bundling ratios, eccentricity terms in rows, precession
 #'   (and obliquity) terms in columns
 #' @export
 bundling_ratios <- function(age_ma = 0, k_yr = NULL,
-                            ecc_terms = c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5"),
-                            prec_terms = c("k+g5", "k+g2", "k+g3", "k+g4", "k+s3"),
-                            data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    ecc_terms = c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5"),
+    prec_terms = c("k+g5", "k+g2", "k+g3", "k+g4", "k+s3"),
+    data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -89,8 +98,8 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -133,7 +142,7 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -183,8 +192,8 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -196,7 +205,7 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -211,7 +220,7 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -220,26 +229,26 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   if (is.null(k_yr)){
     p <- astrogeo22(age_ma, data_dir = data_dir)$p_arcsec
   } else {
@@ -263,7 +272,7 @@ bundling_ratios <- function(age_ma = 0, k_yr = NULL,
     }
   }
   dimnames(out) <- list(sprintf("%s (%.1f kyr)", ecc_terms, 360 * 3600 / abs(fe) / 1000),
-                        sprintf("%s (%.2f kyr)", prec_terms, 360 * 3600 / abs(fp) / 1000))
+      sprintf("%s (%.2f kyr)", prec_terms, 360 * 3600 / abs(fp) / 1000))
   attr(out, "age_ma") <- age_ma
   attr(out, "k_kyr") <- 360 * 3600 / p / 1000
   round(out, 3)

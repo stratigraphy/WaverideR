@@ -14,18 +14,27 @@ plot_agemodel_check(
 )
 }
 \arguments{
-\item{x}{Result of \code{\link{check_agemodel}}.}
+\item{x}{Age-model check to plot: the output of \code{\link{check_agemodel}} (an object of class
+\code{wr_agemodel_check}). Required, no default.}
 
-\item{transforms}{Which de-chirped maps to show (default all that were computed).}
+\item{transforms}{De-chirped maps to show, one panel each (character vector, a subset of
+\code{names(x$dechirped)}, i.e. of the transforms used in \code{\link{check_agemodel}}).
+\code{Default=names(x$dechirped)} (all computed maps).}
 
-\item{view}{\code{"tuned"} (maps in the time of the track, cycles should be horizontal) or \code{"depth"}
-(mapped back to depth) \code{Default="tuned"}.}
+\item{view}{Horizontal axis of the plots (character): \code{"tuned"} shows the maps in the time of the track (kyr),
+where the astronomical cycles should be horizontal lines; \code{"depth"} shows them mapped back to depth.
+\code{Default=c("tuned", "depth")}, i.e. \code{"tuned"}.}
 
-\item{rate_unit}{Factor and label of the rate axis, e.g. \code{c(100, "cm/kyr")}.}
+\item{rate_unit}{Factor and label of the rate axis, as a vector \code{c(factor, label)}, e.g.
+\code{c(100, "cm/kyr")}. In the current version it has no effect on the plot (the correction panel shows a
+dimensionless correction factor). \code{Default=c(1, "depth units / kyr")}.}
 
-\item{main}{Title.}
+\item{main}{Title of the top (proxy) panel (character); \code{NULL} uses a default title.
+\code{Default=NULL}.}
 
-\item{...}{Passed to \code{\link{plot_dechirped}}.}
+\item{...}{Further arguments passed to \code{\link{plot_dechirped}} for the map panels (e.g. \code{palette},
+\code{level}, \code{scale}, \code{outline_lwd}, \code{ylab}); \code{style}, \code{show} and \code{main} are set by
+this function.}
 }
 \value{
 Invisibly \code{x}.

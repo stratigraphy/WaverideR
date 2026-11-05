@@ -7,12 +7,15 @@
 plot_dynot(dynot_res = NULL, plot_data = TRUE, x_lab = "time (kyr)")
 }
 \arguments{
-\item{dynot_res}{Output of \code{\link{dynot}}. \code{Default=NULL}}
+\item{dynot_res}{DYNOT result to plot: the list returned by \code{\link{dynot}} (its \code{data},
+\code{percentile}, \code{interval_count} and \code{median_index} elements are used). Required
+(\code{Default=NULL} gives an error).}
 
-\item{plot_data}{Also plot the input data in an upper panel.
-\code{Default=TRUE}}
+\item{plot_data}{Also plot the input data in an upper panel above the noise model (logical, TRUE or FALSE); with
+\code{FALSE} only the noise panel (median and up to five confidence envelopes, reversed y-axis) is drawn.
+\code{Default=TRUE}.}
 
-\item{x_lab}{Label of the x-axis. \code{Default="time (kyr)"}}
+\item{x_lab}{Label of the time axis of both panels (character). \code{Default="time (kyr)"}.}
 }
 \value{
 No return value; a plot is drawn.

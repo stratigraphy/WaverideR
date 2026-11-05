@@ -13,15 +13,26 @@ bundling_ratios(
 )
 }
 \arguments{
-\item{age_ma}{age in Ma (the precession constant comes from AstroGeo22)}
+\item{age_ma}{Age at which the ratios are predicted, in Ma (single numeric value, 0 to 4429); the precession
+constant at that age is taken from the AstroGeo22 model (\code{\link{astrogeo22}}, linear interpolation).
+Ignored when \code{k_yr} is given. \code{Default=0}.}
 
-\item{k_yr}{optional: your own precession constant (yr) instead of the model}
+\item{k_yr}{Your own value of the precession constant, given as its period in years (numeric, e.g. about
+25700 for today), used instead of the AstroGeo22 value; \code{NULL} uses the model value at \code{age_ma}.
+\code{Default=NULL}.}
 
-\item{ecc_terms}{eccentricity terms (rows)}
+\item{ecc_terms}{Eccentricity terms that form the rows of the output (character vector). Each is a secular
+frequency combination such as \code{"g2-g5"}, \code{"g3-g2"}, combined terms such as \code{"2(g2-g5)"} or
+\code{"(g3-g2)-(g2-g5)"}, or an alias such as \code{"e405"}, \code{"e125"}, \code{"e95"} (see
+\code{\link{astro_terms}}). \code{Default=c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5")}.}
 
-\item{prec_terms}{precession and obliquity terms (columns)}
+\item{prec_terms}{Precession and obliquity terms that form the columns of the output (character vector), each
+of the form \code{"k+gi"} (precession) or \code{"k+si"} (obliquity), or an alias such as \code{"prec"} or
+\code{"obl"}. \code{Default=c("k+g5", "k+g2", "k+g3", "k+g4", "k+s3")}.}
 
-\item{data_dir}{folder with the data tables}
+\item{data_dir}{Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+\code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 matrix of bundling ratios, eccentricity terms in rows, precession

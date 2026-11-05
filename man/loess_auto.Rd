@@ -12,15 +12,19 @@ loess_auto(
 )
 }
 \arguments{
-\item{time_series}{Input is a time series with the first column being depth or time and the second column being a proxy}
+\item{time_series}{Series to smooth: a two-column matrix or data frame with depth or time in column 1 and the
+proxy value (e.g. the period of a tracked cycle, as from \code{\link{completed_series}}) in column 2; rows with
+\code{NA} are dropped for the span selection. Required (\code{Default=NULL}).}
 
-\item{genplot}{Option to generate plot \code{Default=TRUE}. \cr
-The plot will consist of the original signal in blue, the smoothed plot is displayed
-in black and the + and - 1 sd bounds of the smoothing are displayed in red.}
+\item{genplot}{Plot the original series (blue), the smoothed curve (black) and the smoothed curve plus and minus
+the absolute residual (red, dashed) (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{print_span}{Print span length as a fraction of the total length of the record.}
+\item{print_span}{Print the selected loess span, a fraction (0-1) of the number of data points that is used in each
+local fit (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+\code{Default=FALSE}.}
 }
 \value{
 A matrix with 3 columns.

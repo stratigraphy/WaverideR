@@ -3,13 +3,21 @@
 #' @description Extracts a cycle from the wavelet object created using the \code{\link{analyse_wavelet}}
 #' function using a fixed period and fixed period boundaries defined as factors of the original cycle
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#'@param cycle Period of the cycle which needs to be extracted.
-#'@param period_up Specifies the upper period as a factor of the to be extracted cycle \code{Default=1.2}.
-#'@param period_down Specifies the lower period as a factor of the to be extracted cycle \code{Default=0.8}.
-#'@param add_mean Add mean to the extracted cycle \code{Default=TRUE}.
-#'@param plot_residual plot the residual signal after extraction of set cycle \code{Default=FALSE}.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param wavelet Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+#' its coefficients. Required (\code{Default=NULL}).
+#' @param cycle Constant period of the cycle to extract, in the depth/time unit of the wavelet (numeric, > 0).
+#' Required (\code{Default=NULL}).
+#' @param period_up Upper boundary of the band that is reconstructed, as a factor of \code{cycle} (numeric,
+#' > \code{period_down}). \code{Default=1.2}.
+#' @param period_down Lower boundary of the band that is reconstructed, as a factor of \code{cycle} (numeric, > 0).
+#' \code{Default=0.8}.
+#' @param add_mean Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+#' \code{FALSE} returns it centred on zero. \code{Default=TRUE}.
+#' @param plot_residual Plot the residual (extracted cycle minus data) against depth/time and its histogram
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param keep_editable Keep the plot layout active after the call so that extra features can be added to the
+#' residual plot (logical, TRUE or FALSE); \code{FALSE} restores the previous graphical parameters. Only used when
+#' \code{plot_residual=TRUE}. \code{Default=FALSE}.
 #'
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
@@ -62,12 +70,12 @@
 #' @importFrom graphics lines
 
 extract_signal_stable <- function(wavelet = NULL,
-                                  cycle = NULL,
-                                  period_up = 1.2,
-                                  period_down = 0.8,
-                                  add_mean = TRUE,
-                                  plot_residual = FALSE,
-                                  keep_editable = FALSE) {
+    cycle = NULL,
+    period_up = 1.2,
+    period_down = 0.8,
+    add_mean = TRUE,
+    plot_residual = FALSE,
+    keep_editable = FALSE) {
   my.w <- wavelet
   my.data <- cbind(wavelet$x, wavelet$y)
   extracted_cycle <- my.data[, 1]
@@ -91,7 +99,7 @@ extract_signal_stable <- function(wavelet = NULL,
 
   for (s.ind in seq_len(nr)) {
     rec.waves[s.ind, ] = (Re(Wave[s.ind, ]) / sqrt(Scale[s.ind])) *
-      dj * sqrt(dt) / .wr_psi0(my.w)
+        dj * sqrt(dt) / .wr_psi0(my.w)
   }
 
   cycle_high <- cycle * period_up
@@ -112,7 +120,7 @@ extract_signal_stable <- function(wavelet = NULL,
   rec_value  <- colSums(rec.waves, na.rm = T)
 
   extracted_cycle[, 2] <-
-    (extracted_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
+      (extracted_cycle[, 2]) * sd(my.data[, 2]) / sd(rec_value)
 
 
   if (add_mean == TRUE) {
@@ -127,9 +135,9 @@ extract_signal_stable <- function(wavelet = NULL,
     residual <- extracted_cycle[, 2] - my.data[, 2]
     layout.matrix <- matrix(c(1, 2), nrow = 2, ncol = 1)
     graphics::layout(mat = layout.matrix,
-                     heights = c(1, 1),
-                     # Heights of the two rows
-                     widths = c(1, 1))
+        heights = c(1, 1),
+        # Heights of the two rows
+        widths = c(1, 1))
     par(mar = c(4, 4, 1, 1))
     plot(x = extracted_cycle[, 1], y = residual, xlab = "depth m")
     hist(residual)

@@ -17,8 +17,8 @@ win_fft(
   perc_vis = 0,
   freq_max = NULL,
   freq_min = NULL,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   keep_editable = FALSE,
   verbose = FALSE,
   dev_new = FALSE,
@@ -26,74 +26,75 @@ win_fft(
 )
 }
 \arguments{
-\item{data}{Input data set  should consist of a matrix with 2 columns with
-first column being depth and the second column being a proxy}
+\item{data}{Record to analyse (matrix or data frame with two columns: depth/time in column 1, proxy value in
+column 2), evenly sampled (the sampling interval is taken from the first two rows; rows with missing values are
+removed). Must be given (the \code{NULL} default fails). \code{Default=NULL}.}
 
-\item{padfac}{Pad record with zero, zero padding smooths out the spectra}
+\item{padfac}{Zero-padding factor of each window (numeric, >= 1): every window is padded with zeros to
+\code{padfac} times its length before the FFT, which gives a finer (interpolated) frequency grid and a smoother
+spectrum; 1 or less means no padding. \code{Default=5}.}
 
-\item{window_size}{size of the running window}
+\item{window_size}{Length of the running window (numeric, > 0, in the depth/time unit of \code{data}, several
+sampling intervals long). A spectrum is computed for a window centred on every sample; at both ends the record is
+extended by half a window of AR(1) noise with the mean, standard deviation and lag-1 autocorrelation of the first
+and last half window. Must be given. \code{Default=NULL}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+\item{run_multicore}{Compute the windows in parallel on several cores (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer; \code{NULL}: an automatic, safe
+number: physical cores minus one, at most 4, and limited by the free memory). Set
+\code{options(waverider.n_cores = ...)} to change the default. A value > 1 also switches on parallel computing.
+Results do not depend on the number of cores. \code{Default=NULL}.}
 
-\item{genplot}{Generate plot \code{Default="FALSE"}}
+\item{genplot}{Plot the matrix chosen with \code{plot_res} against depth and frequency, with the mean spectrum and
+a colour key (logical, TRUE or FALSE); needs \code{freq_min} and \code{freq_max}. \code{Default=FALSE}.}
 
-\item{x_lab}{label for the y-axis \code{Default="depth"}}
+\item{x_lab}{Label of the x-axis (depth/time) of the plot (character). \code{Default="depth (m)"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="sedrate"}}
+\item{y_lab}{Label of the y-axis (frequency) of the plot (character). \code{Default="frequency cycle/metre"}.}
 
-\item{plot_res}{plot 1 of 8 options option 1: Amplitude matrix,
-option 2: Power matrix,
-option 3: Phase matrix,
-option 4: AR1_CL matrix,
-option 5: AR1_Fit matrix ,
-option 6: AR1_90_power matrix,
-option 7: AR1_95_power matrix,
-option 8: AR1_99_power matrix, \code{Default=1}}
+\item{plot_res}{Which matrix of the result is plotted (integer, 1 to 9): 1 amplitude, 2 power, 3 phase, 4 frequency
+uncertainty, 5 AR(1) confidence level (percent), 6 AR(1) fit, 7 AR(1) 90\% power level, 8 AR(1) 95\% power level,
+9 AR(1) 99\% power level. \code{Default=1}.}
 
-\item{perc_vis}{Cutoff percentile when plotting \code{Default=0}}
+\item{perc_vis}{Lower cut-off of the colour scale as a quantile of the plotted values (numeric, between 0 and 1):
+values below this quantile get the lowest colour, e.g. 0.5 shows only the upper half of the values in colour.
+\code{Default=0}.}
 
-\item{freq_max}{Maximum frequency to plot}
+\item{freq_max}{Highest frequency shown in the plot (numeric, in cycles per depth/time unit, at most the Nyquist
+frequency); required when \code{genplot = TRUE}. \code{Default=NULL}.}
 
-\item{freq_min}{Minimum frequency to plot}
+\item{freq_min}{Lowest frequency shown in the plot (numeric, in cycles per depth/time unit, > 0); required when
+\code{genplot = TRUE}. \code{Default=NULL}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters and layout after plotting, so that extra features can be added
+(logical, TRUE or FALSE); \code{FALSE} restores the previous settings. \code{Default=FALSE}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Show a progress bar of the window computations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{dev_new}{Opens a new plotting window to plot the plot, this
-guarantees  a "nice" looking plot however when plotting in an R markdown
-document the plot might not plot  \code{Default=FALSE}}
+\item{dev_new}{Open a new plot window (via \code{wr_open_device()}) before plotting (logical, TRUE or FALSE); a
+separate window gives a "nice" looking plot, but in an R markdown document the plot may then not appear.
+\code{Default=FALSE}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 Returns a list which contains 10 elements

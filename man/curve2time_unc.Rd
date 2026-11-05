@@ -15,30 +15,30 @@ curve2time_unc(
 )
 }
 \arguments{
-\item{tracked_cycle_curve}{Curve of the cycle tracked using the
-\code{\link{retrack_wt_MC}} function \cr
-Any input (matrix or data frame) with 3 columns in which column 1 is the
-x-axis, column 2 is the  mean tracked frequency (in cycles/metres) column 3
-1 standard deviation}
+\item{tracked_cycle_curve}{Re-tracked cycle with its uncertainty (matrix or data frame, three columns): depth in
+metres in column 1, the mean tracked frequency in cycles per metre in column 2 and its standard deviation (1
+sigma, cycles per metre) in column 3, e.g. the output of \code{\link{retrack_wt_MC}}. Rows with \code{NA} are
+dropped and the curve is interpolated to its median depth spacing. Required (\code{Default=NULL} gives an
+error).}
 
-\item{tracked_cycle_period}{Period of the tracked curve in kyr.}
+\item{tracked_cycle_period}{Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+long eccentricity cycle). Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period_unc}{uncertainty in the period of the tracked cycle}
+\item{tracked_cycle_period_unc}{Uncertainty of \code{tracked_cycle_period} in kyr (single numeric value,
+>= 0): the standard deviation when \code{tracked_cycle_period_unc_dist="n"}, the half-width of the range when
+\code{"u"}. Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period_unc_dist}{distribution of the uncertainty of the
-tracked cycle value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="n"}}
+\item{tracked_cycle_period_unc_dist}{Distribution from which the duration of the tracked cycle is drawn in every
+simulation (character): \code{"n"} normal or \code{"u"} uniform. \code{Default="n"}.}
 
-\item{n_simulations}{number of time series to be modeled}
+\item{n_simulations}{Number of age models to simulate (integer, > 0); in every simulation one duration and one
+quantile of the frequency uncertainty (applied along the whole curve) are drawn. Simulations whose age model is
+not monotonic are discarded. Required (\code{Default=NULL} gives an error).}
 
-\item{output}{If output = 1 a matrix with the predicted ages given the input for each run
-is given. If output = 2 a matrix with 6 columns is generated,
-the first column is depth/height, the other columns are the quantile
-(0.025,0.373,0.5,0.6827,0.975) age values of the runs
-if output = 3 a matrix with 4 columns is generated with the first column
-being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
-is mean duration + 1 standard deviation and column 4  is mean duration -  1
-standard deviation}
+\item{output}{Form of the result (integer): \code{1} a matrix with the simulated ages (kyr) at every depth, one
+column per kept simulation; \code{2} a matrix with depth, the mean tracked frequency and the 0.02275, 0.373,
+0.5, 0.6827 and 0.97725 quantiles of the simulated ages; \code{3} a matrix with depth, the mean and the
+standard deviation of the simulated ages. \code{Default=1}.}
 }
 \value{
 If output = 1 a matrix with the predicted ages given the input for each run

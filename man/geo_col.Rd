@@ -7,7 +7,10 @@
 geo_col(name = NULL)
 }
 \arguments{
-\item{name}{Name of the geologchronological subdivision}
+\item{name}{Name of the geochronological subdivision (character, exact and case-sensitive), e.g. an eon, era,
+period, epoch or stage such as \code{"Silurian"} or \code{"Rhuddanian"}, as listed in column 1 of
+\code{\link{GTS_info}} (Geologic Time Scale 2020).
+The colour returned is the GTS 2020 RGB colour of that unit. Required (\code{Default=NULL}).}
 }
 \value{
 Returns the color code of the geological subdivision

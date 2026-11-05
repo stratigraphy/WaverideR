@@ -3,9 +3,13 @@
 #' @description Converts the period of a tracked cycle to a sedimentation rate curve by
 #' assigning a duration (in kyr) to the period of a tracked cycle
 #'
-#' @param tracked_cycle_curve  A tracked cycle  which is the result of using the \code{\link{track_period_wavelet}} function \cr
-#' Any input (matrix or data frame) in which the first column is depth in meters and the second column is period in meters
-#' @param tracked_cycle_period Period of the tracked cycle (in kyr).
+#' @param tracked_cycle_curve Tracked period curve of one astronomical cycle (matrix or data frame, two columns):
+#' depth in metres in column 1 and the period of the tracked cycle in metres in column 2, e.g. the output of
+#' \code{\link{track_period_wavelet}} (preferably completed with \code{\link{completed_series}}). Required
+#' (\code{Default=NULL} gives an error).
+#' @param tracked_cycle_period Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+#' long eccentricity cycle); the sedimentation rate in cm/kyr is the period in metres divided by
+#' \code{tracked_cycle_period / 100}. Required (\code{Default=NULL} gives an error).
 #'
 #' @examples
 #' \donttest{
@@ -57,8 +61,8 @@
 
 
 curve2sedrate <-  function(tracked_cycle_curve = NULL,
-                           tracked_cycle_period = NULL) {
+    tracked_cycle_period = NULL) {
   tracked_cycle_curve[, 2] <-
-    (tracked_cycle_curve[, 2] / (tracked_cycle_period / 100))
+      (tracked_cycle_curve[, 2] / (tracked_cycle_period / 100))
   return(tracked_cycle_curve)
 }

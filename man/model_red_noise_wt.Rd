@@ -14,19 +14,24 @@ model_red_noise_wt(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object, the output of \code{\link{analyse_wavelet}}. Its record (\code{x}, \code{y}), period
+range, \code{dj} and \code{omega_nr} are used: every simulation is red (AR1) noise with the mean, standard
+deviation, length and (randomly perturbed) lag-1 autocorrelation of the record, analysed with the same wavelet
+settings. Required (\code{Default=NULL}).}
 
-\item{n_simulations}{Number of red noise simulations.}
+\item{n_simulations}{Number of red-noise simulations (integer, > 0; e.g. 1000 for stable percentiles); one output
+column per simulation. Required (\code{Default=NULL}).}
 
-\item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
-the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.}
+\item{run_multicore}{Run the simulations in parallel on several cores (logical, TRUE or FALSE). Results do not
+depend on it. \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer or \code{NULL}). \code{NULL} gives an
+automatic, safe number (physical cores minus one, at most 4, limited by the free memory); change this default with
+\code{options(waverider.n_cores = ...)}. A value > 1 also switches on parallel computing. Results do not depend
+on the number of cores. \code{Default=NULL}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Print the interpolation interval of the record and show a progress bar of the simulations
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 Returns a matrix in which each column represents the average spectral

@@ -7,11 +7,15 @@
 moon_distance_from_lod(lod_h, kind = "solar", L_total = NULL)
 }
 \arguments{
-\item{lod_h}{Length of day in hours.}
+\item{lod_h}{Length of day in hours (numeric vector, > 0; 24 today), of the type set by
+\code{kind}. Required (no default).}
 
-\item{kind}{Type of day, `"solar"` or `"sidereal"`.}
+\item{kind}{Type of day given in \code{lod_h} (character, passed to \code{\link{earth_omega}}): \code{"solar"}
+(mean solar day) or \code{"sidereal"} (one rotation relative to the stars). \code{Default="solar"}.}
 
-\item{L_total}{Total angular momentum (`NULL` = present-day Earth-Moon value).}
+\item{L_total}{Total angular momentum of the Earth-Moon system in kg m^2/s (numeric, > 0), assumed to be
+conserved. \code{NULL} uses the present-day value (computed from today's Earth-Moon distance and length of day).
+\code{Default=NULL}.}
 }
 \description{
 Earth-Moon distance implied by a length of day (angular momentum conserved)

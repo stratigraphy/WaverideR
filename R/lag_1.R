@@ -3,16 +3,24 @@
 #' @description The \code{\link{lag_1}} function calculates the lag-1 autocorrelation coefficient using a windowed analysis
 #' monte carlo analysis
 #'
-#'@param data Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy
-#'@param n_sim number of simulations to be ran
-#'@param run_multicore Run function using multiple cores \code{Default="FALSE"}
-#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-#'   parallel computing. Results do not depend on the number of cores.
-#'@param win_max maximum window size
-#'@param win_min minimum window size
-#'@param verbose print text
+#' @param data Two-column matrix or data frame: depth or time in column 1 and the proxy value in column 2; it is
+#' sorted and linearly interpolated to its mean sampling interval. Required (\code{Default=NULL}).
+#' @param n_sim Number of Monte Carlo simulations (integer, > 0). In every simulation the record is resampled at a
+#' random sampling interval (truncated normal around the mean interval) and a random window size between
+#' \code{win_min} and \code{win_max} is used; the output is the mean and standard deviation over the simulations.
+#' \code{Default=10}.
+#' @param run_multicore Run the simulations in parallel on several cores (logical, TRUE or FALSE). Results do not
+#' depend on it. \code{Default=FALSE}.
+#' @param n_cores Number of cores used when \code{run_multicore = TRUE} (integer or \code{NULL}). \code{NULL} gives an
+#' automatic, safe number (physical cores minus one, at most 4, limited by the free memory); change this default with
+#' \code{options(waverider.n_cores = ...)}. A value > 1 also switches on parallel computing. Results do not depend
+#' on the number of cores. \code{Default=NULL}.
+#' @param win_max Largest width of the moving window in which the lag-1 autocorrelation is computed, in the unit of
+#' the first column of \code{data} (numeric, > 0). Required (\code{Default=NULL}).
+#' @param win_min Smallest width of the moving window, in the unit of the first column of \code{data} (numeric, > 0;
+#' the window width of each simulation is drawn uniformly between \code{win_min} and \code{win_max}). Required
+#' (\code{Default=NULL}).
+#' @param verbose Show a progress bar of the simulations (logical, TRUE or FALSE). \code{Default=FALSE}.
 #' @author
 #'Michiel Arts
 #'
@@ -80,12 +88,12 @@
 
 
 lag_1 <- function(data = NULL,
-                  n_sim = 10,
-                  run_multicore = FALSE,
-                  n_cores = NULL,
-                  win_max = NULL,
-                  win_min = NULL,
-                  verbose = FALSE) {
+    n_sim = 10,
+    run_multicore = FALSE,
+    n_cores = NULL,
+    win_max = NULL,
+    win_min = NULL,
+    verbose = FALSE) {
 
 
 
@@ -113,8 +121,8 @@ lag_1 <- function(data = NULL,
 
 
   mat_sim <- matrix(data = NA,
-                    nrow = nrow(d),
-                    ncol = n_sim)
+      nrow = nrow(d),
+      ncol = n_sim)
 
 
 
@@ -126,79 +134,79 @@ lag_1 <- function(data = NULL,
 
 
   fit <-
-    wr_lapply(seq_len(n_sim), function(i) {
-               #i <- 1
-               if ((dt - (2 * sdt)) > 0) {
-                 new_sampling_rate <-
-                   wr_rtruncnorm(
-                     n = 1,
-                     a = dt - 2 * sdt,
-                     b = dt + (2 * sdt),
-                     mean = dt,
-                     sd = sdt
-                   )
-               } else {
-                 new_sampling_rate <-
-                   wr_rtruncnorm(
-                     n = 1,
-                     a = dt / 2,
-                     b = dt +
-                       (2 * sdt),
-                     mean = dt,
-                     sd = sdt
-                   )
-               }
-               win_size <- stats::runif(n = 1,
-                                        min = min(c(win_min, win_max)),
-                                        max = max(c(win_min, win_max)))
-               dt_new <- new_sampling_rate
-               new_sampling_rate
+      wr_lapply(seq_len(n_sim), function(i) {
+        #i <- 1
+        if ((dt - (2 * sdt)) > 0) {
+          new_sampling_rate <-
+              wr_rtruncnorm(
+                  n = 1,
+                  a = dt - 2 * sdt,
+                  b = dt + (2 * sdt),
+                  mean = dt,
+                  sd = sdt
+              )
+        } else {
+          new_sampling_rate <-
+              wr_rtruncnorm(
+                  n = 1,
+                  a = dt / 2,
+                  b = dt +
+                  (2 * sdt),
+                  mean = dt,
+                  sd = sdt
+              )
+        }
+        win_size <- stats::runif(n = 1,
+            min = min(c(win_min, win_max)),
+            max = max(c(win_min, win_max)))
+        dt_new <- new_sampling_rate
+        new_sampling_rate
 
 
-               xout_new <- seq(from=start, to=end, by = dt_new)
-               npts_new <- length(xout_new)
-               interp_new <-
-                 approx(dat[, 1], dat[, 2], xout_new, method = "linear", n = npts)
-               d_new <- as.data.frame(interp_new)
-               d_new[, 3] <- NA
+        xout_new <- seq(from=start, to=end, by = dt_new)
+        npts_new <- length(xout_new)
+        interp_new <-
+            approx(dat[, 1], dat[, 2], xout_new, method = "linear", n = npts)
+        d_new <- as.data.frame(interp_new)
+        d_new[, 3] <- NA
 
-               for (k in 1:nrow(d_new)) {
-                 row_nr_1 <-
-                   wr_closest(d_new[, 1], d_new[k, 1] - (win_size / 2), which = TRUE)
+        for (k in 1:nrow(d_new)) {
+          row_nr_1 <-
+              wr_closest(d_new[, 1], d_new[k, 1] - (win_size / 2), which = TRUE)
 
-                 row_nr_2 <-
-                   wr_closest(d_new[, 1], d_new[k, 1] + (win_size / 2), which = TRUE)
+          row_nr_2 <-
+              wr_closest(d_new[, 1], d_new[k, 1] + (win_size / 2), which = TRUE)
 
-                 data_sel <- d_new[row_nr_1[1]:row_nr_2[1], ]
-                 corr <- acf(data_sel[, 2], plot = F)
+          data_sel <- d_new[row_nr_1[1]:row_nr_2[1], ]
+          corr <- acf(data_sel[, 2], plot = F)
 
-                 a <- as.numeric(unlist(corr[1])[1])
+          a <- as.numeric(unlist(corr[1])[1])
 
-                 d_new[k, 3] <- a
-               }
-
-
+          d_new[k, 3] <- a
+        }
 
 
-               yleft_comp <- d_new[1, 3]
-               yright_com <- d_new[nrow(d_new), 3]
-
-               app <-
-                 approx(
-                   d_new[, 1],
-                   d_new[, 3],
-                   xout_vals,
-                   method = "linear",
-                   n = npts,
-                   yleft = yleft_comp,
-                   yright = yright_com
-                 )
 
 
-               app_res <- cbind(app$y)
+        yleft_comp <- d_new[1, 3]
+        yright_com <- d_new[nrow(d_new), 3]
 
-               return(app_res)
-             }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
+        app <-
+            approx(
+                d_new[, 1],
+                d_new[, 3],
+                xout_vals,
+                method = "linear",
+                n = npts,
+                yleft = yleft_comp,
+                yright = yright_com
+            )
+
+
+        app_res <- cbind(app$y)
+
+        return(app_res)
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
 
   mat_sim_mean <- rowMeans(fit)

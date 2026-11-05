@@ -7,11 +7,16 @@
 percentile_from_red_noise(red_noise = NULL, wavelet = NULL, percentile = NULL)
 }
 \arguments{
-\item{red_noise}{Red noise curves generated using the \code{\link{model_red_noise_wt}} function.}
+\item{red_noise}{Average spectral power curves of red-noise simulations, the output of
+\code{\link{model_red_noise_wt}} (numeric matrix, one row per period of \code{wavelet} and one column per
+simulation). Required (\code{Default=NULL}).}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object, the output of \code{\link{analyse_wavelet}}; the same object that was given to
+\code{model_red_noise_wt}, its periods form the first output column. Required (\code{Default=NULL}).}
 
-\item{percentile}{Percentile value (0-1).}
+\item{percentile}{Percentile of the red-noise power that is returned for every period (numeric, between 0 and 1,
+e.g. 0.95); computed from a normal distribution with the mean and standard deviation of the simulations. Required
+(\code{Default=NULL}).}
 }
 \value{
 Returns a matrix with 2 columns.\cr

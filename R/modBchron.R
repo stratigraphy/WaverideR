@@ -1,4 +1,3 @@
-# =============================================================================
 # modBchron -- pure-R implementation of modifiedBChron (Trayler et al., 2020), the
 # Compound Poisson-Gamma age-depth model of Haslett and Parnell (2008) for deep time.
 # The C routines of BchronModified.c (truncatedWalk, truncatedRat, dtweediep1,
@@ -6,7 +5,6 @@
 # R (internal functions with a leading dot), so nothing has to be compiled.
 # modBchron() takes the same arguments as modifiedBChron::ageModel() and returns the same
 # object (class "mod_bchron_model_run"); modBchron_predict() corresponds to agePredict().
-# =============================================================================
 .rtruncn <- function(a, b) {
   # Rejection sampler for a standard normal truncated to [a, b], translated
   # from rtruncn() in BchronModified.c.
@@ -15,14 +13,18 @@
   maxA <- exp(-a^2 / 4) / cos(A)
   maxB <- exp(-b^2 / 4) / cos(B)
   maxR <- max(maxA, maxB)
-  if (a < 1 && b > -1) maxR <- exp(-0.25) * sqrt(2.0)
+  if (a < 1 && b > -1) {
+    maxR <- exp(-0.25) * sqrt(2.0)
+  }
   repeat {
     r2 <- runif(1, 0, 1)
     r <- sqrt(r2) * maxR
     th <- runif(1, A, B)
     u <- r * cos(th)
     x <- tan(th)
-    if ((x^2) < (log(u) * -4)) break
+    if ((x^2) < (log(u) * -4)) {
+      break
+    }
   }
   return(x)
 }
@@ -54,10 +56,18 @@
 .dtweedielogwsmallp <- function(y, phi, power) {
   # translated from dtweedielogwsmallp() in BchronModified.c
   drop <- 37
-  if (power < 1) stop("Error - power<1!")
-  if (power > 2) stop("Error - power>2!")
-  if (phi <= 0) stop("Error - phi<=0!")
-  if (y <= 0) stop("Error - y<=0!")
+  if (power < 1) {
+    stop("Error - power<1!")
+  }
+  if (power > 2) {
+    stop("Error - power>2!")
+  }
+  if (phi <= 0) {
+    stop("Error - phi<=0!")
+  }
+  if (y <= 0) {
+    stop("Error - y<=0!")
+  }
   p <- power
   a <- (2 - p) / (1 - p)
   a1 <- 1 - a
@@ -127,8 +137,8 @@
 #' @keywords internal
 #' @noRd
 .predictInterpC <- function(alpha, lambda, beta, predictPositions,
-                             diffPositionj, currPositionsj, currPositionsjp1,
-                             thetaj, thetajp1) {
+    diffPositionj, currPositionsj, currPositionsjp1,
+    thetaj, thetajp1) {
   # translated from predictInterp() in BchronModified.c
   Nd <- rpois(1, lambda * diffPositionj)
   if (Nd > 0) {
@@ -172,7 +182,7 @@
 #' @keywords internal
 #' @noRd
 .predictExtrapUpC <- function(alpha, lambda, beta, predictPositions,
-                               currPositions1, theta1, maxExtrap, extractDate) {
+    currPositions1, theta1, maxExtrap, extractDate) {
   # translated from predictExtrapUp() in BchronModified.c
   NpredictPositions <- length(predictPositions)
   bad <- TRUE
@@ -197,7 +207,9 @@
     predvals <- approx(depthEvents, timeEvents, xout = predictPositions, rule = 2)$y
     count <- count + 1
     bad <- FALSE
-    if (any(predvals < extractDate)) bad <- TRUE
+    if (any(predvals < extractDate)) {
+      bad <- TRUE
+    }
     if (count == 50) {
       predvals[predvals < extractDate] <- extractDate
       bad <- FALSE
@@ -209,7 +221,7 @@
 #' @keywords internal
 #' @noRd
 .predictExtrapDownC <- function(alpha, lambda, beta, predictPositions,
-                                 currPositions1, theta1, maxExtrap, extractDate) {
+    currPositions1, theta1, maxExtrap, extractDate) {
   # translated from predictExtrapDown() in BchronModified.c
   NpredictPositions <- length(predictPositions)
   bad <- TRUE
@@ -223,7 +235,9 @@
     predvals <- approx(depthEvents, timeEvents, xout = predictPositions, rule = 2)$y
     count <- count + 1
     bad <- FALSE
-    if (any(predvals > extractDate)) bad <- TRUE
+    if (any(predvals > extractDate)) {
+      bad <- TRUE
+    }
     if (count == 50) {
       predvals[predvals > extractDate] <- extractDate
       bad <- FALSE
@@ -232,30 +246,50 @@
   }
   predvals
 }
-# =============================================================================
 # SECTION 3 -- ageModel.r
 # (originally used .C('truncatedWalk'/'truncatedRat'/'dtweediep1'/
 #  'predictInterp'/'predictExtrapUp'/'predictExtrapDown', PACKAGE =
 #  'modifiedBChron'); those calls now go to the pure-R engines in SECTION 0)
-# =============================================================================
 #' Run a modified version of the Bchronology algorithm from the R package "Bchron" (Haslett and Parnell, 2008)
 #'
-#' @param ages Vector of ages
-#' @param ageSds Vector of 1-sigma values for ages. Must be the same length and given in the same order as \code{ages}
-#' @param positions Vector of stratigraphic positions for ages. Must be the same length and given in the same order as \code{ages}. Must be input as distance above base of section.
-#' @param positionThicknesses Vector of stratigraphic uncertainties for each age. Specified as half thicknesses. Must be the same length and given in the same order as \code{ages}
-#' @param ids Vector of sample names for each age. All samples with the same ids will be combined into a single age PDF. Must be the same length and given in the same order as \code{ages}
-#' @param distTypes c('G','U') Vector of distribution types to model each age as. Choices are 'G' for Gaussian, and 'U' uniform. Must be the same length and given in the same order as \code{ages}
-#' @param MC Number of MCMC iteration to run for. Defaults to 10000
-#' @param burn Number of initial iterations to discard. Defaults to 2000
-#' @param probability Desired probability of the returned interval. Defaults to 0.95 (95 percent)
-#' @param adapt Should the proposal standard deviation for model parameters be determined using the adaptive proposal algorithm of Haario et al., 1998. Defaults to TRUE
-#' @param mhSD Metropolis-Hastings proposal standard deviation for the age parameters. If adapt = TRUE it will be determined by the model run. Otherwise a vector of standard deviations must be specified with length = \code{unique(ids)}
-#' @param psiSD Metropolis-Hastings proposal standard deviation for the Compound Poisson-Gamma scale parameter. If adapt = TRUE it will be determined by the model run.
-#' @param muSD Metropolis-Hastings proposal standard deviation for the Compound Poisson-Gamma mean parameter. If adapt = TRUE it will be determined by the model run.
-#' @param mu0 Optional warm-start centre for the initial Compound Poisson-Gamma mean parameter mu. If NULL (default), mu is initialised the original way, from the raw date/position spacing. If given, the chain instead starts at \code{abs(rnorm(1, mean = mu0, sd = muSD))} -- lets you restart the chain near a previously-known-good region of parameter space (e.g. in a rejection-sampling/restart scheme) instead of re-exploring from scratch every time. Does not change the Metropolis-Hastings acceptance ratio at all, only where the chain begins.
-#' @param psi0 Optional warm-start centre for the initial Compound Poisson-Gamma scale parameter psi, analogous to \code{mu0}. If NULL (default), psi is initialised the original way (\code{abs(rnorm(1, 1, sd = psiSD))}).
-#' @param thetas0 Optional warm-start vector of starting ages for the dated horizons (one per unique
+#' @param ages Ages of the dated samples (numeric vector, one value per date, in one time unit such as kyr or Ma that
+#' is used for all age arguments). Required (no default).
+#' @param ageSds One-sigma uncertainties of \code{ages} (numeric vector, > 0, same unit, length and order as
+#' \code{ages}); for \code{distTypes = "U"} it is the half-width of the uniform distribution. Required (no default).
+#' @param positions Stratigraphic positions of the dated samples as distance above the base of the section, e.g. in
+#' metres (numeric vector, same length and order as \code{ages}; unordered positions are sorted with a warning).
+#' Required (no default).
+#' @param positionThicknesses Stratigraphic uncertainty of each date, given as half thickness in the unit of
+#' \code{positions} (numeric vector, >= 0, same length and order as \code{ages}).
+#' \code{Default=rep(0, length(positions))} (no positional uncertainty).
+#' @param ids Sample names of the dates (character or numeric vector, same length and order as \code{ages}); all
+#' dates with the same id are combined into a single age PDF of one dated horizon. Required (no default).
+#' @param distTypes Distribution used for each date (character vector, same length and order as \code{ages}):
+#' \code{"G"} Gaussian (mean \code{ages}, standard deviation \code{ageSds}) or \code{"U"} uniform
+#' (\code{ages} plus or minus \code{ageSds}). \code{Default=rep('G', length(ages))}.
+#' @param MC Number of MCMC iterations (integer, > \code{burn}). \code{Default=10000}.
+#' @param burn Number of initial MCMC iterations discarded as burn-in when the intervals are computed (integer,
+#' >= 1 and < \code{MC}). \code{Default=2000}.
+#' @param probability Probability of the returned highest density interval and of the outlier check of the dates
+#' (numeric, between 0 and 1; 0.95 is 95 percent). \code{Default=0.95}.
+#' @param adapt Tune the proposal standard deviations of the model parameters during the run with the adaptive
+#' proposal algorithm of Haario et al. (1998) (logical, TRUE or FALSE). \code{Default=TRUE}.
+#' @param mhSD Metropolis-Hastings proposal standard deviations of the ages of the dated horizons, in the age unit
+#' (numeric vector of length \code{length(unique(ids))}, > 0); the starting values when \code{adapt = TRUE}, used
+#' as they are otherwise. \code{Default=rep(0.001, length(unique(ids)))}.
+#' @param psiSD Metropolis-Hastings proposal standard deviation of the Compound Poisson-Gamma scale parameter psi
+#' (numeric, > 0); the starting value when \code{adapt = TRUE}. \code{Default=0.001}.
+#' @param muSD Metropolis-Hastings proposal standard deviation of the Compound Poisson-Gamma mean parameter mu
+#' (numeric, > 0); the starting value when \code{adapt = TRUE}. \code{Default=0.001}.
+#' @param mu0 Warm-start centre of the initial Compound Poisson-Gamma mean parameter mu (numeric, > 0, or \code{NULL}).
+#' If \code{NULL}, mu is initialised the original way, from the raw date/position spacing. If given, the chain starts
+#' at \code{abs(rnorm(1, mean = mu0, sd = muSD))}, so that a chain can be restarted near a previously known good region
+#' of parameter space (e.g. in a rejection-sampling/restart scheme) instead of re-exploring from scratch. It does not
+#' change the Metropolis-Hastings acceptance ratio, only where the chain begins. \code{Default=NULL}.
+#' @param psi0 Warm-start centre of the initial Compound Poisson-Gamma scale parameter psi (numeric, > 0, or
+#' \code{NULL}), analogous to \code{mu0}. If \code{NULL}, psi is initialised the original way
+#' (\code{abs(rnorm(1, 1, sd = psiSD))}). \code{Default=NULL}.
+#' @param thetas0 Warm-start vector of starting ages of the dated horizons (numeric vector, one value per unique
 #'   id, in the same order as \code{unique(ids)}). If NULL (default) each is initialised from its own
 #'   likelihood peak, as before. This matters most in a batch-RESTART scheme: the adaptive proposal
 #'   SDs start at their \code{mhSD} default of 0.001 and grow by only about a factor of 10 per
@@ -266,10 +300,10 @@
 #'   reports near-ZERO age uncertainty at the dated horizons. Passing \code{thetas0} together with
 #'   the previous run's adapted \code{mhSD}/\code{psiSD}/\code{muSD} lets a restarted chain resume
 #'   properly mixed instead of paying that burn-in again. Values are still clipped into
-#'   [truncateUp, truncateDown].
-#' @param mu_fixed,psi_fixed Optionally HOLD the Compound Poisson-Gamma mean/scale parameters at a
-#'   supplied value, skipping their Metropolis-Hastings updates entirely. NULL (default) estimates
-#'   them as before.
+#'   [truncateUp, truncateDown]. \code{Default=NULL}.
+#' @param mu_fixed,psi_fixed Hold the Compound Poisson-Gamma mean (\code{mu_fixed}) or scale (\code{psi_fixed})
+#'   parameter at the given value and skip its Metropolis-Hastings updates (numeric, > 0, or \code{NULL}).
+#'   \code{NULL} estimates the parameter in the MCMC as before. \code{Default=NULL} for both.
 #'
 #'   WHY THIS EXISTS. mu and psi are estimated from the gaps BETWEEN dated horizons, so n dates give
 #'   only n-1 numbers to estimate both. With a handful of dates psi is effectively UNIDENTIFIED: on a
@@ -302,10 +336,14 @@
 #'   spectral peak test and the cycle-count test). Those are what establish that the axis is right,
 #'   and once psi is pinned they are no longer a refinement -- they are the thing standing between you
 #'   and a confidently wrong answer. Report a sensitivity range over psi rather than a single value.
-#' @param predictPositions Vector of stratigraphic positions to evaluate the model at. Defaults to 500 evenly spaced points from the bottom to top of the section
-#' @param truncateUp Truncation age for extrapolating above the top of the section. Defaults to 0.
+#' @param predictPositions Stratigraphic positions at which the age model is evaluated, in the unit of
+#' \code{positions} (numeric vector); positions above the top or below the base date are extrapolated.
+#' \code{Default=seq(min(positions), max(positions), length = 500)} (500 evenly spaced points from the bottom to the
+#' top dated horizon).
+#' @param truncateUp Youngest permitted age, used as truncation for extrapolating above the top of the section
+#' (numeric, in the age unit). \code{Default=0}.
 #'   IMPORTANT: this is a HARD lower bound on the age of the TOPMOST DATED HORIZON as well, not
-#'   just on extrapolated points above it -- it is used directly as the `low` limit of that
+#'   just on extrapolated points above it -- it is used directly as the \code{low} limit of that
 #'   horizon's Metropolis-Hastings proposal. So if your top date's own likelihood sits close to
 #'   this bound (the common case being a "present day" date of 0 +/- sd with the default
 #'   truncateUp = 0), roughly the lower half of that date's likelihood is excluded by the bound,
@@ -319,9 +357,14 @@
 #'   bound to bite, set truncateUp below the youngest age you want to permit (e.g. -1000) and the
 #'   full date uncertainty is recovered. The same reasoning applies to \code{truncateDown} and the
 #'   bottommost date.
-#' @param truncateDown Truncation age for extrapolation below the bottom of the section. Defaults to 1e10 (a really big number). See the note on \code{truncateUp}: this is likewise a hard upper bound on the bottommost dated horizon's age, not only on extrapolated points.
-#' @param extrapUp Number of extrapolations to perform above the top of the section. defaults to 100
-#' @param extrapDown Number of extrapolations to perform below the bottom of the section. defaults to 100
+#' @param truncateDown Oldest permitted age, used as truncation for extrapolating below the bottom of the section
+#' (numeric, in the age unit). See the note on \code{truncateUp}: it is likewise a hard upper bound on the age of the
+#' bottommost dated horizon, not only on extrapolated points. \code{Default=1e10} (in effect no bound).
+#' @param extrapUp Number of Compound Poisson-Gamma events simulated for every extrapolated age path above the top
+#' dated horizon (integer, > 1); it must be large enough for the path to reach the highest \code{predictPositions}.
+#' \code{Default=100}.
+#' @param extrapDown Number of Compound Poisson-Gamma events simulated for every extrapolated age path below the
+#' bottom dated horizon (integer, > 1), as \code{extrapUp}. \code{Default=100}.
 #' @return HDI = specified probability highest density interval for the model run
 #' @return model = Raw model predictions for each MCMC iteration
 #' @return thetas = The posterior values for each dated horizon from each MCMC run. burn is not removed.
@@ -336,33 +379,35 @@
 #' @importFrom stats approx approxfun dnorm dunif pnorm quantile rexp rgamma rnorm rpois runif sd
 #' @export
 modBchron <- function(ages,
-                     ageSds,
-                     positions,
-                     positionThicknesses = rep(0, length(positions)),
-                     ids,
-                     distTypes = rep('G',length(ages)),
-                     MC = 10000,
-                     burn = 2000,
-                     probability = 0.95,
-                     adapt = TRUE,
-                     mhSD = rep(0.001,length(unique(ids))),
-                     psiSD = 0.001,
-                     muSD = 0.001,
-                     mu0 = NULL,
-                     psi0 = NULL,
-                     thetas0 = NULL,
-                     mu_fixed = NULL,
-                     psi_fixed = NULL,
-                     predictPositions = seq(min(positions),max(positions),length = 500),
-                     truncateUp = 0,
-                     extrapUp = 100,
-                     truncateDown = 1e10,
-                     extrapDown = 100){
+    ageSds,
+    positions,
+    positionThicknesses = rep(0, length(positions)),
+    ids,
+    distTypes = rep('G',length(ages)),
+    MC = 10000,
+    burn = 2000,
+    probability = 0.95,
+    adapt = TRUE,
+    mhSD = rep(0.001,length(unique(ids))),
+    psiSD = 0.001,
+    muSD = 0.001,
+    mu0 = NULL,
+    psi0 = NULL,
+    thetas0 = NULL,
+    mu_fixed = NULL,
+    psi_fixed = NULL,
+    predictPositions = seq(min(positions),max(positions),length = 500),
+    truncateUp = 0,
+    extrapUp = 100,
+    truncateDown = 1e10,
+    extrapDown = 100){
   ##
   # truncated random walk (was compiled C in BchronModified.c; now pure R --
   # see .truncatedWalkC()/.truncatedRatC() in SECTION 0)
   truncatedWalk = function(old,sd,low,high) {
-    if(isTRUE(all.equal(low, high, tolerance = 1e-10))) return(list(new=low,rat=1))
+    if(isTRUE(all.equal(low, high, tolerance = 1e-10))) {
+      return(list(new=low,rat=1))
+    }
     new <- .truncatedWalkC(old, sd, low, high)
     rat <- .truncatedRatC(old, sd, low, high, new)
     #if(is.nan(rat)) rat=1 # Useful for when proposed value and new value are identical
@@ -377,46 +422,46 @@ modBchron <- function(ages,
   ## prediction and interpolation (was compiled C; now pure R -- see
   ## .predictInterpC()/.predictExtrapUpC()/.predictExtrapDownC())
   predictInterp = function(alpha,
-                           lambda,
-                           beta,
-                           predictPositions,
-                           diffPositionj,
-                           currPositionsj,
-                           currPositionsjp1,
-                           thetaj,
-                           thetajp1) {
+      lambda,
+      beta,
+      predictPositions,
+      diffPositionj,
+      currPositionsj,
+      currPositionsjp1,
+      thetaj,
+      thetajp1) {
     .predictInterpC(alpha = alpha, lambda = lambda, beta = beta,
-                    predictPositions = predictPositions,
-                    diffPositionj = diffPositionj,
-                    currPositionsj = currPositionsj,
-                    currPositionsjp1 = currPositionsjp1,
-                    thetaj = thetaj, thetajp1 = thetajp1)
+        predictPositions = predictPositions,
+        diffPositionj = diffPositionj,
+        currPositionsj = currPositionsj,
+        currPositionsjp1 = currPositionsjp1,
+        thetaj = thetaj, thetajp1 = thetajp1)
   }
   predictExtrapUp = function(alpha,
-                             lambda,
-                             beta,
-                             predictPositions,
-                             currPositions1,
-                             theta1,
-                             maxExtrap,
-                             extractDate) {
+      lambda,
+      beta,
+      predictPositions,
+      currPositions1,
+      theta1,
+      maxExtrap,
+      extractDate) {
     .predictExtrapUpC(alpha = alpha, lambda = lambda, beta = beta,
-                      predictPositions = predictPositions,
-                      currPositions1 = currPositions1, theta1 = theta1,
-                      maxExtrap = maxExtrap, extractDate = extractDate)
+        predictPositions = predictPositions,
+        currPositions1 = currPositions1, theta1 = theta1,
+        maxExtrap = maxExtrap, extractDate = extractDate)
   }
   predictExtrapDown = function(alpha,
-                               lambda,
-                               beta,
-                               predictPositions,
-                               currPositions1,
-                               theta1,
-                               maxExtrap,
-                               extractDate) {
+      lambda,
+      beta,
+      predictPositions,
+      currPositions1,
+      theta1,
+      maxExtrap,
+      extractDate) {
     .predictExtrapDownC(alpha = alpha, lambda = lambda, beta = beta,
-                        predictPositions = predictPositions,
-                        currPositions1 = currPositions1, theta1 = theta1,
-                        maxExtrap = maxExtrap, extractDate = extractDate)
+        predictPositions = predictPositions,
+        currPositions1 = currPositions1, theta1 = theta1,
+        maxExtrap = maxExtrap, extractDate = extractDate)
   }
   ##
   ## function for creating a summed PDF of ages
@@ -424,11 +469,12 @@ modBchron <- function(ages,
     interval <- matrix(0,nrow = length(x), ncol=length(ages))
     for (i in 1:length(ages)) {
       if(distType[i] == 'G') {
-        interval[,i] <- dnorm(x,ages[i],sigs[i])/length(ages)*mean(diff(x)) }
-      else if(distType[i] == 'U') {
-        interval[,i] <- dunif(x,ages[i]-sigs[i],ages[i]+sigs[i])/length(ages)*mean(diff(x)) }
+        interval[,i] <- dnorm(x,ages[i],sigs[i])/length(ages)*mean(diff(x))
+      } else if(distType[i] == 'U') {
+        interval[,i] <- dunif(x,ages[i]-sigs[i],ages[i]+sigs[i])/length(ages)*mean(diff(x))
+      }
     }
-    G <- apply(interval,1,sum)
+    G <- rowSums(interval)
     return(G)
   }
   ##
@@ -442,15 +488,15 @@ modBchron <- function(ages,
   ## above it becomes wild extrapolation. Nothing errors; you just get a nonsense
   ## age-depth model. Fail loudly instead.
   .dateLens <- c(ages = length(ages), ageSds = length(ageSds),
-                 positions = length(positions), ids = length(ids),
-                 distTypes = length(distTypes),
-                 positionThicknesses = length(positionThicknesses))
+      positions = length(positions), ids = length(ids),
+      distTypes = length(distTypes),
+      positionThicknesses = length(positionThicknesses))
   if (length(unique(.dateLens)) != 1L) {
     stop("ages, ageSds, positions, ids, distTypes and positionThicknesses must all have ",
-         "one entry per date, but their lengths are: ",
-         paste(sprintf("%s=%d", names(.dateLens), .dateLens), collapse = ", "),
-         ".\n  (R would otherwise silently recycle the short one -- e.g. 3 ages with ",
-         "2 ids merges the 3rd date into the 1st. Give every date its own id.)")
+        "one entry per date, but their lengths are: ",
+        paste(sprintf("%s=%d", names(.dateLens), .dateLens), collapse = ", "),
+        ".\n  (R would otherwise silently recycle the short one -- e.g. 3 ages with ",
+        "2 ids merges the 3rd date into the 1st. Give every date its own id.)")
   }
   ##
   o = order(positions)
@@ -489,9 +535,9 @@ modBchron <- function(ages,
   ageGrid <- seq(min(ages-ageSds*10),max(ages+ageSds*10),length.out=100000) # Grid of ages to evaluate over
   for(j in 1:nSamples){
     prob[, j] <- compoundProb(ages[ids == nNames[j]],
-                              ageSds[ids == nNames[j]],
-                              distType = distTypes[ids == nNames[j]],
-                              x = ageGrid)
+        ageSds[ids == nNames[j]],
+        distType = distTypes[ids == nNames[j]],
+        x = ageGrid)
   }
   rm(j)
   ##
@@ -518,7 +564,7 @@ modBchron <- function(ages,
   if (!is.null(thetas0)) {
     if (length(thetas0) != nSamples) {
       stop("thetas0 must have one value per unique id (expected length ", nSamples,
-           ", got ", length(thetas0), ")")
+          ", got ", length(thetas0), ")")
     }
     thetas <- as.numeric(thetas0)
   }
@@ -559,13 +605,17 @@ modBchron <- function(ages,
   ## instead of the original blind guess -- everything downstream (the
   ## M-H acceptance ratios for mu, psi, and every theta) is completely
   ## unchanged; this only moves where the chain begins.
-  mu <- if (is.null(mu0)) abs(rnorm(1,mean=mean(diff(thetas))/mean(diff(currPositions)),sd=muSD)) else abs(rnorm(1, mean = mu0, sd = muSD))
-  psi <- if (is.null(psi0)) abs(rnorm(1,1,sd=psiSD)) else abs(rnorm(1, mean = psi0, sd = psiSD))
+  mu <- if (is.null(mu0)) { abs(rnorm(1,mean=mean(diff(thetas))/mean(diff(currPositions)),sd=muSD)) } else { abs(rnorm(1, mean = mu0, sd = muSD)) }
+  psi <- if (is.null(psi0)) { abs(rnorm(1,1,sd=psiSD)) } else { abs(rnorm(1, mean = psi0, sd = psiSD)) }
   ## mu_fixed / psi_fixed: hold the parameter at a supplied value and skip its
   ## Metropolis-Hastings update entirely (see their @param notes). Everything
   ## else -- the thetas, the bridge, the acceptance ratios -- is untouched.
-  if (!is.null(mu_fixed))  mu  <- mu_fixed
-  if (!is.null(psi_fixed)) psi <- psi_fixed
+  if (!is.null(mu_fixed)) {
+    mu  <- mu_fixed
+  }
+  if (!is.null(psi_fixed)) {
+    psi <- psi_fixed
+  }
   p = 1.2
   alpha <- (2-p) / (p-1) # Haslett and Parnell (2008)
   ##
@@ -595,10 +645,10 @@ modBchron <- function(ages,
   psiSD_floor <- max(psiSD, 1e-10) * 1e-3
   muSD_floor <- max(muSD, 1e-10) * 1e-3
   pb <- utils::txtProgressBar(min = 1,
-                              max = MC,
-                              style = 3,
-                              width=40,
-                              char = '<>') # create a progress bar
+      max = MC,
+      style = 3,
+      width=40,
+      char = '<>') # create a progress bar
   for(n in 1:MC){
     utils::setTxtProgressBar(pb, n) # set the progress bar
     ##
@@ -609,8 +659,8 @@ modBchron <- function(ages,
     ##
     ## choose some random positions from a uniform distribution for each dated horizon.
     currPositions <- runif(nSamples,
-                           masterPositions - nThicknesses,
-                           masterPositions + nThicknesses)
+        masterPositions - nThicknesses,
+        masterPositions + nThicknesses)
     do <- order(currPositions)
     diffPositions <- diff(currPositions[do])
     thetas[do] <- sort(thetas, decreasing = T)
@@ -620,14 +670,14 @@ modBchron <- function(ages,
     for(j in 1:(nSamples - 1)){
       inRange <- predictPositions >= currPositions[do[j]] & predictPositions <= currPositions[do[j+1]]
       predval <- predictInterp(alpha = alpha,
-                               lambda = lambda,
-                               beta = beta,
-                               predictPositions = predictPositions[inRange],
-                               diffPositionj = diffPositions[j],
-                               currPositionsj = currPositions[do[j]],
-                               currPositionsjp1 = currPositions[do[j+1]],
-                               thetaj = thetas[do[j]],
-                               thetajp1 = thetas[do[j+1]])
+          lambda = lambda,
+          beta = beta,
+          predictPositions = predictPositions[inRange],
+          diffPositionj = diffPositions[j],
+          currPositionsj = currPositions[do[j]],
+          currPositionsjp1 = currPositions[do[j+1]],
+          thetaj = thetas[do[j]],
+          thetajp1 = thetas[do[j+1]])
       modelStore[inRange,n] <- predval
     }
     ##
@@ -635,26 +685,26 @@ modBchron <- function(ages,
     if(any(predictPositions >= currPositions[do[nSamples]])){
       inRange <- predictPositions >= currPositions[do[nSamples]]
       predval <- predictExtrapUp(alpha = alpha,
-                                 lambda = lambda,
-                                 beta = beta,
-                                 predictPositions = predictPositions[inRange],
-                                 theta1 = thetas[do[nSamples]],
-                                 currPositions1 = currPositions[do[nSamples]],
-                                 maxExtrap = extrapUp,
-                                 extractDate = truncateUp)
+          lambda = lambda,
+          beta = beta,
+          predictPositions = predictPositions[inRange],
+          theta1 = thetas[do[nSamples]],
+          currPositions1 = currPositions[do[nSamples]],
+          maxExtrap = extrapUp,
+          extractDate = truncateUp)
       modelStore[inRange,n] <- predval
     }
     # extrapolate down
     if(any(predictPositions <= currPositions[do[1]])){
       inRange <- predictPositions <= currPositions[do[1]]
       predval <- predictExtrapDown(alpha = alpha,
-                                   lambda = lambda,
-                                   beta = beta,
-                                   predictPositions = predictPositions[inRange],
-                                   theta1 = thetas[do[1]],
-                                   currPositions1 = currPositions[do[1]],
-                                   maxExtrap = extrapDown,
-                                   extractDate = truncateDown)
+          lambda = lambda,
+          beta = beta,
+          predictPositions = predictPositions[inRange],
+          theta1 = thetas[do[1]],
+          currPositions1 = currPositions[do[1]],
+          maxExtrap = extrapDown,
+          extractDate = truncateDown)
       modelStore[inRange,n] <- predval
     }
     ##
@@ -663,38 +713,38 @@ modBchron <- function(ages,
       thetaCurrent <- thetas[do[i]]
       ## choose a new theta from a truncated normal where truncation are the surrounding thetas
       thetaProposed <- truncatedWalk(old = thetaCurrent,
-                                     sd = mhSD[do[i]],
-                                     low = ifelse(i == nSamples,
-                                                  truncateUp,
-                                                  thetas[do[i+1]]-1e-10), # if we're at the top truncate at a really small number
-                                     high = ifelse(i == 1, 1e10, thetas[do[i-1]] + 1e-10)) # if we're at the bottom, truncate at a really big number
+          sd = mhSD[do[i]],
+          low = ifelse(i == nSamples,
+              truncateUp,
+              thetas[do[i+1]]-1e-10), # if we're at the top truncate at a really small number
+          high = ifelse(i == 1, 1e10, thetas[do[i-1]] + 1e-10)) # if we're at the bottom, truncate at a really big number
       pProposed <- log(prob[, do[i]][which.min(abs(ageGrid - thetaProposed$new))])
       pProposed <-  max(pProposed, -1000000, na.rm = T) # just in case things get really small
       pCurrent <- log(prob[, do[i]][which.min(abs(ageGrid - thetaCurrent))])
       pCurrent <-  max(pCurrent, -1000000, na.rm = T) # just in case things get really small
       priorProposed <-  ifelse(i == 1,
-                               0,
-                               log(dtweediep1(thetas[do[i - 1]] - thetaProposed$new,
-                                              p = p,
-                                              mu = mu * (diffPositions[i - 1]),
-                                              phi = psi * (diffPositions[i - 1]) ^ (p - 1)))) +
-        ifelse(i == nSamples,
-               0,
-               log(dtweediep1(thetaProposed$new - thetas[do[i + 1]],
-                              p = p,
-                              mu = mu*(diffPositions[i]),
-                              phi = psi*(diffPositions[i]) ^ (p - 1))))
+          0,
+          log(dtweediep1(thetas[do[i - 1]] - thetaProposed$new,
+              p = p,
+              mu = mu * (diffPositions[i - 1]),
+              phi = psi * (diffPositions[i - 1]) ^ (p - 1)))) +
+          ifelse(i == nSamples,
+              0,
+              log(dtweediep1(thetaProposed$new - thetas[do[i + 1]],
+                  p = p,
+                  mu = mu*(diffPositions[i]),
+                  phi = psi*(diffPositions[i]) ^ (p - 1))))
       priorCurrent <-  ifelse(i == 1,0,
-                              log(dtweediep1(thetas[do[i - 1]] - thetaCurrent,
-                                             p = p,
-                                             mu = mu * (diffPositions[i - 1]),
-                                             phi = psi * (diffPositions[i - 1])^(p - 1)))) +
-        ifelse(i == nSamples,
-               0,
-               log(dtweediep1(thetaCurrent - thetas[do[i + 1]],
-                              p = p,
-                              mu = mu*(diffPositions[i]),
-                              phi = psi*(diffPositions[i]) ^ (p - 1))))
+          log(dtweediep1(thetas[do[i - 1]] - thetaCurrent,
+              p = p,
+              mu = mu * (diffPositions[i - 1]),
+              phi = psi * (diffPositions[i - 1])^(p - 1)))) +
+          ifelse(i == nSamples,
+              0,
+              log(dtweediep1(thetaCurrent - thetas[do[i + 1]],
+                  p = p,
+                  mu = mu*(diffPositions[i]),
+                  phi = psi*(diffPositions[i]) ^ (p - 1))))
       # clean up the probabilities if they get really really small
       priorCurrent <- max(priorCurrent, -1000000, na.rm = T)
       priorProposed <- max(priorProposed, -1000000, na.rm = T)
@@ -702,46 +752,52 @@ modBchron <- function(ages,
       logRtheta <- priorProposed - priorCurrent + pProposed - pCurrent + log(thetaProposed$rat)
       # keep the probability to go to -Inf
       logRtheta <- max(logRtheta, -1000000, na.rm = T)
-      if(runif(1, 0, 1) < min(1, exp(logRtheta))) {thetas[do[i]] <- thetaProposed$new}
+      if(runif(1, 0, 1) < min(1, exp(logRtheta))) {
+        thetas[do[i]] <- thetaProposed$new
+      }
     }
     thetaStore[n, ] <- thetas
     #
     ## Update mu
     muCurrent <- mu
     muProposed <- truncatedWalk(old = mu,
-                                sd = muSD,
-                                low = 1e-10,
-                                high = 1e10)
+        sd = muSD,
+        low = 1e-10,
+        high = 1e10)
     priorMu <- sum(log(dtweediep1(abs(diff(thetas[do])),
-                                  p = p,
-                                  mu = muProposed$new * diffPositions,
-                                  phi = psi / diffPositions^(p-1)))) -
-      sum(log(dtweediep1(abs(diff(thetas[do])),
-                         p = p,
-                         mu = mu * diffPositions,
-                         phi = psi / diffPositions^(p - 1)))) + log(muProposed$rat)
+        p = p,
+        mu = muProposed$new * diffPositions,
+        phi = psi / diffPositions^(p-1)))) -
+        sum(log(dtweediep1(abs(diff(thetas[do])),
+            p = p,
+            mu = mu * diffPositions,
+            phi = psi / diffPositions^(p - 1)))) + log(muProposed$rat)
     mu <- if (is.null(mu_fixed)) {
       ifelse(runif(1, 0, 1) < min(1, exp(priorMu)), muProposed$new, muCurrent)
-    } else mu_fixed
+    } else {
+      mu_fixed
+    }
     muStore[n] <- mu
     ##
     ## Update psi
     psiCurrent <- psi
     psiProposed <- truncatedWalk(old = psi,
-                                 sd = psiSD,
-                                 low = 1e-10,
-                                 high = 1e10)
+        sd = psiSD,
+        low = 1e-10,
+        high = 1e10)
     priorPsi <- sum(log(dtweediep1(abs(diff(thetas[do])),
-                                   p = p,
-                                   mu = mu * diffPositions,
-                                   phi = psiProposed$new / diffPositions ^ (p - 1)))) -
-      sum(log(dtweediep1(abs(diff(thetas[do])),
-                         p = p,
-                         mu = mu * diffPositions,
-                         phi = psi / (diffPositions ^ (p - 1))))) + log(psiProposed$rat)
+        p = p,
+        mu = mu * diffPositions,
+        phi = psiProposed$new / diffPositions ^ (p - 1)))) -
+        sum(log(dtweediep1(abs(diff(thetas[do])),
+            p = p,
+            mu = mu * diffPositions,
+            phi = psi / (diffPositions ^ (p - 1))))) + log(psiProposed$rat)
     psi <- if (is.null(psi_fixed)) {
       ifelse(runif(1, 0, 1) < min(1, exp(priorPsi)), psiProposed$new, psiCurrent)
-    } else psi_fixed
+    } else {
+      psi_fixed
+    }
     psiStore[n] <- psi
     ##
     ## Update SDs
@@ -765,8 +821,8 @@ modBchron <- function(ages,
           thetaK <- thetaStore[(n - h + 1): n, q] - mean(thetaStore[( n - h + 1): n, q])
           thetaRt <- var(thetaK)
           mhSD[q] <- ifelse(is.na(sqrt(cd ^ 2 * thetaRt)),
-                            cd * sd(thetaStore[, q], na.rm = T),
-                            sqrt(cd ^ 2 * thetaRt))
+              cd * sd(thetaStore[, q], na.rm = T),
+              sqrt(cd ^ 2 * thetaRt))
           mhSD[q] <- max(mhSD[q], mhSD_floor[q], na.rm = TRUE) # safety floor -- see note above the main loop
         }
       }
@@ -783,10 +839,10 @@ modBchron <- function(ages,
     outlier <- vector(length = ncol(thetaStore))
     for(i in 1:ncol(thetaStore)){
       f <- approxfun(x = cumsum(prob[, i]),
-                     y = ageGrid)
+          y = ageGrid)
       likelihood <- f(c((1 - probability) / 2, 0.5, (1 + probability) / 2))
       posterior <- as.numeric(quantile(thetaStore[burn:MC, i],
-                                       prob = c((1 - probability) / 2, 0.5, (1 + probability) / 2)))
+          prob = c((1 - probability) / 2, 0.5, (1 + probability) / 2)))
       outlier[i] <- !(any(posterior > likelihood[1]) & any(posterior < likelihood[3]))
     }
     return(outlier)
@@ -809,50 +865,68 @@ modBchron <- function(ages,
   ## and how many curves you need for a target precision). Both are reported
   ## so you can quote the HDI and MONITOR with the SD.
   .post <- modelStore[, burn:MC, drop = FALSE]
-  output <- list(HDI = apply(.post, 1, quantile, c((1 - probability) / 2, 0.5 , (1 + probability) / 2)),
-                 sd = apply(.post, 1, sd, na.rm = TRUE),
-                 mean = rowMeans(.post, na.rm = TRUE),
-                 model = modelStore,
-                 thetas = thetaStore,
-                 positionStore = positionStore,
-                 psi = psiStore,
-                 mu = muStore,
-                 predictPositions = predictPositions,
-                 ageGrid = ageGrid,
-                 likelihoods = prob,
-                 nAges = nAges,
-                 masterPositions = masterPositions,
-                 ids = nNames,
-                 psiSDStore = psiSDStore,
-                 muSDStore = muSDStore,
-                 mhSDStore = mhSDStore,
-                 burn = burn,
-                 MC = MC,
-                 outliers = outliers,
-                 probability = probability,
-                 positionThicknesses = positionThicknesses)
+  .hdi <- matrix(NA_real_, 3, nrow(.post))
+  .sd <- numeric(nrow(.post))
+  for (r in seq_len(nrow(.post))) {
+    .q <- quantile(.post[r, ], c((1 - probability) / 2, 0.5 , (1 + probability) / 2))
+    .hdi[, r] <- .q
+    .sd[r] <- sd(.post[r, ], na.rm = TRUE)
+  }
+  dimnames(.hdi) <- list(names(quantile(0, c((1 - probability) / 2, 0.5 , (1 + probability) / 2))), rownames(.post))
+  if (length(rownames(.post))) {
+    names(.sd) <- rownames(.post)
+  }
+  output <- list(HDI = .hdi,
+      sd = .sd,
+      mean = rowMeans(.post, na.rm = TRUE),
+      model = modelStore,
+      thetas = thetaStore,
+      positionStore = positionStore,
+      psi = psiStore,
+      mu = muStore,
+      predictPositions = predictPositions,
+      ageGrid = ageGrid,
+      likelihoods = prob,
+      nAges = nAges,
+      masterPositions = masterPositions,
+      ids = nNames,
+      psiSDStore = psiSDStore,
+      muSDStore = muSDStore,
+      mhSDStore = mhSDStore,
+      burn = burn,
+      MC = MC,
+      outliers = outliers,
+      probability = probability,
+      positionThicknesses = positionThicknesses)
   class(output) <- "mod_bchron_model_run"
   return(output)
 }
-# =============================================================================
 
 #' Predict ages at new positions from a modBchron (or modifiedBChron) model
 #'
 #' This function is used to predict the age of new stratigraphic points using the output from an ageModel run.
 #'
-#' @param model Output of the \code{ageModel} function
-#' @param newPositions Vector of new stratigraphic positions to predict the age of. New positions must be within the bounds of the orignal model run
-#' @param ids optional vector of names for new positions. Defaults to 1, 2, 3, ...
-#' @param newPositionThicknesses Vector of stratigraphic uncertanties for each position. Specified as half thicknesses. Must be the same length and given in the same order as \code{newPositions}. Default is no positional uncertanty
-#' @param probability Probability of the returned interval. Defaults to 0.95
+#' @param model Age-depth model, the output of \code{\link{modBchron}} (a list with at least \code{model},
+#' \code{predictPositions} and \code{burn}). Required (no default).
+#' @param newPositions Stratigraphic positions whose age is predicted, in the unit of the \code{positions} of the model
+#' (numeric vector); they must lie within the \code{predictPositions} range of the original model run, outside it
+#' the prediction is \code{NA}. Required (no default).
+#' @param ids Names of the new positions, used as row names of the output (character or numeric vector, same length
+#' as \code{newPositions}). \code{Default=1:length(newPositions)}.
+#' @param newPositionThicknesses Stratigraphic uncertainty of each new position, given as half thickness in the
+#' unit of \code{newPositions} (numeric vector, >= 0, same length and order as \code{newPositions}); in every MCMC
+#' iteration the position is drawn uniformly within plus or minus this value.
+#' \code{Default=rep(0, length(newPositions))} (no positional uncertainty).
+#' @param probability Probability of the returned highest density interval (numeric, between 0 and 1).
+#' \code{Default=0.95}.
 #' @return HDI = 95 percent Highest Density Interval for each \code{newPosition}
 #' @return raw = Age predictions for each \code{newPosition} for each MCMC run.
 #' @export
 modBchron_predict <- function(model,
-                       newPositions,
-                       ids = 1:length(newPositions),
-                       newPositionThicknesses = rep(0, length(newPositions)),
-                       probability = 0.95){
+    newPositions,
+    ids = 1:length(newPositions),
+    newPositionThicknesses = rep(0, length(newPositions)),
+    probability = 0.95){
   ## this function is used to predict the age of new points using a modified bchron output model
   ## INPUTS
   ## model = output of the modified bchron age-depth model
@@ -862,20 +936,19 @@ modBchron_predict <- function(model,
   ## ConfInt = 95% Confidence interval for each point
   ## raw = age predictions for each point for each iteration in the MCMC chain
   pb <- utils::txtProgressBar(min = 1,
-                              max = ncol(model$model),
-                              style = 3,
-                              width = 40,
-                              char = '<>') # create a progress bar
+      max = ncol(model$model),
+      style = 3,
+      width = 40,
+      char = '<>') # create a progress bar
   x <- model$predictPositions
   n <- length(newPositions)
   predictStore <- matrix(nrow = ncol(model$model),
-                         ncol = n)
-
+      ncol = n)
 
   for(i in 1:ncol(model$model)){
     currPositions <- runif(n,
-                           newPositions - newPositionThicknesses,
-                           newPositions + newPositionThicknesses)
+        newPositions - newPositionThicknesses,
+        newPositions + newPositionThicknesses)
     utils::setTxtProgressBar(pb, i) # set the progress bar
     y <- model$model[, i]
     f <- approxfun(x, y)
@@ -887,17 +960,20 @@ modBchron_predict <- function(model,
 
   predictStore <- as.data.frame(predictStore)
 
-  HDI <- t(apply(predictStore, 2, quantile, c((1 - probability) / 2, 0.5, (1 + probability) / 2), na.rm = T))
+  HDI <- matrix(NA_real_, ncol(predictStore), 3)
+  for (j in seq_len(ncol(predictStore))) {
+    HDI[j, ] <- quantile(predictStore[[j]], c((1 - probability) / 2, 0.5, (1 + probability) / 2), na.rm = T)
+  }
+  dimnames(HDI) <- list(names(predictStore), names(quantile(0, c((1 - probability) / 2, 0.5, (1 + probability) / 2))))
   HDI <- cbind(newPositions, HDI)
   HDI <- data.frame(HDI)
 
   HDI$ids <- ids
   colnames(HDI) <- c('newPositions',
-                     as.character(c((1 - probability) / 2, 0.5, (1 + probability) / 2)),
-                     'ids')
+      as.character(c((1 - probability) / 2, 0.5, (1 + probability) / 2)),
+      'ids')
 
   predictStore <- data.frame(predictStore)
   return(list(HDI = HDI,
-              raw = predictStore))
+      raw = predictStore))
 }
-

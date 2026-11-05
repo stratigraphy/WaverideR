@@ -2,10 +2,10 @@ make_ecoco <- function() {
   sr <- seq(1, 10, by = 0.25)
   depth <- seq(0, 20, by = 0.5)
   true_sr <- 4 + 2 * depth / 20
-  rho <- sapply(true_sr, function(s) 0.8 * exp(-(sr - s)^2 / 0.5))
+  rho <- 0.8 * exp(-outer(sr, true_sr, "-")^2 / 0.5)
   list(sr = sr, depth = depth, rho = rho, pcoco = 2 * rho,
-       p_global = matrix(0.01, length(sr), length(depth)),
-       norbit = matrix(9, length(sr), length(depth)))
+      p_global = matrix(0.01, length(sr), length(depth)),
+      norbit = matrix(9, length(sr), length(depth)))
 }
 
 test_that("track_ecoco snaps scripted points to the ridge", {
@@ -23,11 +23,12 @@ test_that("track_ecoco interpolates and respects criteria", {
   expect_equal(nrow(trk), length(e$depth))
   expect_true(all(diff(trk$sedrate) >= 0))
   expect_error(track_ecoco(e, rho_min = 5, points = cbind(1, 1)), "no selectable")
-  expect_error(track_ecoco(e), "mouse input")
+  expect_error(track_ecoco(e), "mouse clicks")
 })
 
 test_that("track_ecoco can plot", {
   e <- make_ecoco()
-  grDevices::pdf(NULL); on.exit(grDevices::dev.off())
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
   expect_error(track_ecoco(e, points = cbind(10, 5), genplot = TRUE, plot_horizontal = FALSE), NA)
 })

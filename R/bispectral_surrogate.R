@@ -13,14 +13,21 @@
 #' excluded).
 #' Translated from Acycle v3.1 bispectralSurrogate.m (Mingsong Li).
 #'
-#' @param data Input: a numeric vector, or a 2-column matrix [depth/time,
-#' value] of which the second column is used.
-#' @param type "iaaft" or "ft" (phase randomisation). \code{Default="iaaft"}
-#' @param iaaft_iter Maximum number of IAAFT iterations. \code{Default=200}
-#' @param n_sim Number of surrogates to generate. \code{Default=1}
-#' @param seed Seed for the random number generator (\code{NULL} leaves the
-#' generator untouched). \code{Default=NULL}
-#' @param verbose Show a progress bar. \code{Default=FALSE}
+#' @param data Series to make surrogates of: a numeric vector, or a matrix or data frame with depth/time in
+#' column 1 and the proxy in column 2 (only column 2 is used; a one-column matrix uses that column). All values
+#' must be finite (no \code{NA}). Required (\code{Default=NULL} gives an error).
+#' @param type Kind of surrogate (character): \code{"iaaft"} (iterative amplitude-adjusted Fourier transform;
+#' keeps the value distribution exactly and the Fourier amplitudes approximately) or \code{"ft"} (Fourier phase
+#' randomisation; keeps the Fourier amplitudes exactly; \code{"phase"} and \code{"fourier"} are accepted as
+#' synonyms). Case is ignored. \code{Default="iaaft"}.
+#' @param iaaft_iter Maximum number of IAAFT iterations per surrogate (positive integer); the iteration stops
+#' earlier when the relative spectral error no longer changes. Ignored when \code{type="ft"}.
+#' \code{Default=200}.
+#' @param n_sim Number of surrogate series to generate (positive integer); each one becomes a column of the
+#' output matrix \code{surrogates}. \code{Default=1}.
+#' @param seed Seed of the random number generator (integer), so that the surrogates can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param verbose Show a text progress bar over the surrogates (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle bispectral module).
@@ -54,12 +61,12 @@
 #' @importFrom utils setTxtProgressBar
 
 bispectral_surrogate <- function(data = NULL,
-                                 type = "iaaft",
-                                 iaaft_iter = 200,
-                                 n_sim = 1,
-                                 seed = NULL,
-                                 verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    type = "iaaft",
+    iaaft_iter = 200,
+    n_sim = 1,
+    seed = NULL,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
   # @keywords internal
   # @noRd
@@ -74,9 +81,7 @@ bispectral_surrogate <- function(data = NULL,
     stop("surrogate type must be ft (phase) or iaaft.")
   }
 
-  # ---------------------------------------------------------------------------
   # surrogates (bispectralSurrogate.m)
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -117,7 +122,7 @@ bispectral_surrogate <- function(data = NULL,
       }
       sur <- Re(stats::fft(spec, inverse = TRUE)) / n
       return(list(surrogate = sur, iterations = 1,
-                  relative_spectral_error = bisp_spectral_error(sur, target)))
+          relative_spectral_error = bisp_spectral_error(sur, target)))
     }
     target <- Mod(stats::fft(y))
     sorted_target <- sort(y)
@@ -142,7 +147,7 @@ bispectral_surrogate <- function(data = NULL,
     list(surrogate = sur, iterations = completed, relative_spectral_error = err)
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(data)){
     stop("data must be a numeric vector or a 2-column matrix")
   }
@@ -162,7 +167,7 @@ bispectral_surrogate <- function(data = NULL,
   type <- bisp_canonical_surrogate(type)
   if (type == "iaaft"){
     if (!(length(iaaft_iter) == 1 && is.finite(iaaft_iter) &&
-          iaaft_iter >= 1 && iaaft_iter == round(iaaft_iter))){
+        iaaft_iter >= 1 && iaaft_iter == round(iaaft_iter))){
       stop("iaaft_iter must be a positive integer.")
     }
   }
@@ -190,7 +195,7 @@ bispectral_surrogate <- function(data = NULL,
     close(pb)
   }
   list(surrogates = surrogates,
-       type = type,
-       iterations = iterations,
-       relative_spectral_error = errors)
+      type = type,
+      iterations = iterations,
+      relative_spectral_error = errors)
 }

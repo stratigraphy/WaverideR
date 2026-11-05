@@ -13,18 +13,18 @@
 #' Translated from Acycle v3.1 acycleBandpassFilter.m (method "gaussian")
 #' and gaussfilter.m (Mingsong Li).
 #'
-#' @param data Input data set, a matrix or data frame with 2 columns: the
-#' first column being depth/time (strictly increasing and regularly sampled
-#' to a relative spacing tolerance of 1e-5) and the second column being the
-#' proxy value.
-#' @param f_low Lower half-power frequency of the pass band (cycles per unit
-#' of the first column).
-#' @param f_high Upper half-power frequency of the pass band; must be larger
-#' than \code{f_low} and strictly below the Nyquist frequency.
-#' @param genplot Generate a plot of the data, the filtered signal, its
-#' envelope and the filter response \code{Default=FALSE}.
-#' @param x_lab label for the x-axis \code{Default="depth"}.
-#' @param y_lab label for the y-axis \code{Default="proxy"}.
+#' @param data Numeric two-column matrix or data frame: depth/time in column 1 (strictly increasing and regularly
+#' sampled, relative spacing tolerance 1e-5; interpolate first if needed) and the proxy value in column 2; at least
+#' eight rows, all values finite. Required (\code{Default=NULL}).
+#' @param f_low Lower half-power (-3 dB) frequency of the pass band, in cycles per unit of the depth/time column
+#' (numeric, > 0; e.g. 1/25 to keep periods shorter than 25 m). Required (\code{Default=NULL}).
+#' @param f_high Upper half-power (-3 dB) frequency of the pass band, in cycles per unit of the depth/time column
+#' (numeric, > \code{f_low} and strictly below the Nyquist frequency \code{1 / (2 * sampling interval)}). Required
+#' (\code{Default=NULL}).
+#' @param genplot Plot the demeaned data with the filtered signal and its envelope, and the filter response
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param x_lab Label of the x-axis of the data plot (character). \code{Default="depth"}.
+#' @param y_lab Label of the y-axis of the data plot (character). \code{Default="proxy"}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle), Linda Hinnov and K. Ramamurthy (gaussfilter).
@@ -69,16 +69,14 @@
 #' @importFrom graphics legend
 
 gaussian_bandpass <- function(data = NULL,
-                              f_low = NULL,
-                              f_high = NULL,
-                              genplot = FALSE,
-                              x_lab = "depth",
-                              y_lab = "proxy"){
-  # ---- internal helper functions (local to this function) ----
+    f_low = NULL,
+    f_high = NULL,
+    genplot = FALSE,
+    x_lab = "depth",
+    y_lab = "proxy"){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @title Strict series check (Acycle validateSeries)
   # @keywords internal
@@ -106,8 +104,8 @@ gaussian_bandpass <- function(data = NULL,
     rel_dep <- max(abs(spacing - dt)) / dt
     if (!(is.finite(rel_dep)) || rel_dep > 1e-5){
       stop(sprintf(paste0("%s: relative spacing departure %.3g exceeds 1e-5; ",
-                          "interpolate the data to a regular grid first"),
-                   fun, rel_dep))
+          "interpolate the data to a regular grid first"),
+          fun, rel_dep))
     }
     list(data = data, sample_interval = dt, nyquist = 1 / (2 * dt))
   }
@@ -186,7 +184,7 @@ gaussian_bandpass <- function(data = NULL,
     (s * sqrt(sum((r / s)^2) / (length(x) - 1)))^2
   }
 
-  # ---- main code ----
+  # Main code
   series <- dynf_check_series(data, fun = "gaussian_bandpass")
   f_low <- dynf_positive_scalar(f_low, "f_low")
   f_high <- dynf_positive_scalar(f_high, "f_high")
@@ -195,7 +193,7 @@ gaussian_bandpass <- function(data = NULL,
   }
   if (f_high >= series$nyquist){
     stop(sprintf("f_high must be strictly below the Nyquist frequency %.10g",
-                 series$nyquist))
+        series$nyquist))
   }
   x <- series$data[, 2]
   n <- length(x)
@@ -218,28 +216,28 @@ gaussian_bandpass <- function(data = NULL,
   envelope <- Mod(dynf_hilbert(filtered))
 
   out_filtered <- cbind(depth = series$data[, 1], filtered = filtered,
-                        envelope = envelope)
+      envelope = envelope)
   out_response <- cbind(frequency = (0:(nfft / 2)) * df,
-                        gain = response[1:(nfft / 2 + 1)])
+      gain = response[1:(nfft / 2 + 1)])
   res <- list(filtered = out_filtered, response = out_response,
-              f_low = f_low, f_high = f_high, f_centre = f_centre,
-              sample_interval = dt, nyquist = series$nyquist, nfft = nfft,
-              input_mean = input_mean)
+      f_low = f_low, f_high = f_high, f_centre = f_centre,
+      sample_interval = dt, nyquist = series$nyquist, nfft = nfft,
+      input_mean = input_mean)
 
   if (genplot == TRUE){
     old_par <- par(no.readonly = TRUE)
     on.exit(par(old_par))
     par(mfrow = c(2, 1), mar = c(4, 4, 1, 1))
     plot(series$data[, 1], centred, type = "l", col = "grey50",
-         xlab = x_lab, ylab = y_lab)
+        xlab = x_lab, ylab = y_lab)
     lines(series$data[, 1], filtered, col = "red", lwd = 1.5)
     lines(series$data[, 1], envelope, col = "blue")
     lines(series$data[, 1], -envelope, col = "blue")
     legend("topright", legend = c("data (demeaned)", "filtered", "envelope"),
-           col = c("grey50", "red", "blue"), lty = 1, bty = "n", cex = 0.8)
+        col = c("grey50", "red", "blue"), lty = 1, bty = "n", cex = 0.8)
     xmax <- min(series$nyquist, f_high + 4 * (f_high - f_low))
     plot(out_response[, 1], out_response[, 2], type = "l",
-         xlim = c(0, xmax), xlab = "frequency", ylab = "gain")
+        xlim = c(0, xmax), xlab = "frequency", ylab = "gain")
     abline(v = c(f_low, f_high), lty = 2, col = "grey40")
     abline(h = 1 / sqrt(2), lty = 3, col = "grey40")
   }

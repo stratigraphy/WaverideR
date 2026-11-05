@@ -23,24 +23,23 @@
 #' Translated from Acycle v3.1 specswafdr.m (Graham Weedon, Mingsong Li).}
 #' }
 #'
-#' @param data Matrix or data frame with two columns: depth/time and proxy
-#' value. Rows are sorted on the first column and non-finite rows removed.
-#' For \code{method = "mtm"} the data must be evenly spaced; as in Acycle
-#' the series is used as is (remove the mean/trend beforehand).
-#' @param method \code{"mtm"} or \code{"lomb"} (see Description).
-#' \code{Default="mtm"}
-#' @param nw Time-bandwidth product of the multi-taper spectrum
-#' (\code{method = "mtm"} only). \code{Default=2}
-#' @param pad_times Zero-padding factor; nfft = max(n, round(pad_times * n))
-#' (\code{method = "mtm"} only). \code{Default=1}
-#' @param background Background fit used for \code{method = "lomb"}:
-#' \code{"specswa"} uses \code{\link{swa_background}} (current specswa.m
-#' algorithm, also used by \code{method = "mtm"}); \code{"legacy"}
-#' reproduces the older SWA fit coded inside specswafdr.m, i.e. exactly
-#' what the Acycle SWA window reports. \code{Default="specswa"}
-#' @param genplot Plot the spectrum, background and confidence levels.
-#' \code{Default=FALSE}
-#' @param verbose Print progress information. \code{Default=FALSE}
+#' @param data Record to analyse (required): matrix or data frame with depth/time in column 1 and the proxy value in
+#' column 2. Rows are sorted on the first column and non-finite rows removed. For \code{method = "mtm"} the data must
+#' be evenly spaced; as in Acycle the series is used as is (remove the mean/trend beforehand). \code{method = "lomb"}
+#' also accepts unevenly spaced data or data with gaps. \code{Default=NULL}.
+#' @param method Spectral estimator (character): \code{"mtm"} (multi-taper spectrum) or \code{"lomb"} (Lomb-Scargle
+#' program of Weedon); see Description. \code{Default="mtm"}.
+#' @param nw Time-bandwidth product of the multi-taper spectrum (numeric, > 0; \code{method = "mtm"} only). It sets the
+#' number of tapers (2 x \code{nw} - 1, or 2 for \code{nw = 1}) and so the degrees of freedom and the smoothing of the
+#' spectrum. \code{Default=2}.
+#' @param pad_times Zero-padding factor (numeric; \code{method = "mtm"} only): nfft = max(n, round(\code{pad_times} * n)),
+#' so values <= 1 give no padding and larger values a finer frequency grid. \code{Default=1}.
+#' @param background Background fit used for \code{method = "lomb"} (character): \code{"specswa"} uses
+#' \code{\link{swa_background}} (current specswa.m algorithm, also used by \code{method = "mtm"}); \code{"legacy"}
+#' reproduces the older SWA fit coded inside specswafdr.m, i.e. exactly what the Acycle SWA window reports (not
+#' allowed with \code{method = "mtm"}). \code{Default="specswa"}.
+#' @param genplot Plot the spectrum, the background and the confidence levels (logical). \code{Default=FALSE}.
+#' @param verbose Print progress information (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li,
 #' translated from the FORTRAN programs of Graham P. Weedon.
@@ -128,13 +127,11 @@
 #' @importFrom stats median var qchisq
 #' @importFrom graphics plot lines legend par
 swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
-                         background = "specswa", genplot = FALSE,
-                         verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    background = "specswa", genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -281,9 +278,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     x
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB periodogram / pmtm (one-sided, adaptive weights)
-  # ---------------------------------------------------------------------------
 
   acy_datawrap <- function(x, nfft){
     n <- length(x)
@@ -329,7 +324,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
   }
 
   acy_pmtm <- function(x, nw = 4, nfft = NULL, fs = NULL, drop_last = TRUE,
-                       method = "adapt"){
+      method = "adapt"){
     x <- as.numeric(x)
     n <- length(x)
     if (is.null(nfft)){
@@ -406,7 +401,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
       nirr <- 1
       if (sp$tintmax / tdif > 0.3){
         warning(paste0("Largest time step > 30% of total interval; analyse ",
-                       "the data in shorter segments to ensure stationarity"))
+            "the data in shorter segments to ensure stationarity"))
       }
       if (verbose == TRUE){
         cat("The data are not uniformly spaced: Lomb-Scargle on irregular data\n")
@@ -439,15 +434,15 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     }
     if (verbose == TRUE){
       cat(sprintf("Time range = %.7f, Rayleigh = %.7f, Nyquist = %.7f, nout = %g\n",
-                  tdif, xfint, xnyq, nout))
+          tdif, xfint, xnyq, nout))
     }
     avex <- mean(x1)
     varx1 <- stats::var(x1)
     per <- swa_period(x1, time, avex, floor(nout), xfint, varx1)
     pow1 <- swa_hanning3(per$pow)
     list(freq = per$freq, power = pow1, periodogram = per$pow, rho1 = rho1,
-         bandwidth = bw, rayleigh = xfint, nyquist = xnyq,
-         irregular = (nirr == 1))
+        bandwidth = bw, rayleigh = xfint, nyquist = xnyq,
+        irregular = (nirr == 1))
   }
 
   # @title Sample spacing check of specswafdr.m/specbayes.m
@@ -477,7 +472,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
       }
     }
     list(tdif = tdif, tintmin = tintmin, tintmax = tintmax, nint = nint,
-         nrev = nrev)
+        nrev = nrev)
   }
 
   # @title Lag-1 autocorrelation (rho.m, AUTOCR of Davis 1973)
@@ -492,8 +487,8 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     rho1 <- (l * sxy - sx * sy) / (l * (l - 1.0)) / varx
     if (rho1 < 0.0 || rho1 > 1.0){
       stop(sprintf(paste0("Lag-1 autocorrelation RHO = %f is outside [0, 1]; ",
-                          "the SWA/Bayes programs of Weedon require red noise"),
-                   rho1))
+          "the SWA/Bayes programs of Weedon require red noise"),
+          rho1))
     }
     rho1
   }
@@ -535,7 +530,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
   # @keywords internal
   # @noRd
   swa_period <- function(x = NULL, time = NULL, avex = NULL, nout = NULL,
-                         xfint = NULL, varx = NULL){
+      xfint = NULL, varx = NULL){
     ndata <- length(x)
     twopid <- 6.2831853071795865
     tave <- 0.5 * (time[1] + time[ndata])
@@ -623,7 +618,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
   # @keywords internal
   # @noRd
   swa_fdr <- function(power = NULL, swa = NULL, dof = NULL, cn = NULL,
-                      anout = NULL){
+      anout = NULL){
     nout <- length(power)
     grid <- swa_fdr_grid(dof)
     alpha <- grid$alpha
@@ -674,10 +669,10 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     }
     # drawing rules of spectralswafdr.m / specswafdr.m
     drawn <- c(maxneg[1] > 0 && maxneg[1] != maxneg[2] && maxneg[2] == 0,
-               maxneg[2] > 0,
-               maxneg[3] > 0 && maxneg[3] != maxneg[2],
-               maxneg[4] > 0 && maxneg[4] != maxneg[3],
-               maxneg[5] > 0 && maxneg[5] != maxneg[4])
+        maxneg[2] > 0,
+        maxneg[3] > 0 && maxneg[3] != maxneg[2],
+        maxneg[4] > 0 && maxneg[4] != maxneg[3],
+        maxneg[5] > 0 && maxneg[5] != maxneg[4])
     fdr_cl <- matrix(NA_real_, nout, 5)
     for (k in 1:5){
       if (drawn[k] == TRUE && nout >= 2){
@@ -686,8 +681,8 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     }
     colnames(fdr_cl) <- c("fdr10", "fdr5", "fdr1", "fdr01", "fdr001")
     tab <- data.frame(fdr_percent = c(10, 5, 1, 0.1, 0.01),
-                      n_rejected = maxneg, factor = fac,
-                      chi2_cl_percent = pct, drawn = drawn)
+        n_rejected = maxneg, factor = fac,
+        chi2_cl_percent = pct, drawn = drawn)
     list(fdr_cl = fdr_cl, table = tab, alpha = alphob, variance_ratio = factob)
   }
 
@@ -804,7 +799,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
   # @noRd
   swa_gammln <- function(xx = NULL){
     cof <- c(76.18009172947146, -86.50532032941677, 24.01409824083091,
-             -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5)
+        -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5)
     stp <- 2.5066282746310005
     x <- xx
     y <- x
@@ -828,7 +823,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
   # @keywords internal
   # @noRd
   swa_background_legacy <- function(freq = NULL, log_power = NULL,
-                                     n_data = NULL, verbose = FALSE){
+      n_data = NULL, verbose = FALSE){
     xlogp <- as.numeric(log_power)
     freq <- as.numeric(freq)
     nout <- length(xlogp)
@@ -849,7 +844,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
       ncycle <- floor(nout / winwidth)
       if (ncycle < 3){
         stop(paste0("Legacy SWA fit failed: fewer than three windows of ",
-                    "width ", winwidth, " (the MATLAB code errors here)"))
+            "width ", winwidth, " (the MATLAB code errors here)"))
       }
       midw <- numeric(ncycle)
       k <- 0
@@ -1008,13 +1003,13 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     }
     if (verbose == TRUE){
       cat(sprintf("Legacy SWA: winfinal = %d, after smoothing RMSE = %.6f\n",
-                  winfinal, rmset))
+          winfinal, rmset))
     }
     diagnostics <- list(selected_window = winfinal,
-                        initial_nondecreasing_count = revmin,
-                        initial_rmse = rmsemin, tail_model = tail_model,
-                        n_smoothing = nsmth - 1, final_rmse = rmset,
-                        n_data = n_data, n_frequency = nout)
+        initial_nondecreasing_count = revmin,
+        initial_rmse = rmsemin, tail_model = tail_model,
+        n_smoothing = nsmth - 1, final_rmse = rmset,
+        n_data = n_data, n_frequency = nout)
     list(swa = 10^f, n_windows = winfinal, diagnostics = diagnostics)
   }
 
@@ -1043,15 +1038,13 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     b
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
   swa_fdr_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
   data <- acy_check_two_column(data)
   if (!(method %in% c("mtm", "lomb"))){
     stop("method must be 'mtm' or 'lomb'")
@@ -1104,8 +1097,8 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     nout <- length(freq)
     if (lomb$rho1 == 0 || lomb$rho1 == 1){
       stop(paste0("Lag-1 autocorrelation = ", lomb$rho1, ": SWA is not ",
-                  "appropriate for series with white noise or power law ",
-                  "backgrounds"))
+          "appropriate for series with white noise or power law ",
+          "backgrounds"))
     }
     xlogp <- log10(power)
     if (background == "specswa"){
@@ -1124,7 +1117,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     xfint <- lomb$rayleigh
     ncorr <- bw / xfint
     extra <- list(periodogram = lomb$periodogram, rho1 = lomb$rho1,
-                  irregular = lomb$irregular)
+        irregular = lomb$irregular)
   }
   names(chi2_factor) <- c("chi90", "chi95", "chi99", "chi999", "chi9999")
   chi2_cl <- outer(swa, chi2_factor)
@@ -1170,8 +1163,8 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     pos <- freq > 0
     yl <- range(c(power[pos], swa[pos], chi2_cl[pos, ]), na.rm = TRUE)
     graphics::plot(freq[pos], power[pos], type = "l", log = "y", ylim = yl,
-                   xlab = "Frequency", ylab = "Power",
-                   main = paste0("SWA background (", method, ")"))
+        xlab = "Frequency", ylab = "Power",
+        main = paste0("SWA background (", method, ")"))
     graphics::lines(freq[pos], swa[pos], lwd = 2)
     graphics::lines(freq[pos], chi2_cl[pos, 2], col = "red", lwd = 1.5)
     graphics::lines(freq[pos], chi2_cl[pos, 3], col = "blue")
@@ -1185,7 +1178,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
     for (k in 1:5){
       if (!is.na(fdr$fdr_cl[1, k])){
         graphics::lines(freq[pos], fdr$fdr_cl[pos, k], col = fdr_cols[k],
-                        lty = 2, lwd = 1.5)
+            lty = 2, lwd = 1.5)
         leg <- c(leg, fdr_names[k])
         cols <- c(cols, fdr_cols[k])
         lty <- c(lty, 2)
@@ -1193,7 +1186,7 @@ swa_spectrum <- function(data = NULL, method = "mtm", nw = 2, pad_times = 1,
       }
     }
     graphics::legend("topright", legend = leg, col = cols, lty = lty,
-                     lwd = lwd, bty = "n", cex = 0.8)
+        lwd = lwd, bty = "n", cex = 0.8)
   }
   out
 }

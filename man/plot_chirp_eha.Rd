@@ -18,24 +18,49 @@ plot_chirp_eha(
 )
 }
 \arguments{
-\item{ce}{Result of \code{\link{analyse_chirp_eha}} (after \code{\link{chirp_eha_significance}} for the first
-two styles).}
+\item{ce}{Chirp-matched EHA result to plot: the list returned by \code{\link{analyse_chirp_eha}}; for
+\code{style = "outline"} or \code{"significance"} it must first be passed through
+\code{\link{chirp_eha_significance}} (which adds \code{Power_sig} and \code{Power_pval}). Required, no default.}
 
-\item{style}{\code{"outline"} (default), \code{"significance"} or \code{"plain"}.}
+\item{style}{Plot style (character), one of:
+\itemize{
+\item \code{"outline"}: the de-chirped map (\code{Power_norm}) with the cells significant at \code{level} outlined
+in white;
+\item \code{"significance"}: log10 of the ratio of the observed map to the 95th percentile of the warped
+surrogates (\code{Power_sig}), with a diverging blue-red scale centred on 0 (above 0 is significant);
+\item \code{"plain"}: the de-chirped map alone (no significance needed).
+}
+\code{Default="outline"} (the first element of \code{c("outline", "significance", "plain")}).}
 
-\item{track}{Optional track whose periods are drawn (\code{show} cycles in kyr at the tracked rate).}
+\item{track}{Sedimentation-rate track used to draw the expected periods of the astronomical cycles in \code{show}:
+a \code{wr_track} object or a \code{\link{track_astro_auto}} result (its \code{track} element is used), i.e. a list
+or data frame with \code{depth} and \code{sedrate} (depth units per kyr). Nothing is drawn when \code{track} or
+\code{show} is \code{NULL}. \code{Default=NULL}.}
 
-\item{show}{Astronomical periods (kyr) to draw with \code{track}.}
+\item{show}{Astronomical periods in kyr (numeric vector, e.g. \code{c(405, 100, 40, 20)}) drawn as dotted lines at
+period = \code{show} times \code{track$sedrate} along the record; only used with \code{track}. \code{Default=NULL}.}
 
-\item{level}{Significance level for the outline \code{Default=0.95}.}
+\item{level}{Confidence level of the significance outline of \code{style = "outline"} (numeric, between 0 and 1):
+cells with surrogate p-value \code{Power_pval <= 1 - level} are outlined. \code{Default=0.95}.}
 
-\item{palette}{\code{hcl.colors} palette \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{main}{Title.}
+\item{main}{Title of the plot (character); \code{NULL} gives a title that describes the chosen \code{style}.
+\code{Default=NULL}.}
 
-\item{xlab, ylab}{Axis labels.}
+\item{xlab}{Label of the depth axis (character). \code{Default="Depth"}.}
 
-\item{scale}{Colour scale as in all image plots of the package (see \code{\link{plot_wavelet}}) \code{Default="auto"}.}
+\item{ylab}{Label of the period axis (character). \code{Default="Period"}.}
+
+\item{scale}{Spacing of the colour breaks of the colour scale, as in all image plots of the package (character):
+\code{"quantile"} (histogram-equalised), \code{"log"}, \code{"sqrt"}, \code{"linear"} or \code{"auto"}
+(logarithmic for mostly empty maps or values spanning more than three orders of magnitude, quantiles otherwise);
+see \code{\link{plot_wavelet}}. Not used for \code{style = "significance"}, which has a fixed diverging scale.
+\code{Default="auto"}.}
 }
 \value{
 Invisibly, the matrix shown.

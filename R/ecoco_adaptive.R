@@ -1,33 +1,73 @@
-# ---------------------------------------------------------------------------
 # Adaptive eCOCO (ecoco.m adaptive branch + ecocoAdaptiveCore.m)
-# ---------------------------------------------------------------------------
 
 #' @title Adaptive eCOCO
 #' @description Adaptive COCO in physical-depth sliding windows with per-window
 #'   AR(1) Monte Carlo nulls and ridge tracking (Acycle ecoco.m adaptive branch,
 #'   ecocoAdaptiveCore.m; Mingsong Li).
-#' @param data two columns depth (m), value
-#' @param orbit9 nine orbital periods (kyr)
-#' @param window sliding-window length (m)
-#' @param sr sedimentation-rate grid (cm/kyr)
-#' @param step sliding step in samples (used when step_depth is NULL: step_depth = step*dt)
-#' @param step_depth exact spacing (m) of window centres
-#' @param pad,red,nsim,method,max_frequency,amplitude_mode,seed,batch,verbose see coco_adaptive()
-#' @param center_limits optional c(first, last) window-centre limits
+#' @param data Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+#' column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+#' interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required, no default.
+#' @param orbit9 The nine astronomical target periods in kyr (numeric vector of nine distinct values: long
+#' eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+#' \code{\link{orbit9_at_age}} or \code{\link{calculate_orbit9}} for the age of the record. The default uses the
+#' present-day periods (405.7, 130.7, 123.9, 98.9, 94.9, 41.0, 23.7, 22.4 and 19.0 kyr).
+#' \code{Default=orbit9_default()}.
+#' @param window Length of each sliding window, in metres (numeric, > 0, shorter than the record; every window must
+#' contain at least 4 data points). Each window is resampled to an odd number of points around its centre and
+#' analysed with Adaptive COCO. Required, no default.
+#' @param sr Sedimentation rates to test in every window, in cm/kyr (numeric vector, > 0).
+#' \code{Default=seq(0.5, 20, by = 0.1)}.
+#' @param step Step between successive window centres, in samples of the (regularised) record (numeric, > 0); only
+#' used when \code{step_depth=NULL}, giving \code{step_depth = step * sample interval}. \code{Default=1}.
+#' @param step_depth Exact spacing of the window centres, in metres (numeric, > 0, or \code{NULL}); overrides
+#' \code{step}. At most 10000 windows are allowed. \code{Default=NULL}.
+#' @param pad Length (number of points) to which every window is zero-padded for the periodogram (integer, at least
+#' the number of points per window); a larger value gives a finer frequency grid. \code{Default=5000}.
+#' @param red Background (red-noise) removal applied to every window spectrum before the correlation (integer):
+#' \code{0} no removal, \code{1} classical AR(1) background subtracted, \code{2} robust AR(1) background
+#' (median-smoothed spectrum, Mann and Lees 1996 style), \code{3} smoothed-window-average (SWA) background (needs at
+#' least 33 spectral bins). Negative power after subtraction is set to zero. \code{Default=1}.
+#' @param nsim Number of AR(1) Monte Carlo simulations per window used for the global and local p-values (integer,
+#' >= 0); the AR(1) coefficient and standard deviation are estimated in each window. \code{0} skips the
+#' simulations, so the p-values are \code{NA}. \code{Default=500}.
+#' @param method Correlation coefficient between the window spectrum and the target spectrum (character):
+#' \code{"Pearson"} or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.
+#' @param max_frequency Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+#' (numeric, must be at least the highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses
+#' \code{1.2 * max(1/orbit9)}. Passed to \code{\link{coco_adaptive_evaluate}}. \code{Default=NULL}.
+#' @param amplitude_mode How the amplitudes of the nine target sinusoids are set (character):
+#' \code{"four-group-area"} fits one amplitude per group (long eccentricity, short eccentricity, obliquity,
+#' precession) to the band areas of the data spectrum (Acycle default), \code{"per-orbit"} fits each of the nine
+#' amplitudes to the spectral peak at its frequency, \code{"fixed"} uses fixed weights (1.0 eccentricity, 0.8
+#' obliquity, 0.6 precession; see \code{\link{coco_fixed_target_weights}}). The target is always synthesised as
+#' \code{"coherent-nine"}. \code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e. \code{"four-group-area"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=1}.
+#' @param center_limits Depths of the first and last window centre, in metres (numeric vector \code{c(first, last)},
+#' or \code{NULL}); the windows must still fit inside the record. \code{NULL} uses
+#' \code{c(first depth + window/2, last depth - window/2)}. \code{Default=NULL}.
+#' @param batch Number of Monte Carlo simulations processed together in one batch (integer, >= 1); larger batches are
+#' faster but use more memory. \code{NULL} chooses \code{min(50, nsim, 3e6 / (frequencies * windows))}.
+#' \code{Default=NULL}.
+#' @param verbose Print messages about the windows and the progress of the Monte Carlo simulations (logical, TRUE or
+#' FALSE). \code{Default=TRUE}.
 #' @return list with matrices (rate-by-window): rho, p_global, p_local, norbit,
 #'   pcoco, score; `track` = ridge-tracked sedimentation-rate path
-#' @param centre_limits British spelling of \code{center_limits}; if given it overrides \code{center_limits}.
+#' @param centre_limits British spelling of \code{center_limits}; if given (not \code{NULL}) it overrides
+#' \code{center_limits}. \code{Default=NULL}.
 #' @export
 ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
-                           sr = seq(0.5, 20, by = 0.1), step = 1, step_depth = NULL,
-                           pad = 5000, red = 1, nsim = 500,
-                           method = c("Pearson", "Spearman"), max_frequency = NULL,
-                           amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
-                           seed = 1, center_limits = NULL, batch = NULL,
-                           verbose = TRUE,
-  centre_limits = NULL){
-  if (!is.null(centre_limits)) center_limits <- centre_limits  # British spelling synonym
-  # ---- internal helper functions (local to this function) ----
+    sr = seq(0.5, 20, by = 0.1), step = 1, step_depth = NULL,
+    pad = 5000, red = 1, nsim = 500,
+    method = c("Pearson", "Spearman"), max_frequency = NULL,
+    amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
+    seed = 1, center_limits = NULL, batch = NULL,
+    verbose = TRUE,
+    centre_limits = NULL){
+  if (!is.null(centre_limits)) {
+    center_limits <- centre_limits
+  }  # British spelling synonym
+  # Internal helper functions (local to this function)
 
   detrend_linear <- function(x){
     # Least-squares removal of a straight line from every column (MATLAB detrend(x,1)).
@@ -51,7 +91,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -87,7 +127,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     list(p = p_out, f = f)
   }
 
-  # --- Interpolation ------------------------------------------------------------
+  # Interpolation
   interp1_na <- function(x, y, xi){
     # Linear interpolation, NA outside range (MATLAB interp1 default).
     o <- order(x)
@@ -95,7 +135,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     y <- y[o]
     keep <- !duplicated(x)
     stats::approx(x[keep], y[keep], xout = xi, method = "linear", rule = 1,
-                  ties = "ordered")$y
+        ties = "ordered")$y
   }
 
   interp1_extrap <- function(x, y, xi){
@@ -115,7 +155,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     out
   }
 
-  # --- Moving median with shrinking endpoints -----------------------------------
+  # Moving median with shrinking endpoints
   move_median <- function(x, w){
     x <- as.vector(x)
     n <- length(x)
@@ -134,7 +174,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     out
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -171,7 +211,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
         rss <- colSums(base^2)
         ls <- log(s0_g)
         matrix(rss, length(rho_g), length(s0_g)) + 2 * outer(rs, ls) +
-          length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
+            length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
       }
     }
     nn <- 50
@@ -221,7 +261,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     fit$s0 * (1 - fit$rho^2) / (1 - 2 * fit$rho * cos(pi * ft / fn) + fit$rho^2)
   }
 
-  # --- Monte Carlo p-value and pCOCO -------------------------------------------
+  # Monte Carlo p-value and pCOCO
   pcoco_value <- function(rho, p){
     ps <- p
     ps[!is.finite(ps) | ps <= 0] <- NA
@@ -232,14 +272,12 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
   # Present-day periods; falls back to constants if the data files are not found.
   orbit9_default <- function(){
     tryCatch(orbit9_at_age(0),
-             error = function(e){
-               c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)
-             })
+        error = function(e){
+          c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)
+        })
   }
 
-  # ---------------------------------------------------------------------------
   # Batched spectra with background removal (ecocoWindowSpectra.m)
-  # ---------------------------------------------------------------------------
   coco_window_spectra <- function(values, dt, pad, red = 1, already_detrended = FALSE){
     values <- as.matrix(values)
     if (!already_detrended){
@@ -282,7 +320,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
   coco_swa_subtract <- function(P, f, n_data){
     if (nrow(P) < 33){
       stop(paste0("red = 3 (smoothed-window average) requires at least 33 ",
-                  "one-sided spectral bins; increase pad"))
+          "one-sided spectral bins; increase pad"))
     }
     for (j in seq_len(ncol(P))){
       p <- P[, j]
@@ -294,7 +332,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
       }
       fl <- max(2.2250738585072014e-308, sc * .Machine$double.eps)
       bg <- as.numeric(swa_background(f, log10(pmax(p, fl)), n_data,
-                                      verbose = FALSE)$swa)
+          verbose = FALSE)$swa)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The smoothed-window background is nonpositive or nonfinite.")
       }
@@ -305,9 +343,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     list(power = P, f = f)
   }
 
-  # ---------------------------------------------------------------------------
   # Physical-depth windows (ecocoPhysicalCenters.m / ecocoPhysicalWindowValues.m)
-  # ---------------------------------------------------------------------------
   ecoco_physical_centers <- function(depth, window, step_depth, center_limits = NULL){
     if (is.null(center_limits)){
       lim <- c(depth[1] + window / 2, depth[length(depth)] - window / 2)
@@ -342,7 +378,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     V <- matrix(NA_real_, npt, length(centers))
     tol0 <- function(lo, hi){
       64 * .eps * max(1, abs(depth[1]), abs(depth[length(depth)]), abs(lo), abs(hi), window) *
-        max(1, length(depth))
+          max(1, length(depth))
     }
     for (w in seq_along(centers)){
       lo <- centers[w] - window / 2
@@ -364,12 +400,10 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
     list(values = V, n = npt, dt = adt)
   }
 
-  # ---------------------------------------------------------------------------
   # Small helpers
-  # ---------------------------------------------------------------------------
   .eps <- .Machine$double.eps
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   amplitude_mode <- match.arg(amplitude_mode)
   if (!is.null(seed)){
@@ -397,7 +431,7 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
   }
   ev <- function(Pm){
     coco_adaptive_evaluate(Pm, f, nW, wdt, pad, orbit9, sr, method,
-                           max_frequency, "coherent-nine", amplitude_mode)
+        max_frequency, "coherent-nine", amplitude_mode)
   }
   Pobs <- coco_window_spectra(V, wdt, pad, red)$power
   obs <- ev(Pobs)
@@ -475,10 +509,10 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
   best <- ecoco_best_per_window(sr, centers, rho, p_global, norbit, score)
   track <- ecoco_track_ridge(score, sr, centers, rho, p_global, norbit, best)
   out <- list(sr = sr, depth = centers, rho = rho, p_global = p_global, p_local = p_local,
-              norbit = norbit, pcoco = pc, score = score, best = best, track = track,
-              window = window, step_depth = step_depth, window_points = nW,
-              analysis_dt = wdt, rhoM = rhoM, nsim = nsim, orbit9 = orbit9,
-              amplitude_mode = amplitude_mode, method = method)
+      norbit = norbit, pcoco = pc, score = score, best = best, track = track,
+      window = window, step_depth = step_depth, window_points = nW,
+      analysis_dt = wdt, rhoM = rhoM, nsim = nsim, orbit9 = orbit9,
+      amplitude_mode = amplitude_mode, method = method)
   class(out) <- "ecoco_adaptive"
   out
 }
@@ -486,17 +520,20 @@ ecoco_adaptive <- function(data, orbit9 = orbit9_default(), window,
 #' @title Plot an adaptive eCOCO result
 #' @description Maps of correlation, global and local p, contributing periods and
 #'   normalised ridge score with the tracked sedimentation-rate ridge.
-#' @param x object returned by ecoco_adaptive()
-#' @param ridge draw the tracked ridge \code{Default=TRUE}
-#' @param reverse_depth depth increasing downwards \code{Default=FALSE}
-#' @param ... unused
+#' @param x Adaptive eCOCO result to plot: the output of \code{\link{ecoco_adaptive}} (an object of class
+#' \code{ecoco_adaptive}). Required, no default.
+#' @param ridge Draw the ridge-tracked sedimentation-rate path (red line) on the last map, the normalised ridge score
+#' (logical, TRUE or FALSE). \code{Default=TRUE}.
+#' @param reverse_depth Draw depth increasing downwards, i.e. reverse the depth (y) axis of the maps (logical, TRUE or
+#' FALSE). \code{Default=FALSE}.
+#' @param ... Not used; present for compatibility with the generic \code{plot} function.
 #' @return invisible NULL
 #' @export
 plot.ecoco_adaptive <- function(x, ridge = TRUE, reverse_depth = FALSE, ...){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
-  .ecoco_map <- function(sr, depth, z, main, zlim = NULL, col = grDevices::hcl.colors(64, "viridis"),
-                         reverse_depth = FALSE, legend_lab = ""){
+  .ecoco_map <- function(sr, depth, z, main, zlim = NULL, col = .wr_hcl_cols(64, "viridis"),
+      reverse_depth = FALSE, legend_lab = ""){
     if (is.null(zlim)){
       fz <- z[is.finite(z)]
       if (length(fz)){
@@ -518,20 +555,21 @@ plot.ecoco_adaptive <- function(x, ridge = TRUE, reverse_depth = FALSE, ...){
       return(invisible())
     }
     graphics::image(sr, depth, z, zlim = zlim, col = col, ylim = yl, useRaster = TRUE,
-                    xlab = "Sedimentation rate (cm/kyr)", ylab = "Depth (m)", main = main)
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "Depth (m)", main = main)
     graphics::box()
   }
 
   .ecoco_plot <- function(x, maps, ridge = TRUE, reverse_depth = FALSE){
     n <- length(maps)
-    op <- graphics::par(mfrow = c(1, n), mar = c(3.4, 3.6, 2, 0.6), mgp = c(2.2, 0.7, 0))
-    on.exit(graphics::par(op))
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(op), add = TRUE)
+    graphics::par(mfrow = c(1, n), mar = c(3.4, 3.6, 2, 0.6), mgp = c(2.2, 0.7, 0))
     for (i in seq_len(n)){
       mp <- maps[[i]]
       .ecoco_map(x$sr, x$depth, mp$z, mp$title, mp$zlim, reverse_depth = reverse_depth)
       if (!is.null(mp$contour) && length(x$depth) > 1 && any(is.finite(mp$z))){
         try(graphics::contour(x$sr, x$depth, mp$z, levels = mp$contour, add = TRUE,
-                              drawlabels = FALSE, col = "white", lwd = 0.6), silent = TRUE)
+            drawlabels = FALSE, col = "white", lwd = 0.6), silent = TRUE)
       }
       if (ridge && i == n && !is.null(x$track)){
         graphics::lines(x$track$sr, x$track$depth, col = "red", lwd = 1.5)
@@ -567,7 +605,7 @@ plot.ecoco_adaptive <- function(x, ridge = TRUE, reverse_depth = FALSE, ...){
     out
   }
 
-  # ---- main code ----
+  # Main code
   maps <- list(list(z = x$rho, title = "Correlation coefficient"))
   if (x$nsim > 0){
     maps[[length(maps) + 1]] <- list(z = -log10(x$p_global), title = "Global p (-log10)", contour = -log10(0.05))
@@ -582,7 +620,7 @@ plot.ecoco_adaptive <- function(x, ridge = TRUE, reverse_depth = FALSE, ...){
 #' @noRd
 print.ecoco_adaptive <- function(x, ...){
   cat(sprintf("Adaptive eCOCO: %d windows x %d rates, window %.4g m (%d pts), %d MC sims\n",
-              length(x$depth), length(x$sr), x$window, x$window_points, x$nsim))
+      length(x$depth), length(x$sr), x$window, x$window_points, x$nsim))
   print(utils::head(x$track, 10))
   invisible(x)
 }

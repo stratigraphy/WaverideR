@@ -15,7 +15,8 @@ test_that("mesa_spectrum matches stats::ar.burg and finds the cycles", {
   expect_error(mesa_spectrum(data.frame(1:5, 1:5)))
   tu <- t[-51] + 0.5 * (seq_len(300) %% 2)
   expect_message(mesa_spectrum(data.frame(tu, y[-51])), "unevenly")
-  png(tempfile()); on.exit(dev.off())
+  png(tempfile())
+  on.exit(dev.off())
   expect_silent(plot_mesa_spectrum(m2))
 })
 
@@ -26,8 +27,12 @@ test_that("test_tuned recovers a known precession constant", {
   amp <- c(1, 0.3, 1, 0.87, 0.7)
   t <- 0:4000
   P <- 1296 / (1296 / k + fr)
-  x <- rowSums(sapply(1:5, function(i) amp[i] * cos(2 * pi * t / P[i] + runif(1, 0, 2 * pi)))) +
-    0.8 * cos(2 * pi * t / 405) + 1.5 * as.numeric(stats::arima.sim(list(ar = 0.7), length(t)))
+  x <- numeric(length(t))
+  for (i in 1:5) {
+    x <- x + amp[i] * cos(2 * pi * t / P[i] + runif(1, 0, 2 * pi))
+  }
+  x <- x +
+      0.8 * cos(2 * pi * t / 405) + 1.5 * as.numeric(stats::arima.sim(list(ar = 0.7), length(t)))
   out <- utils::capture.output(r <- test_tuned(data.frame(t, x), tbw = 2, n_surr = 2, plot = FALSE))
   expect_true(abs(r$k[["k"]] - k) < 0.3)
   expect_true(grepl("^PASS", r$k_status))
@@ -53,7 +58,8 @@ test_that("evolutive MESA spans the record, pads, and tracks a changing cycle", 
   expect_true(median(tr$period[tr$position > 500]) > 60)
   av <- mesa_average(ev, 1)
   expect_equal(nrow(av), length(ev$frequency))
-  png(tempfile()); on.exit(dev.off())
+  png(tempfile())
+  on.exit(dev.off())
   expect_silent(plot_mesa_evolutive(ev, average = TRUE, track = tr, peaks = TRUE))
   expect_silent(plot_mesa_evolutive(ev, vertical = FALSE, xaxis = "frequency"))
   s <- mesa_spectrum(d, window = c(-100, 100), order = 10)

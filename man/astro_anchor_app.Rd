@@ -25,51 +25,65 @@ astro_anchor_app(
 )
 }
 \arguments{
-\item{astro_solution}{Astronomical solution (matrix or data frame, first column time/age, second column value), or a
-named list of such solutions to choose from in the app. In the app the target can also be switched to a metronome
-(a cosine with a period, phase and time interval you set), or to a Laskar solution (eccentricity, obliquity, climatic
-precession or ETP of La2004, La2010a-d, La2011 eccentricity, or 65 N insolation) that is downloaded on request with
-\code{\link[astrochron]{getLaskar}} when you press the download button.}
+\item{astro_solution}{Astronomical solution to tie to (matrix or data frame with two columns: time/age (e.g. kyr)
+in column 1, value in column 2), or a named list of such solutions to choose from in the app (the first one is
+shown at the start). In the app the target can also be switched to a metronome (a cosine with a period, phase
+and time interval you set), or to a Laskar solution (eccentricity, obliquity, climatic precession or ETP of
+La2004, La2010a-d, La2011 eccentricity, or 65 N insolation) that is downloaded on request with
+\code{\link[astrochron]{getLaskar}} when you press the download button. Required, no default
+(\code{Default=NULL} gives an error).}
 
-\item{proxy_signal}{Proxy record (first column depth/time, second column value).}
+\item{proxy_signal}{Proxy record to be tied (matrix or data frame with two columns: depth/time in column 1, proxy
+value in column 2; rows with \code{NA} are removed). Required, no default (\code{Default=NULL} gives an error).}
 
-\item{proxy_min_or_max}{Peaks to offer when snapping on the proxy record: maxima (\code{"max"}) or minima
-(\code{"min"}) \code{Default="max"}.}
+\item{proxy_min_or_max}{Peaks offered when snapping on the proxy record (character): \code{"max"} (maxima) or
+\code{"min"} (minima). \code{Default="max"}.}
 
-\item{astrosolution_min_or_max}{Peaks to offer on the astronomical solution: maxima or minima \code{Default="max"}.}
+\item{astrosolution_min_or_max}{Peaks on which the tie points of the astronomical solution are placed
+(character): \code{"max"} (maxima) or \code{"min"} (minima). \code{Default="max"}.}
 
-\item{pts}{Number of points to the left and right that a point has to exceed to count as a peak
-(see \code{\link{max_detect}}) \code{Default=3}.}
+\item{pts}{Number of points to the left and right of a value that the peak detection (\code{\link{max_detect}},
+\code{\link{min_detect}}) compares it with (integer, >= 1); larger values give fewer, more certain peaks.
+\code{Default=3}.}
 
-\item{ties}{Optional existing tie points to start from: a data frame with the columns \code{data_x} and
-\code{insolation_x} (or the output of \code{\link{astro_anchor}}). The astronomical positions are moved to the nearest maximum/minimum, the proxy positions are used as given.}
+\item{ties}{Existing tie points to start from (data frame with the columns \code{data_x} (proxy depth/time) and
+\code{insolation_x} (astronomical age), otherwise the first two columns are used; e.g. the output of
+\code{\link{astro_anchor}}). The astronomical positions are moved to the nearest maximum/minimum, the proxy
+positions are used as given. \code{NULL} starts without tie points. \code{Default=NULL}.}
 
-\item{time_dir}{\code{TRUE} if time increases with increasing depth/time values of the proxy record, \code{FALSE}
-if it decreases \code{Default=TRUE}.}
+\item{time_dir}{Direction of time in the proxy record (logical): \code{TRUE} if time increases with increasing
+depth/time values, \code{FALSE} if it decreases. \code{Default=TRUE}.}
 
-\item{peaks_in_view}{Approximate number of peaks shown in a window at the start \code{Default=12}.}
+\item{peaks_in_view}{Approximate number of peaks shown in each window at the start (numeric, > 0).
+\code{Default=12}.}
 
-\item{tie_on}{Start with the tie points on the raw proxy record (\code{"raw"}) or on a cycle extracted from it
-(\code{"cycle"}) \code{Default="raw"}. Can be changed in the app.}
+\item{tie_on}{Proxy record on which the tie points are placed at the start (character): \code{"raw"} (the raw
+record) or \code{"cycle"} (a cycle extracted from it with the Taner filter set by \code{proxy_flow},
+\code{proxy_fhigh} and \code{proxy_roll}). Can be changed in the app. \code{Default=c("raw", "cycle")}, i.e.
+\code{"raw"}.}
 
-\item{proxy_flow, proxy_fhigh}{Low and high cut-off frequencies (cycles per unit of the proxy record) of the Taner filter
-that extracts the proxy cycle \code{Default=NULL}: the strongest period of the wavelet spectrum -/+ 25 percent. They can
-be changed in the app.}
+\item{proxy_flow, proxy_fhigh}{Low and high cut-off frequencies of the Taner filter that extracts the proxy cycle,
+in cycles per depth/time unit of the proxy record (numeric, 0 < \code{proxy_flow} < \code{proxy_fhigh}; give both).
+\code{NULL} uses the strongest period of the wavelet spectrum of the proxy -/+ 25 percent. They can be changed in
+the app. \code{Default=NULL}.}
 
-\item{proxy_roll}{Roll-off of that filter as the exponent \code{x} of \code{roll = 10^x} (see
-\code{\link[astrochron]{taner}}) \code{Default=3}.}
+\item{proxy_roll}{Roll-off of the proxy Taner filter as the exponent \code{x} of \code{roll = 10^x} (numeric; see
+\code{\link[astrochron]{taner}}). \code{Default=3}.}
 
-\item{inspect_flow, inspect_fhigh}{Low and high cut-off frequencies (cycles per time unit of the astronomical solution)
-of the Taner filter that extracts the cycle from the tuned record \code{Default=NULL}: the median spacing of the
-peaks of the astronomical solution -/+ 25 percent.}
+\item{inspect_flow, inspect_fhigh}{Low and high cut-off frequencies of the Taner filter that extracts the cycle from
+the tuned record, in cycles per time unit of the astronomical solution (numeric, 0 < \code{inspect_flow} <
+\code{inspect_fhigh}; give both). \code{NULL} uses the median spacing of the peaks of the astronomical solution
+-/+ 25 percent. \code{Default=NULL}.}
 
-\item{inspect_roll}{Roll-off exponent of that filter \code{Default=3}.}
+\item{inspect_roll}{Roll-off of the Taner filter of the tuned record as the exponent \code{x} of
+\code{roll = 10^x} (numeric). \code{Default=3}.}
 
-\item{sedrate_factor}{Factor applied to the sedimentation rate (depth units per time unit) that is shown, for
-example 100 to go from metres/kyr to cm/kyr \code{Default=1}.}
+\item{sedrate_factor}{Factor applied to the sedimentation rate (depth units per time unit) that is shown (numeric,
+> 0), for example 100 to go from m/kyr to cm/kyr. \code{Default=1}.}
 
-\item{launch_browser}{Open the app in the default web browser \code{Default=TRUE}; \code{FALSE} prints the local address
-(or uses the RStudio viewer when R is run there).}
+\item{launch_browser}{Open the app in the default web browser (logical, TRUE or FALSE); \code{FALSE} prints the
+local address (or uses the RStudio viewer when R is run there). Passed to \code{shiny::runApp} as
+\code{launch.browser}. \code{Default=TRUE}.}
 }
 \value{
 A data frame with the tie points sorted by depth/time: \code{data_x}, \code{data_y} (proxy),

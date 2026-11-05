@@ -3,18 +3,23 @@
 #' @description Plot the results of the anchoring  the extracted signal to an astronomical solution using
 #' which was conducted using the \code{\link{astro_anchor}}
 #'
-#'@param astro_solution Input is an astronomical solution with with the the proxy record was be anchored to,
-#' the input should be a matrix or data frame with the first column being
-#' age and the second column should be a insolation/angle/value
-#'@param proxy_signal Input is the proxy data set which will which was
-#' anchored to an astronomical solution, the input should be a matrix or
-#' data frame with the first column being  depth/time and the second column should be a proxy value.
-#'@param anchor_points Anchor points generated using the \code{\link{astro_anchor}} function
-#'@param time_dir The direction of the proxy record which was assumed during anchoring if time increases with increasing depth/time values
-#'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-#'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-#'then time_dir should be set to FALSE \code{time_dir=TRUE}
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param astro_solution Astronomical solution to which the proxy record was anchored, drawn in the bottom panel: a
+#' two-column matrix or data frame with age/time in column 1 and the insolation/angle/ETP value in column 2 (the
+#' same solution as used in \code{\link{astro_anchor}}). Required (\code{Default=NULL} gives an error).
+#' @param proxy_signal Proxy record that was anchored, drawn in the top panel: a two-column matrix or data frame
+#' with depth/time in column 1 (metres) and the proxy value in column 2 (the same record as used in
+#' \code{\link{astro_anchor}}). Required (\code{Default=NULL} gives an error).
+#' @param anchor_points Tie points to draw: the four-column matrix returned by \code{\link{astro_anchor}} (depth of
+#' the proxy tie point, age of the astronomical tie point, proxy value, astronomical solution value). The proxy tie
+#' points are drawn as green dots, the astronomical ones as red dots, and lines connect each pair. Required
+#' (\code{Default=NULL} gives an error).
+#' @param time_dir Direction of time in the proxy record that was assumed during anchoring (logical). \code{TRUE}:
+#' time increases with increasing depth (e.g. a borehole that gets older downwards), so the depth axis runs left to
+#' right; \code{FALSE}: time decreases with increasing depth/height (e.g. an outcrop log with 0 m at the base), so the
+#' depth axis is reversed to line up with the age axis. \code{Default=TRUE}.
+#' @param keep_editable Keep the plot layout and graphical parameters (\code{par}) after plotting, so that extra
+#' elements can be added (logical). With \code{FALSE} the previous \code{par} settings are restored on exit.
+#' \code{Default=FALSE}.
 #'
 #'@return
 #'The output is a set of 2 plots connected by lines
@@ -145,10 +150,10 @@
 
 
 plot_astro_anchor <- function(astro_solution = NULL,
-                              proxy_signal = NULL,
-                              anchor_points = NULL,
-                              time_dir = TRUE,
-                              keep_editable = FALSE) {
+    proxy_signal = NULL,
+    anchor_points = NULL,
+    time_dir = TRUE,
+    keep_editable = FALSE) {
   anchor_pts <- anchor_points
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
@@ -158,107 +163,107 @@ plot_astro_anchor <- function(astro_solution = NULL,
   if (time_dir == TRUE) {
     wr_open_device(width = 20, height = 10)
     par(
-      mfrow = c(2, 1),
-      mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),
-      mgp = c(2, 1, 0)
+        mfrow = c(2, 1),
+        mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),
+        mgp = c(2, 1, 0)
     )
     plot(
-      x = proxy_signal[, 1],
-      y = proxy_signal[, 2],
-      type = "l",
-      xlab = "",
-      ylab = "Proxy value",
-      xaxt = "n",
-      xaxs = "i",
-      lwd = 2,
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = (c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      ))
+        x = proxy_signal[, 1],
+        y = proxy_signal[, 2],
+        type = "l",
+        xlab = "",
+        ylab = "Proxy value",
+        xaxt = "n",
+        xaxs = "i",
+        lwd = 2,
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = (c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        ))
     )
     mtext(text = "Depth (metres)",
-          side = 3,
-          #side 2 = left
-          line = 2)
+        side = 3,
+        #side 2 = left
+        line = 2)
     box(lwd = 2)
     axis(3)
     segments(
-      x0 = anchor_pts[, 1],
-      y0 = rep(min(proxy_signal[, 2]) * 0.2, times = (nrow(anchor_pts))),
-      x1 = anchor_pts[, 1],
-      y1 = anchor_pts[, 3],
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = (c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      )),
-      col = "black",
-      lwd = 2
+        x0 = anchor_pts[, 1],
+        y0 = rep(min(proxy_signal[, 2]) * 0.2, times = (nrow(anchor_pts))),
+        x1 = anchor_pts[, 1],
+        y1 = anchor_pts[, 3],
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = (c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        )),
+        col = "black",
+        lwd = 2
     )
 
     points(
-      x = anchor_pts[, 1],
-      y = anchor_pts[, 3],
-      col = "green",
-      pch = 19,
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = (c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      )),
-      cex = 2
+        x = anchor_pts[, 1],
+        y = anchor_pts[, 3],
+        col = "green",
+        pch = 19,
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = (c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        )),
+        cex = 2
     )
 
 
 
 
     par(
-      new = FALSE,
-      mai = c(2 / 2.54, 2 / 2.54, 0.5 / 2.54 , 1 / 2.54),
-      mgp = c(2, 1, 0)
+        new = FALSE,
+        mai = c(2 / 2.54, 2 / 2.54, 0.5 / 2.54 , 1 / 2.54),
+        mgp = c(2, 1, 0)
     )
 
 
     plot(
-      astro_solution,
-      type = "l",
-      xlab = "Time",
-      ylab = "tie point value",
-      xaxs = "i",
-      yaxs = "i",
-      lwd = 2
+        astro_solution,
+        type = "l",
+        xlab = "Time",
+        ylab = "tie point value",
+        xaxs = "i",
+        yaxs = "i",
+        lwd = 2
     )
     box(lwd = 2)
 
     segments(
-      x0 = anchor_pts[, 2],
-      y0 = anchor_pts[, 4],
-      x1 = anchor_pts[, 2],
-      y1 = rep(max(astro_solution[, 2]) * 1.2, times = (nrow(anchor_pts))),
-      col = "black",
-      lwd = 2
+        x0 = anchor_pts[, 2],
+        y0 = anchor_pts[, 4],
+        x1 = anchor_pts[, 2],
+        y1 = rep(max(astro_solution[, 2]) * 1.2, times = (nrow(anchor_pts))),
+        col = "black",
+        lwd = 2
     )
     points(
-      x = anchor_pts[, 2],
-      y = anchor_pts[, 4],
-      col = "red",
-      pch = 19,
-      cex = 2
+        x = anchor_pts[, 2],
+        y = anchor_pts[, 4],
+        col = "red",
+        pch = 19,
+        cex = 2
     )
 
 
 
     par(
-      new = TRUE,
-      mfrow = c(1, 1),
-      mai = c(2 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54)
+        new = TRUE,
+        mfrow = c(1, 1),
+        mai = c(2 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54)
     )
     plot.new()
     settings_dev <- dev.size("in")
 
     plot.window(
-      xlim = c(min(astro_solution[, 1]) , max(astro_solution[, 1])),
-      ylim = c(2 / 2.54, settings_dev[2] - (3 / 2.54)),
-      yaxs = "i",
-      xaxs = "i"
+        xlim = c(min(astro_solution[, 1]) , max(astro_solution[, 1])),
+        ylim = c(2 / 2.54, settings_dev[2] - (3 / 2.54)),
+        yaxs = "i",
+        xaxs = "i"
     )
 
     y0_val <- ((settings_dev[2] - ((5) / 2.54)) / 2) + 1.5 / 2.54
@@ -266,126 +271,126 @@ plot_astro_anchor <- function(astro_solution = NULL,
 
 
     fact <- (anchor_pts[, 1] - min(proxy_signal[, 1])) /
-      (max(proxy_signal[, 1]) - min(proxy_signal[, 1]))
+        (max(proxy_signal[, 1]) - min(proxy_signal[, 1]))
     x1_vals <-
-      ((max(astro_solution[, 1]) - min(astro_solution[, 1])) * (fact)) + min(astro_solution[, 1])
+        ((max(astro_solution[, 1]) - min(astro_solution[, 1])) * (fact)) + min(astro_solution[, 1])
 
 
     segments(
-      x0 = anchor_pts[, 2],
-      y0 = rep(y0_val, times = (nrow(anchor_pts)))
-      ,
-      x1 = x1_vals,
-      y1 = rep(y1_val, times = (nrow(anchor_pts))),
-      col = "black",
-      lwd = 2,
-      lend = 1
+        x0 = anchor_pts[, 2],
+        y0 = rep(y0_val, times = (nrow(anchor_pts)))
+        ,
+        x1 = x1_vals,
+        y1 = rep(y1_val, times = (nrow(anchor_pts))),
+        col = "black",
+        lwd = 2,
+        lend = 1
     )
 
   } else{
     wr_open_device(width = 20, height = 10)
     par(
-      mfrow = c(2, 1),
-      mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),
-      mgp = c(2, 1, 0)
+        mfrow = c(2, 1),
+        mai = c(0.5 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54),
+        mgp = c(2, 1, 0)
     )
     plot(
-      x = proxy_signal[, 1],
-      y = proxy_signal[, 2],
-      type = "l",
-      xlab = "",
-      ylab = "Proxy value",
-      xaxt = "n",
-      xaxs = "i",
-      lwd = 2,
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = rev(c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      ))
+        x = proxy_signal[, 1],
+        y = proxy_signal[, 2],
+        type = "l",
+        xlab = "",
+        ylab = "Proxy value",
+        xaxt = "n",
+        xaxs = "i",
+        lwd = 2,
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = rev(c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        ))
     )
     mtext(text = "Depth (metres)",
-          side = 3,
-          #side 2 = left
-          line = 2)
+        side = 3,
+        #side 2 = left
+        line = 2)
     box(lwd = 2)
     axis(3)
 
 
     segments(
-      x0 = anchor_pts[, 1],
-      y0 = rep(min(proxy_signal[, 2]) * 0.2, times = (nrow(anchor_pts))),
-      x1 = anchor_pts[, 1],
-      y1 = anchor_pts[, 3],
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = rev(c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      )),
-      col = "black",
-      lwd = 2
+        x0 = anchor_pts[, 1],
+        y0 = rep(min(proxy_signal[, 2]) * 0.2, times = (nrow(anchor_pts))),
+        x1 = anchor_pts[, 1],
+        y1 = anchor_pts[, 3],
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = rev(c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        )),
+        col = "black",
+        lwd = 2
     )
 
     points(
-      x = anchor_pts[, 1],
-      y = anchor_pts[, 3],
-      col = "green",
-      pch = 19,
-      ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
-      xlim = rev(c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      )),
-      cex = 2
+        x = anchor_pts[, 1],
+        y = anchor_pts[, 3],
+        col = "green",
+        pch = 19,
+        ylim = c(min(proxy_signal[, 2]), max(proxy_signal[, 2])),
+        xlim = rev(c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        )),
+        cex = 2
     )
 
 
 
 
     par(
-      new = FALSE,
-      mai = c(2 / 2.54, 2 / 2.54, 0.5 / 2.54 , 1 / 2.54),
-      mgp = c(2, 1, 0)
+        new = FALSE,
+        mai = c(2 / 2.54, 2 / 2.54, 0.5 / 2.54 , 1 / 2.54),
+        mgp = c(2, 1, 0)
     )
 
 
     plot(
-      astro_solution,
-      type = "l",
-      xlab = "Time",
-      ylab = "tie point value",
-      xaxs = "i",
-      yaxs = "i",
-      lwd = 2
+        astro_solution,
+        type = "l",
+        xlab = "Time",
+        ylab = "tie point value",
+        xaxs = "i",
+        yaxs = "i",
+        lwd = 2
     )
     box(lwd = 2)
 
     segments(
-      x0 = anchor_pts[, 2],
-      y0 = anchor_pts[, 4],
-      x1 = anchor_pts[, 2],
-      y1 = rep(max(astro_solution[, 2]) * 1.2, times = (nrow(anchor_pts))),
-      col = "black",
-      lwd = 2
+        x0 = anchor_pts[, 2],
+        y0 = anchor_pts[, 4],
+        x1 = anchor_pts[, 2],
+        y1 = rep(max(astro_solution[, 2]) * 1.2, times = (nrow(anchor_pts))),
+        col = "black",
+        lwd = 2
     )
     points(
-      x = anchor_pts[, 2],
-      y = anchor_pts[, 4],
-      col = "red",
-      pch = 19,
-      cex = 2
+        x = anchor_pts[, 2],
+        y = anchor_pts[, 4],
+        col = "red",
+        pch = 19,
+        cex = 2
     )
 
     par(
-      new = TRUE,
-      mfrow = c(1, 1),
-      mai = c(2 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54)
+        new = TRUE,
+        mfrow = c(1, 1),
+        mai = c(2 / 2.54, 2 / 2.54, 2 / 2.54, 1 / 2.54)
     )
     plot.new()
     settings_dev <- dev.size("in")
 
     plot.window(
-      xlim = c(min(astro_solution[, 1]) , max(astro_solution[, 1])),
-      ylim = c(2 / 2.54, settings_dev[2] - (3 / 2.54)),
-      yaxs = "i",
-      xaxs = "i"
+        xlim = c(min(astro_solution[, 1]) , max(astro_solution[, 1])),
+        ylim = c(2 / 2.54, settings_dev[2] - (3 / 2.54)),
+        yaxs = "i",
+        xaxs = "i"
     )
 
     y0_val <- ((settings_dev[2] - ((5) / 2.54)) / 2) + 1.5 / 2.54
@@ -393,21 +398,21 @@ plot_astro_anchor <- function(astro_solution = NULL,
 
 
     fact <- (anchor_pts[, 1] - min(proxy_signal[, 1])) /
-      (max(proxy_signal[, 1]) - min(proxy_signal[, 1]))
+        (max(proxy_signal[, 1]) - min(proxy_signal[, 1]))
     x1_vals <-
-      ((max(astro_solution[, 1]) - min(astro_solution[, 1])) * (1 - fact)) +
-      min(astro_solution[, 1])
+        ((max(astro_solution[, 1]) - min(astro_solution[, 1])) * (1 - fact)) +
+        min(astro_solution[, 1])
 
 
     segments(
-      x0 = anchor_pts[, 2],
-      y0 = rep(y0_val, times = (nrow(anchor_pts)))
-      ,
-      x1 = x1_vals,
-      y1 = rep(y1_val, times = (nrow(anchor_pts))),
-      col = "black",
-      lwd = 2,
-      lend = 1
+        x0 = anchor_pts[, 2],
+        y0 = rep(y0_val, times = (nrow(anchor_pts)))
+        ,
+        x1 = x1_vals,
+        y1 = rep(y1_val, times = (nrow(anchor_pts))),
+        col = "black",
+        lwd = 2,
+        lend = 1
     )
   }
 }

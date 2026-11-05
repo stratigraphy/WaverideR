@@ -29,16 +29,29 @@
 #'
 #' Only points whose whole period band lies outside the cone of influence are tested.
 #'
-#' @param object an object returned by \code{\link{analyse_wavelet}}.
-#' @param period_range numeric vector of length 2, lowest and highest period (in the units of the depth/time
-#'   axis) of the band to be averaged, for example \code{c(0.3, 0.5)} for an obliquity band.
-#' @param background \code{"ar1"} (default, red noise) or \code{"white"}.
-#' @param siglvl significance level, default 0.95.
-#' @param method \code{"exact"} (default) or \code{"torrence"}, see Details.
-#' @param lag1 lag-1 autocorrelation of the background. By default estimated from the record as in
-#'   \code{\link{wavelet_significance}}.
-#' @param delta_j0 decorrelation length of \code{method = "torrence"}. Default \code{0.6 * 6 / omega_nr}.
-#' @param genplot logical, plot the result.
+#' @param object Wavelet to test (list of class \code{analyze.wavelet}), the output of \code{\link{analyse_wavelet}}
+#'   (Morlet wavelet; its \code{omega_nr}, \code{dj}, \code{dt}, \code{Scale}, \code{Power} and \code{y} are used).
+#'   Required, no default.
+#' @param period_range Band of periods to average (numeric vector of length 2, \code{c(lowest, highest)}, in the units
+#'   of the depth/time axis; at least one scale of the wavelet must fall inside), for example \code{c(0.3, 0.5)} for an
+#'   obliquity band. Required, no default.
+#' @param background Noise background of the null hypothesis (character, one of \code{"ar1"}, \code{"white"}):
+#'   \code{"ar1"} red noise with the lag-1 autocorrelation \code{lag1}, \code{"white"} white noise (\code{lag1} is then
+#'   set to 0). \code{Default="ar1"}.
+#' @param siglvl Significance level of the test (numeric, between 0 and 1, e.g. 0.95 for the 95\% level).
+#'   \code{Default=0.95}.
+#' @param method How the null distribution of the band average is computed (character, one of \code{"exact"},
+#'   \code{"torrence"}): \code{"exact"} the weighted sum of exponential variables with a three-moment gamma fit,
+#'   \code{"torrence"} the scaled chi-square distribution of Torrence and Compo (1998, eq. 28); see Details.
+#'   \code{Default="exact"}.
+#' @param lag1 Lag-1 autocorrelation of the AR(1) background (numeric, between 0 and 1). \code{NULL} estimates it from
+#'   the record as in \code{\link{wavelet_significance}} (mean of the lag-1 autocorrelation and the square root of the
+#'   lag-2 autocorrelation). Ignored for \code{background = "white"}. \code{Default=NULL}.
+#' @param delta_j0 Decorrelation length of the scales, only used by \code{method = "torrence"} (numeric, > 0);
+#'   \code{NULL} uses \code{0.6 * 6 / omega_nr}, the value 0.6 of Torrence and Compo for \code{omega_nr = 6} rescaled to
+#'   the \code{omega_nr} of \code{object}. \code{Default=NULL}.
+#' @param genplot Plot the band-averaged power with the significance level (logical, TRUE or FALSE), using the
+#'   \code{plot} method. \code{Default=FALSE}.
 #' @return An object of class \code{wr_band_significance}, a list with: \code{x} (depth/time axis), \code{power}
 #'   (the scale-averaged power, in units of variance when the record is standardised), \code{crit} (significance
 #'   level of the band average), \code{pvalue}, \code{significant} (logical, only points outside the cone of
@@ -68,13 +81,13 @@
 #' bs
 #' @export
 wavelet_band_significance <- function(object,
-                                      period_range,
-                                      background = c("ar1", "white"),
-                                      siglvl = 0.95,
-                                      method = c("exact", "torrence"),
-                                      lag1 = NULL,
-                                      delta_j0 = NULL,
-                                      genplot = FALSE) {
+    period_range,
+    background = c("ar1", "white"),
+    siglvl = 0.95,
+    method = c("exact", "torrence"),
+    lag1 = NULL,
+    delta_j0 = NULL,
+    genplot = FALSE) {
   if (!inherits(object, "analyze.wavelet")) {
     stop("object must be the result of analyse_wavelet()")
   }
@@ -85,15 +98,21 @@ wavelet_band_significance <- function(object,
   }
   period <- as.numeric(object$Period)
   sel <- which(period >= min(period_range) & period <= max(period_range))
-  if (length(sel) < 1) stop("no scales of the wavelet fall inside period_range")
+  if (length(sel) < 1) {
+    stop("no scales of the wavelet fall inside period_range")
+  }
   omega0 <- object$omega_nr
-  dt <- if (is.null(object$dt)) stats::median(diff(object$x)) else object$dt
+  dt <- if (is.null(object$dt)) { stats::median(diff(object$x)) } else { object$dt }
   dj <- object$dj
   scales <- as.numeric(object$Scale)[sel]
   y <- as.numeric(object$y)
 
-  if (is.null(lag1)) lag1 <- .sig_lag1(y, background)
-  if (background == "white") lag1 <- 0
+  if (is.null(lag1)) {
+    lag1 <- .sig_lag1(y, background)
+  }
+  if (background == "white") {
+    lag1 <- 0
+  }
   spec <- function(w) (1 - lag1^2) / (1 + lag1^2 - 2 * lag1 * cos(w * dt))        # unit-variance AR(1) spectrum
 
   Cd <- .wr_cdelta(omega0, dj)
@@ -112,7 +131,9 @@ wavelet_band_significance <- function(object,
     dof <- fit$dof
     bg_mean <- fit$mean
   } else {
-    if (is.null(delta_j0)) delta_j0 <- 0.6 * 6 / omega0
+    if (is.null(delta_j0)) {
+      delta_j0 <- 0.6 * 6 / omega0
+    }
     dj0 <- delta_j0
     na <- length(scales)
     fac <- 4 * pi / (omega0 + sqrt(2 + omega0^2))
@@ -127,11 +148,13 @@ wavelet_band_significance <- function(object,
   }
   significant <- valid & is.finite(power) & power > crit
   out <- list(x = as.numeric(object$axis.1), power = power, crit = crit, pvalue = pval, significant = significant,
-              valid = valid, dof = dof, background_mean = bg_mean, period_range = range(period[sel]),
-              n_scales = length(sel), lag1 = lag1, Cdelta = Cd, delta_j0 = dj0, method = method,
-              background = background, siglvl = siglvl)
+      valid = valid, dof = dof, background_mean = bg_mean, period_range = range(period[sel]),
+      n_scales = length(sel), lag1 = lag1, Cdelta = Cd, delta_j0 = dj0, method = method,
+      background = background, siglvl = siglvl)
   class(out) <- "wr_band_significance"
-  if (genplot) plot(out)
+  if (genplot) {
+    plot(out)
+  }
   out
 }
 
@@ -149,17 +172,20 @@ print.wr_band_significance <- function(x, ...) {
 }
 
 #' @export
-#' @param x an object returned by \code{wavelet_band_significance}.
-#' @param ... passed to \code{plot}.
+#' @param x Result of \code{wavelet_band_significance} (object of class \code{wr_band_significance}) to plot.
+#'   Required, no default.
+#' @param ... Further graphical arguments passed to \code{\link[graphics]{plot}} (e.g. \code{xlim}, \code{las};
+#'   not \code{xlab}, \code{ylab}, \code{ylim} or \code{main}, which are set by the method).
 #' @rdname wavelet_band_significance
 plot.wr_band_significance <- function(x, ...) {
   ok <- x$valid
   yl <- range(c(x$power[ok], x$crit), na.rm = TRUE)
   graphics::plot(x$x, x$power, type = "n", ylim = yl, xlab = "", ylab = "scale-averaged power",
-                 main = paste0("Band ", signif(x$period_range[1], 3), " - ", signif(x$period_range[2], 3)), ...)
+      main = paste0("Band ", signif(x$period_range[1], 3), " - ", signif(x$period_range[2], 3)), ...)
   if (any(!ok)) {
     r <- rle(!ok)
-    ends <- cumsum(r$lengths); starts <- ends - r$lengths + 1
+    ends <- cumsum(r$lengths)
+    starts <- ends - r$lengths + 1
     for (i in which(r$values)) {
       graphics::rect(x$x[starts[i]], yl[1] - diff(yl), x$x[ends[i]], yl[2] + diff(yl), col = "grey90", border = NA)
     }
@@ -168,17 +194,21 @@ plot.wr_band_significance <- function(x, ...) {
   graphics::abline(h = x$crit, lty = 2, col = "red")
   graphics::abline(h = x$background_mean, lty = 3, col = "blue")
   sg <- which(x$significant)
-  if (length(sg)) graphics::points(x$x[sg], x$power[sg], pch = 16, col = "red", cex = 0.5)
+  if (length(sg)) {
+    graphics::points(x$x[sg], x$power[sg], pch = 16, col = "red", cex = 0.5)
+  }
   graphics::legend("topright", c("band average", paste0(100 * x$siglvl, "% level"), "null mean"),
-                   lty = c(1, 2, 3), col = c("black", "red", "blue"), bty = "n", cex = 0.8)
+      lty = c(1, 2, 3), col = c("black", "red", "blue"), bty = "n", cex = 0.8)
   invisible(x)
 }
 
-# ---- helpers ------------------------------------------------------------------------------------------------------
+# Helpers
 
 # lag-1 autocorrelation of the background, as in wavelet_significance()
 .sig_lag1 <- function(y, background) {
-  if (background == "white") return(0)
+  if (background == "white") {
+    return(0)
+  }
   ac <- stats::acf(y, lag.max = 2, plot = FALSE)$acf[, 1, 1]
   (ac[2] + sqrt(max(ac[3], 0))) / 2
 }
@@ -197,7 +227,10 @@ plot.wr_band_significance <- function(x, ...) {
 # W_j = sum_k xhat_k * psi_hat(s_j omega_k), xhat_k with variance S_k / N  (Torrence and Compo eq. 4-6)
 .wr_band_eigen <- function(scales, omega0, dt, wt, spec) {
   g <- .wr_omega_grid(max(scales), dt)
-  psi <- sapply(scales, function(s) sqrt(2 * pi * s / dt) * pi^(-1 / 4) * exp(-(s * g$w - omega0)^2 / 2))
+  psi <- matrix(NA_real_, length(g$w), length(scales))
+  for (j in seq_along(scales)) {
+    psi[, j] <- sqrt(2 * pi * scales[j] / dt) * pi^(-1 / 4) * exp(-(scales[j] * g$w - omega0)^2 / 2)
+  }
   psi <- matrix(psi, ncol = length(scales))
   a <- psi * sqrt(spec(g$w) * g$dw * dt / (2 * pi))
   G <- crossprod(a) * outer(sqrt(wt), sqrt(wt))
@@ -208,7 +241,9 @@ plot.wr_band_significance <- function(x, ...) {
 
 # three moment (shifted gamma) fit of  sum_m lambda_m E_m,  E_m ~ Exp(1)
 .wr_sumexp_fit <- function(ev) {
-  k1 <- sum(ev); k2 <- sum(ev^2); k3 <- sum(ev^3)
+  k1 <- sum(ev)
+  k2 <- sum(ev^2)
+  k3 <- sum(ev^3)
   theta <- k3 / k2
   alpha <- k2 / theta^2
   list(mean = k1, shape = alpha, scale = theta, shift = k1 - alpha * theta, dof = 2 * k1^2 / k2)
@@ -222,6 +257,9 @@ plot.wr_band_significance <- function(x, ...) {
   J <- ceiling(14 / dj)
   s <- 2 * 2^((0:J) * dj)                                                         # dt = 1
   g <- .wr_omega_grid(max(s), 1)
-  ew <- vapply(s, function(si) sum(si / sqrt(pi) * exp(-(si * g$w - omega0)^2) * g$dw), 1)   # E|W|^2, white noise
+  ew <- numeric(length(s))                                                        # E|W|^2, white noise
+  for (i in seq_along(s)) {
+    ew[i] <- sum(s[i] / sqrt(pi) * exp(-(s[i] * g$w - omega0)^2) * g$dw)
+  }
   dj * sum(ew / s)
 }

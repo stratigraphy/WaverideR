@@ -10,8 +10,10 @@ make_records <- function() {
 
 test_that("clicking ties, unties and selects peaks in any order", {
   r <- make_records()
-  pk_p <- as.data.frame(max_detect(r$proxy, pts = 3)[, 1:2]); names(pk_p) <- c("x", "y")
-  pk_a <- as.data.frame(max_detect(r$astro, pts = 3)[, 1:2]); names(pk_a) <- c("x", "y")
+  pk_p <- as.data.frame(max_detect(r$proxy, pts = 3)[, 1:2])
+  names(pk_p) <- c("x", "y")
+  pk_a <- as.data.frame(max_detect(r$astro, pts = 3)[, 1:2])
+  names(pk_a) <- c("x", "y")
   st <- list(ties = data.frame(p = integer(0), a = integer(0)), pending = NULL, history = list())
   st <- WaverideR:::.aai_click(st, "proxy", pk_p$x[3], pk_p, pk_a)
   expect_equal(st$pending$panel, "proxy")
@@ -46,7 +48,9 @@ test_that("the window can be driven with scripted clicks and returns the tie poi
   at <- function(geo, name, x) {
     g <- geo[[name]]
     f <- (x - g[5]) / (g[6] - g[5])
-    if (g[9] == 1) f <- 1 - f
+    if (g[9] == 1) {
+      f <- 1 - f
+    }
     list(x = g[1] + f * (g[2] - g[1]), y = mean(g[3:4]))
   }
   btn <- function(geo, nm) {
@@ -55,16 +59,18 @@ test_that("the window can be driven with scripted clicks and returns the tie poi
   }
   # tie the first 4 proxy peaks to astronomical peaks, remove the second tie, tune, finish
   steps <- list(
-    function(g) at(g, "proxy", pk_p[2, 1]), function(g) at(g, "astro", pk_a[2, 1]),
-    function(g) at(g, "astro", pk_a[3, 1]), function(g) at(g, "proxy", pk_p[3, 1]),
-    function(g) at(g, "proxy", pk_p[4, 1]), function(g) at(g, "astro", pk_a[4, 1]),
-    function(g) at(g, "proxy", pk_p[3, 1]),
-    function(g) btn(g, "Zoom -"), function(g) btn(g, "P >"), function(g) btn(g, "Fit"),
-    function(g) btn(g, "Done"))
+      function(g) at(g, "proxy", pk_p[2, 1]), function(g) at(g, "astro", pk_a[2, 1]),
+      function(g) at(g, "astro", pk_a[3, 1]), function(g) at(g, "proxy", pk_p[3, 1]),
+      function(g) at(g, "proxy", pk_p[4, 1]), function(g) at(g, "astro", pk_a[4, 1]),
+      function(g) at(g, "proxy", pk_p[3, 1]),
+      function(g) btn(g, "Zoom -"), function(g) btn(g, "P >"), function(g) btn(g, "Fit"),
+      function(g) btn(g, "Done"))
   k <- 0
   loc <- function() {
     k <<- k + 1
-    if (k > length(steps)) return(NULL)
+    if (k > length(steps)) {
+      return(NULL)
+    }
     steps[[k]](WaverideR:::.aai_env$geo)
   }
   out <- astro_anchor_interactive(r$astro, r$proxy, locator_fun = loc)
@@ -83,9 +89,10 @@ test_that("tie points can be given, are snapped and tuning works", {
   expect_error(astro_anchor_interactive(r$astro, r$proxy), "interactive")
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
-  pk_a <- as.data.frame(max_detect(r$astro, pts = 3)[, 1:2]); names(pk_a) <- c("x", "y")
+  pk_a <- as.data.frame(max_detect(r$astro, pts = 3)[, 1:2])
+  names(pk_a) <- c("x", "y")
   full <- astro_anchor_interactive(r$astro, r$proxy, ties = data.frame(
-    data_x = c(2, 6, 10, 14, 18, 24, 30, 36), insolation_x = c(20, 60, 100, 140, 180, 280, 380, 400)))
+      data_x = c(2, 6, 10, 14, 18, 24, 30, 36), insolation_x = c(20, 60, 100, 140, 180, 280, 380, 400)))
   astro_xy <- setNames(r$astro, c("x", "y"))
   res <- WaverideR:::.aai_inspect(r$proxy, astro_xy, pk_a, full, TRUE, NULL, 0.25, 100, FALSE)
   expect_true(is.finite(res$correlation))
@@ -103,7 +110,7 @@ test_that("sync moves the window of the other record to the partners of the visi
   proxy <- data.frame(x = 0:50, y = 0)
   astro <- data.frame(x = seq(0, 700, by = 10), y = 0)
   st <- list(ties = data.frame(p = c(4, 5), a = c(4, 5)), pending = NULL, history = list(),
-             view_p = c(38, 43), view_a = c(0, 200))
+      view_p = c(38, 43), view_a = c(0, 200))
   st2 <- WaverideR:::.aai_sync(st, pk_p, pk_a, proxy, astro)
   expect_true(all(c(600, 620) >= st2$view_a[1] & c(600, 620) <= st2$view_a[2]))
   expect_equal(diff(st2$view_a), 200)

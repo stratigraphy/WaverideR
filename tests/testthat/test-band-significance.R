@@ -7,7 +7,7 @@ test_that("exact band-averaged significance reproduces Monte Carlo moments for s
     vals <- NULL
     for (r in 1:10) {
       w <- analyse_wavelet(cbind(1:N, rnorm(N)), dj = 0.125, lowerPeriod = 4, upperPeriod = 64,
-                           verbose = FALSE, omega_nr = om)
+          verbose = FALSE, omega_nr = om)
       b <- wavelet_band_significance(w, pr, background = "white")
       vals <- c(vals, b$power[b$valid])
     }
@@ -21,14 +21,16 @@ test_that("false positive rate is near nominal for omega_nr 4, 6 and 10 (exact) 
   set.seed(12)
   cases <- list(list(4, "exact"), list(6, "exact"), list(10, "exact"), list(6, "torrence"), list(10, "torrence"))
   for (cs in cases) {
-    hit <- 0; tot <- 0
+    hit <- 0
+    tot <- 0
     for (r in 1:60) {
       N <- 1024
       y <- as.numeric(arima.sim(list(ar = 0.4), N))
       w <- analyse_wavelet(cbind(1:N, y), dj = 0.125, lowerPeriod = 4, upperPeriod = 128, verbose = FALSE,
-                           omega_nr = cs[[1]])
+          omega_nr = cs[[1]])
       b <- wavelet_band_significance(w, c(8, 24), method = cs[[2]])
-      hit <- hit + sum(b$significant); tot <- tot + sum(b$valid)
+      hit <- hit + sum(b$significant)
+      tot <- tot + sum(b$valid)
     }
     expect_true(abs(hit / tot - 0.05) < 0.015, info = paste(cs[[1]], cs[[2]], hit / tot))
   }

@@ -14,17 +14,26 @@ rate_gram(
 )
 }
 \arguments{
-\item{ce}{Result of \code{\link{analyse_chirp_eha}} with \code{criterion = "template"}.}
+\item{ce}{Chirp-matched EHA result: the list returned by \code{\link{analyse_chirp_eha}} run with
+\code{criterion = "template"} (it must contain \code{template_score_all} and \code{sedrate_grid}). Required, no
+default.}
 
-\item{k}{Width (windows) of the running median of the maximum \code{Default=11}.}
+\item{k}{Width, in windows, of the running median applied to the best rate per window (integer, >= 1; even values
+are rounded up to the next odd number, 1 means no smoothing). \code{Default=11}.}
 
-\item{plot}{Draw the rate-gram \code{Default=TRUE}.}
+\item{plot}{Draw the rate-gram (map of the template score against sedimentation rate and depth, with the best rate
+per window as white points and its running median as a white line) (logical, TRUE or FALSE); with \code{FALSE}
+only the list is returned. \code{Default=TRUE}.}
 
-\item{rate_unit}{Factor and label of the rate axis, e.g. \code{c(100, "cm/kyr")}.}
+\item{rate_unit}{Conversion factor and label of the rate axis: a vector \code{c(factor, "label")} whose first
+element multiplies the rates (in depth units per kyr) for the axis labels, e.g. \code{c(100, "cm/kyr")} for a
+depth axis in metres. Only changes the labelling. \code{Default=c(1, "depth units / kyr")}.}
 
-\item{reference}{Optional data frame (depth, rate) drawn for comparison.}
+\item{reference}{Reference sedimentation-rate curve drawn as a red dashed line for comparison: a two-column matrix
+or data frame with depth in column 1 and rate (depth units per kyr) in column 2; \code{NULL} draws none.
+\code{Default=NULL}.}
 
-\item{main}{Title.}
+\item{main}{Title of the plot (character); \code{NULL} gives a default title. \code{Default=NULL}.}
 }
 \value{
 A list with \code{depth}, \code{sedrate} (rate grid), \code{map} (rates x windows), \code{best} (the

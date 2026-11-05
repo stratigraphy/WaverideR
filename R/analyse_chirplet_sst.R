@@ -13,15 +13,33 @@
 #' squeezed amplitudes). The chirp parameter is dimensionless: \code{chirp = c} means that the frequency of the
 #' wavelet changes by \code{c / omega_nr} (relative) over one scale length (the period times omega_nr / 2 pi).
 #'
-#' @param data Record: first column depth, second column proxy.
-#' @param lowerPeriod,upperPeriod,dj Period axis.
-#' @param omega_nr Morlet omega_0 of the orders \code{Default=c(8, 12, 16)}.
-#' @param chirp Dimensionless chirp values that are tried \code{Default=seq(-2, 2, by = 0.25)}.
-#' @param n_iter Iterations of the frequency reassignment (multisynchrosqueezing) \code{Default=4}.
-#' @param threshold Noise threshold as in \code{\link{analyse_wavelet_sst}} \code{Default="riskshrink"}.
-#' @param smooth Gaussian smoothing along the period axis (octaves) \code{Default=0.01}.
-#' @param combine How the orders are combined \code{Default="geometric"}.
-#' @param verbose Print the progress \code{Default=FALSE}.
+#' @param data Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+#' (further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+#' linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+#' error).
+#' @param lowerPeriod,upperPeriod,dj Period axis: shortest and longest period, in the same unit as the depth/time
+#' column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+#' the sampling interval), and the spacing of the periods in octaves (numeric, > 0; \code{1/x} gives x periods per
+#' doubling of the period). Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}:
+#' \code{Default=1024}; \code{dj}: \code{Default=1/100}.
+#' @param omega_nr Central angular frequencies omega_0 (number of cycles) of the chirped Morlet wavelets of the
+#' orders that are combined (numeric vector, values > 0); a single value gives a single-order transform.
+#' \code{Default=c(8, 12, 16)}.
+#' @param chirp Dimensionless chirp values that are tried at every scale and position (numeric vector; 0 is the
+#' ordinary Morlet wavelet, negative and positive values a decreasing or increasing frequency, see the
+#' description). The best-matching value (largest modulus) is used; a wider and denser set follows faster changes
+#' of the period at a higher computation time. \code{Default=seq(-2, 2, by = 0.25)}.
+#' @param n_iter Number of iterations of the frequency reassignment (multisynchrosqueezing, integer, >= 1), see
+#' \code{\link{analyse_wavelet_sst}}. \code{Default=4}.
+#' @param threshold Noise threshold of the synchrosqueezing: \code{"riskshrink"}, \code{"none"} or a number (numeric,
+#' in standard deviations of the standardised record), as in \code{\link{analyse_wavelet_sst}}.
+#' \code{Default="riskshrink"}.
+#' @param smooth Standard deviation, in octaves, of the Gaussian smoothing along the period axis applied to every
+#' order before the orders are combined (numeric, >= 0; 0 switches it off). \code{Default=0.01}.
+#' @param combine How the squeezed amplitudes of the orders are combined (character), one of \code{"geometric"}
+#' (geometric mean), \code{"min"} (minimum: strictest consensus) or \code{"mean"} (arithmetic mean).
+#' \code{Default="geometric"} (the first element of \code{c("geometric", "min", "mean")}).
+#' @param verbose Print a message when each order is done (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @return A list with the structure of \code{\link{analyse_wavelet}} (so that \code{\link{plot_wavelet}},
 #' \code{\link{track_astro_hmm}} etc. work on it) with in addition \code{Chirp}: the relative rate of change of the
@@ -43,16 +61,16 @@
 #' }
 #' @export
 analyse_chirplet_sst <- function(data = NULL,
-                                 lowerPeriod = 2,
-                                 upperPeriod = 1024,
-                                 dj = 1 / 100,
-                                 omega_nr = c(8, 12, 16),
-                                 chirp = seq(-2, 2, by = 0.25),
-                                 n_iter = 4,
-                                 threshold = "riskshrink",
-                                 smooth = 0.01,
-                                 combine = c("geometric", "min", "mean"),
-                                 verbose = FALSE) {
+    lowerPeriod = 2,
+    upperPeriod = 1024,
+    dj = 1 / 100,
+    omega_nr = c(8, 12, 16),
+    chirp = seq(-2, 2, by = 0.25),
+    n_iter = 4,
+    threshold = "riskshrink",
+    smooth = 0.01,
+    combine = c("geometric", "min", "mean"),
+    verbose = FALSE) {
   settings <- mget(setdiff(names(formals(sys.function())), c("data", "verbose")))
   combine <- match.arg(combine)
   dat <- as.matrix(data)
@@ -67,14 +85,18 @@ analyse_chirplet_sst <- function(data = NULL,
   periods <- lowerPeriod * 2^((0:J) * dj)
   ns <- length(periods)
   sb <- smooth / dj
-  kh <- if (sb > 0) max(1, ceiling(3 * sb)) else 0
-  kern <- if (kh > 0) exp(-((-kh):kh)^2 / (2 * sb^2)) else 1
+  kh <- if (sb > 0) { max(1, ceiling(3 * sb)) } else { 0 }
+  kern <- if (kh > 0) { exp(-((-kh):kh)^2 / (2 * sb^2)) } else { 1 }
   kern <- kern / sum(kern)
   smooth_rows <- function(M) {
-    if (kh == 0) return(M)
+    if (kh == 0) {
+      return(M)
+    }
     Mp <- rbind(matrix(0, kh, ncol(M)), M, matrix(0, kh, ncol(M)))
     out <- matrix(0, nrow(M), ncol(M))
-    for (i in seq_along(kern)) out <- out + kern[i] * Mp[i:(i + nrow(M) - 1), , drop = FALSE]
+    for (i in seq_along(kern)) {
+      out <- out + kern[i] * Mp[i:(i + nrow(M) - 1), , drop = FALSE]
+    }
     out
   }
   amps <- vector("list", length(omega_nr))
@@ -83,20 +105,54 @@ analyse_chirplet_sst <- function(data = NULL,
   wdef1 <- NULL
   for (i in seq_along(omega_nr)) {
     wdef <- .wr_wavelet_equiv("morlet", omega_nr[i], NULL, ngrid = 8001)
-    if (is.null(wdef1)) wdef1 <- wdef
+    if (is.null(wdef1)) {
+      wdef1 <- wdef
+    }
     scales <- periods / wdef$fourier_factor
     r <- .wr_chirplet_core(xs, dt, omega_nr[i], scales, dj, chirp, threshold, n_iter)
     T_i <- r$tx / sqrt(scales)
     amps[[i]] <- smooth_rows(Mod(T_i))
     chirps[[i]] <- r$chirp
     phasor <- phasor + smooth_rows(Re(T_i)) + 1i * smooth_rows(Im(T_i))
-    if (verbose) cat("order", i, "omega_0 =", round(omega_nr[i], 2), "done\n")
+    if (verbose) {
+      cat("order", i, "omega_0 =", round(omega_nr[i], 2), "done\n")
+    }
   }
-  eps <- 1e-6 * max(sapply(amps, max))
+  amp_max <- numeric(length(amps))
+  for (i in seq_along(amps)) {
+    amp_max[i] <- max(amps[[i]])
+  }
+  eps <- 1e-6 * max(amp_max)
   G <- switch(combine,
-    geometric = exp(Reduce(`+`, lapply(amps, function(a) log(a + eps))) / length(amps)) - eps,
-    min = Reduce(pmin, amps),
-    mean = Reduce(`+`, amps) / length(amps))
+      geometric = {
+        acc <- log(amps[[1]] + eps)
+        for (i in seq_along(amps)[-1]) {
+          acc <- acc + log(amps[[i]] + eps)
+        }
+        exp(acc / length(amps)) - eps
+      },
+      min = {
+        acc <- amps[[1]]
+        for (i in seq_along(amps)[-1]) {
+          acc <- pmin(acc, amps[[i]])
+        }
+        acc
+      },
+      mean = {
+        acc <- amps[[1]]
+        for (i in seq_along(amps)[-1]) {
+          acc <- acc + amps[[i]]
+        }
+        acc / length(amps)
+      })
+  chirp_sum <- chirps[[1]]
+  for (i in seq_along(chirps)[-1]) {
+    chirp_sum <- chirp_sum + chirps[[i]]
+  }
+  power_orders <- vector("list", length(amps))
+  for (i in seq_along(amps)) {
+    power_orders[[i]] <- amps[[i]]^2
+  }
   G[G < 0] <- 0
   unit <- ifelse(Mod(phasor) > 0, phasor / Mod(phasor), 0)
   scales <- periods / wdef1$fourier_factor
@@ -110,14 +166,14 @@ analyse_chirplet_sst <- function(data = NULL,
   yl <- c(lp[ns] + 0.5 * logyint, lp[1] - 0.5 * logyint)
   coi.y <- c(yl, log2(coi), rev(yl))
   out <- list(Wave = Wave, Phase = Arg(Wave), Ampl = G, Power = Power, dt = dt, dj = dj,
-              Power.avg = rowMeans(Power), Period = periods, Scale = scales,
-              coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = xout, axis.2 = lp,
-              omega_nr = omega_nr[1], wavelet = "morlet", wavelet_order = NULL,
-              fourier_factor = wdef1$fourier_factor, psi0 = wdef1$psi0, x = xout, y = xi,
-              Power.avg.pval = NULL, Power.pval = NULL, synchrosqueezed = TRUE, superlet = length(omega_nr) > 1,
-              chirplet = TRUE, combine = combine, omega_nr_all = omega_nr,
-              Chirp = Reduce(`+`, chirps) / length(chirps),
-              Power_orders = lapply(amps, function(a) a^2))
+      Power.avg = rowMeans(Power), Period = periods, Scale = scales,
+      coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = xout, axis.2 = lp,
+      omega_nr = omega_nr[1], wavelet = "morlet", wavelet_order = NULL,
+      fourier_factor = wdef1$fourier_factor, psi0 = wdef1$psi0, x = xout, y = xi,
+      Power.avg.pval = NULL, Power.pval = NULL, synchrosqueezed = TRUE, superlet = length(omega_nr) > 1,
+      chirplet = TRUE, combine = combine, omega_nr_all = omega_nr,
+      Chirp = chirp_sum / length(chirps),
+      Power_orders = power_orders)
   out$settings <- settings
   out$transform <- "analyse_chirplet_sst"
   class(out) <- "analyze.wavelet"
@@ -146,7 +202,10 @@ analyse_chirplet_sst <- function(data = NULL,
   wder <- matrix(0 + 0i, ns, n)          # its derivative along the record
   cmap <- matrix(0, ns, n)               # matched chirp (dimensionless)
   for (j in seq_len(ns)) {
-    best <- rep(-1, n); wb <- rep(0 + 0i, n); wd <- rep(0 + 0i, n); cb <- rep(0, n)
+    best <- rep(-1, n)
+    wb <- rep(0 + 0i, n)
+    wd <- rep(0 + 0i, n)
+    cb <- rep(0, n)
     for (k in seq_len(nc)) {
       dau <- daughter(scales[j], chirp[k])
       w <- inv(dau)
@@ -154,10 +213,15 @@ analyse_chirplet_sst <- function(data = NULL,
       better <- m > best
       if (any(better)) {
         w1 <- inv(dau * 1i * omega.k)
-        best[better] <- m[better]; wb[better] <- w[better]; wd[better] <- w1[better]; cb[better] <- chirp[k]
+        best[better] <- m[better]
+        wb[better] <- w[better]
+        wd[better] <- w1[better]
+        cb[better] <- chirp[k]
       }
     }
-    wave[j, ] <- wb; wder[j, ] <- wd; cmap[j, ] <- cb
+    wave[j, ] <- wb
+    wder[j, ] <- wd
+    cmap[j, ] <- cb
   }
   amod <- Mod(wave)
   if (is.character(threshold)) {
@@ -165,9 +229,15 @@ analyse_chirplet_sst <- function(data = NULL,
     gam <- if (threshold == "riskshrink") {
       nfine <- min(ns, max(1, round(1 / dj)))
       sqrt(2 * log(n)) * 1.4826 * stats::mad(as.numeric(amod[seq_len(nfine), ]), constant = 1)
-    } else sqrt(.Machine$double.eps)
-  } else gam <- threshold
-  if (is.character(threshold)) gam <- min(gam, stats::quantile(amod, 0.9, names = FALSE))   # see .wr_sst_core
+    } else {
+      sqrt(.Machine$double.eps)
+    }
+  } else {
+    gam <- threshold
+  }
+  if (is.character(threshold)) {
+    gam <- min(gam, stats::quantile(amod, 0.9, names = FALSE))
+  }   # see .wr_sst_core
   tx <- matrix(0 + 0i, ns, n)
   bmat <- matrix(NA_integer_, ns, n)
   rel_chirp <- matrix(NA_real_, ns, n)
@@ -198,11 +268,14 @@ analyse_chirplet_sst <- function(data = NULL,
   for (j in seq_len(ns)) {
     b <- bmat[j, ]
     ok <- which(!is.na(b))
-    if (!length(ok)) next
+    if (!length(ok)) {
+      next
+    }
     idx <- cbind(b[ok], ok)
     tx[idx] <- tx[idx] + wave[j, ok] / sqrt(scales[j])
     wgt <- amod[j, ok]
-    rc <- rel_chirp[j, ok]; good <- is.finite(rc)
+    rc <- rel_chirp[j, ok]
+    good <- is.finite(rc)
     chirp_out[idx[good, , drop = FALSE]] <- chirp_out[idx[good, , drop = FALSE]] + (wgt * rc)[good]
     wsum[idx[good, , drop = FALSE]] <- wsum[idx[good, , drop = FALSE]] + wgt[good]
   }

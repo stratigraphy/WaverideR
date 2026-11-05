@@ -21,43 +21,53 @@ mesa_spectrum(
 )
 }
 \arguments{
-\item{data}{Input is a time series with the first column being depth or time and the second
-column being a proxy. It should be evenly sampled, see \code{regularise}.}
+\item{data}{Record to analyse: a two-column matrix or data frame with depth or time in column 1 (strictly
+increasing after sorting) and the proxy value in column 2; rows with \code{NA} are removed and at least 8 samples
+are needed. It should be evenly sampled, see \code{regularise}. Required (\code{Default=NULL}).}
 
-\item{order}{Order of the AR model (number of coefficients). The default NULL selects the order
-with \code{criterion}.}
+\item{order}{Order of the AR model, i.e. the number of AR coefficients (integer, between 1 and N - 3 for N
+samples). Higher orders give sharper and more peaks. \code{NULL} selects the order with \code{criterion}.
+\code{Default=NULL}.}
 
-\item{order_max}{Largest order considered when the order is selected. The default is
-\code{min(floor(N / 3), 300)} for \code{N} samples.}
+\item{order_max}{Largest AR order considered when the order is selected (integer, >= 1; it is capped at N - 3).
+\code{NULL} uses \code{min(floor(N / 3), 300)}. \code{Default=NULL}.}
 
-\item{criterion}{Order-selection criterion: \code{"fpe"} (final prediction error, Akaike 1969),
-\code{"aic"} (Akaike information criterion), \code{"mdl"} (minimum description length of
-Rissanen, the most conservative) or \code{"cat"} (criterion autoregressive transfer of Parzen).
-Ignored when \code{order} is given.}
+\item{criterion}{Order-selection criterion (character), one of \code{"fpe"} (final prediction error, Akaike
+1969), \code{"aic"} (Akaike information criterion), \code{"mdl"} (minimum description length of Rissanen, the
+most conservative) or \code{"cat"} (criterion autoregressive transfer of Parzen); ignored when \code{order} is
+given. \code{Default=c("fpe", "aic", "mdl", "cat")}, i.e. \code{"fpe"}.}
 
-\item{demean}{Remove the mean of the series before the analysis (default TRUE).}
+\item{demean}{Remove the mean of the series before the analysis (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{detrend}{Remove a linear trend before the analysis (default FALSE).}
+\item{detrend}{Remove a linear trend before the analysis instead of only the mean (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{regularise}{If TRUE (default) an unevenly sampled series is linearly interpolated to its
-median sampling interval (with a message); if FALSE an uneven series is an error.}
+\item{regularise}{Linearly interpolate an unevenly sampled series to its median sampling interval, with a message
+(logical, TRUE or FALSE); with \code{FALSE} an unevenly sampled series gives an error. \code{Default=TRUE}.}
 
-\item{nfreq}{Number of frequencies at which the spectrum is evaluated between \code{fmin} and
-\code{fmax} (default 2048).}
+\item{nfreq}{Number of frequencies, evenly spaced between \code{fmin} and \code{fmax}, at which the spectrum is
+evaluated (integer, > 1). \code{Default=2048}.}
 
-\item{fmin, fmax}{Frequency range of the spectrum. Defaults are 0 and the Nyquist frequency.}
+\item{fmin}{Lowest frequency of the spectrum, in cycles per unit of the first column of \code{data} (numeric,
+>= 0 and < \code{fmax}). \code{Default=0}.}
 
-\item{n_peaks}{Maximum number of spectral peaks returned (the strongest ones); default 10.}
+\item{fmax}{Highest frequency of the spectrum, in cycles per unit of the first column of \code{data} (numeric,
+> \code{fmin}; values above the Nyquist frequency are reduced to it). \code{NULL} uses the Nyquist frequency.
+\code{Default=NULL}.}
 
-\item{window}{Optional \code{c(from, to)} (in the units of the first column) selecting one window of
-the record. The window may extend beyond the record; the missing part is filled according to
-\code{pad}, so a spectrum that spans a window centred on the very top or bottom can be made.
-The default NULL uses the entire record.}
+\item{n_peaks}{Maximum number of spectral peaks (local maxima) returned, the strongest ones (integer, > 0).
+\code{Default=10}.}
 
-\item{pad}{How samples of the window outside the record are filled: \code{"reflect"} (mirror the
-record at its edge, the default), \code{"mean"} (the mean of the window), \code{"zero"} (the
-mean of the record, i.e. zero after demeaning) or \code{"none"} (the window is cut at the edge of
-the record). Padding only adds samples outside the record; it never changes the record.}
+\item{window}{Part of the record to analyse, \code{c(from, to)} in the unit of the first column of \code{data}
+(numeric vector of length 2, from < to). The window may extend beyond the record; the missing part is filled
+according to \code{pad}, so that a spectrum of a window centred on the very top or bottom can be made.
+\code{NULL} uses the entire record. \code{Default=NULL}.}
+
+\item{pad}{How samples of \code{window} that lie outside the record are filled (character): \code{"reflect"}
+(mirror the record at its edge), \code{"mean"} (the mean of the part of the window inside the record),
+\code{"zero"} (zero, i.e. the mean of the record after demeaning) or \code{"none"} (the window is cut at the edge
+of the record). Padding only adds samples outside the record; it never changes the record. Only used with
+\code{window}. \code{Default=c("reflect", "mean", "zero", "none")}, i.e. \code{"reflect"}.}
 }
 \value{
 A list of class \code{mesa_spectrum} with elements

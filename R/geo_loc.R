@@ -3,7 +3,10 @@
 #' @description Generates  ages for the boundaries of a
 #' geochronological subdivision which is based on the Geological Time Scale
 #'
-#' @param name Name of the geologchronological subdivision
+#' @param name Name of the geochronological subdivision (character, exact and case-sensitive), e.g. an eon, era,
+#' period, epoch or stage such as \code{"Silurian"} or \code{"Rhuddanian"}, as listed in column 1 of
+#' \code{\link{GTS_info}} (Geologic Time Scale 2020).
+#' The top and bottom ages (Ma) of that unit are returned. Required (\code{Default=NULL}).
 #'
 #'@references
 #'Ogg, Gabi & Ogg, James & Gradstein, Felix. (2021).

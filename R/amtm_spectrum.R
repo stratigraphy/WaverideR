@@ -7,7 +7,6 @@
 # https://github.com/gaprieto/multitaper) that amtm_signaldetect calls
 # (MTSpec with iadapt = 0: dpss normalisation, eigenspec, adaptspec, rspec, ftest).
 #
-# ---------------------------------------------------------------------------
 # Original licences (both MIT):
 #
 # amtm_signaldetect -- MIT License, Copyright (c) 2024 Hector A Salinas
@@ -30,7 +29,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# ---------------------------------------------------------------------------
 # The AR(1) background model, the AIC / MERIT model-selection criteria and the
 # AR(1) starting value follow the IDL package SPD_MTM (c) Simone Di Matteo 2020,
 # Apache License 2.0 (SPEDAS: general/science/spd_mtm/models/ar1/*.pro,
@@ -39,9 +37,6 @@
 # distributed with amtm_signaldetect.
 #
 # Uses from helpers_matlab_equivalents.R: acy_dpss(), acy_check_two_column().
-# ---------------------------------------------------------------------------
-
-
 
 #' @title Adaptive multitaper spectrum with background fit and periodic signal detection
 #'
@@ -99,27 +94,40 @@
 #' than relying on single detections. The frequency resolution is \eqn{2NW/T} with
 #' \eqn{T} the series length in depth units.
 #'
-#' @param data Input data set: a matrix or data frame with 2 columns, the first
-#' being depth or time (evenly spaced, increasing), the second the proxy values.
-#' @param nw Time-bandwidth product NW \code{Default=3}
-#' @param k Number of tapers \code{Default=NULL} (uses \code{round(2*nw-1)}, as Python)
-#' @param nfft Number of FFT points \code{Default=NULL} (uses the series length N, the
-#' Python default; values smaller than N are replaced by 2N+1, as in 'multitaper')
-#' @param models Background models to fit, any of \code{"WHT","PL","AR1","BPL"}
-#' \code{Default=c("WHT","PL","AR1","BPL")}
-#' @param selection Model-selection criterion, \code{"MERIT"} or \code{"AIC"}
-#' \code{Default="MERIT"}
-#' @param bkg_model Force this background model for the detection instead of the
-#' automatically selected one \code{Default=NULL}
-#' @param freq_range Frequency range \code{c(f_low, f_high)} (cycles per unit of the
-#' first column) for the background fit and the detection \code{Default=NULL}
-#' (uses [2NW/T, f_Nyq - 2NW/T])
-#' @param conf_level Confidence level used for the detection \code{Default=0.99}
-#' @param prewhiten Prewhiten the series with an AR model before the analysis
-#' (see \code{\link{amtm_prewhiten}}) \code{Default=FALSE}
-#' @param pw_order Order of the AR prewhitening filter \code{Default=2}
-#' @param genplot Plot the results with \code{\link{plot_amtm_spectrum}} \code{Default=FALSE}
-#' @param verbose Print progress and fit information \code{Default=FALSE}
+#' @param data Input record: a matrix or data frame with depth/time in column 1 (evenly spaced; rows are sorted
+#' by increasing depth/time) and the proxy value in column 2 (no \code{NA}/\code{Inf} values). Required
+#' (\code{Default=NULL} gives an error).
+#' @param nw Time-bandwidth product NW of the multitaper spectrum (numeric, > 0, typically 2 to 4). Larger values
+#' give a smoother spectrum with lower variance but a coarser frequency resolution (2NW/T). \code{Default=3}.
+#' @param k Number of DPSS tapers (integer, >= 2, at most about \code{2*nw - 1}); \code{NULL} uses
+#' \code{round(2*nw - 1)}, as in the Python code. \code{Default=NULL}.
+#' @param nfft Number of FFT points, i.e. zero padding (integer); \code{NULL} uses the series length N (the Python
+#' default); values smaller than N are replaced by 2N+1, as in 'multitaper'. \code{Default=NULL}.
+#' @param models Background models to fit (character vector, any combination of \code{"WHT"} (white noise),
+#' \code{"PL"} (power law), \code{"AR1"} (first-order autoregressive, red noise) and \code{"BPL"} (bending power
+#' law); case-insensitive). \code{Default=c("WHT", "PL", "AR1", "BPL")}.
+#' @param selection Criterion used to choose the background model among \code{models} (character, case-insensitive):
+#' \code{"MERIT"} (MERIT goodness-of-fit function of SPD_MTM) or \code{"AIC"} (Akaike information criterion);
+#' the model with the lowest value is selected. \code{Default="MERIT"}.
+#' @param bkg_model Background model to use for the detection instead of the automatically selected one
+#' (character, one of the names in \code{models}); \code{NULL} uses the model chosen by \code{selection}.
+#' \code{Default=NULL}.
+#' @param freq_range Frequency range used for the background fit and the detection: numeric vector
+#' \code{c(f_low, f_high)} with \code{f_low < f_high}, in cycles per unit of column 1 of \code{data} (e.g.
+#' cycles/m); \code{NULL} uses [2NW/T, f_Nyq - 2NW/T]. At least 12 frequencies must fall in the range.
+#' \code{Default=NULL}.
+#' @param conf_level Confidence level of the gamma-test and F-test thresholds used for the detection (numeric,
+#' strictly between 0 and 1, e.g. 0.95 or 0.99). \code{Default=0.99}.
+#' @param prewhiten Prewhiten the series with an AR(\code{pw_order}) filter (via \code{\link{amtm_prewhiten}} with
+#' its default \code{nw=4}, \code{k=7}) before the analysis (logical, TRUE or FALSE); the spectrum, fits and
+#' detection are then made on the prewhitened series and a recoloured PSD is returned in \code{prewhiten}.
+#' \code{Default=FALSE}.
+#' @param pw_order Order of the AR prewhitening filter (integer, >= 1); only used when \code{prewhiten=TRUE}.
+#' \code{Default=2}.
+#' @param genplot Plot the results with \code{\link{plot_amtm_spectrum}} (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param verbose Print progress messages, the fitted parameters of each model and the selected model (logical,
+#' TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original Python code: Hector A. Salinas
 #' (amtm_signaldetect) and German A. Prieto (multitaper); original method and IDL code
@@ -184,23 +192,21 @@
 #' @importFrom stats qf
 #' @importFrom stats pgamma
 amtm_spectrum <- function(data = NULL,
-                          nw = 3,
-                          k = NULL,
-                          nfft = NULL,
-                          models = c("WHT", "PL", "AR1", "BPL"),
-                          selection = "MERIT",
-                          bkg_model = NULL,
-                          freq_range = NULL,
-                          conf_level = 0.99,
-                          prewhiten = FALSE,
-                          pw_order = 2,
-                          genplot = FALSE,
-                          verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    nw = 3,
+    k = NULL,
+    nfft = NULL,
+    models = c("WHT", "PL", "AR1", "BPL"),
+    selection = "MERIT",
+    bkg_model = NULL,
+    freq_range = NULL,
+    conf_level = 0.99,
+    prewhiten = FALSE,
+    pw_order = 2,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -347,9 +353,7 @@ amtm_spectrum <- function(data = NULL,
     x
   }
 
-  # =============================================================================
   # internal helpers
-  # =============================================================================
 
   # @title aMTM time-series parameters
   # @description dt, N, Rayleigh frequency and Nyquist frequency exactly as
@@ -426,7 +430,7 @@ amtm_spectrum <- function(data = NULL,
     ad <- amtm_adaptspec(sk, lamb)
     sscal <- xvar / (sum(ad$spec) * df)
     list(freq = freq, spec = sscal * ad$spec, wt = ad$wt, yk = yk, vn = vn,
-         lamb = lamb, nf = nf, nfft = nfft, df = df, xvar = xvar)
+        lamb = lamb, nf = nf, nfft = nfft, df = df, xvar = xvar)
   }
 
   # @title Adaptive weighting (Prieto utils.adaptspec, iadapt = 0)
@@ -587,7 +591,7 @@ amtm_spectrum <- function(data = NULL,
       bet0 <- log10(s[1] / s[n]) / log10(f[n] / f[1])
     } else {
       bet0 <- mean(log10(s[1:5] / s[(n - 5):(n - 1)])) /
-        mean(log10(f[(n - 5):(n - 1)] / f[1:5]))
+          mean(log10(f[(n - 5):(n - 1)] / f[1:5]))
     }
     c0 <- sum(a * s * (f^bet0)) / sum(a)
     lower <- c(log(min(s)), 0)
@@ -599,7 +603,7 @@ amtm_spectrum <- function(data = NULL,
     op <- amtm_nlminb(start, obj, lower, upper)
     par <- c(c = exp(op$par[1]), beta = op$par[2])
     list(par = par, background = amtm_pl_line(f, par), convergence = op$convergence,
-         start = c(c0, bet0))
+        start = c(c0, bet0))
   }
 
   # @title Bending power-law background (get_bpl_guess + optimisation + correction)
@@ -619,7 +623,7 @@ amtm_spectrum <- function(data = NULL,
     } else {
       bet0 <- mean(log(s[1:5] / s[(dmid - 4):dmid])) / mean(log(fb0 / f[1:5]))
       gam0 <- mean(log(s[(dmid + 1):(dmid + 5)] / s[(n - 5):(n - 1)])) /
-        mean(log(f[(n - 5):(n - 1)] / fb0))
+          mean(log(f[(n - 5):(n - 1)] / fb0))
     }
     c0 <- sum(a * s * (f^bet0) * (1 + (f / fb0)^(gam0 - bet0))) / sum(a)
     lower <- c(log(min(s)), -5, 0, log(f[1]))
@@ -635,7 +639,7 @@ amtm_spectrum <- function(data = NULL,
     }
     names(par) <- c("c", "beta", "gamma", "fb")
     list(par = par, background = amtm_bpl_line(f, par), convergence = op$convergence,
-         start = c(c0, bet0, gam0, fb0))
+        start = c(c0, bet0, gam0, fb0))
   }
 
   # @title AR(1) background (SPD_MTM spd_mtm_ar1_*): c profiled, rho in [0, 1]
@@ -802,7 +806,7 @@ amtm_spectrum <- function(data = NULL,
       }
     }
     list(f_peaks = f_peaks, g_peaks = g_peaks,
-         bands = data.frame(f_start = b_start, f_end = b_end), dual_index = dual)
+        bands = data.frame(f_start = b_start, f_end = b_end), dual_index = dual)
   }
 
   # @title |H_AR(f)|^2 of the prewhitening filter (correct_spec_for_pw)
@@ -819,13 +823,11 @@ amtm_spectrum <- function(data = NULL,
     Mod(h)^2
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
   data <- acy_check_two_column(data)
   tdata <- as.numeric(data[, 1])
   xdata <- as.numeric(data[, 2])
@@ -860,7 +862,7 @@ amtm_spectrum <- function(data = NULL,
     pw <- list(ar_coef = pw_res$ar_coef)
   }
 
-  # ---- 1) aMTM spectral data products (get_amtm_specs) --------------------
+  # 1) aMTM spectral data products (get_amtm_specs)
   prm <- amtm_tseries_params(tdata)
   n <- prm$n
   if (is.null(nfft)){
@@ -877,7 +879,7 @@ amtm_spectrum <- function(data = NULL,
   alpha <- amtm_dof_alpha(mt$wt, mt$nf)
   ftest <- amtm_ftest(mt$vn, mt$yk[seq_len(mt$nf), , drop = FALSE])
 
-  # ---- 2) background fits (get_background_psdfit) --------------------------
+  # 2) background fits (get_background_psdfit)
   idx <- amtm_trim_index(freq, prm, nw, freq_range)
   f_in <- freq[idx]
   s_in <- psd[idx]
@@ -890,8 +892,8 @@ amtm_spectrum <- function(data = NULL,
   colnames(bkg) <- models
   params <- list()
   stats_df <- data.frame(model = models, n_par = NA_integer_, loglik_M = NA_real_,
-                         AIC = NA_real_, MERIT = NA_real_, convergence = NA_integer_,
-                         stringsAsFactors = FALSE)
+      AIC = NA_real_, MERIT = NA_real_, convergence = NA_integer_,
+      stringsAsFactors = FALSE)
   nfree_tab <- c(WHT = 0, PL = 1, AR1 = 1, BPL = 3)
   rho0 <- sum(x0[-n] * x0[-1]) / sum(x0[-n]^2)
   for (i in seq_along(models)){
@@ -912,7 +914,7 @@ amtm_spectrum <- function(data = NULL,
     stats_df$loglik_M[i] <- amtm_loglik(ft$background, s_in, a_in)
     stats_df$AIC[i] <- stats_df$loglik_M[i] + 2 * nfree
     stats_df$MERIT[i] <- sum(a_in * ((s_in - ft$background) / ft$background)^2) /
-      (n_in - nfree)
+        (n_in - nfree)
     stats_df$convergence[i] <- ft$convergence
     if (verbose == TRUE){
       cat(sprintf("  %-4s params: %s\n", m, paste(signif(ft$par, 8), collapse = ", ")))
@@ -933,7 +935,7 @@ amtm_spectrum <- function(data = NULL,
     cat("Selected background model (", selection, "): ", selected, "\n", sep = "")
   }
 
-  # ---- 3) confidence thresholds (get_gamtest_confs / get_ftest_confs) -------
+  # 3) confidence thresholds (get_gamtest_confs / get_ftest_confs)
   gam <- s_in / b_sel
   levels <- unique(c(0.5, 0.9, 0.95, 0.99, conf_level))
   g_thr <- amtm_gamma_thresholds(a_in, levels)
@@ -942,26 +944,26 @@ amtm_spectrum <- function(data = NULL,
   g_crit <- g_thr[match(conf_level, levels)]
   f_crit <- f_thr[match(conf_level, levels)]
 
-  # ---- 4) dual-test detection (get_gftest_confpeaks) -----------------------
+  # 4) dual-test detection (get_gftest_confpeaks)
   det <- amtm_detect(f_in, gam, ftest[idx], f_crit, g_crit, nw, prm$df)
   dind <- det$dual_index
   detected <- data.frame(frequency = f_in[dind], period = 1 / f_in[dind],
-                         ftest = ftest[idx][dind], gamma = gam[dind],
-                         psd = s_in[dind], background = b_sel[dind])
+      ftest = ftest[idx][dind], gamma = gam[dind],
+      psd = s_in[dind], background = b_sel[dind])
 
   if (!is.null(pw)){
     pw$psd_recoloured <- psd / amtm_ar_h2(pw$ar_coef, freq, prm$dt)
   }
 
   res <- list(freq = freq, psd = psd, alpha = alpha, ftest = ftest,
-              fit_index = idx, fit_freq = f_in, background = bkg, params = params,
-              model_stats = stats_df, selected_model = selected,
-              background_selected = b_sel, gamma = gam, thresholds = thresholds,
-              gamma_threshold = g_crit, f_threshold = f_crit,
-              f_peaks = det$f_peaks, gamma_peaks = det$g_peaks,
-              gamma_bands = det$bands, detected = detected, prewhiten = pw,
-              settings = list(nw = nw, k = k, nfft = mt$nfft, dt = prm$dt, n = n,
-                              conf_level = conf_level, selection = selection))
+      fit_index = idx, fit_freq = f_in, background = bkg, params = params,
+      model_stats = stats_df, selected_model = selected,
+      background_selected = b_sel, gamma = gam, thresholds = thresholds,
+      gamma_threshold = g_crit, f_threshold = f_crit,
+      f_peaks = det$f_peaks, gamma_peaks = det$g_peaks,
+      gamma_bands = det$bands, detected = detected, prewhiten = pw,
+      settings = list(nw = nw, k = k, nfft = mt$nfft, dt = prm$dt, n = n,
+          conf_level = conf_level, selection = selection))
   if (genplot == TRUE){
     plot_amtm_spectrum(res)
   }

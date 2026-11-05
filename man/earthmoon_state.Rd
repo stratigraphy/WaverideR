@@ -22,36 +22,54 @@ earthmoon_state(
 )
 }
 \arguments{
-\item{p_arcsec}{Precession constant in arcsec/yr.}
+\item{p_arcsec}{Precession constant (rate of axial precession), in arcsec/yr (numeric, > 0; about 50.47 today).
+If several precession inputs are given, \code{p_kyr} wins over \code{k_yr}/\code{cycle_kyr}, which win over
+\code{p_arcsec}. \code{Default=NULL}.}
 
-\item{p_kyr}{Precession period in kyr.}
+\item{p_kyr}{Period of the axial precession, in kyr (numeric, > 0; about 25.7 today), converted to
+\code{p_arcsec = 360 * 3600 / (p_kyr * 1000)}. \code{Default=NULL}.}
 
-\item{k_yr}{Precession constant in arcsec/yr.}
+\item{k_yr}{Period of the axial precession, in years (numeric, > 0; about 25700 today), converted to
+\code{p_arcsec = 360 * 3600 / k_yr}. \code{Default=NULL}.}
 
-\item{a_RE}{Earth-Moon distance in Earth radii.}
+\item{a_RE}{Earth-Moon distance, in Earth radii (numeric, > 0; about 60.14 today). \code{Default=NULL}.}
 
-\item{a_km}{Earth-Moon distance in km.}
+\item{a_km}{Earth-Moon distance, in km (numeric, > 0; about 384400 today); converted to \code{a_RE} and takes
+precedence over it. \code{Default=NULL}.}
 
-\item{lod_h}{Length of day in hours.}
+\item{lod_h}{Length of the solar day, in hours (numeric, > 0); if no distance is given, the Earth-Moon distance is
+derived from it with \code{\link{moon_distance_from_lod}}. \code{Default=NULL}.}
 
-\item{months_per_year}{Number of lunar months per year.}
+\item{months_per_year}{Number of lunar months per year (numeric, > 0), e.g. from fossil growth bands; converted
+to an Earth-Moon distance with \code{\link{moon_distance_from_months}} (takes precedence over \code{a_RE} and
+\code{a_km}). \code{Default=NULL}.}
 
-\item{months_kind}{Type of month, `"sidereal"` or `"synodic"`.}
+\item{months_kind}{Type of month counted in \code{months_per_year} (character): \code{"sidereal"} or
+\code{"synodic"}. \code{Default="sidereal"}.}
 
-\item{cycle_kyr}{Period of a cycle in kyr.}
+\item{cycle_kyr}{Period of an observed astronomical cycle in the record, in kyr (numeric, > 0), converted to the
+precession constant with \code{\link{cycles_to_k}} using \code{term}; overrides \code{k_yr} and \code{p_arcsec}
+(but not \code{p_kyr}). \code{Default=NULL}.}
 
-\item{term}{Frequency term, e.g. `"k+s3"`.}
+\item{term}{Which astronomical term \code{cycle_kyr} is (character), passed to \code{\link{cycles_to_k}}:
+\code{"k+s3"} (obliquity) or a precession term \code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"} (or
+another term containing k listed by \code{\link{astro_terms}}). Only used with \code{cycle_kyr}.
+\code{Default="k+s3"}.}
 
-\item{method}{how the Earth's spin and the lunar distance are linked when
-inverting a precession constant: "angular_momentum" (Earth-Moon angular
-momentum conserved) or "astrogeo22" (read off the Farhat et al. 2022 curve)}
+\item{method}{How the Earth's spin and the lunar distance are linked when a precession observable has to be
+inverted, passed to \code{\link{earthmoon_from_precession}} (character): \code{"angular_momentum"} (Earth-Moon
+angular momentum conserved) or \code{"astrogeo22"} (read off the Farhat et al. 2022 AstroGeo22 curve; then the
+obliquity and model age of the first matching age are returned). Not used when a distance, day length or
+number of months is given. \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{obliquity_deg}{obliquity to use; defaults to the AstroGeo22 value at
-`age_ma`, else the present value}
+\item{obliquity_deg}{Obliquity of the Earth, in degrees (numeric). \code{NULL} uses the AstroGeo22 value at
+\code{age_ma} if \code{age_ma} is given, otherwise the present-day value 23.2545. \code{Default=NULL}.}
 
-\item{age_ma}{Age(s) in Ma.}
+\item{age_ma}{Age in Ma (numeric), only used to take the AstroGeo22 obliquity when \code{obliquity_deg=NULL}.
+\code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Directory that contains the AstroGeo22 data files (character, or \code{NULL}); \code{NULL} uses
+the data installed with the package. \code{Default=NULL}.}
 }
 \value{
 one-row-per-input data.frame with the precession constant, the

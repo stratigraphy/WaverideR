@@ -7,29 +7,49 @@
 #'     p = n * (g_i - g_j) - f_term.
 #' No tuning, no sedimentation rate and no time scale are needed.
 #'
-#' @param n counted precession cycles per bundle (may be fractional)
-#' @param bundle_term the eccentricity term forming the bundle ("e405" by
-#'   default; also "e125"/"e130", "e124", "e99", "e95", or any gi-gj)
-#' @param prec_term which precession (or obliquity) term is being bundled
-#' @param age_ma approximate age, for the secular frequencies and the obliquity
-#' @param n_sd 1-sigma counting uncertainty on n (default 0.5 cycles);
-#'   `nsim = 0` returns the plain point estimate
-#' @param nsim number of Monte Carlo draws
-#' @param method "angular_momentum" or "astrogeo22"
-#' @param sampleorb,g4g3_range_kyr,s4s3_range_kyr passed to the
-#'   secular-frequency sampler
-#' @param seed optional RNG seed
-#' @param data_dir folder with the data tables
+#' @param n Number of precession (or obliquity) cycles counted per eccentricity bundle, or the measured ratio of the
+#' two periods (numeric, > 1, may be fractional). Required (no default).
+#' @param bundle_term Eccentricity term that forms the bundle (character): a named term such as \code{"e405"}
+#' (g2-g5), \code{"e125"} or \code{"e130"} (g3-g2), \code{"e124"} (g4-g2), \code{"e99"} (g3-g5), \code{"e95"}
+#' (g4-g5), any other name listed by \code{\link{astro_terms}}, or an expression of secular frequencies such as
+#' \code{"g2-g5"}. \code{Default="e405"}.
+#' @param prec_term Precession or obliquity term that is bundled (character; it must contain k), e.g.
+#' \code{"k+g5"} (main precession), \code{"k+g2"}, \code{"k+g4"}, \code{"k+s3"} (obliquity), or the aliases
+#' \code{"prec"}/\code{"precession"} and \code{"obl"}/\code{"obliquity"}. \code{Default="k+g5"}.
+#' @param age_ma Age of the record in Ma (numeric): one value, or \code{c(min, max)} to draw the age uniformly
+#' from that range in the Monte Carlo simulation. It sets the uncertainty of the secular frequencies (growing with
+#' the square root of age) and the obliquity used by \code{\link{ctest_earthmoon}}. Required (no default).
+#' @param n_sd One-sigma counting uncertainty of \code{n}, in cycles (numeric, >= 0); \code{n} is drawn from a
+#' normal distribution with this standard deviation. \code{Default=0.5}.
+#' @param nsim Number of Monte Carlo draws (integer, >= 0); \code{0} returns the plain point estimate without
+#' uncertainty. \code{Default=20000}.
+#' @param method How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+#' (character, passed to \code{\link{ctest_earthmoon}}): \code{"angular_momentum"} (conservation of Earth-Moon
+#' angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat et al., 2022).
+#' \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.
+#' @param sampleorb Shape of the distribution from which the uncertain secular frequencies g2, g3, g4, g5 and s3
+#' are drawn (character): \code{"U"} uniform or \code{"N"} normal. \code{Default="U"}.
+#' @param g4g3_range_kyr Range \code{c(min, max)} of the period of the g4-g3 term in kyr (numeric vector of
+#' length 2), drawn uniformly to allow for a chaotic resonance transition (g3 and g4 are moved symmetrically);
+#' \code{NULL} keeps g4-g3 at its La2004 value. \code{Default=NULL}.
+#' @param s4s3_range_kyr Range \code{c(min, max)} of the period of the s4-s3 term in kyr (numeric vector of
+#' length 2), drawn uniformly as for \code{g4g3_range_kyr}; \code{NULL} keeps s4-s3 at its La2004 value.
+#' \code{Default=NULL}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param data_dir Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#' path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+#' \code{Default=NULL}.
 #' @return list with the Earth-Moon `summary`, `k_kyr`, `k_sd_kyr`,
 #'   `k_ci95_kyr`, `n`, `terms`, `samples`, `predicted_n_model`, `reference`
 #'   and `method`
 #' @export
 k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
-                            n_sd = 0.5, nsim = 20000,
-                            method = c("angular_momentum", "astrogeo22"),
-                            sampleorb = "U", g4g3_range_kyr = NULL,
-                            s4s3_range_kyr = NULL, seed = NULL, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    n_sd = 0.5, nsim = 20000,
+    method = c("angular_momentum", "astrogeo22"),
+    sampleorb = "U", g4g3_range_kyr = NULL,
+    s4s3_range_kyr = NULL, seed = NULL, data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -78,8 +98,8 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -122,7 +142,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -172,8 +192,8 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -225,9 +245,9 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
       freq <- k_mult * p + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult, offset = offset,
-         parts = first_parts, canonical = .canonical_term(term),
-         simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
+        has_k = k_mult != 0, k_mult = k_mult, offset = offset,
+        parts = first_parts, canonical = .canonical_term(term),
+        simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
   }
 
   # Build n-by-9 sampled secular-frequency matrices (arcsec/yr).
@@ -238,8 +258,8 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
   #   resonance transition (g3 and g4 move symmetrically about their mean)
   # @param s4s3_range_kyr the same for the s4-s3 term
   .sample_secular <- function(n, age_yr, sampleorb = "U", s3_uncertainty = "published",
-                              point = FALSE, data_dir = NULL,
-                              g4g3_range_kyr = NULL, s4s3_range_kyr = NULL){
+      point = FALSE, data_dir = NULL,
+      g4g3_range_kyr = NULL, s4s3_range_kyr = NULL){
     gs <- .la04_gisi(data_dir)
     G <- matrix(gs$g, n, 9, byrow = TRUE)
     S <- matrix(gs$s, n, 9, byrow = TRUE)
@@ -248,7 +268,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
     }
     sc <- sqrt(age_yr / 1e8)
     rel <- c(g2 = 0.019 / 7.453, g3 = 0.2 / 17.368, g4 = 0.2 / 17.916,
-             g5 = 0.000030 / 4.257482, s3 = 0.066 / 18.848)
+        g5 = 0.000030 / 4.257482, s3 = 0.066 / 18.848)
     draw <- function(mu, r){
       if (sampleorb == "N"){
         stats::rnorm(n, mu, abs(mu) * r * sc)
@@ -283,7 +303,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
     list(G = G, S = S)
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -298,7 +318,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -307,26 +327,26 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   if (!is.null(seed)){
     set.seed(seed)
@@ -343,7 +363,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
     t <- stats::runif(nn, age_ma[1] * 1e6, age_ma[2] * 1e6)
   }
   sec <- .sample_secular(nn, t, sampleorb, point = point, data_dir = data_dir,
-                         g4g3_range_kyr = g4g3_range_kyr, s4s3_range_kyr = s4s3_range_kyr)
+      g4g3_range_kyr = g4g3_range_kyr, s4s3_range_kyr = s4s3_range_kyr)
   tb <- .term_frequency_vec(bundle_term, sec$G, sec$S)
   tp <- .term_frequency_vec(prec_term, sec$G, sec$S, p = 0)
   if (!tp$has_k){
@@ -359,7 +379,7 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
   p[!is.finite(p) | p <= 0] <- NA
   k <- 360 * 3600 / p
   em <- ctest_earthmoon(k[is.finite(k)], age_ma = mean(age_ma), method = method,
-                        data_dir = data_dir)
+      data_dir = data_dir)
   if (point){
     k_sd_kyr <- NA_real_
     k_ci95_kyr <- c(NA_real_, NA_real_)
@@ -371,10 +391,10 @@ k_from_bundling <- function(n, bundle_term = "e405", prec_term = "k+g5", age_ma,
   row_b <- grep(.term_frequency(bundle_term, 0)$canonical, rownames(br), fixed = TRUE)[1]
   col_p <- grep(.term_frequency(prec_term, 0)$canonical, colnames(br), fixed = TRUE)[1]
   list(summary = em$summary,
-       k_kyr = mean(k / 1000, na.rm = TRUE),
-       k_sd_kyr = k_sd_kyr,
-       k_ci95_kyr = k_ci95_kyr,
-       n = n, terms = c(bundle_term, prec_term), samples = k,
-       predicted_n_model = br[row_b, col_p],
-       reference = astrogeo22(mean(age_ma), data_dir = data_dir), method = method)
+      k_kyr = mean(k / 1000, na.rm = TRUE),
+      k_sd_kyr = k_sd_kyr,
+      k_ci95_kyr = k_ci95_kyr,
+      n = n, terms = c(bundle_term, prec_term), samples = k,
+      predicted_n_model = br[row_b, col_p],
+      reference = astrogeo22(mean(age_ma), data_dir = data_dir), method = method)
 }

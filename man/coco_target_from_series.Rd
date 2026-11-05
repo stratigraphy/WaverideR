@@ -19,22 +19,36 @@ coco_target_from_series(
 )
 }
 \arguments{
-\item{time_kyr}{evenly spaced time (kyr)}
+\item{time_kyr}{Time axis of the astronomical series, in kyr (numeric vector, evenly spaced; the series is
+sorted by it and its first step is used as the sampling interval). Required, no default.}
 
-\item{value}{astronomical series \code{Default=NULL}; OR give ecc, obl, prec
-to build ETP as in gentarget.m}
+\item{value}{Astronomical series to use as target (numeric vector, same length as \code{time_kyr}), e.g. an ETP
+series; \code{NULL} builds an ETP series from \code{ecc}, \code{obl} and \code{prec}. \code{Default=NULL}.}
 
-\item{ecc}{Eccentricity series used instead of `value`.}
+\item{ecc}{Eccentricity series (numeric vector, same length and order as \code{time_kyr}), used with \code{obl}
+and \code{prec} instead of \code{value}: the ETP series is \code{ne * z(ecc) + nt * z(obl) - np * z(prec)},
+with \code{z} the standardisation to zero mean and unit standard deviation (as in Acycle gentarget.m).
+\code{Default=NULL}.}
 
-\item{obl}{Obliquity series used instead of `value`.}
+\item{obl}{Obliquity series (numeric vector, same length and order as \code{time_kyr}), used to build the ETP
+series when \code{value} is \code{NULL}. \code{Default=NULL}.}
 
-\item{prec}{Precession series used instead of `value`.}
+\item{prec}{Precession (index) series (numeric vector, same length and order as \code{time_kyr}), used with a
+negative sign to build the ETP series when \code{value} is \code{NULL}. \code{Default=NULL}.}
 
-\item{ne, nt, np}{ETP weights of eccentricity, obliquity and precession}
+\item{ne}{Weight of the standardised eccentricity in the ETP series (numeric). \code{Default=1}.}
 
-\item{f1, f2}{frequency interval kept (cycles/kyr)}
+\item{nt}{Weight of the standardised obliquity in the ETP series (numeric). \code{Default=0.6}.}
 
-\item{pad}{zero padding \code{Default=10000}}
+\item{np}{Weight of the standardised precession in the ETP series (numeric). \code{Default=0.5}.}
+
+\item{f1}{Lowest frequency of the target that is returned, in cycles/kyr (numeric, >= 0). \code{Default=0}.}
+
+\item{f2}{Highest frequency of the target that is returned, in cycles/kyr (numeric, > \code{f1}).
+\code{Default=0.06}.}
+
+\item{pad}{Length (number of points) to which the series is zero-padded for the periodogram (integer; at least
+the series length is used); a larger value gives a finer frequency grid. \code{Default=10000}.}
 }
 \value{
 two-column matrix: frequency (cycles/kyr), power

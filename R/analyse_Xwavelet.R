@@ -5,23 +5,29 @@
 #' the "analyze.coherency"  function of the WaveletComp
 #' package.
 #'
-#' @param data_1 First input data set as a matrix or data frame. The first column must
-#' represent depth or time, and the second column the signal or proxy record.
+#' @param data_1 First record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+#' (no \code{NA} values). Both records are sorted and linearly interpolated to a common, regular grid over their
+#' overlapping interval, with the coarser of the two median sampling intervals. Required, no default.
 #'
-#' @param data_2 Second  input data as a matrix or data frame. The first column must
-#' represent depth or time, and the second column the signal or proxy record.
+#' @param data_2 Second record, in the same format and depth/time unit as \code{data_1} (matrix or data frame:
+#' depth/time in column 1, proxy value in column 2). The cross phase is the phase of \code{data_1} minus that of
+#' \code{data_2}. Required, no default.
 #'
-#' @param upperPeriod Maximum period to be analysed. Controls the lowest
-#' analysed frequency.
+#' @param upperPeriod Longest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > \code{lowerPeriod}). \code{Default=1024}.
 #'
-#' @param lowerPeriod Minimum period to be analysed. Controls the highest
-#' analysed frequency.
+#' @param lowerPeriod Shortest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > 0; at least twice the common sampling interval). \code{Default=2}.
 #'
-#' @param verbose Logical. If TRUE, print progress and interpolation
-#' information.
-#' @param omega_nr . omega number: central angular frequency of the Morlet wavelet
-#' @param wavelet Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
-#' \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
+#' @param verbose Print the sampling interval to which the records were interpolated, passed to
+#' \code{\link{analyse_wavelet}} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param omega_nr Number of cycles (central angular frequency omega_0) of the Morlet wavelet, passed to
+#' \code{\link{analyse_wavelet}} (numeric, > 0). Larger values give a better period resolution and a worse
+#' depth/time resolution. \code{Default=4}.
+#' @param wavelet Mother wavelet (character string or function), given as a name (PyWavelets style names with the
+#' order appended,
+#' such as \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a
+#' function
 #' \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 #' Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
 #' (default; aliases \code{"gabor"}, \code{"amor"}), \code{"morlet0"} (exactly zero mean Morlet, admissible for a
@@ -32,29 +38,32 @@
 #' (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 #' time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 #' Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+#' (real
 #' Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 #' (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 #' frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 #' spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
 #' well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.
-#' @param wavelet_order Parameter(s) of the wavelet: \code{paul}: order m (default 4); \code{dog}: derivative m
+#' \code{Default="morlet"}.
+#' @param wavelet_order Parameter(s) of the wavelet (numeric scalar or vector; \code{NULL} uses the defaults listed
+#' here): \code{paul}: order m (default 4); \code{dog}: derivative m
 #' (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
 #' \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 #' (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 #' frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 #' \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0
+#' (default 5);
 #' \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 #' \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 #' \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
-#' (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.
+#' (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3).
+#' Passed to \code{\link{analyse_wavelet}}; for the Morlet wavelet use \code{omega_nr}. \code{Default=NULL}.
 #'
-#' @param dj Spacing between successive scales. The CWT analyses analyses the signal using successive periods
-#' which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
-#' in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
-#' the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
-#' Increasing the increases the computational time of the CWT
+#' @param dj Spacing between successive scales in octaves (numeric, > 0), passed to \code{\link{analyse_wavelet}}:
+#' the periods increase by powers of 2 and \code{dj=1/x} gives x periods per doubling of the period. Smaller values
+#' give a finer period axis but increase the computation time. \code{Default=1/100}.
 #'
 #' @return
 #'A list with class \code{"analyze.Xwavelet"} containing
@@ -157,7 +166,7 @@ analyse_Xwavelet <- function(
     wavelet_order = NULL
 ) {
 
-  # --- PREPROCESSING ---
+  # PREPROCESSING
   data_1 <- data_1[order(data_1[,1]), ]
   data_2 <- data_2[order(data_2[,1]), ]
 
@@ -168,50 +177,50 @@ analyse_Xwavelet <- function(
   grid <- seq(xmin, xmax, by = dx)
 
   d1 <- data.frame(
-    x = grid,
-    y = approx(data_1[,1], data_1[,2], grid, rule = 1)$y
+      x = grid,
+      y = approx(data_1[,1], data_1[,2], grid, rule = 1)$y
   )
   d2 <- data.frame(
-    x = grid,
-    y = approx(data_2[,1], data_2[,2], grid, rule = 1)$y
+      x = grid,
+      y = approx(data_2[,1], data_2[,2], grid, rule = 1)$y
   )
 
-  # --- WAVELETS ---
+  # WAVELETS
   wt1 <- analyse_wavelet(
-    d1,
-    dj=dj,
-    lowerPeriod = lowerPeriod,
-    upperPeriod = upperPeriod,
-    omega_nr = omega_nr,
-    wavelet = wavelet,
-    wavelet_order = wavelet_order,
-    verbose = verbose,
-    pval = FALSE,
-    n_simulations = 10,
-    run_multicore = FALSE
+      d1,
+      dj=dj,
+      lowerPeriod = lowerPeriod,
+      upperPeriod = upperPeriod,
+      omega_nr = omega_nr,
+      wavelet = wavelet,
+      wavelet_order = wavelet_order,
+      verbose = verbose,
+      pval = FALSE,
+      n_simulations = 10,
+      run_multicore = FALSE
   )
 
   wt2 <- analyse_wavelet(
-    d2,
-    dj=dj,
-    lowerPeriod = lowerPeriod,
-    upperPeriod = upperPeriod,
-    omega_nr = omega_nr,
-    wavelet = wavelet,
-    wavelet_order = wavelet_order,
-    verbose = verbose,
-    pval = FALSE,
-    n_simulations = 10,
-    run_multicore = FALSE
+      d2,
+      dj=dj,
+      lowerPeriod = lowerPeriod,
+      upperPeriod = upperPeriod,
+      omega_nr = omega_nr,
+      wavelet = wavelet,
+      wavelet_order = wavelet_order,
+      verbose = verbose,
+      pval = FALSE,
+      n_simulations = 10,
+      run_multicore = FALSE
   )
 
   nr <- wt1$nr
   nc <- wt1$nc
   Scale <- wt1$Scale
 
-  # --- CROSS-WAVELET ---
+  # CROSS-WAVELET
   Wave.xy <- (wt1$Wave * Conj(wt2$Wave)) /
-    matrix(rep(Scale, nc), nrow = nr)
+      matrix(rep(Scale, nc), nrow = nr)
 
   Power.xy <- Mod(Wave.xy)
   Phase.xy <- Arg(Wave.xy)
@@ -221,25 +230,25 @@ analyse_Xwavelet <- function(
 
 
   out <- list(
-    Wave   = t(Wave.xy),
-    Power  = t(Power.xy),
-    Phase  = t(Phase.xy),
-    Power.avg = Power.avg,
-    dt = dx,
-    dj = dj,
-    Scale = Scale,
-    Period = wt1$Period,
-    nc = nc,
-    nr = nr,
-    axis.1 = wt1$axis.1,
-    axis.2 = wt1$axis.2,
-    omega_nr = omega_nr,
-    wavelet = wt1$wavelet,
-    wavelet_order = wt1$wavelet_order,
-    x1 = wt1$x,
-    y1 = wt1$y,
-    x2 = wt2$x,
-    y2 = wt2$y
+      Wave   = t(Wave.xy),
+      Power  = t(Power.xy),
+      Phase  = t(Phase.xy),
+      Power.avg = Power.avg,
+      dt = dx,
+      dj = dj,
+      Scale = Scale,
+      Period = wt1$Period,
+      nc = nc,
+      nr = nr,
+      axis.1 = wt1$axis.1,
+      axis.2 = wt1$axis.2,
+      omega_nr = omega_nr,
+      wavelet = wt1$wavelet,
+      wavelet_order = wt1$wavelet_order,
+      x1 = wt1$x,
+      y1 = wt1$y,
+      x2 = wt2$x,
+      y2 = wt2$y
   )
 
   class(out) <- "analyze.Xwavelet"

@@ -45,36 +45,60 @@ analyze_superlet_sst(
 )
 }
 \arguments{
-\item{data}{Input is a time series with the first column being depth or time and the second column being a proxy.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+(further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+error).}
 
-\item{lowerPeriod, upperPeriod}{Shortest and longest period.}
+\item{lowerPeriod, upperPeriod}{Shortest and longest period of the transform, in the same unit as the depth/time
+column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+the sampling interval). Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}: \code{Default=1024}.}
 
-\item{dj}{Spacing of the period axis in octaves \code{Default=1/100}.}
+\item{dj}{Spacing of the period axis in octaves (numeric, > 0; \code{1/x} gives x periods per doubling of the
+period). \code{Default=1/100}.}
 
-\item{c1, o, mult}{Superlet style definition of the orders, used when \code{omega_nr = NULL}: \code{o} orders with
-\code{i * c1} cycles (\code{mult = TRUE}) or \code{c1 + i - 1} cycles (\code{mult = FALSE}); cycles are converted to
-omega_0 = 2 pi cycles / 5, as in \code{\link{analyse_superlet}}.}
+\item{c1}{Base number of cycles of the superlet-style orders (numeric, > 0); only used when
+\code{omega_nr=NULL}. Cycles are converted to omega_0 = 2 pi cycles / 5, as in \code{\link{analyse_superlet}}.
+\code{Default=4}.}
 
-\item{omega_nr}{omega_0 (Morlet equivalent central angular frequencies) of the orders \code{Default=c(8, 12, 16)}.
-Set to \code{NULL} to use \code{c1}, \code{o} and \code{mult}.}
+\item{o}{Number of orders of the superlet-style definition (integer, >= 1); only used when
+\code{omega_nr=NULL}. Order i has \code{i * c1} cycles (\code{mult=TRUE}) or \code{c1 + i - 1} cycles
+(\code{mult=FALSE}). \code{Default=5}.}
 
-\item{wavelet, wavelet_order}{Mother wavelet, see \code{\link{analyse_wavelet}} \code{Default="morlet0"} (the exactly
-zero-mean Morlet wavelet, which stays admissible for few cycles). The orders of other wavelets get the same relative
-bandwidth as the Morlet wavelet with the same number of cycles.}
+\item{mult}{Multiplicative (\code{TRUE}) or additive (\code{FALSE}) growth of the number of cycles with the
+order (logical); only used when \code{omega_nr=NULL}. \code{Default=TRUE}.}
 
-\item{sst_order}{Order of the synchrosqueezing (1 or 2) \code{Default=2}.}
+\item{omega_nr}{Central angular frequencies omega_0 (Morlet-equivalent number of cycles) of the orders that are
+combined (numeric vector, values > 0, e.g. \code{c(8, 12, 16)}); each value gives one synchrosqueezed transform.
+Set to \code{NULL} to define the orders with \code{c1}, \code{o} and \code{mult} instead.
+\code{Default=c(8, 12, 16)}.}
 
-\item{n_iter}{Iterations of the frequency reassignment (multisynchrosqueezing) of every order, see
-\code{\link{analyse_wavelet_sst}} \code{Default=4}.}
+\item{wavelet, wavelet_order}{Mother wavelet (character string or function) and its parameter(s) (numeric or
+\code{NULL}), see \code{\link{analyse_wavelet}}; the wavelet must be analytic (real wavelets give an error).
+The default \code{"morlet0"} is the exactly zero-mean Morlet wavelet, which stays admissible for few cycles. The
+orders of other wavelets get the same relative bandwidth as the Morlet wavelet with the same number of cycles.
+\code{wavelet}: \code{Default="morlet0"}; \code{wavelet_order}: \code{Default=NULL}.}
 
-\item{threshold}{Noise threshold of the synchrosqueezing, see \code{\link{analyse_wavelet_sst}}.}
+\item{sst_order}{Order of the synchrosqueezing of every order (numeric, \code{1} or \code{2}), see
+\code{\link{analyse_wavelet_sst}}; \code{2} follows fast changes of the period better. \code{Default=2}.}
 
-\item{smooth}{Standard deviation (in octaves) of the Gaussian smoothing along the period axis before the orders are
-combined. It absorbs the small differences in the period estimated by the different orders \code{Default=0.01}.}
+\item{n_iter}{Number of iterations of the frequency reassignment (multisynchrosqueezing) of every order (integer,
+>= 1), see \code{\link{analyse_wavelet_sst}}. \code{Default=4}.}
 
-\item{combine}{\code{"geometric"} (default, as superlets), \code{"min"} (strictest consensus) or \code{"mean"}.}
+\item{threshold}{Noise threshold of the synchrosqueezing: \code{"riskshrink"}, \code{"none"} or a number (numeric,
+in standard deviations of the standardised record), see \code{\link{analyse_wavelet_sst}}.
+\code{Default="riskshrink"}.}
 
-\item{verbose}{Print messages.}
+\item{smooth}{Standard deviation, in octaves, of the Gaussian smoothing along the period axis applied to every
+order before the orders are combined (numeric, >= 0; 0 switches it off). It absorbs the small differences in the
+period estimated by the different orders. \code{Default=0.01}.}
+
+\item{combine}{How the squeezed amplitudes of the orders are combined (character), one of \code{"geometric"}
+(geometric mean, as in superlets), \code{"min"} (minimum: strictest consensus) or \code{"mean"} (arithmetic
+mean: least suppression of noise). \code{Default="geometric"} (the first element of
+\code{c("geometric", "min", "mean")}).}
+
+\item{verbose}{Print a message when each order is done (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list of class \code{analyze.wavelet} (see \code{\link{analyse_wavelet_sst}}) that can be plotted with

@@ -12,14 +12,16 @@ plot_bayes_changepoint(
 )
 }
 \arguments{
-\item{bcp}{Output of \code{\link{bayes_changepoint}}.}
+\item{bcp}{Change point result to plot: the list returned by \code{\link{bayes_changepoint}} (its \code{data},
+\code{model}, \code{model_ci}, \code{cpt} and \code{k_posterior} elements are used). Required (\code{Default=NULL}
+gives an error).}
 
-\item{x_lab}{Label of the x-axis \code{Default="depth"}}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth"}.}
 
-\item{y_lab}{Label of the proxy axis \code{Default="proxy"}}
+\item{y_lab}{Label of the proxy axis (character). \code{Default="proxy"}.}
 
-\item{plot_k}{Add a panel with the posterior distribution of the number
-of change points \code{Default=TRUE}}
+\item{plot_k}{Add a panel to the right with a bar plot of the posterior distribution of the number of change
+points (logical, TRUE or FALSE). \code{Default=TRUE}.}
 }
 \value{
 No return value, called for its side effect (a base graphics plot).

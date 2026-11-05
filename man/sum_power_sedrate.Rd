@@ -20,75 +20,78 @@ sum_power_sedrate(
   genplot = FALSE,
   plot_res = 1,
   keep_editable = FALSE,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   verbose = FALSE,
   colour_brewer = NULL
 )
 }
 \arguments{
-\item{red_noise}{Red noise curves generated using the \code{\link{model_red_noise_wt}} function}
+\item{red_noise}{Red-noise power curves (required): the output of \code{\link{model_red_noise_wt}} for the same
+\code{wavelet}, a matrix with one row per period of \code{wavelet} and one column per red-noise simulation.
+\code{Default=NULL}.}
 
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function}
+\item{wavelet}{Wavelet object (required) created with \code{\link{analyse_wavelet}}, of a record with depth in
+metres. \code{Default=NULL}.}
 
-\item{percentile}{Percentile value (0-1) of the rednoise runs which is used to normalize the data for.
-To account for the distribution/distortion of the spectral power distribution based on the analytical technique and
-random red-noise the data is normalised against a percentile based red-noise curve which is the results of the
-'\code{\link{model_red_noise_wt}} modelling runs.}
+\item{percentile}{Percentile of the red-noise power (numeric, between 0 and 1) by which the wavelet power is
+weighted: at every period the threshold is the \code{percentile} quantile of a normal distribution with the mean and
+standard deviation of the \code{red_noise} runs. This accounts for the distortion of the power spectrum by the
+analytical technique and by random red noise. Required. \code{Default=NULL}.}
 
-\item{sedrate_low}{Minimum sedimentation rate (cm/kyr)for which the sum of maximum spectral power is calculated for.}
+\item{sedrate_low}{Lowest sedimentation rate tested, in cm/kyr (numeric, > 0). Required. \code{Default=NULL}.}
 
-\item{sedrate_high}{Maximum sedimentation rate (cm/kyr) for which the sum of maximum spectral power is calculated  for.}
+\item{sedrate_high}{Highest sedimentation rate tested, in cm/kyr (numeric, > \code{sedrate_low}). Required.
+\code{Default=NULL}.}
 
-\item{spacing}{Spacing (cm/kyr) between sedimentation rates}
+\item{spacing}{Step between the tested sedimentation rates, in cm/kyr (numeric, > 0). Required. \code{Default=NULL}.}
 
-\item{cycles}{Astronomical cycles (in kyr) for which the combined sum of maximum spectral power is calculated for}
+\item{cycles}{Periods of the astronomical cycles, in kyr (numeric vector, e.g. \code{c(405, 125, 95, 40, 21)}), whose
+expected periods in depth (sedimentation rate x period) are searched for in the scalogram. Required.
+\code{Default=c(NULL)}.}
 
-\item{x_lab}{label for the y-axis \code{Default="depth"}}
+\item{x_lab}{Label of the depth axis of the plot (character). \code{Default="depth"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="sedrate"}}
+\item{y_lab}{Label of the sedimentation rate axis of the plot (character). \code{Default="sedrate"}.}
 
-\item{run_multicore}{run simulation using multiple cores \code{Default=FALSE}
-the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes}
+\item{run_multicore}{Run the calculation for the positions along the record in parallel on several cores (logical).
+\code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer, or \code{NULL}). \code{NULL} uses an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory; set
+\code{options(waverider.n_cores = ...)} to change it. A value > 1 also switches on parallel computing. Results do
+not depend on the number of cores. \code{Default=NULL}.}
 
-\item{genplot}{Generate plot \code{Default="FALSE"}}
+\item{genplot}{Plot the result (selected with \code{plot_res}) as a depth versus sedimentation rate map with its
+average curve (logical). \code{Default=FALSE}.}
 
-\item{plot_res}{plot options are 1: sum max power or 2: nr of components \code{Default=2}}
+\item{plot_res}{Which result to plot when \code{genplot = TRUE} (integer): \code{1} the normalised sum of maximum
+spectral power, \code{2} the number of astronomical components found. \code{Default=1}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters of the plot after the function returns, so that extra elements
+can be added (logical); only used with \code{genplot = TRUE}. \code{Default=FALSE}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Show the progress of the calculation (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 Returns a list which contains 4 elements

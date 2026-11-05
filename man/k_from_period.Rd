@@ -7,11 +7,16 @@
 k_from_period(period_kyr, term = "k+s3", gs = LA2004)
 }
 \arguments{
-\item{period_kyr}{measured period, kyr}
+\item{period_kyr}{Measured period of the cycle in kyr (numeric, > 0; a vector gives one value per period).
+Required (no default).}
 
-\item{term}{one of k+s3, k+g5, k+g2, k+g4, k+g3}
+\item{term}{Astronomical term the cycle is read as (character), one of \code{"k+s3"} (obliquity),
+\code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"} or \code{"k+g3"} (precession); its secular frequency is subtracted
+from the observed frequency to give the precession constant. \code{Default="k+s3"}.}
 
-\item{gs}{Vector of fundamental g frequencies (`NULL` = LA2004 values).}
+\item{gs}{Secular frequencies in arcsec/yr: a list with elements \code{g} and \code{s}, each a numeric vector of
+the nine fundamental frequencies g1-g9 and s1-s9. The default \code{LA2004} is the La2004 table (Laskar et al.,
+2004) defined inside the function. \code{Default=LA2004}.}
 }
 \description{
 Precession constant implied by one measured cycle period

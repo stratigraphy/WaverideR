@@ -2,66 +2,63 @@
 #'
 #' @description Plot superlet scalogram using the outcome of the \code{\link{analyse_superlet}} function.
 #'
-#'@param superlet superlet object created using the \code{\link{analyse_superlet}} function.
-#'@param lowerPeriod Lowest period value which will be plotted
-#'@param upperPeriod Highest period value which will be plotted
-#'@param n.levels  Number of color levels \code{Default=100}.
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
-#' “bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
-#' ”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
-#' “hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
-#' ”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
-#' ”vik”,”vikO”
-#'The R package 'Viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
-#'@param useRaster Plot as a raster or vector image \code{Default=TRUE}.
-#'WARNING plotting as a vector image is computationally intensive.
-#'@param periodlab Label for the y-axis \code{Default="Period (metres)"}.
-#'@param x_lab Label for the x-axis \code{Default="depth (metres)"}.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'@param dev_new Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
-#'than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
-#'opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
-#'on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
-#'\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.
-#'@param plot_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-#'(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-#'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-#'then plot_dir should be set to FALSE \code{plot_dir=TRUE}
-#'@param add_lines Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-#'should be period values  \code{Default=NULL}
-#'@param add_points Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-#'should be period values \code{Default=NULL}
-#'@param add_abline_h Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
-#'@param add_abline_v Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
-#'@param add_data Plot the data on top of the wavelet \code{Default=TRUE}
-#'@param add_avg Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}
-#' @param add_signif Optional significance object created with \code{\link{wavelet_significance}}. The significant
-#' cells are outlined on the scalogram and the critical level of the global spectrum is drawn as a red dashed line on
-#' the average power panel \code{Default=NULL}.
-#'@param plot_horizontal plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}
+#' @param superlet Superlet result to plot: the list returned by \code{\link{analyse_superlet}}. Required
+#' (\code{Default=NULL} gives an error).
+#' @param lowerPeriod Shortest period shown on the period axis, in the depth/time unit of the input record (numeric,
+#' > 0). \code{NULL} uses the shortest period of \code{superlet}. \code{Default=NULL}.
+#' @param upperPeriod Longest period shown on the period axis, in the depth/time unit of the input record (numeric,
+#' > \code{lowerPeriod}). \code{NULL} uses the longest period of \code{superlet}. \code{Default=NULL}.
+#' @param n.levels Number of colour levels of the power scale (integer, >= 2); the level breaks are the quantiles of
+#' the power, so each colour covers the same share of the scalogram. \code{Default=100}.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
+#' @param useRaster Draw the scalogram as a raster image (\code{TRUE}) or as vector polygons (\code{FALSE}) (logical).
+#' WARNING: plotting as a vector image is computationally intensive and gives large files. \code{Default=TRUE}.
+#' @param periodlab Label of the period axis (character). \code{Default="Period (metres)"}.
+#' @param x_lab Label of the depth/time axis (character). \code{Default="depth (metres)"}.
+#' @param keep_editable Keep the plot layout and graphical parameters (\code{par}) after plotting, so that extra
+#' elements can be added to the scalogram panel with \code{lines}, \code{points} etc. (logical). With \code{FALSE} the
+#' previous \code{par} settings are restored on exit. \code{Default=FALSE}.
+#' @param dev_new Open a new plotting window for the plot (logical, TRUE or FALSE). The wavelet plots contain a raster
+#' image that needs more room than the small RStudio plot pane, which gives "figure margins too large" errors or clipped
+#' text, so a separate window is opened by default in the RStudio GUI. In every other front end (plain R, ESS,
+#' Positron, knitr, Rscript) the plot is drawn on the current device and no window is opened. Set TRUE or FALSE to
+#' force either behaviour, or set \code{options(waverider.dev_new = TRUE/FALSE)}.
+#' \code{Default=wr_dev_new_default()}: TRUE in the RStudio GUI, FALSE elsewhere.
+#' @param plot_dir Direction of the depth/time axis (logical). \code{TRUE} plots increasing depth/time values from left
+#' to right (or bottom to top when \code{plot_horizontal=FALSE}); \code{FALSE} reverses the axis. \code{Default=TRUE}.
+#' @param add_lines Lines to draw on the scalogram: a matrix or data frame with depth/time in column 1 and, in each
+#' further column, period values (same unit as the period axis) of one line; \code{NULL} draws none.
+#' \code{Default=NULL}.
+#' @param add_points Points to draw on the scalogram: a matrix or data frame with depth/time in column 1 and, in each
+#' further column, period values of one series of points; \code{NULL} draws none. \code{Default=NULL}.
+#' @param add_abline_h Numeric vector of positions of horizontal lines, e.g. \code{c(2, 3, 5, 6)}: periods when
+#' \code{plot_horizontal=TRUE}, depth/time values when \code{plot_horizontal=FALSE}; \code{NULL} draws none.
+#' \code{Default=NULL}.
+#' @param add_abline_v Numeric vector of positions of vertical lines, e.g. \code{c(2, 3, 5, 6)}: depth/time values
+#' when \code{plot_horizontal=TRUE} (also drawn on the data panel), periods when \code{plot_horizontal=FALSE};
+#' \code{NULL} draws none. \code{Default=NULL}.
+#' @param add_data Plot the input record in a panel beside the scalogram (logical). \code{Default=TRUE}.
+#' @param add_avg Plot the time-averaged superlet power spectrum in a panel beside the scalogram (logical).
+#' \code{Default=FALSE}.
+#' @param add_signif Significance result whose significant cells are outlined on the scalogram, and whose critical
+#' level of the global spectrum is drawn as a red dashed line on the average power panel: the object returned by
+#' \code{\link{wavelet_significance}}; \code{NULL} draws no significance. \code{Default=NULL}.
+#' @param plot_horizontal Orientation of the plot (logical): \code{TRUE} puts depth/time on the x axis and period on
+#' the y axis; \code{FALSE} puts depth/time on the y axis and period on the x axis. \code{Default=TRUE}.
 #'
 #'
 #' @return
@@ -192,8 +189,12 @@
 #'  plot_horizontal = TRUE)
 #'}
 #'
-#' @param scale Colour scale as in \code{\link{plot_wavelet}} \code{Default="auto"}.
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param scale Spacing of the colour breaks (character: \code{"auto"}, \code{"quantile"}, \code{"log"},
+#' \code{"sqrt"} or \code{"linear"}, see \code{\link{plot_wavelet}}). In the current version this argument has no
+#' effect here: the colour breaks of the superlet scalogram are always the \code{n.levels} quantiles of the power.
+#' \code{Default="auto"}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -223,37 +224,39 @@
 #' @importFrom grDevices hcl.colors
 
 plot_superlet <- function (superlet = NULL,
-                           lowerPeriod = NULL,
-                           upperPeriod = NULL,
-                           n.levels = 100,
-                           palette_name = "rainbow",
-                           color_brewer = "grDevices",
-                           useRaster = TRUE,
-                           periodlab = "Period (metres)",
-                           x_lab = "depth (metres)",
-                           keep_editable = FALSE,
-                           dev_new = wr_dev_new_default(),
-                           plot_dir = TRUE,
-                           add_lines = NULL,
-                           add_points = NULL,
-                           add_abline_h = NULL,
-                           add_abline_v = NULL,
-                           add_data = TRUE,
-                           add_avg = FALSE,
-                           plot_horizontal = TRUE,
-                           add_signif = NULL,
-  colour_brewer = NULL, scale = "auto")
+    lowerPeriod = NULL,
+    upperPeriod = NULL,
+    n.levels = 100,
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    useRaster = TRUE,
+    periodlab = "Period (metres)",
+    x_lab = "depth (metres)",
+    keep_editable = FALSE,
+    dev_new = wr_dev_new_default(),
+    plot_dir = TRUE,
+    add_lines = NULL,
+    add_points = NULL,
+    add_abline_h = NULL,
+    add_abline_v = NULL,
+    add_data = TRUE,
+    add_avg = FALSE,
+    plot_horizontal = TRUE,
+    add_signif = NULL,
+    colour_brewer = NULL, scale = "auto")
 {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
   maximum.level = max(superlet$Power,na.rm=TRUE)
   power_max_mat.levels = quantile(superlet$Power, probs = seq(
-    from = 0,
-    to = 1,
-    length.out = n.levels + 1
+      from = 0,
+      to = 1,
+      length.out = n.levels + 1
   ))
   key.cols <- .wr_key_cols(palette_name, color_brewer, n.levels)
   periodtck = 0.02
@@ -262,25 +265,25 @@ plot_superlet <- function (superlet = NULL,
   lwd = 2
   lwd.axis = 1
   legend.params = list(
-    width = 1.2,
-    shrink = 0.9,
-    mar = 5.1,
-    n.ticks = 6,
-    label.digits = 3,
-    label.format = "f",
-    lab = NULL,
-    lab.line = 2.5
+      width = 1.2,
+      shrink = 0.9,
+      mar = 5.1,
+      n.ticks = 6,
+      label.digits = 3,
+      label.format = "f",
+      lab = NULL,
+      lab.line = 2.5
   )
   key.marks = round(seq(
-    from = 0,
-    to = 1,
-    length.out = legend.params$n.ticks
+      from = 0,
+      to = 1,
+      length.out = legend.params$n.ticks
   ) *
-    n.levels)
+      n.levels)
   key.labels = formatC(
-    as.numeric(power_max_mat.levels),
-    digits = legend.params$label.digits,
-    format = legend.params$label.format
+      as.numeric(power_max_mat.levels),
+      digits = legend.params$label.digits,
+      format = legend.params$label.format
   )[key.marks + 1]
   if (dev_new == TRUE & plot_horizontal == TRUE) {
     wr_open_device(width = 15, height = 7)
@@ -307,17 +310,17 @@ plot_superlet <- function (superlet = NULL,
   ylim_vals = (c(lowerPeriod, upperPeriod))
 
   p <- list(wavelet = superlet, data_x = superlet$x, data_y = superlet$y, depth = superlet$x, ax2 = superlet$axis.2,
-            z = t(superlet$Power), avg = superlet$Power.avg, per = superlet$Period,
-            tick_min = min(log2(ylim_vals)), tick_max = max(log2(ylim_vals)), overlay = TRUE,
-            gws_abline_all = TRUE, levels = power_max_mat.levels,
-            n.levels = n.levels, key.cols = key.cols, key.marks = key.marks,
-            key.labels = key.labels, lwd.axis = lwd.axis, pmax_avg_sel = superlet$Power, xlim_vals = xlim_vals,
-            ylim_vals = sort(ylim_vals), periodlab = periodlab, x_lab = x_lab, main = main, periodtck = periodtck,
-            periodtcl = periodtcl, add_lines = add_lines, add_points = add_points, add_abline_h = add_abline_h,
-            add_abline_v = add_abline_v, add_MTM_peaks = FALSE, add_pval = FALSE,
-            pval_abline = NULL, pval_cutoff = NULL, add_signif = add_signif,
-            MTM_res_1 = NULL, MTM_res_2 = matrix(data = NA, ncol = 2, nrow = 1),
-            plot_horizontal = plot_horizontal, add_data = add_data, add_avg = add_avg, add_MTM = FALSE)
+      z = t(superlet$Power), avg = superlet$Power.avg, per = superlet$Period,
+      tick_min = min(log2(ylim_vals)), tick_max = max(log2(ylim_vals)), overlay = TRUE,
+      gws_abline_all = TRUE, levels = power_max_mat.levels,
+      n.levels = n.levels, key.cols = key.cols, key.marks = key.marks,
+      key.labels = key.labels, lwd.axis = lwd.axis, pmax_avg_sel = superlet$Power, xlim_vals = xlim_vals,
+      ylim_vals = sort(ylim_vals), periodlab = periodlab, x_lab = x_lab, main = main, periodtck = periodtck,
+      periodtcl = periodtcl, add_lines = add_lines, add_points = add_points, add_abline_h = add_abline_h,
+      add_abline_v = add_abline_v, add_MTM_peaks = FALSE, add_pval = FALSE,
+      pval_abline = NULL, pval_cutoff = NULL, add_signif = add_signif,
+      MTM_res_1 = NULL, MTM_res_2 = matrix(data = NA, ncol = 2, nrow = 1),
+      plot_horizontal = plot_horizontal, add_data = add_data, add_avg = add_avg, add_MTM = FALSE)
   p$scale <- scale
   .pw_draw(p)
 

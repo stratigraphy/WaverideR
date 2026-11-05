@@ -2,13 +2,15 @@
 #' @description Nine principal orbital periods (calculate_orbit9.m in Acycle):
 #'   La2004 secular frequencies g_i, s_i and the AstroGeo22 precession constant
 #'   k(t) at the age rounded to the nearest Ma.
-#' @param age_ma age in Ma (single finite number).
-#' @param data_dir folder holding AstroGeo22.txt and La04gisi.csv
-#'   \code{Default=NULL} (searched with coco_data_dir()).
+#' @param age_ma Age at which the nine periods are calculated, in Ma (single finite numeric value, 0 to 4429);
+#' it is rounded to the nearest whole Ma because AstroGeo22 is tabulated in 1-Myr steps. Required, no default.
+#' @param data_dir Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+#' \code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+#' set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return data.frame with columns term, group, freq_arcsec_yr, period_yr, period_kyr.
 #' @export
 calculate_orbit9 <- function(age_ma, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -25,7 +27,7 @@ calculate_orbit9 <- function(age_ma, data_dir = NULL){
     stop("Cannot find AstroGeo22.txt / La04gisi.csv. Reinstall WaverideR or set options(cocoR.data = '/path/to/data').")
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -40,7 +42,7 @@ calculate_orbit9 <- function(age_ma, data_dir = NULL){
     NULL
   })
 
-  # ---- main code ----
+  # Main code
   if (!is.numeric(age_ma) || length(age_ma) != 1 || !is.finite(age_ma)){
     stop("age_ma must be a finite number")
   }
@@ -64,9 +66,9 @@ calculate_orbit9 <- function(age_ma, data_dir = NULL){
   g <- .coco_env$gisi[1:9]
   s <- .coco_env$gisi[10:18]
   freq <- c(g[2] - g[5], g[3] - g[2], g[4] - g[2], g[3] - g[5], g[4] - g[5],
-            k + s[3], k + g[5], k + g[2], k + g[4])
+      k + s[3], k + g[5], k + g[2], k + g[4])
   period <- 360 * 3600 / abs(freq)
   data.frame(term = c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5", "k+s3", "k+g5", "k+g2", "k+g4"),
-             group = c("long eccentricity", rep("short eccentricity", 4), "obliquity", rep("precession", 3)),
-             freq_arcsec_yr = freq, period_yr = period, period_kyr = period / 1000)
+      group = c("long eccentricity", rep("short eccentricity", 4), "obliquity", rep("precession", 3)),
+      freq_arcsec_yr = freq, period_yr = period, period_kyr = period / 1000)
 }

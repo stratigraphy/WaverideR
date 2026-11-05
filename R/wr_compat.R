@@ -6,7 +6,7 @@
 # RColorBrewer, colorRamps and viridis (palettes). Only what WaverideR needs is implemented; the
 # behaviour follows the original functions (see the comments). All functions are internal.
 
-# ---- nearest value ---------------------------------------------------------------------------
+# Nearest value
 
 # DescTools::Closest: the element(s) of x closest to a; with which = TRUE the index/indices. Ties return
 # all closest elements. A list is returned if a has more than one element.
@@ -22,7 +22,11 @@ wr_closest <- function(x, a, which = FALSE, na.rm = FALSE) {
       return(NA)
     }
     idx <- abs(d - mdist) < sqrt(.Machine$double.eps)
-    if (which) which(idx) else xx[idx]
+    if (which) {
+      which(idx)
+    } else {
+      xx[idx]
+    }
   }
   if (length(a) == 1L) {
     return(one(a))
@@ -34,11 +38,11 @@ wr_closest <- function(x, a, which = FALSE, na.rm = FALSE) {
   res
 }
 
-# ---- interpolation with linear extrapolation -------------------------------------------------
+# Interpolation with linear extrapolation
 
 # Hmisc::approxExtrap: approx() with linear extrapolation outside the range of x. Returns list(x, y).
 wr_approx_extrap <- function(x, y, xout, method = "linear", n = 50, rule = 2, f = 0,
-                             ties = "ordered", na.rm = FALSE) {
+    ties = "ordered", na.rm = FALSE) {
   if (is.list(x)) {
     y <- x[[2]]
     x <- x[[1]]
@@ -73,12 +77,12 @@ wr_approx_extrap <- function(x, y, xout, method = "linear", n = 50, rule = 2, f 
   list(x = xout, y = w)
 }
 
-# ---- row / column statistics (matrixStats) ---------------------------------------------------
+# Row / column statistics (matrixStats)
 
 wr_row_sds <- function(x, na.rm = FALSE) {
   x <- as.matrix(x)
   m <- rowMeans(x, na.rm = na.rm)
-  n <- if (na.rm) rowSums(!is.na(x)) else rep(ncol(x), nrow(x))
+  n <- if (na.rm) { rowSums(!is.na(x)) } else { rep(ncol(x), nrow(x)) }
   s <- sqrt(rowSums((x - m)^2, na.rm = na.rm) / (n - 1))
   s[n < 2] <- NA_real_
   s
@@ -114,7 +118,7 @@ wr_col_mins <- function(x, na.rm = FALSE) {
     if (na.rm) {
       v <- v[!is.na(v)]
     }
-    out[j] <- if (length(v)) min(v) else Inf
+    out[j] <- if (length(v)) { min(v) } else { Inf }
   }
   out
 }
@@ -129,18 +133,18 @@ wr_row_quantiles <- function(x, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = FALSE)
   out
 }
 
-# ---- reshape2::melt for a matrix --------------------------------------------------------------
+# Reshape2::melt for a matrix
 
 # Long format of a matrix: Var1 (row), Var2 (column), value. Dimnames are used if present, otherwise the
 # integer indices (as reshape2::melt).
 wr_melt <- function(m) {
   m <- as.matrix(m)
-  r <- if (is.null(rownames(m))) seq_len(nrow(m)) else factor(rownames(m), levels = unique(rownames(m)))
-  cc <- if (is.null(colnames(m))) seq_len(ncol(m)) else factor(colnames(m), levels = unique(colnames(m)))
+  r <- if (is.null(rownames(m))) { seq_len(nrow(m)) } else { factor(rownames(m), levels = unique(rownames(m))) }
+  cc <- if (is.null(colnames(m))) { seq_len(ncol(m)) } else { factor(colnames(m), levels = unique(colnames(m))) }
   data.frame(Var1 = rep(r, times = ncol(m)), Var2 = rep(cc, each = nrow(m)), value = as.vector(m))
 }
 
-# ---- random numbers ---------------------------------------------------------------------------
+# Random numbers
 
 # truncnorm::rtruncnorm: normal(mean, sd) truncated to [a, b] by inversion of the CDF. The tails are handled on
 # the log scale / by symmetry, so far-out truncation limits do not give Inf or NaN.
@@ -180,10 +184,13 @@ wr_rtruncnorm <- function(n, a = -Inf, b = Inf, mean = 0, sd = 1) {
 #' @title Colour noise and palette helpers
 #' @description \code{wr_coloured_noise} generates AR(1) red noise (replaces \code{colorednoise::colored_noise});
 #' \code{wr_brewer_palettes} lists the available ColorBrewer palette names and their maximum number of colours.
-#' @param timesteps Number of values to generate.
-#' @param mean Mean of the noise.
-#' @param sd Standard deviation of the noise.
-#' @param phi Lag-1 autocorrelation (0-1).
+#' @param timesteps Number of values to generate (integer, >= 1; with 1 a single normal value is returned). Required,
+#' no default.
+#' @param mean Mean of the noise (numeric, in the unit of the series to be simulated). Required, no default.
+#' @param sd Standard deviation of the noise (numeric, > 0); the marginal standard deviation of the AR(1) process.
+#' Required, no default.
+#' @param phi Lag-1 autocorrelation of the AR(1) process (numeric, between 0 and 1, below 1; 0 gives white noise,
+#' values close to 1 give strongly red noise). Required, no default.
 #' @return \code{wr_coloured_noise}: numeric vector. \code{wr_brewer_palettes}: data frame with the palettes.
 #' @examples
 #' set.seed(1)
@@ -210,7 +217,7 @@ wr_autocorrelation <- function(x, biasCorrection = TRUE) {
     r <- stats::acf(y, plot = FALSE)[[1]][2]
     r1 <- stats::acf(y[1:round(length(y) / 2)], plot = FALSE, na.action = stats::na.omit)[[1]][2]
     r2 <- stats::acf(y[(round(length(y) / 2) + 1):length(y)], plot = FALSE,
-                     na.action = stats::na.omit)[[1]][2]
+        na.action = stats::na.omit)[[1]][2]
     2 * r - 0.5 * (r1 + r2)
   } else {
     stats::acf(x, plot = FALSE, na.action = stats::na.omit)[[1]][2]
@@ -239,10 +246,10 @@ wr_rtrapezoid <- function(n, min = 0, mode1 = 1 / 3, mode2 = 2 / 3, max = 1) {
   out
 }
 
-# ---- loess with automatic span (fANCOVA::loess.as, one predictor) --------------------------------------------------
+# Loess with automatic span (fANCOVA::loess.as, one predictor)
 
 wr_loess_as <- function(x, y, degree = 1, criterion = c("aicc", "gcv"), family = c("gaussian", "symmetric"),
-                        user.span = NULL, ...) {
+    user.span = NULL, ...) {
   criterion <- match.arg(criterion)
   family <- match.arg(family)
   x <- as.numeric(x)
@@ -267,11 +274,11 @@ wr_loess_as <- function(x, y, degree = 1, criterion = c("aicc", "gcv"), family =
       mod$n * sigma2 / (mod$n - trace_l)^2
     }
   }
-  span1 <- if (is.null(user.span)) stats::optimize(crit, c(0.05, 0.95))$minimum else user.span
+  span1 <- if (is.null(user.span)) { stats::optimize(crit, c(0.05, 0.95))$minimum } else { user.span }
   stats::loess(y ~ x, degree = degree, span = span1, family = family, data = d, ...)
 }
 
-# ---- Hilbert envelope (DecomposeR::inst.pulse, method "HT", amplitude) ------------------------------------------------
+# Hilbert envelope (DecomposeR::inst.pulse, method "HT", amplitude)
 
 # Instantaneous amplitude = modulus of the analytic signal. Unevenly sampled records (spacing varying by more than
 # 8%) are first interpolated to the median spacing and the envelope is interpolated back.
@@ -300,7 +307,7 @@ wr_hilbert_envelope <- function(x, t = NULL) {
   stats::approx(tg, eg, t)$y
 }
 
-# ---- palettes (RColorBrewer, colorRamps, viridis) ---------------------------------------------------------------------
+# Palettes (RColorBrewer, colorRamps, viridis)
 
 wr_brewer_info <- data.frame(maxcolors = unname(.wr_brewer_info), row.names = names(.wr_brewer_info))
 
@@ -380,12 +387,51 @@ wr_viridis_rocket <- function(n, direction = 1) wr_viridis(n, "rocket", directio
 wr_viridis_mako <- function(n, direction = 1) wr_viridis(n, "mako", direction)
 wr_viridis_turbo <- function(n, direction = 1) wr_viridis(n, "turbo", direction)
 
-# scico palettes are an optional extra (package scico in Suggests)
+# batlowK (Crameri, F., 2018. Scientific colour maps, Zenodo, doi:10.5281/zenodo.1243862; MIT licence), 256
+# colours, kept in the package because it is the default palette of the scalogram plots
+.wr_batlowK <- c(
+  "#04050A", "#05060C", "#06070E", "#060A11", "#080C13", "#0A0C14", "#0B0E17", "#0C1019", "#0C1119", "#0D121B",
+  "#0E131E", "#0E141F", "#101520", "#101722", "#111825", "#111926", "#121A28", "#121B2B", "#131E2C", "#131F2E",
+  "#131F31", "#142133", "#142234", "#152537", "#172639", "#17263A", "#18283D", "#192B3F", "#192C40", "#192D43",
+  "#1A2E45", "#1B3146", "#1D3247", "#1E334A", "#1F344B", "#1F374C", "#20384E", "#213950", "#223A51", "#243D52",
+  "#253E53", "#263F54", "#264055", "#274357", "#284458", "#2A4559", "#2B4659", "#2C475A", "#2C485A", "#2D4A5B",
+  "#2E4B5D", "#304C5D", "#314D5E", "#324E5E", "#33505E", "#33515F", "#34525F", "#35525F", "#37535F", "#38545F",
+  "#39545F", "#39555F", "#3A575F", "#3B585F", "#3D595F", "#3E595F", "#3E595F", "#3F5A5E", "#3F5B5E", "#405B5E",
+  "#415D5E", "#435D5D", "#435E5D", "#445F5D", "#455F5B", "#465F5B", "#465F5B", "#47605A", "#48615A", "#486159",
+  "#4A6359", "#4B6359", "#4C6459", "#4C6558", "#4D6558", "#4E6657", "#506657", "#516655", "#526655", "#526754",
+  "#536854", "#546853", "#556A52", "#576A52", "#586B52", "#596C51", "#596C51", "#5A6C50", "#5B6D4E", "#5E6D4E",
+  "#5F6E4D", "#5F704C", "#60704C", "#61714C", "#63724B", "#65724B", "#66724A", "#667348", "#687348", "#6A7447",
+  "#6B7646", "#6C7646", "#6D7746", "#6E7845", "#717845", "#727944", "#727943", "#747A43", "#767A41", "#787B40",
+  "#797D40", "#7A7E3F", "#7D7E3F", "#7E7F3F", "#7F7F3E", "#80803E", "#83803D", "#85813D", "#85833B", "#87843B",
+  "#8A853A", "#8C853A", "#8D8539", "#8E8639", "#918739", "#928739", "#948839", "#978A39", "#998B38", "#9A8B38",
+  "#9D8C38", "#9F8C38", "#A08D38", "#A38D38", "#A58E38", "#A69038", "#A99139", "#AB9139", "#AC9239", "#AE9239",
+  "#B19239", "#B2933A", "#B4943A", "#B7943B", "#B9963D", "#BB963D", "#BE973E", "#BF983F", "#C1983F", "#C49940",
+  "#C59941", "#C79943", "#C99945", "#CB9A46", "#CC9A46", "#CE9B48", "#D19B4A", "#D29D4C", "#D39D4C", "#D69D4E",
+  "#D89E50", "#D89E52", "#DA9F53", "#DC9F54", "#DE9F57", "#DF9F59", "#E09F5A", "#E1A05D", "#E4A05F", "#E5A05F",
+  "#E5A161", "#E6A164", "#E7A366", "#EAA367", "#EBA36A", "#EBA46C", "#ECA46D", "#EDA570", "#EEA572", "#F0A573",
+  "#F0A576", "#F1A578", "#F2A679", "#F2A67B", "#F2A67E", "#F3A77F", "#F4A781", "#F4A984", "#F6A985", "#F6AA87",
+  "#F7AA8B", "#F7AB8C", "#F8AB8E", "#F8AC91", "#F8AC92", "#F8AC93", "#F9AC96", "#F9AD98", "#F9AD99", "#FAAE9B",
+  "#FAAE9E", "#FAB09F", "#FAB0A1", "#FCB1A4", "#FCB1A5", "#FCB2A7", "#FCB2AA", "#FCB2AC", "#FCB2AD", "#FDB3B0",
+  "#FDB4B2", "#FDB4B3", "#FDB6B6", "#FDB6B7", "#FDB7B8", "#FDB7BA", "#FDB8BD", "#FDB8BF", "#FDB8C0", "#FDB9C3",
+  "#FDBAC5", "#FDBAC6", "#FDBBC9", "#FDBBCB", "#FDBDCC", "#FDBECE", "#FDBED1", "#FDBFD2", "#FDBFD6", "#FDC0D8",
+  "#FDC0D9", "#FDC1DC", "#FDC3DE", "#FDC3DF", "#FCC4E1", "#FCC5E4", "#FCC5E6", "#FCC5E9", "#FCC6EB", "#FCC7EC",
+  "#FAC7EE", "#FAC9F1", "#FACAF3", "#FACBF6", "#FACBF8", "#F9CCF9"
+)
+
+# scico palettes are an optional extra (package scico in Suggests); batlowK also works without it
 wr_scico <- function(n, palette, direction = 1) {
-  if (!requireNamespace("scico", quietly = TRUE)) {
-    stop("color_brewer = 'scico' needs the 'scico' package: install.packages('scico')", call. = FALSE)
+  if (requireNamespace("scico", quietly = TRUE)) {
+    return(scico::scico(n = n, palette = palette, direction = direction))
   }
-  scico::scico(n = n, palette = palette, direction = direction)
+  if (identical(palette, "batlowK")) {
+    cl <- grDevices::colorRampPalette(.wr_batlowK)(n)
+    if (direction < 0) {
+      cl <- rev(cl)
+    }
+    return(cl)
+  }
+  stop("color_brewer = 'scico' with palette '", palette, "' needs the 'scico' package: install.packages('scico')",
+      call. = FALSE)
 }
 
 #' @export

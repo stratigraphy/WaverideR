@@ -20,30 +20,47 @@ coco_adaptive_evaluate(
 )
 }
 \arguments{
-\item{data_power}{nf-by-k matrix: one-sided pad-point periodograms (cycles/m grid)}
+\item{data_power}{One-sided periodograms of the data to evaluate (numeric matrix, one spectrum per column, with
+\code{floor(max(pad, n_target)/2) + 1} rows on the frequency grid \code{data_frequency}); negative values are set
+to zero. Required, no default.}
 
-\item{data_frequency}{Frequencies of the data spectrum.}
+\item{data_frequency}{Frequencies of the rows of \code{data_power}, in cycles per metre (numeric vector, evenly
+spaced from 0). Required, no default.}
 
-\item{n_target}{number of samples of the analysed record / window}
+\item{n_target}{Number of samples of the analysed record or window (integer); the target sinusoids are
+synthesised on this many points. Required, no default.}
 
-\item{spacing}{depth sampling interval of that record (m)}
+\item{spacing}{Depth sampling interval of the analysed record, in metres (numeric, > 0). Required, no default.}
 
-\item{pad}{Zero-padding factor used for the spectrum.}
+\item{pad}{Length (number of points) to which the record was zero-padded for the periodogram (integer); the
+target spectra are padded to \code{max(pad, n_target)}. Required, no default.}
 
-\item{orbit9}{Orbital periods (kyr) used as target frequencies.}
+\item{orbit9}{Astronomical target periods in kyr (numeric vector; nine distinct values are needed for
+\code{amplitude_mode="four-group-area"} and for the grouped weights of \code{"fixed"}). Required, no default.}
 
-\item{sr_grid}{Grid of sedimentation rates to evaluate.}
+\item{sr_grid}{Sedimentation rates to evaluate, in cm/kyr (numeric vector, > 0). Required, no default.}
 
-\item{method}{Correlation method, `"Pearson"` or `"Spearman"`.}
+\item{method}{Correlation coefficient between the data and target spectra (character): \code{"Pearson"} or
+\code{"Spearman"}. \code{Default="Pearson"}.}
 
-\item{max_frequency}{Maximum frequency evaluated (`NULL` = 1.2 times the maximum of `1/orbit9`).}
+\item{max_frequency}{Highest frequency of the target that enters the correlation, in cycles/kyr (numeric, must be
+at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.}
 
-\item{target_model}{"coherent-nine" (default) or "phase-averaged"}
+\item{target_model}{How the target spectrum is synthesised (character): \code{"coherent-nine"} (spectrum of the
+sum of the sinusoids, with their interference) or \code{"phase-averaged"} (sum of the individual spectra,
+averaged over sine and cosine phase). \code{Default=c("coherent-nine", "phase-averaged")}, i.e.
+\code{"coherent-nine"}.}
 
-\item{amplitude_mode}{"four-group-area" (Acycle default for Adaptive
-COCO/eCOCO), "per-orbit" (adaptive9a), "fixed" (1.0/0.8/0.6 weights)}
+\item{amplitude_mode}{How the target amplitudes are set (character): \code{"four-group-area"} (one amplitude
+per group of long eccentricity, short eccentricity, obliquity and precession, fitted to the band areas; Acycle
+default for Adaptive COCO/eCOCO; needs \code{target_model="coherent-nine"}), \code{"per-orbit"} (each amplitude
+fitted to the spectral peak at its own frequency, Acycle adaptive9a) or \code{"fixed"} (weights 1.0/0.8/0.6 from
+\code{\link{coco_fixed_target_weights}}). \code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e.
+\code{"four-group-area"}.}
 
-\item{observed_p}{Observed p-value(s) to compare against.}
+\item{observed_p}{Also compute the parametric p-value of the correlation for the first column of
+\code{data_power} at every rate (logical, TRUE or FALSE); used for the observed spectrum, not for the Monte Carlo
+spectra. \code{FALSE} returns \code{NA} p-values. \code{Default=FALSE}.}
 }
 \description{
 Evaluate Adaptive COCO for a batch of spectra (cocoAdaptiveEvaluate.m)

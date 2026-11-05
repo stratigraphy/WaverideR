@@ -7,9 +7,10 @@
 \method{plot}{ctest}(x, ...)
 }
 \arguments{
-\item{x}{a ctest object}
+\item{x}{CTest result to plot: the output of \code{\link{ctest}} (an object of class \code{ctest}). Required, no
+default.}
 
-\item{...}{ignored}
+\item{...}{Not used; present for compatibility with the generic \code{plot} function.}
 }
 \description{
 Plot the CTest posterior distributions

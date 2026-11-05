@@ -12,12 +12,14 @@
 #' Translated from Acycle v3.1 specbayes.m (Mingsong Li, after the FORTRAN
 #' program of Graham P. Weedon).
 #'
-#' @param data Matrix or data frame with two columns: depth/time and proxy
-#' value. Rows are sorted on the first column and non-finite rows removed.
-#' @param genplot Plot the periodogram and the Bayesian probability.
-#' \code{Default=FALSE}
-#' @param verbose Print the frequency with maximum probability.
-#' \code{Default=FALSE}
+#' @param data Record to analyse (matrix or data frame with two columns: depth or time in column 1, proxy value
+#' in column 2; further columns are ignored). Rows are sorted on the first column and rows with non-finite values
+#' are removed; uneven spacing is allowed (Lomb-Scargle periodogram). Required, no default (\code{Default=NULL}
+#' gives an error).
+#' @param genplot Plot the periodogram and the Bayesian probability against frequency (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param verbose Print the maximum probability and its frequency and period (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li,
 #' translated from the FORTRAN program of Graham P. Weedon.
@@ -61,7 +63,7 @@
 #' @export
 #' @importFrom graphics plot lines legend par
 bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   acy_check_two_column <- function(data, name = "data"){
     data <- as.matrix(data)
@@ -114,7 +116,7 @@ bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
       }
     }
     list(tdif = tdif, tintmin = tintmin, tintmax = tintmax, nint = nint,
-         nrev = nrev)
+        nrev = nrev)
   }
 
   # @title Lag-1 autocorrelation (rho.m, AUTOCR of Davis 1973)
@@ -129,8 +131,8 @@ bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
     rho1 <- (l * sxy - sx * sy) / (l * (l - 1.0)) / varx
     if (rho1 < 0.0 || rho1 > 1.0){
       stop(sprintf(paste0("Lag-1 autocorrelation RHO = %f is outside [0, 1]; ",
-                          "the SWA/Bayes programs of Weedon require red noise"),
-                   rho1))
+          "the SWA/Bayes programs of Weedon require red noise"),
+          rho1))
     }
     rho1
   }
@@ -172,7 +174,7 @@ bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
   # @keywords internal
   # @noRd
   swa_period <- function(x = NULL, time = NULL, avex = NULL, nout = NULL,
-                         xfint = NULL, varx = NULL){
+      xfint = NULL, varx = NULL){
     ndata <- length(x)
     twopid <- 6.2831853071795865
     tave <- 0.5 * (time[1] + time[ndata])
@@ -207,7 +209,7 @@ bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
     list(freq = freq, pow = pow)
   }
 
-  # ---- main code ----
+  # Main code
   data <- acy_check_two_column(data)
   time <- data[, 1]
   x1 <- data[, 2]
@@ -268,20 +270,20 @@ bayes_spectrum <- function(data = NULL, genplot = FALSE, verbose = FALSE){
   maxib <- which.max(bayesprob)
   if (verbose == TRUE){
     cat(sprintf("Max. probability = %.3f\nFrequency = %.7f\nPeriod = %.7f\n",
-                bayesprob[maxib], freq[maxib], 1 / freq[maxib]))
+        bayesprob[maxib], freq[maxib], 1 / freq[maxib]))
   }
 
   if (genplot == TRUE){
     oldpar <- graphics::par(no.readonly = TRUE)
     on.exit(graphics::par(oldpar))
     graphics::plot(freq, pow1, type = "l", log = "y",
-                   ylim = c(min(bayesprob[bayesprob > 0]), max(pow1) * 1.5),
-                   xlab = "Frequency (cycles/unit)", ylab = "Power",
-                   main = "Bayesian probability spectrum")
+        ylim = c(min(bayesprob[bayesprob > 0]), max(pow1) * 1.5),
+        xlab = "Frequency (cycles/unit)", ylab = "Power",
+        main = "Bayesian probability spectrum")
     graphics::lines(freq, bayesprob, col = "red")
     graphics::legend("bottomleft", legend = c("Power", "Bayesian probability"),
-                     col = c("black", "red"), lty = 1, bty = "n")
+        col = c("black", "red"), lty = 1, bty = "n")
   }
   list(freq = freq, period = 1 / freq, power = pow1, bayes_prob = bayesprob,
-       max_prob = bayesprob[maxib], freq_max = freq[maxib], rho1 = rho1)
+      max_prob = bayesprob[maxib], freq_max = freq[maxib], rho1 = rho1)
 }

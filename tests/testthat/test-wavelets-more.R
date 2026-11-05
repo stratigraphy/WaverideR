@@ -29,7 +29,7 @@ test_that("wavelet agnostic Awavelet, superlets, cross wavelet and coherence", {
     expect_true(all(abs(xw$Phase) < 1e-8))
   }
   co <- analyse_wavelet_coherence(d, d, dj = 1 / 10, lowerPeriod = 15, upperPeriod = 200, wavelet = "paul",
-                                  abs_window_t = 50, abs_window_s = 0.5)
+      abs_window_t = 50, abs_window_s = 0.5)
   expect_equal(co$wavelet, "paul")
   # legacy Morlet paths unchanged by the new arguments
   a1 <- analyse_Awavelet(d, dj = 1 / 20, lowerPeriod = 15, upperPeriod = 200)

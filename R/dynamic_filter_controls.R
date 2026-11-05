@@ -16,20 +16,19 @@
 #' Written for the R translation of Acycle v3.1 dynamic filtering (Mingsong
 #' Li); no MATLAB equivalent.
 #'
-#' @param tracked Matrix or data frame whose first two columns are depth and
-#' period (in depth units) of the tracked cycle. Rows with non-finite values
-#' are dropped, rows are sorted by depth and duplicated depths are removed
-#' (first kept).
-#' @param rel_bandwidth Half-power bandwidth relative to the centre frequency,
-#' between 0 and 2 (exclusive) \code{Default=0.2}.
-#' @param n_points Optional maximum number of control points. When the
-#' tracked curve has more rows, it is linearly interpolated to
-#' \code{n_points} evenly spaced depths spanning the (clipped) curve
-#' \code{Default=NULL} (keep all rows).
-#' @param data Optional data set (2-column matrix) that will be filtered.
-#' When given, control points outside its depth range are removed (the
-#' Acycle core requires control depths inside the data range)
-#' \code{Default=NULL}.
+#' @param tracked Tracked period curve of the cycle (matrix or data frame whose first two columns are depth/time and
+#' period in the same depth/time unit, period > 0; further columns are ignored), e.g. the output of
+#' \code{\link{track_period_wavelet}} or \code{\link{completed_series}}. Rows with non-finite values are dropped,
+#' rows are sorted by depth and duplicated depths are removed (first kept). Required (\code{Default=NULL}).
+#' @param rel_bandwidth Half-power bandwidth of the pass band relative to the centre frequency \code{1 / period}
+#' (numeric, > 0 and < 2): the band is \code{f_centre * (1 -/+ rel_bandwidth / 2)}, so larger values give a wider
+#' band. \code{Default=0.2}.
+#' @param n_points Maximum number of control points (integer, >= 1, or \code{NULL}). When the tracked curve has more
+#' rows, it is linearly interpolated to \code{n_points} evenly spaced depths spanning the (clipped) curve
+#' (\code{n_points=1} gives one point at the middle). \code{NULL} keeps all rows. \code{Default=NULL}.
+#' @param data Series that will be filtered (two-column matrix or data frame, depth/time in column 1, or
+#' \code{NULL}). When given, control points outside its depth range are removed, because
+#' \code{\link{dynamic_filter}} requires control depths inside the data range. \code{Default=NULL}.
 #'
 #' @author Michiel Arts
 #'
@@ -58,10 +57,10 @@
 #' @importFrom stats approx
 
 dynamic_filter_controls <- function(tracked = NULL,
-                                    rel_bandwidth = 0.2,
-                                    n_points = NULL,
-                                    data = NULL){
-  # ---- internal helper functions (local to this function) ----
+    rel_bandwidth = 0.2,
+    n_points = NULL,
+    data = NULL){
+  # Internal helper functions (local to this function)
 
   # @title Positive finite scalar check
   # @keywords internal
@@ -74,7 +73,7 @@ dynamic_filter_controls <- function(tracked = NULL,
     as.numeric(value)
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(tracked)){
     stop("tracked must be a matrix with columns [depth, period]")
   }
@@ -110,10 +109,10 @@ dynamic_filter_controls <- function(tracked = NULL,
         new_depth <- mean(range(tracked[, 1]))
       } else {
         new_depth <- seq(tracked[1, 1], tracked[nrow(tracked), 1],
-                         length.out = n_points)
+            length.out = n_points)
       }
       new_period <- approx(tracked[, 1], tracked[, 2], xout = new_depth,
-                           method = "linear", rule = 2)$y
+          method = "linear", rule = 2)$y
       tracked <- cbind(new_depth, new_period)
     }
   }
@@ -121,5 +120,5 @@ dynamic_filter_controls <- function(tracked = NULL,
   f_low <- f_centre * (1 - rel_bandwidth / 2)
   f_high <- f_centre * (1 + rel_bandwidth / 2)
   cbind(depth = tracked[, 1], f_low = f_low, f_high = f_high,
-        f_centre = (f_low + f_high) / 2)
+      f_centre = (f_low + f_high) / 2)
 }

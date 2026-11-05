@@ -32,79 +32,96 @@ curve2time_unc_anchor(
 )
 }
 \arguments{
-\item{age_constraint}{age constrains for the modelling run
-Input should be a data frame with 7 columns, the first columns are the ID names
-the second column are the ages (usually in kyr) the third column is the uncertainty (usually in kyr) given as
-the fourth column is the distribution which is either "n" for a normal distribution or "u" for a uniform
-distribution. The fifth column is the location in the depth domain of the age constraint. the sixth column is the
-location/thickness uncertainty of the age_constraint in the depth domain. The seventh column is the uncertainty distribution of the
-age_constrain in the depth domain}
+\item{age_constraint}{Age constraints (anchor points, e.g. radiometric dates) for the modelling run: a data frame
+with 7 columns and one row per constraint. Column 1: ID name (character); column 2: age (numeric, usually in kyr,
+in the unit of the output ages); column 3: age uncertainty in the same unit (the standard deviation for a normal
+distribution, the full width of the range for a uniform one); column 4: distribution of the age, \code{"n"}
+(normal) or \code{"u"} (uniform); column 5: depth of the constraint (in the depth unit of
+\code{tracked_cycle_curve}); column 6: depth uncertainty (full width of the range for a uniform distribution);
+column 7: distribution of the depth, \code{"u"} (uniform), \code{"n"} (normal) or \code{"t"} (trapezoidal, with
+column 5 then holding the string \code{"min mode1 mode2 max"}). Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_curve}{Curve of the cycle tracked using the
-\code{\link{retrack_wt_MC}} function \cr
-Any input (matrix or data frame) with 3 columns in which column 1 is the
-x-axis, column 2 is the  mean tracked frequency (in cycles/metres) column 3
-1 standard deviation}
+\item{tracked_cycle_curve}{Re-tracked cycle with its uncertainty (matrix or data frame, three columns): depth in
+column 1 (metres), the mean tracked frequency in cycles per metre in column 2 and its standard deviation (1 sigma)
+in column 3, e.g. the output of \code{\link{retrack_wt_MC}}. Rows with \code{NA} are dropped and the curve is
+interpolated to its median depth spacing. Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period}{Period of the tracked curve in kyr.}
+\item{tracked_cycle_period}{Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the long
+eccentricity cycle), used to turn the tracked period into a sedimentation rate with \code{\link{curve2time}}.
+Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period_unc}{uncertainty in the period of the tracked cycle}
+\item{tracked_cycle_period_unc}{Uncertainty of \code{tracked_cycle_period} in kyr (single numeric value, >= 0):
+the standard deviation when \code{tracked_cycle_period_unc_dist="n"}, the half-width of the range when
+\code{"u"}. Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period_unc_dist}{distribution of the uncertainty of the
-tracked cycle value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="n"}}
+\item{tracked_cycle_period_unc_dist}{Distribution from which the duration of the tracked cycle is drawn in every
+simulation (character): \code{"n"} normal or \code{"u"} uniform. \code{Default="n"}.}
 
-\item{n_simulations}{number of time series to be modeled \code{Default=20}}
+\item{n_simulations}{Number of anchored age models to simulate (integer, > 0). \code{Default=20}.}
 
-\item{gap_constraints}{gap parameters for the modelling run
-input should be a data frame with}
+\item{gap_constraints}{Hiatuses (gaps) to insert in the age models: a data frame with 4 columns and one row per
+gap. Column 1: duration of the gap (kyr); column 2: its uncertainty (kyr; the standard deviation for a normal
+distribution, the half-width of the range for a uniform one; negative draws are set to 0); column 3: depth of the
+gap (depth unit of \code{tracked_cycle_curve}), below which all ages are shifted by the drawn duration; column 4:
+distribution, \code{"n"} (normal) or \code{"u"} (uniform). \code{NULL} inserts no gaps. \code{Default=NULL}.}
 
-\item{proxy_data}{proxy data to be tune and check preservation of astronomical cycles}
+\item{proxy_data}{Proxy records used to check that the astronomical cycles are preserved after tuning (list of
+matrices or data frames, each with depth in column 1, in the unit of \code{tracked_cycle_curve}, and the proxy in
+column 2); in every run one record is picked at random, tuned with the simulated age model and analysed with
+\code{\link{analyse_wavelet}}. Only used when \code{run_multicore=TRUE}. \code{Default=NULL}.}
 
-\item{cycles_check}{astronomical cycles which are checked for their presence after tuning}
+\item{cycles_check}{Periods in kyr of the astronomical cycles (numeric vector) that must appear as peaks in the
+average wavelet spectrum of the tuned \code{proxy_data} for a simulation to be accepted. Only used when
+\code{run_multicore=TRUE}. \code{Default=NULL}.}
 
-\item{uncer_cycles_check}{uncertainty of astronomical cycles to be check for after tunning}
+\item{uncer_cycles_check}{Tolerance of each period in \code{cycles_check}, in kyr (numeric vector of the same
+length): a peak counts if it lies within \code{cycles_check +/- uncer_cycles_check}. Only used when
+\code{run_multicore=TRUE}. \code{Default=NULL}.}
 
-\item{max_runs}{maximum runs before one of the  age constraints is dropped \code{Default=1000}}
+\item{max_runs}{Number of rejected simulations (in which the anchored astronomical ages do not match the age
+constraints) after which the age constraint that disagrees most often is dropped (integer, > 0).
+\code{Default=1000}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+\item{run_multicore}{Run the simulations in parallel on several cores (logical, TRUE or FALSE). Note that only the
+parallel version also checks the tuned proxy data for the cycles in \code{cycles_check}. \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. Only used when
-`run_multicore = TRUE`. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore=TRUE} (integer); \code{NULL} uses an automatic, safe
+number (physical cores minus one, at most 4, and limited by the free memory), which can be changed with
+\code{options(waverider.n_cores = ...)}. Ignored when \code{run_multicore=FALSE}. Results do not depend on the
+number of cores. \code{Default=NULL}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Show a progress bar (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{genplot}{generate plot code\code{Default=FALSE}}
+\item{genplot}{Plot the age constraints (with their 2-sigma range) and the mean simulated age model with its
+2-sigma envelope against depth (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_nr}{minimal number of age constraints to be kept \code{Default=2}}
+\item{keep_nr}{Minimum number of age constraints that are kept when constraints are dropped after
+\code{max_runs} rejections (integer, >= 1). \code{Default=2}.}
 
-\item{keep_all_time_curves}{weather to keep all the generated age curves
-including the ones rejected from the modelling run \code{Default=FALSE}}
+\item{keep_all_time_curves}{Also return all generated age curves, including the ones rejected during the
+modelling run, as the last element of the output list (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
-which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
-in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
-the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
-Increasing the increases the computational time of the CWT \code{Default=1/200}.}
+\item{dj}{Spacing of the periods of the wavelet transform of the tuned proxy data, in octaves (numeric, > 0;
+e.g. \code{1/200} gives 200 periods per doubling); smaller values give a finer period axis but take longer.
+Passed to \code{\link{analyse_wavelet}}; only used when \code{run_multicore=TRUE}. \code{Default=1/200}.}
 
-\item{lowerPeriod}{Lowest period to be analysed \code{Default=2}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
-scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{lowerPeriod}{Shortest period of the wavelet transform of the tuned proxy data, in kyr (numeric, > 0; at
+least twice the sample spacing in time). Passed to \code{\link{analyse_wavelet}}; only used when
+\code{run_multicore=TRUE}. \code{Default=1}.}
 
-\item{upperPeriod}{Upper period to be analysed \code{Default=1024}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
- scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{upperPeriod}{Longest period of the wavelet transform of the tuned proxy data, in kyr (numeric, larger than
+\code{lowerPeriod}). Passed to \code{\link{analyse_wavelet}}; only used when \code{run_multicore=TRUE}.
+\code{Default=4600}.}
 
-\item{omega_nr}{The omega number: central angular frequency of the Morlet wavelet}
+\item{omega_nr}{Central angular frequency (omega_0) of the Morlet wavelet used on the tuned proxy data (numeric,
+> 0; larger values give a better period resolution and a poorer depth resolution). Passed to
+\code{\link{analyse_wavelet}}; only used when \code{run_multicore=TRUE}. \code{Default=6}.}
 
-\item{seed_nr}{The seed number of the Monte-Carlo simulations.
-\code{Default=1337}}
+\item{seed_nr}{Seed of the random number generator (integer), so that the Monte Carlo simulations can be
+reproduced. \code{Default=1337}.}
 
-\item{dir}{time direction of tuning e.g. does time increase or decrease with depth}
+\item{dir}{Direction of time with depth (logical): \code{TRUE} time increases with depth (younger at the top),
+\code{FALSE} time decreases with depth (the age model is reversed). \code{Default=TRUE}.}
 }
 \value{
 The output is a list of 3 or 4 elements

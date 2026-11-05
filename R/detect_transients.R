@@ -11,13 +11,24 @@
 #' The transform cannot see a jump of the sedimentation rate itself (the cycles stay continuous); it sees the phase
 #' jumps that a gap in time causes.
 #'
-#' @param data Record: first column depth, second column proxy.
-#' @param lowerPeriod,upperPeriod,dj Period range and spacing of the transform.
-#' @param omega_nr Morlet omega_0 \code{Default=6} (short wavelets localise transients best).
-#' @param threshold Peaks above this multiple of the running median of the transient energy are reported
-#' \code{Default=4}.
-#' @param min_distance Minimum distance between reported transients (depth units) \code{Default=upperPeriod / 4}.
-#' @param window Length (depth units) of the running median \code{Default=2 * upperPeriod}.
+#' @param data Record to scan (matrix or data frame): depth in column 1 and the proxy in column 2; incomplete rows
+#' are dropped, the rows sorted, the record linearly interpolated to its median spacing and standardised.
+#' Required, no default.
+#' @param lowerPeriod Shortest period of the Morlet wavelet transform, in depth units (numeric, > 0; at least twice
+#' the sample spacing). Required, no default.
+#' @param upperPeriod Longest period of the transform, in depth units (numeric, larger than \code{lowerPeriod});
+#' it also sets the defaults of \code{min_distance} and \code{window}. Required, no default.
+#' @param dj Spacing of the periods of the transform, in octaves (numeric, > 0; \code{1/20} gives 20 periods per
+#' doubling). \code{Default=1/20}.
+#' @param omega_nr Central angular frequency (omega_0) of the Morlet wavelet (numeric, > 0); small values give short
+#' wavelets, which localise transients best. \code{Default=6}.
+#' @param threshold Detection threshold (numeric, > 1): positions where the reassigned (transient) energy exceeds
+#' this multiple of the running median of the energy are reported as transients. \code{Default=4}.
+#' @param min_distance Minimum distance between two reported transients, in depth units (numeric, >= 0); of
+#' candidates closer together only the strongest is kept. \code{NULL} uses \code{upperPeriod / 4}.
+#' \code{Default=NULL}.
+#' @param window Length of the running median that forms the baseline of the energy, in depth units (numeric, > 0).
+#' \code{NULL} uses \code{2 * upperPeriod}. \code{Default=NULL}.
 #'
 #' @return A list with \code{profile} (data frame: depth, energy, ratio to the running median) and \code{transients}
 #' (data frame: depth, ratio of the detected peaks, strongest first).
@@ -39,7 +50,7 @@
 #' tr$transients
 #' @export
 detect_transients <- function(data, lowerPeriod, upperPeriod, dj = 1 / 20, omega_nr = 6, threshold = 4,
-                              min_distance = NULL, window = NULL) {
+    min_distance = NULL, window = NULL) {
   dat <- as.matrix(data)
   dat <- dat[stats::complete.cases(dat[, 1:2]), 1:2, drop = FALSE]
   dat <- dat[order(dat[, 1]), , drop = FALSE]
@@ -70,25 +81,33 @@ detect_transients <- function(data, lowerPeriod, upperPeriod, dj = 1 / 20, omega
     e <- Mod(w)^2 / scales[j]
     tb <- round((seq_len(n) - 1) - tau / dt) + 1
     ok <- is.finite(tb) & tb >= 1 & tb <= n & is.finite(e)
-    acc <- numeric(n); agg <- rowsum(e[ok], tb[ok]); acc[as.integer(rownames(agg))] <- agg[, 1]
+    acc <- numeric(n)
+    agg <- rowsum(e[ok], tb[ok])
+    acc[as.integer(rownames(agg))] <- agg[, 1]
     energy <- energy + acc
     orig <- orig + e
   }
   # a harmonic component is reassigned onto itself (t_hat = b): the ratio of the reassigned to the original energy is
   # about one; an impulsive feature draws the energy of its whole neighbourhood onto one position
-  if (is.null(window)) window <- 2 * upperPeriod
+  if (is.null(window)) {
+    window <- 2 * upperPeriod
+  }
   k <- max(3, 2 * floor(window / dt / 2) + 1)
   k <- min(k, 2 * floor((n - 1) / 2) + 1)
   base <- stats::runmed(orig, k, endrule = "median")
   ratio <- energy / pmax(base, 1e-12 * max(orig))
   profile <- data.frame(depth = xout, energy = energy, ratio = ratio)
-  if (is.null(min_distance)) min_distance <- upperPeriod / 4
+  if (is.null(min_distance)) {
+    min_distance <- upperPeriod / 4
+  }
   cand <- which(ratio > threshold)
   trans <- data.frame(depth = numeric(0), ratio = numeric(0))
   if (length(cand)) {
     o <- cand[order(-ratio[cand])]
     for (i in o) {
-      if (!nrow(trans) || all(abs(xout[i] - trans$depth) >= min_distance)) trans <- rbind(trans, data.frame(depth = xout[i], ratio = ratio[i]))
+      if (!nrow(trans) || all(abs(xout[i] - trans$depth) >= min_distance)) {
+        trans <- rbind(trans, data.frame(depth = xout[i], ratio = ratio[i]))
+      }
     }
   }
   list(profile = profile, transients = trans)

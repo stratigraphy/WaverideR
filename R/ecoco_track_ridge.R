@@ -2,16 +2,30 @@
 #' @description Within-window min-max normalised score, quadratic jump penalty
 #'   (penalty 0.35, jump scale max(2, 4*sr step)), Viterbi back-tracking
 #'   (trackEcocoRidge in Acycle ecoco.m).
-#' @param score,rho,p,norbit rate-by-window matrices
-#' @param sr sedimentation-rate grid (cm/kyr)
-#' @param depth window centres (m)
-#' @param fallback result of ecoco_best_per_window() \code{Default=NULL}
-#' @param jump_penalty weight of the quadratic jump penalty \code{Default=0.35}
+#' @param score Score map through which the ridge is tracked (numeric matrix, rates in rows, windows in columns),
+#' e.g. element \code{score} of the output of \code{\link{ecoco_adaptive}}; it is min-max normalised within each
+#' window before tracking. Required, no default.
+#' @param sr Sedimentation-rate grid of the score map, in cm/kyr (numeric vector, one value per row of
+#' \code{score}). Required, no default.
+#' @param depth Depths of the window centres, in metres (numeric vector, one value per column of \code{score}).
+#' Required, no default.
+#' @param rho Correlation coefficients (numeric matrix of the same size as \code{score}); the values along the
+#' ridge are returned. Required, no default.
+#' @param p Global Monte Carlo p-values (numeric matrix of the same size as \code{score}); the values along the
+#' ridge are returned. Required, no default.
+#' @param norbit Number of contributing orbital periods (numeric matrix of the same size as \code{score}); the values
+#' along the ridge are returned. Required, no default.
+#' @param fallback Result returned for windows the ridge does not reach, the output of
+#' \code{\link{ecoco_best_per_window}} (data frame); \code{NULL} computes it from the other arguments.
+#' \code{Default=NULL}.
+#' @param jump_penalty Weight of the quadratic penalty on rate jumps between neighbouring windows (numeric, >= 0):
+#' each step costs \code{jump_penalty * (|sr jump| / max(2, 4 * sr step))^2}. Larger values give a smoother
+#' ridge, \code{0} picks the best rate in every window independently. \code{Default=0.35}.
 #' @return data.frame with depth, sr, rho, p_global, norbit, score, sr_low, sr_high
 #' @export
 ecoco_track_ridge <- function(score, sr, depth, rho, p, norbit, fallback = NULL,
-                              jump_penalty = 0.35){
-  # ---- internal helper functions (local to this function) ----
+    jump_penalty = 0.35){
+  # Internal helper functions (local to this function)
 
   .local_sr_range <- function(score_col, sr, row, rel = 0.9){
     if (row < 1 || row > length(score_col) || !is.finite(score_col[row])){
@@ -31,7 +45,7 @@ ecoco_track_ridge <- function(score, sr, depth, rho, p, norbit, fallback = NULL,
     range(sr[c(lo, hi)])
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(fallback)){
     fallback <- ecoco_best_per_window(sr, depth, rho, p, norbit, score)
   }

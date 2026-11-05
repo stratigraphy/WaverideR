@@ -1,22 +1,22 @@
 # Internal helper (padded Hilbert envelope). Not exported: astrochron::hilbert() provides this functionality.
 wr_hilbert_padded <- function(data = NULL,
-                              demean = TRUE,
-                              nr_pad = 100) {
+    demean = TRUE,
+    nr_pad = 100) {
 
   mean_dat <- mean(data[, 2])
   data[, 2] <- data[, 2] - mean_dat
 
   step <- (data[2, 1] - data[1, 1])
   top <- seq(from = data[1, 1] - (nr_pad * step),
-             by = step ,
-             length.out = nr_pad)
+      by = step ,
+      length.out = nr_pad)
   top_dat <- rep(data[1, 2], times = nr_pad)
   top <- cbind(top, top_dat)
   colnames(top) <- colnames(data)
 
   bottom <- seq(from = data[nrow(data), 1] + step ,
-                by = step ,
-                length.out = nr_pad)
+      by = step ,
+      length.out = nr_pad)
   bottom_dat <- rep(data[nrow(data), 2], times = nr_pad)
   bottom <- cbind(bottom, bottom_dat)
   colnames(bottom) <- colnames(data)

@@ -7,7 +7,8 @@
 days_per_year(lod_h)
 }
 \arguments{
-\item{lod_h}{Length of day in hours.}
+\item{lod_h}{Length of the solar day in hours (numeric vector, > 0), e.g. from \code{\link{astrogeo22}}; the
+number of days per (Julian) year is \code{365.25 * 24 / lod_h}. Required, no default.}
 }
 \description{
 Days in a year for a given solar day length

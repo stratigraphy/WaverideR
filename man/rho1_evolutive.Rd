@@ -19,39 +19,42 @@ rho1_evolutive(
 )
 }
 \arguments{
-\item{data}{Matrix with two columns: depth/time and proxy value (sorted,
-non-finite rows removed). \code{Default=NULL}}
+\item{data}{Proxy record (required): matrix or data frame with depth/time in column 1 and the proxy value in
+column 2 (further columns are ignored). Rows with non-finite values are removed and the rows are sorted by
+depth/time; the depth/time values must be unique. \code{Default=NULL}.}
 
-\item{window_min}{Window length (single run) or minimum window length
-(Monte Carlo). If NULL: single run min(400, 0.3 * data length); Monte
-Carlo 400 if 0.3 * data length > 400, otherwise 0.3 * data length.
-\code{Default=NULL}}
+\item{window_min}{Window length in depth/time units (numeric, > 0): the window of the single run
+(\code{n_sim = 0}) or the shortest window drawn in the Monte Carlo run. \code{NULL}: \code{min(400, 0.3 * L)} where
+L is the length of the record (in the Monte Carlo run 400 if \code{0.3 * L > 400}, otherwise \code{0.3 * L}). In the
+single run the window must span at least three interpolated points. \code{Default=NULL}.}
 
-\item{window_max}{Maximum window length (Monte Carlo). If NULL: 500 if
-0.3 * data length > 400, otherwise 0.4 * data length. \code{Default=NULL}}
+\item{window_max}{Longest window drawn in the Monte Carlo run, in depth/time units (numeric, >= \code{window_min});
+not used when \code{n_sim = 0}. \code{NULL}: 500 if \code{0.3 * L > 400}, otherwise \code{0.4 * L}. \code{Default=NULL}.}
 
-\item{sample_min}{Sampling interval (single run) or minimum sampling
-interval (Monte Carlo). If NULL the 95th percentile of the data sampling
-intervals. \code{Default=NULL}}
+\item{sample_min}{Interpolation interval in depth/time units (numeric, > 0): the interval of the single run or the
+smallest interval drawn in the Monte Carlo run. \code{NULL} uses the 95th percentile of the sampling intervals of
+\code{data}. \code{Default=NULL}.}
 
-\item{sample_max}{Maximum sampling interval (Monte Carlo). If NULL twice
-the 95th percentile of the data sampling intervals. \code{Default=NULL}}
+\item{sample_max}{Largest interpolation interval drawn in the Monte Carlo run, in depth/time units (numeric,
+>= \code{sample_min}); not used when \code{n_sim = 0}. \code{NULL} uses twice the 95th percentile of the sampling
+intervals. \code{Default=NULL}.}
 
-\item{n_sim}{Number of Monte Carlo simulations (at least 50, as in
-Acycle); 0 gives a single deterministic run. \code{Default=1000}}
+\item{n_sim}{Number of Monte Carlo simulations (integer, 0 or >= 50, as in Acycle). \code{0} gives a single
+deterministic run with \code{window_min} and \code{sample_min}. \code{Default=1000}.}
 
-\item{n_out}{Number of grid points of the Monte Carlo output. If NULL
-min(1000, number of data points). \code{Default=NULL}}
+\item{n_out}{Number of points of the regular depth/time grid on which the Monte Carlo curves are interpolated and
+summarised (integer, > 1). \code{NULL}: \code{min(1000, number of data points)}. \code{Default=NULL}.}
 
-\item{shift_grid}{Randomly shift the window centers of every simulation
-(Acycle "shift grids" > 1). \code{Default=TRUE}}
+\item{shift_grid}{Shift the window centres of every simulation by a random offset, uniform between minus and plus
+half the window length (logical; Acycle "shift grids" > 1). Only used in the Monte Carlo run. \code{Default=TRUE}.}
 
-\item{seed}{Seed for the random number generator (NULL = not set).
-\code{Default=NULL}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{verbose}{Show a progress bar. \code{Default=FALSE}}
+\item{verbose}{Show a progress bar of the Monte Carlo simulations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{genplot}{Plot the result. \code{Default=FALSE}}
+\item{genplot}{Plot the result (logical): the rho1 curve of the single run, or the percentile bands with the median
+of the Monte Carlo run. \code{Default=FALSE}.}
 }
 \value{
 For \code{n_sim = 0} a list with \code{rho1} (matrix [window

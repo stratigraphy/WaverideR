@@ -7,9 +7,12 @@
 orbit9(k_kyr, gs = LA2004)
 }
 \arguments{
-\item{k_kyr}{precession constant (period of p) in kyr}
+\item{k_kyr}{Precession constant k expressed as the period of the axial precession, in kyr (numeric, > 0; about
+25.7 kyr today). Required (no default).}
 
-\item{gs}{list with elements g and s, in arcsec/yr}
+\item{gs}{Secular frequencies in arcsec/yr: a list with elements \code{g} and \code{s}, each a numeric vector of
+the nine fundamental frequencies g1-g9 and s1-s9. The default \code{LA2004} is the La2004 table (Laskar et al.,
+2004) defined inside the function. \code{Default=LA2004}.}
 }
 \value{
 data frame: term, group, frequency (arcsec/yr), period (kyr)

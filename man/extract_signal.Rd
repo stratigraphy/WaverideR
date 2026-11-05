@@ -17,25 +17,38 @@ extract_signal(
 )
 }
 \arguments{
-\item{tracked_cycle_curve}{Traced period result from the \code{track_period_wavelet}
-function completed using the \code{completed_series}.
-The input can be pre-smoothed using the the \code{loess_auto} function.}
+\item{tracked_cycle_curve}{Tracked period of the cycle along the record (matrix or data frame: depth/time in
+column 1, period in column 2, in the depth/time unit of the wavelet), e.g. the output of
+\code{\link{track_period_wavelet}} completed with \code{\link{completed_series}}, optionally smoothed with
+\code{\link{loess_auto}}. Rows with \code{NA} are dropped and the curve is linearly interpolated (and
+extrapolated) to the depth/time axis of the wavelet. Required (\code{Default=NULL}).}
 
-\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+its coefficients. Required (\code{Default=NULL}).}
 
-\item{period_up}{Upper period as a factor of the to be extracted cycle \code{Default=1.2}.}
+\item{period_up}{Upper boundary of the band that is reconstructed, as a factor of the (rescaled) tracked period
+(numeric, > \code{period_down}). \code{Default=1.2}.}
 
-\item{period_down}{Lower period as a factor of the to be extracted cycle \code{Default=0.8}.}
+\item{period_down}{Lower boundary of the band that is reconstructed, as a factor of the (rescaled) tracked period
+(numeric, > 0). \code{Default=0.8}.}
 
-\item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
+\item{add_mean}{Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+\code{FALSE} returns it centred on zero. \code{Default=TRUE}.}
 
-\item{tracked_cycle_period}{Period in time of the traced cycle.}
+\item{tracked_cycle_period}{Duration in time of the tracked cycle, e.g. 405 (kyr) for the long eccentricity cycle
+(numeric, > 0), in the same unit as \code{extract_cycle}. The tracked curve is multiplied by
+\code{extract_cycle / tracked_cycle_period}; also used for the tuning when \code{tune=TRUE}. Required
+(\code{Default=NULL}).}
 
-\item{extract_cycle}{Period of the to be extracted cycle.}
+\item{extract_cycle}{Duration of the cycle to extract (numeric, > 0), in the same unit as
+\code{tracked_cycle_period}; use the same value to extract the tracked cycle itself. Required
+(\code{Default=NULL}).}
 
-\item{tune}{Convert record from the depth to the time domain using the traced period \code{Default=FALSE}.}
+\item{tune}{Convert the extracted cycle from the depth to the time domain with \code{\link{curve2tune}}, using
+\code{tracked_cycle_curve} and \code{tracked_cycle_period} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{plot_residual}{Plot the residual signal after extraction of set cycle \code{Default=FALSE}.}
+\item{plot_residual}{Plot the residual (extracted cycle minus data) against depth and its histogram (logical,
+TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 Returns a matrix with 2 columns

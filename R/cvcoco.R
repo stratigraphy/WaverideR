@@ -34,42 +34,47 @@
 #' \code{ml_periodogram} and \code{theored_ar1_ml};
 #' and, for \code{red = 3}, \code{swa_background}.
 #'
-#' @param data Matrix with two columns: depth (m) and proxy value.
-#' Unsorted, duplicated and irregularly spaced depths are allowed.
-#' @param orbit9 Nine astronomical periods (kyr): one long eccentricity, four
-#' short eccentricity, one obliquity and three precession periods (groups
-#' are identified by descending period rank).
-#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897,
-#' 23.6820, 22.3758, 18.9519)}
-#' @param pad Periodogram length (zero padding); each fold uses
-#' \code{max(pad, n_fold)}. \code{Default=0} (no padding, as in the Acycle
-#' GUI when padding is unchecked)
-#' @param sr1 Minimum sedimentation rate (cm/kyr). \code{Default=1}
-#' @param sr2 Maximum sedimentation rate (cm/kyr). \code{Default=20}
-#' @param srstep Sedimentation-rate step (cm/kyr). \code{Default=0.1}
-#' @param red Red-noise background removal: 0 none, 1 classical AR(1),
-#' 2 robust AR(1), 3 smoothed-window average (SWA). \code{Default=0}
-#' @param n_sim Number of Monte Carlo simulations (0 gives only the
-#' deterministic curves). \code{Default=1000}
-#' @param cor_method Correlation method, "Pearson" or "Spearman".
-#' \code{Default="Pearson"}
-#' @param method Split design: "blocked" (depth midpoint halves) or
-#' "interleaved" (odd/even observations). \code{Default="blocked"}
-#' @param target_model "four-group-coherent-nine" or "four-group" (only for
-#' \code{method = "blocked"}). \code{Default="four-group-coherent-nine"}
-#' @param max_frequency Maximum temporal frequency (cycle/kyr) used in all
-#' spectral correlations. \code{NULL} uses 1.2 times the highest orbital
-#' frequency. \code{Default=NULL}
-#' @param batch_size Monte Carlo realisations processed simultaneously.
-#' \code{Default=100}
-#' @param seed Seed for the random-number generator; \code{NULL} leaves the
-#' generator untouched. \code{Default=NULL}
-#' @param interleaved_phase 0: the first cleaned observation belongs to the
-#' Odd fold; 1: it belongs to the Even fold. \code{Default=0}
-#' @param genplot Plot the results with \code{\link{plot_cvcoco}}.
-#' \code{Default=FALSE}
-#' @param verbose Print preprocessing information and a progress bar.
-#' \code{Default=FALSE}
+#' @param data Record to test (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+#' column 2. Unsorted, duplicated and irregularly spaced depths are allowed (each fold is cleaned and linearly
+#' interpolated to its own median spacing). Required (\code{Default=NULL} gives an error).
+#' @param orbit9 The nine astronomical target periods in kyr (numeric vector of nine distinct, positive values):
+#' one long eccentricity, four short eccentricity, one obliquity and three precession periods (the groups are
+#' identified by descending period rank), e.g. from \code{\link{orbit9_at_age}} for the age of the record.
+#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.
+#' @param pad Length (number of points) of the zero-padded periodogram (non-negative integer); each fold uses
+#' \code{max(pad, n_fold)}, so \code{0} means no padding (as in the Acycle GUI when padding is unchecked); a larger
+#' value gives a finer frequency grid but uses more memory. \code{Default=0}.
+#' @param sr1 Lowest sedimentation rate tested, in cm/kyr (numeric, > 0). \code{Default=1}.
+#' @param sr2 Highest sedimentation rate tested, in cm/kyr (numeric, >= \code{sr1}). \code{Default=20}.
+#' @param srstep Step of the sedimentation-rate grid, in cm/kyr (numeric, > 0). \code{Default=0.1}.
+#' @param red Red-noise background removed from every spectrum (integer): \code{0} none, \code{1} classical AR(1),
+#' \code{2} robust AR(1) (median-smoothed spectrum), \code{3} smoothed-window average (SWA). \code{Default=0}.
+#' @param n_sim Number of AR(1) Monte Carlo simulations of the complete bidirectional train/validate pipeline,
+#' used for the p-values and pCOCO (integer, 0 to 1e6); \code{0} gives only the deterministic curves.
+#' \code{Default=1000}.
+#' @param cor_method Correlation coefficient used in all spectral correlations (character): \code{"Pearson"} or
+#' \code{"Spearman"}. \code{Default="Pearson"}.
+#' @param method How the record is split into the two folds (character): \code{"blocked"} (two contiguous halves at
+#' the depth midpoint; Blocked cvCOCO, the Acycle default) or \code{"interleaved"} (odd and even observations;
+#' Interleaved cvCOCO). \code{Default="blocked"}.
+#' @param target_model Design of the target (character): \code{"four-group-coherent-nine"} (the four group
+#' amplitudes expanded to nine zero-phase sinusoids summed coherently; Acycle GUI default) or \code{"four-group"}
+#' (phase-averaged, noncoherent four-group target; only allowed with \code{method="blocked"}).
+#' \code{Default="four-group-coherent-nine"}.
+#' @param max_frequency Highest frequency used in all spectral correlations, in cycles/kyr (numeric, at least the
+#' highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses 1.2 times the highest orbital frequency.
+#' \code{Default=NULL}.
+#' @param batch_size Number of Monte Carlo realisations processed together (positive integer; it is reduced
+#' automatically when memory would run short); larger batches are faster but use more memory.
+#' \code{Default=100}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param interleaved_phase Which fold the first cleaned observation belongs to when \code{method="interleaved"}
+#' (integer): \code{0} the odd fold, \code{1} the even fold. Ignored for \code{method="blocked"}.
+#' \code{Default=0}.
+#' @param genplot Plot the results with \code{\link{plot_cvcoco}} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param verbose Print preprocessing information and show a progress bar of the Monte Carlo simulations
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li.
 #'
@@ -144,28 +149,26 @@
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 cvcoco <- function(data = NULL,
-                   orbit9 = c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856,
-                              40.9897, 23.6820, 22.3758, 18.9519),
-                   pad = 0,
-                   sr1 = 1,
-                   sr2 = 20,
-                   srstep = 0.1,
-                   red = 0,
-                   n_sim = 1000,
-                   cor_method = "Pearson",
-                   method = "blocked",
-                   target_model = "four-group-coherent-nine",
-                   max_frequency = NULL,
-                   batch_size = 100,
-                   seed = NULL,
-                   interleaved_phase = 0,
-                   genplot = FALSE,
-                   verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    orbit9 = c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856,
+        40.9897, 23.6820, 22.3758, 18.9519),
+    pad = 0,
+    sr1 = 1,
+    sr2 = 20,
+    srstep = 0.1,
+    red = 0,
+    n_sim = 1000,
+    cor_method = "Pearson",
+    method = "blocked",
+    target_model = "four-group-coherent-nine",
+    max_frequency = NULL,
+    batch_size = 100,
+    seed = NULL,
+    interleaved_phase = 0,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # =========================================================================
   # internal helpers
-  # =========================================================================
 
   # @keywords internal
   # @noRd
@@ -203,7 +206,7 @@ cvcoco <- function(data = NULL,
   # @keywords internal
   # @noRd
   cvcoco_prepare_data <- function(data, method, interleaved_phase, analysis_name,
-                                  verbose){
+      verbose){
     keep <- is.finite(data[, 1]) & is.finite(data[, 2])
     clean <- data[keep, , drop = FALSE]
     if (nrow(clean) < 8){
@@ -255,18 +258,18 @@ cvcoco <- function(data = NULL,
     if (verbose == TRUE){
       if (info_A$applied == TRUE){
         message(sprintf("%s: %s linearly interpolated from %d to %d points at %.6g m (largest gap %.3g x median)",
-                        analysis_name, label_A, info_A$original_points,
-                        info_A$interpolated_points, dz_A, info_A$max_gap_ratio))
+            analysis_name, label_A, info_A$original_points,
+            info_A$interpolated_points, dz_A, info_A$max_gap_ratio))
       }
       if (info_B$applied == TRUE){
         message(sprintf("%s: %s linearly interpolated from %d to %d points at %.6g m (largest gap %.3g x median)",
-                        analysis_name, label_B, info_B$original_points,
-                        info_B$interpolated_points, dz_B, info_B$max_gap_ratio))
+            analysis_name, label_B, info_B$original_points,
+            info_B$interpolated_points, dz_B, info_B$max_gap_ratio))
       }
     }
     list(clean = clean, A = A, B = B, split_depth = split_depth, dz_A = dz_A,
-         dz_B = dz_B, info_A = info_A, info_B = info_B, index_A = index_A,
-         index_B = index_B)
+        dz_B = dz_B, info_A = info_A, info_B = info_B, index_A = index_A,
+        index_B = index_B)
   }
 
   # @keywords internal
@@ -299,12 +302,12 @@ cvcoco <- function(data = NULL,
     }
     grid <- raw[1, 1] + (0:interval_count) * dz
     endpoint_tolerance <- 16 * cvcoco_eps(max(1, max(abs(raw[c(1, n_raw), 1])))) *
-      max(1, length(grid))
+        max(1, length(grid))
     if (abs(grid[length(grid)] - raw[n_raw, 1]) <= endpoint_tolerance){
       grid[length(grid)] <- raw[n_raw, 1]
     }
     values <- stats::approx(raw[, 1], raw[, 2], xout = grid, method = "linear",
-                            rule = 1)$y
+        rule = 1)$y
     ok <- is.finite(grid) & is.finite(values)
     out <- cbind(grid[ok], values[ok])
     if (nrow(out) < 4){
@@ -320,13 +323,13 @@ cvcoco <- function(data = NULL,
     tolerance <- 1e-5 * abs(dz)
     deviation <- max(abs(spacing - dz))
     list(applied = deviation > tolerance,
-         original_points = nrow(raw),
-         interpolated_points = nrow(out),
-         original_depth_range = raw[c(1, nrow(raw)), 1],
-         interpolated_depth_range = out[c(1, nrow(out)), 1],
-         spacing_min = min(spacing), spacing_median = dz,
-         spacing_max = max(spacing), max_gap_ratio = max(spacing) / dz,
-         tolerance = tolerance, max_spacing_deviation = deviation)
+        original_points = nrow(raw),
+        interpolated_points = nrow(out),
+        original_depth_range = raw[c(1, nrow(raw)), 1],
+        interpolated_depth_range = out[c(1, nrow(out)), 1],
+        spacing_min = min(spacing), spacing_median = dz,
+        spacing_max = max(spacing), max_gap_ratio = max(spacing) / dz,
+        tolerance = tolerance, max_spacing_deviation = deviation)
   }
 
   # @keywords internal
@@ -348,7 +351,7 @@ cvcoco <- function(data = NULL,
     relative_rms <- (residual_scale / reference_scale) * sqrt(energy / n)
     residual_std <- residual_scale * sqrt(energy / (n - 1))
     out$resolved <- is.finite(relative_rms) && relative_rms > tolerance &&
-      is.finite(residual_std) && residual_std > 0
+        is.finite(residual_std) && residual_std > 0
     out$std <- residual_std
     out
   }
@@ -378,7 +381,7 @@ cvcoco <- function(data = NULL,
   # @keywords internal
   # @noRd
   cvcoco_geometry <- function(depth, periods, sr_grid, pad, group_index,
-                              target_model, max_frequency){
+      target_model, max_frequency){
     n <- length(depth)
     dz <- stats::median(diff(depth))
     fs <- 1 / dz
@@ -392,31 +395,31 @@ cvcoco <- function(data = NULL,
     df <- fs / nfft
 
     geom <- list(n = n, dz = dz, fs = fs, nfft = nfft, frequency = frequency,
-                 rayleigh = rayleigh, nyquist = nyquist, df = df,
-                 band_lo = matrix(0, n_rate, 9), band_hi = matrix(0, n_rate, 9),
-                 basis = vector("list", n_rate),
-                 group_template = vector("list", n_rate),
-                 group_band_index = vector("list", n_rate),
-                 group_unit_energy = matrix(NA_real_, n_rate, 4),
-                 group_leakage_matrix = vector("list", n_rate),
-                 group_leakage_rcond = rep(NA_real_, n_rate),
-                 group_leakage_solve_matrix = vector("list", n_rate),
-                 partial_group_leakage_rcond = rep(NA_real_, n_rate),
-                 minimum_leakage_rcond = 1e-10,
-                 corr_index = vector("list", n_rate),
-                 valid_rate_mask = rep(FALSE, n_rate),
-                 training_rate_mask = rep(FALSE, n_rate),
-                 strict_training_rate_mask = rep(FALSE, n_rate),
-                 partial_training_rate_mask = rep(FALSE, n_rate),
-                 training_active_group_mask = matrix(FALSE, n_rate, 4),
-                 orbit_count = rep(0, n_rate),
-                 resolved_orbit_mask = matrix(FALSE, n_rate, 9),
-                 resolved_group_count = matrix(0, n_rate, 4),
-                 cross_group_band_overlap = rep(FALSE, n_rate),
-                 group_index = group_index, target_model = target_model,
-                 all_nine_rate_range = c(max(200 * dz / periods),
-                                         min(100 * n * dz / periods)),
-                 sr_grid = sr_grid, spectrum_scale = 1 / (fs * n))
+        rayleigh = rayleigh, nyquist = nyquist, df = df,
+        band_lo = matrix(0, n_rate, 9), band_hi = matrix(0, n_rate, 9),
+        basis = vector("list", n_rate),
+        group_template = vector("list", n_rate),
+        group_band_index = vector("list", n_rate),
+        group_unit_energy = matrix(NA_real_, n_rate, 4),
+        group_leakage_matrix = vector("list", n_rate),
+        group_leakage_rcond = rep(NA_real_, n_rate),
+        group_leakage_solve_matrix = vector("list", n_rate),
+        partial_group_leakage_rcond = rep(NA_real_, n_rate),
+        minimum_leakage_rcond = 1e-10,
+        corr_index = vector("list", n_rate),
+        valid_rate_mask = rep(FALSE, n_rate),
+        training_rate_mask = rep(FALSE, n_rate),
+        strict_training_rate_mask = rep(FALSE, n_rate),
+        partial_training_rate_mask = rep(FALSE, n_rate),
+        training_active_group_mask = matrix(FALSE, n_rate, 4),
+        orbit_count = rep(0, n_rate),
+        resolved_orbit_mask = matrix(FALSE, n_rate, 9),
+        resolved_group_count = matrix(0, n_rate, 4),
+        cross_group_band_overlap = rep(FALSE, n_rate),
+        group_index = group_index, target_model = target_model,
+        all_nine_rate_range = c(max(200 * dz / periods),
+            min(100 * n * dz / periods)),
+        sr_grid = sr_grid, spectrum_scale = 1 / (fs * n))
     one_sided <- rep(2, nf)
     one_sided[1] <- 1
     if (nfft %% 2 == 0){
@@ -436,7 +439,7 @@ cvcoco <- function(data = NULL,
       }
       temporal_frequency <- frequency * sr / 100
       corr_index <- which(temporal_frequency <= max_frequency +
-                            16 * cvcoco_eps(max(1, max_frequency)))
+          16 * cvcoco_eps(max(1, max_frequency)))
       geom$corr_index[[m]] <- corr_index
       if (length(corr_index) < 3 || !any(is_resolved)){
         next
@@ -472,7 +475,7 @@ cvcoco <- function(data = NULL,
       for (j in 1:9){
         if (is_resolved[j] == TRUE){
           template[, group_index[j]] <- template[, group_index[j]] +
-            unit_power[, j]
+              unit_power[, j]
         }
       }
       band_list <- vector("list", 4)
@@ -491,7 +494,7 @@ cvcoco <- function(data = NULL,
       }
       geom$group_band_index[[m]] <- band_list
       geom$cross_group_band_overlap[m] <- cvcoco_band_overlap(
-        spatial_orbit, rayleigh, upper, is_resolved, group_index)
+          spatial_orbit, rayleigh, upper, is_resolved, group_index)
       leakage <- matrix(0, 4, 4)
       for (observed in 1:4){
         band <- band_list[[observed]]
@@ -509,7 +512,7 @@ cvcoco <- function(data = NULL,
       }
       geom$valid_rate_mask[m] <- any(template > 0)
       active <- geom$resolved_group_count[m, ] > 0 &
-        is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
+          is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
       active[is.na(active)] <- FALSE
       geom$training_active_group_mask[m, ] <- active
       solve_matrix <- leakage
@@ -527,13 +530,13 @@ cvcoco <- function(data = NULL,
       }
       prc <- geom$partial_group_leakage_rcond[m]
       geom$partial_training_rate_mask[m] <- geom$valid_rate_mask[m] &&
-        any(active) && is.finite(prc) && prc >= geom$minimum_leakage_rcond &&
-        !geom$cross_group_band_overlap[m]
+          any(active) && is.finite(prc) && prc >= geom$minimum_leakage_rcond &&
+          !geom$cross_group_band_overlap[m]
       energy <- geom$group_unit_energy[m, ]
       frc <- geom$group_leakage_rcond[m]
       geom$strict_training_rate_mask[m] <- all(is_resolved) &&
-        all(is.finite(energy) & energy > 0) && is.finite(frc) &&
-        frc >= geom$minimum_leakage_rcond && !geom$cross_group_band_overlap[m]
+          all(is.finite(energy) & energy > 0) && is.finite(frc) &&
+          frc >= geom$minimum_leakage_rcond && !geom$cross_group_band_overlap[m]
       geom$training_rate_mask[m] <- geom$strict_training_rate_mask[m]
     }
     geom
@@ -562,7 +565,7 @@ cvcoco <- function(data = NULL,
   # @keywords internal
   # @noRd
   cvcoco_band_overlap <- function(center, rayleigh, upper, is_resolved,
-                                  group_index){
+      group_index){
     active <- which(is_resolved)
     if (length(active) < 2){
       return(FALSE)
@@ -618,18 +621,18 @@ cvcoco <- function(data = NULL,
         background <- theored_ar1_ml(x, f, mean(p), geom$dz)
       } else if (red == 2){
         background <- cvcoco_redconf_any(2 * pi * f * geom$dz, p, geom$dz,
-                                         0.25, 2)
+            0.25, 2)
       } else {
         positive <- p[is.finite(p) & p > 0]
         if (length(positive) == 0){
           stop("SWA background removal requires a positive periodogram ordinate")
         }
         log_floor <- max(.Machine$double.xmin,
-                         max(positive) * .Machine$double.eps)
+            max(positive) * .Machine$double.eps)
         p_log <- p
         p_log[p_log < log_floor] <- log_floor
         background <- swa_background(freq = f, log_power = log10(p_log),
-                                     n_data = length(x), verbose = FALSE)$swa
+            n_data = length(x), verbose = FALSE)$swa
       }
       background <- as.numeric(background)
       if (length(background) != length(p) || any(!is.finite(background)) ||
@@ -679,27 +682,27 @@ cvcoco <- function(data = NULL,
     shape <- matrix(0, length(cospara), n_rho)
     for (i in seq_len(n_rho)){
       shape[, i] <- (1 - rho_grid[i]^2) /
-        (1 - 2 * cospara * rho_grid[i] + rho_grid[i]^2)
+          (1 - 2 * cospara * rho_grid[i] + rho_grid[i]^2)
     }
     if (any(!is.finite(shape) | shape <= 0) || any(!is.finite(s0_grid) |
-                                                    s0_grid <= 0)){
+        s0_grid <= 0)){
       stop("The rho/S0 search produced a nonpositive theoretical spectrum")
     }
     if (linlog == 1){
       a <- colSums(shape^2)
       b <- as.numeric(crossprod(shape, power))
       distance <- matrix(a, n_rho, n_s0) *
-        matrix(s0_grid^2, n_rho, n_s0, byrow = TRUE) -
-        2 * matrix(b, n_rho, n_s0) * matrix(s0_grid, n_rho, n_s0, byrow = TRUE) +
-        sum(power^2)
+          matrix(s0_grid^2, n_rho, n_s0, byrow = TRUE) -
+          2 * matrix(b, n_rho, n_s0) * matrix(s0_grid, n_rho, n_s0, byrow = TRUE) +
+          sum(power^2)
     } else {
       base <- log(shape) - log(power)
       rs <- colSums(base)
       rss <- colSums(base^2)
       ls <- log(s0_grid)
       distance <- matrix(rss, n_rho, n_s0) +
-        2 * matrix(rs, n_rho, n_s0) * matrix(ls, n_rho, n_s0, byrow = TRUE) +
-        length(power) * matrix(ls^2, n_rho, n_s0, byrow = TRUE)
+          2 * matrix(rs, n_rho, n_s0) * matrix(ls, n_rho, n_s0, byrow = TRUE) +
+          length(power) * matrix(ls^2, n_rho, n_s0, byrow = TRUE)
     }
     tol <- 256 * cvcoco_eps(max(1, max(abs(distance))))
     distance[distance < 0 & distance >= -tol] <- 0
@@ -759,7 +762,7 @@ cvcoco <- function(data = NULL,
     s0 <- mean(pxxsmooth)
     fit <- cvcoco_minirhos0(s0, fn, ft, pxxsmooth, linlog)
     fit$s0 * (1 - fit$rho^2) / (1 - (2 * fit$rho * cos(pi * ft / fn)) +
-                                  fit$rho^2)
+        fit$rho^2)
   }
 
   # @keywords internal
@@ -839,7 +842,7 @@ cvcoco <- function(data = NULL,
     group_amplitude <- as.matrix(group_amplitude)
     if (geom$target_model == "four-group-coherent-nine"){
       expanded <- group_amplitude[geom$group_index, , drop = FALSE] *
-        as.numeric(geom$resolved_orbit_mask[m, ])
+          as.numeric(geom$resolved_orbit_mask[m, ])
       target_fft <- geom$basis[[m]] %*% expanded
       target <- Mod(target_fft)^2 * geom$one_sided_weight * geom$spectrum_scale
     } else {
@@ -886,13 +889,13 @@ cvcoco <- function(data = NULL,
       group_power[!active, ] <- 0
       max_power <- cvcoco_col_max(group_power)
       negligible <- group_power <= matrix(max_power * tol2, 4, n_series,
-                                          byrow = TRUE)
+          byrow = TRUE)
       group_power[negligible] <- 0
       group_amplitude <- sqrt(group_power)
       target <- cvcoco_target_power(geom, m, group_amplitude)
       idx <- geom$corr_index[[m]]
       rho <- cvcoco_column_correlation(power[idx, , drop = FALSE],
-                                       target[idx, , drop = FALSE], cor_method)
+          target[idx, , drop = FALSE], cor_method)
       if (keep_curve == TRUE){
         curve[m, ] <- rho
       }
@@ -901,12 +904,12 @@ cvcoco <- function(data = NULL,
         best_score[better] <- rho[better]
         best_rate[better] <- geom$sr_grid[m]
         amplitude[, better] <- group_amplitude[geom$group_index, better,
-                                               drop = FALSE]
+            drop = FALSE]
       }
     }
     best_score[!is.finite(best_rate)] <- NA
     list(curve = curve, best_score = best_score, best_rate = best_rate,
-         amplitude = amplitude)
+        amplitude = amplitude)
   }
 
   # @keywords internal
@@ -955,7 +958,7 @@ cvcoco <- function(data = NULL,
       target <- cvcoco_target_power(geom, m, weights)
       idx <- geom$corr_index[[m]]
       rho <- cvcoco_column_correlation(power[idx, , drop = FALSE],
-                                       target[idx, , drop = FALSE], cor_method)
+          target[idx, , drop = FALSE], cor_method)
       curve[m, ] <- rho
       better <- is.finite(rho) & rho > best_score
       if (any(better)){
@@ -1026,7 +1029,7 @@ cvcoco <- function(data = NULL,
     centered <- x - mean(x)
     scale <- max(abs(x))
     tolerance <- length(x) * (256 * .Machine$double.eps *
-                                max(scale, .Machine$double.xmin))^2
+        max(scale, .Machine$double.xmin))^2
     !all(is.finite(centered)) || sum(centered^2) <= tolerance
   }
 
@@ -1113,7 +1116,7 @@ cvcoco <- function(data = NULL,
     if (n_sim_completed > 0 &&
         any(valid[is.finite(observed)] != n_sim_completed)){
       stop(sprintf("At least one %s null realization produced a nonfinite same-rate statistic",
-                   label))
+          label))
     }
     invisible(TRUE)
   }
@@ -1148,11 +1151,11 @@ cvcoco <- function(data = NULL,
     n_valid <- length(null_values)
     if (n_valid == 0 || !is.finite(observed)){
       return(list(p = NA_real_, n_valid = n_valid, n_exceed = 0,
-                  ci = c(NA_real_, NA_real_)))
+          ci = c(NA_real_, NA_real_)))
     }
     n_exceed <- sum(null_values >= observed)
     list(p = (n_exceed + 1) / (n_valid + 1), n_valid = n_valid,
-         n_exceed = n_exceed, ci = cvcoco_wilson(n_exceed, n_valid))
+        n_exceed = n_exceed, ci = cvcoco_wilson(n_exceed, n_valid))
   }
 
   # @keywords internal
@@ -1177,13 +1180,13 @@ cvcoco <- function(data = NULL,
     active_group <- as.numeric(weights) > 1e-8
     active_orbit <- active_group[geom$group_index]
     mask <- geom$resolved_orbit_mask &
-      matrix(active_orbit, nrow(geom$resolved_orbit_mask), 9, byrow = TRUE)
+        matrix(active_orbit, nrow(geom$resolved_orbit_mask), 9, byrow = TRUE)
     group_counts <- matrix(0, nrow(mask), 4)
     for (g in 1:4){
       group_counts[, g] <- rowSums(mask[, geom$group_index == g, drop = FALSE])
     }
     list(mask = mask, count = rowSums(mask), group_counts = group_counts,
-         active_orbit = active_orbit)
+        active_orbit = active_orbit)
   }
 
   # @keywords internal
@@ -1193,17 +1196,17 @@ cvcoco <- function(data = NULL,
     best_index <- which(sr_grid == best_rate)[1]
     curve <- as.numeric(tr$curve)
     out <- list(curve = curve, best_rate = best_rate, best_index = best_index,
-                best_correlation = cvcoco_value_at(curve, best_index),
-                amplitudes9 = as.numeric(tr$amplitude),
-                group_raw = as.numeric(grp$raw),
-                group_normalized = as.numeric(grp$normalized),
-                frozen_validation_weights = as.numeric(grp$normalized),
-                training_rate_mask = geom$training_rate_mask,
-                group_leakage_matrix = matrix(NA_real_, 4, 4),
-                group_leakage_rcond = NA_real_,
-                resolved_group_mask = rep(FALSE, 4),
-                resolvable_period_count = NA_real_,
-                training_completeness = "unresolved")
+        best_correlation = cvcoco_value_at(curve, best_index),
+        amplitudes9 = as.numeric(tr$amplitude),
+        group_raw = as.numeric(grp$raw),
+        group_normalized = as.numeric(grp$normalized),
+        frozen_validation_weights = as.numeric(grp$normalized),
+        training_rate_mask = geom$training_rate_mask,
+        group_leakage_matrix = matrix(NA_real_, 4, 4),
+        group_leakage_rcond = NA_real_,
+        resolved_group_mask = rep(FALSE, 4),
+        resolvable_period_count = NA_real_,
+        training_completeness = "unresolved")
     if (is.finite(best_index)){
       out$group_leakage_matrix <- geom$group_leakage_matrix[[best_index]]
       out$group_leakage_rcond <- geom$partial_group_leakage_rcond[best_index]
@@ -1221,15 +1224,15 @@ cvcoco <- function(data = NULL,
   # @keywords internal
   # @noRd
   cvcoco_validation_result <- function(curve, score, best_rate, sr_grid, geom,
-                                       weights){
+      weights){
     best_index <- which(sr_grid == best_rate)[1]
     out <- list(curve = curve, best_rate = best_rate, best_index = best_index,
-                score = score, valid_rate_mask = geom$valid_rate_mask,
-                resolvable_period_count = NA_real_,
-                resolvable_group_counts = rep(NA_real_, 4),
-                participating_period_count = NA_real_,
-                participating_group_counts = rep(NA_real_, 4),
-                all_nine_periods_participate = FALSE)
+        score = score, valid_rate_mask = geom$valid_rate_mask,
+        resolvable_period_count = NA_real_,
+        resolvable_group_counts = rep(NA_real_, 4),
+        participating_period_count = NA_real_,
+        participating_group_counts = rep(NA_real_, 4),
+        all_nine_periods_participate = FALSE)
     if (is.finite(best_index)){
       act <- cvcoco_active_counts(geom, weights)
       out$resolvable_period_count <- geom$orbit_count[best_index]
@@ -1244,9 +1247,9 @@ cvcoco <- function(data = NULL,
   # @keywords internal
   # @noRd
   cvcoco_spectrum_diagnostic <- function(power, geom, rate, weights, group_index,
-                                         mode){
+      mode){
     out <- list(rate = rate, frequency = numeric(0), data_power = numeric(0),
-                target_power = numeric(0), mode = mode)
+        target_power = numeric(0), mode = mode)
     if (!is.finite(rate)){
       return(out)
     }
@@ -1286,7 +1289,7 @@ cvcoco <- function(data = NULL,
     p_BtoA <- suppressWarnings(min(res$p_curve_BtoA[is.finite(res$p_curve_BtoA)]))
     if (!is.finite(p_AtoB) || !is.finite(p_BtoA)){
       return(list(available = FALSE,
-                  conclusion = "Monte Carlo p-values are required for a confirmatory report"))
+          conclusion = "Monte Carlo p-values are required for a confirmatory report"))
     }
     i_AtoB <- res$validate_AtoB$best_index
     i_BtoA <- res$validate_BtoA$best_index
@@ -1303,12 +1306,12 @@ cvcoco <- function(data = NULL,
     ci_B <- res$p_B_confidence_interval
     ci_sym <- res$p_sym_confidence_interval
     resolved_A <- (res$p_A < alpha && ci_A[2] < alpha) ||
-      (res$p_A >= alpha && ci_A[1] >= alpha)
+        (res$p_A >= alpha && ci_A[1] >= alpha)
     resolved_B <- (res$p_B < alpha && ci_B[2] < alpha) ||
-      (res$p_B >= alpha && ci_B[1] >= alpha)
+        (res$p_B >= alpha && ci_B[1] >= alpha)
     mc_resolved <- resolved_A && resolved_B
     sym_resolved <- (p_sym < alpha && ci_sym[2] < alpha) ||
-      (p_sym >= alpha && ci_sym[1] >= alpha)
+        (p_sym >= alpha && ci_sym[1] >= alpha)
     degraded <- isTRUE(res$degraded_mode)
     if (degraded == TRUE){
       if (directional_pass && symmetric_pass){
@@ -1339,24 +1342,24 @@ cvcoco <- function(data = NULL,
       classification <- paste0(classification, "; p_sym threshold uncertain")
     }
     list(available = TRUE,
-         mode = ifelse(degraded, "partial-orbit-exploratory", "confirmatory"),
-         confirmatory_eligible = !degraded,
-         alpha = alpha,
-         p_global_AtoB = p_AtoB, p_global_BtoA = p_BtoA,
-         p_A = p_BtoA, p_B = p_AtoB, p_robust = p_robust, p_sym = p_sym,
-         best_rate_AtoB = res$validate_AtoB$best_rate,
-         best_rate_BtoA = res$validate_BtoA$best_rate,
-         participating_periods_AtoB = period_AtoB,
-         participating_periods_BtoA = period_BtoA,
-         resolvable_periods_AtoB = resolvable_AtoB,
-         resolvable_periods_BtoA = resolvable_BtoA,
-         all_nine_at_both_best_rates = all_nine,
-         monte_carlo_threshold_resolved = mc_resolved,
-         p_sym_threshold_resolved = sym_resolved,
-         directional_pass = directional_pass,
-         symmetric_pass = symmetric_pass,
-         pass = (!degraded) && directional_pass,
-         classification = classification)
+        mode = ifelse(degraded, "partial-orbit-exploratory", "confirmatory"),
+        confirmatory_eligible = !degraded,
+        alpha = alpha,
+        p_global_AtoB = p_AtoB, p_global_BtoA = p_BtoA,
+        p_A = p_BtoA, p_B = p_AtoB, p_robust = p_robust, p_sym = p_sym,
+        best_rate_AtoB = res$validate_AtoB$best_rate,
+        best_rate_BtoA = res$validate_BtoA$best_rate,
+        participating_periods_AtoB = period_AtoB,
+        participating_periods_BtoA = period_BtoA,
+        resolvable_periods_AtoB = resolvable_AtoB,
+        resolvable_periods_BtoA = resolvable_BtoA,
+        all_nine_at_both_best_rates = all_nine,
+        monte_carlo_threshold_resolved = mc_resolved,
+        p_sym_threshold_resolved = sym_resolved,
+        directional_pass = directional_pass,
+        symmetric_pass = symmetric_pass,
+        pass = (!degraded) && directional_pass,
+        classification = classification)
   }
 
   detrend_linear <- function(x){
@@ -1381,7 +1384,7 @@ cvcoco <- function(data = NULL,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -1417,7 +1420,7 @@ cvcoco <- function(data = NULL,
     list(p = p_out, f = f)
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -1449,9 +1452,9 @@ cvcoco <- function(data = NULL,
     idx
   }
 
-  # ---- main code ----
+  # Main code
 
-  # ---------------------------------------------------------------- checks
+  # Checks
   if (is.null(data)){
     stop("data must be a two-column matrix [depth, value]")
   }
@@ -1462,7 +1465,7 @@ cvcoco <- function(data = NULL,
   data <- data[, 1:2, drop = FALSE]
   method <- match.arg(method, c("blocked", "interleaved"))
   target_model <- match.arg(target_model,
-                            c("four-group-coherent-nine", "four-group"))
+      c("four-group-coherent-nine", "four-group"))
   cor_method <- match.arg(cor_method, c("Pearson", "Spearman"))
   is_interleaved <- method == "interleaved"
   if (is_interleaved == TRUE && target_model != "four-group-coherent-nine"){
@@ -1507,8 +1510,8 @@ cvcoco <- function(data = NULL,
   if (max_frequency < highest_frequency -
       64 * cvcoco_eps(max(1, highest_frequency))){
     stop(sprintf(paste0("max_frequency (%.12g cycle/kyr) is below the highest ",
-                        "orbital frequency (%.12g cycle/kyr)"),
-                 max_frequency, highest_frequency))
+        "orbital frequency (%.12g cycle/kyr)"),
+        max_frequency, highest_frequency))
   }
   analysis_name <- "Blocked cvCOCO"
   fold_labels <- c("Segment A", "Segment B")
@@ -1518,7 +1521,7 @@ cvcoco <- function(data = NULL,
   }
   group_index <- coco_orbit_groups(orbit9)
   group_names <- c("Long eccentricity", "Short eccentricity", "Obliquity",
-                   "Precession")
+      "Precession")
 
   n_rate_estimate <- floor((sr2 - sr1) / srstep) + 1
   if (!is.finite(n_rate_estimate) || n_rate_estimate > 10000){
@@ -1527,11 +1530,11 @@ cvcoco <- function(data = NULL,
   sr_grid <- cvcoco_colon(sr1, srstep, sr2)
   n_rate <- length(sr_grid)
 
-  # --------------------------------------------------------- preprocessing
+  # Preprocessing
   prep <- cvcoco_prepare_data(data = data, method = method,
-                              interleaved_phase = interleaved_phase,
-                              analysis_name = analysis_name,
-                              verbose = verbose)
+      interleaved_phase = interleaved_phase,
+      analysis_name = analysis_name,
+      verbose = verbose)
   data_A <- prep$A
   data_B <- prep$B
   detrended_A <- as.numeric(detrend_linear(data_A[, 2]))
@@ -1568,15 +1571,15 @@ cvcoco <- function(data = NULL,
   }
 
   geom_A <- cvcoco_geometry(depth = data_A[, 1], periods = orbit9,
-                            sr_grid = sr_grid, pad = pad,
-                            group_index = group_index,
-                            target_model = target_model,
-                            max_frequency = max_frequency)
+      sr_grid = sr_grid, pad = pad,
+      group_index = group_index,
+      target_model = target_model,
+      max_frequency = max_frequency)
   geom_B <- cvcoco_geometry(depth = data_B[, 1], periods = orbit9,
-                            sr_grid = sr_grid, pad = pad,
-                            group_index = group_index,
-                            target_model = target_model,
-                            max_frequency = max_frequency)
+      sr_grid = sr_grid, pad = pad,
+      group_index = group_index,
+      target_model = target_model,
+      max_frequency = max_frequency)
   if (!any(geom_A$valid_rate_mask) || !any(geom_B$valid_rate_mask)){
     stop("No tested sedimentation rate has usable frequency geometry in both folds")
   }
@@ -1600,36 +1603,36 @@ cvcoco <- function(data = NULL,
         completeness_B <- "partial-orbit"
       }
       warning_message <- sprintf(paste0(
-        "%s has no tested rate that supports complete all-nine training in ",
-        "at least one fold. Continuing with a partial-orbit four-group target ",
-        "(unresolved group weights fixed to zero); the result is exploratory. ",
-        "Theoretical all-nine ranges (cm/kyr): %s (%.6g, %.6g], %s (%.6g, %.6g]."),
-        analysis_name, fold_labels[1], geom_A$all_nine_rate_range[1],
-        geom_A$all_nine_rate_range[2], fold_labels[2],
-        geom_B$all_nine_rate_range[1], geom_B$all_nine_rate_range[2])
+          "%s has no tested rate that supports complete all-nine training in ",
+          "at least one fold. Continuing with a partial-orbit four-group target ",
+          "(unresolved group weights fixed to zero); the result is exploratory. ",
+          "Theoretical all-nine ranges (cm/kyr): %s (%.6g, %.6g], %s (%.6g, %.6g]."),
+          analysis_name, fold_labels[1], geom_A$all_nine_rate_range[1],
+          geom_A$all_nine_rate_range[2], fold_labels[2],
+          geom_B$all_nine_rate_range[1], geom_B$all_nine_rate_range[2])
       warning(warning_message)
     } else {
       stop(sprintf(paste0(
-        "%s must train the complete four-group target at a tested rate where ",
-        "all nine periods are resolvable; no such rate exists in at least one ",
-        "fold. Theoretical all-nine ranges (cm/kyr): %s (%.6g, %.6g], ",
-        "%s (%.6g, %.6g]."), analysis_name, fold_labels[1],
-        geom_A$all_nine_rate_range[1], geom_A$all_nine_rate_range[2],
-        fold_labels[2], geom_B$all_nine_rate_range[1],
-        geom_B$all_nine_rate_range[2]))
+          "%s must train the complete four-group target at a tested rate where ",
+          "all nine periods are resolvable; no such rate exists in at least one ",
+          "fold. Theoretical all-nine ranges (cm/kyr): %s (%.6g, %.6g], ",
+          "%s (%.6g, %.6g]."), analysis_name, fold_labels[1],
+          geom_A$all_nine_rate_range[1], geom_A$all_nine_rate_range[2],
+          fold_labels[2], geom_B$all_nine_rate_range[1],
+          geom_B$all_nine_rate_range[2]))
     }
   }
 
-  # ------------------------------------------------------ observed pipeline
+  # Observed pipeline
   spec_A <- cvcoco_spectra(values = data_A[, 2], geom = geom_A, red = red)
   spec_B <- cvcoco_spectra(values = data_B[, 2], geom = geom_B, red = red)
   power_A <- spec_A$power
   power_B <- spec_B$power
 
   tr_A <- cvcoco_train(power = power_A, geom = geom_A,
-                       cor_method = cor_method, keep_curve = TRUE)
+      cor_method = cor_method, keep_curve = TRUE)
   tr_B <- cvcoco_train(power = power_B, geom = geom_B,
-                       cor_method = cor_method, keep_curve = TRUE)
+      cor_method = cor_method, keep_curve = TRUE)
   grp_A <- cvcoco_group_amplitudes(tr_A$amplitude, group_index)
   grp_B <- cvcoco_group_amplitudes(tr_B$amplitude, group_index)
   frozen_A <- grp_A$normalized
@@ -1638,9 +1641,9 @@ cvcoco <- function(data = NULL,
     stop("At least one training fold produced nonfinite frozen target weights")
   }
   va_AtoB <- cvcoco_validate(power = power_B, geom = geom_B,
-                             weights = frozen_A, cor_method = cor_method)
+      weights = frozen_A, cor_method = cor_method)
   va_BtoA <- cvcoco_validate(power = power_A, geom = geom_A,
-                             weights = frozen_B, cor_method = cor_method)
+      weights = frozen_B, cor_method = cor_method)
   curve_AtoB <- as.numeric(va_AtoB$curve)
   curve_BtoA <- as.numeric(va_BtoA$curve)
   score_AtoB <- va_AtoB$best_score[1]
@@ -1655,7 +1658,7 @@ cvcoco <- function(data = NULL,
     score_mean <- (score_AtoB + score_BtoA) / 2
   }
 
-  # ------------------------------------------------------------ Monte Carlo
+  # Monte Carlo
   null_symmetric <- rep(NA_real_, n_sim)
   null_consensus <- rep(NA_real_, n_sim)
   null_AtoB <- rep(NA_real_, n_sim)
@@ -1702,20 +1705,20 @@ cvcoco <- function(data = NULL,
       if (is_interleaved == TRUE){
         if (n_total > 1){
           innovations[2:n_total, ] <- innovation_std_full *
-            innovations[2:n_total, , drop = FALSE]
+              innovations[2:n_total, , drop = FALSE]
         }
         surrogate_full <- std_full * cvcoco_ar1_filter(innovations, rho_full)
         surrogate_A <- matrix(0, n_A, n_batch)
         surrogate_B <- matrix(0, n_B, n_batch)
         for (k in seq_len(n_batch)){
           surrogate_A[, k] <- stats::approx(raw_depth_A,
-                                            surrogate_full[prep$index_A, k],
-                                            xout = data_A[, 1],
-                                            method = "linear", rule = 1)$y
+              surrogate_full[prep$index_A, k],
+              xout = data_A[, 1],
+              method = "linear", rule = 1)$y
           surrogate_B[, k] <- stats::approx(raw_depth_B,
-                                            surrogate_full[prep$index_B, k],
-                                            xout = data_B[, 1],
-                                            method = "linear", rule = 1)$y
+              surrogate_full[prep$index_B, k],
+              xout = data_B[, 1],
+              method = "linear", rule = 1)$y
         }
         if (any(!is.finite(surrogate_A)) || any(!is.finite(surrogate_B))){
           stop("The odd/even interpolation map produced nonfinite Monte Carlo values")
@@ -1736,32 +1739,32 @@ cvcoco <- function(data = NULL,
       p_B <- cvcoco_spectra(values = surrogate_B, geom = geom_B, red = red)$power
 
       sim_tr_A <- cvcoco_train(power = p_A, geom = geom_A,
-                               cor_method = cor_method, keep_curve = FALSE)
+          cor_method = cor_method, keep_curve = FALSE)
       sim_frozen_A <- cvcoco_group_amplitudes(sim_tr_A$amplitude,
-                                              group_index)$normalized
+          group_index)$normalized
       sim_AtoB <- cvcoco_validate(power = p_B, geom = geom_B,
-                                  weights = sim_frozen_A,
-                                  cor_method = cor_method)
+          weights = sim_frozen_A,
+          cor_method = cor_method)
       acc <- cvcoco_accumulate(sim_AtoB$curve, curve_AtoB, exceed_AtoB,
-                               valid_AtoB)
+          valid_AtoB)
       exceed_AtoB <- acc$exceed
       valid_AtoB <- acc$valid
 
       sim_tr_B <- cvcoco_train(power = p_B, geom = geom_B,
-                               cor_method = cor_method, keep_curve = FALSE)
+          cor_method = cor_method, keep_curve = FALSE)
       sim_frozen_B <- cvcoco_group_amplitudes(sim_tr_B$amplitude,
-                                              group_index)$normalized
+          group_index)$normalized
       sim_BtoA <- cvcoco_validate(power = p_A, geom = geom_A,
-                                  weights = sim_frozen_B,
-                                  cor_method = cor_method)
+          weights = sim_frozen_B,
+          cor_method = cor_method)
       acc <- cvcoco_accumulate(sim_BtoA$curve, curve_BtoA, exceed_BtoA,
-                               valid_BtoA)
+          valid_BtoA)
       exceed_BtoA <- acc$exceed
       valid_BtoA <- acc$valid
 
       sim_cons <- cvcoco_min_pair(sim_AtoB$curve, sim_BtoA$curve)
       acc <- cvcoco_accumulate(sim_cons, curve_consensus, exceed_cons,
-                               valid_cons)
+          valid_cons)
       exceed_cons <- acc$exceed
       valid_cons <- acc$valid
       for (k in seq_len(n_batch)){
@@ -1776,7 +1779,7 @@ cvcoco <- function(data = NULL,
       null_rate_AtoB[first:last] <- sim_AtoB$best_rate
       null_rate_BtoA[first:last] <- sim_BtoA$best_rate
       null_symmetric[first:last] <- cvcoco_min_pair(sim_AtoB$best_score,
-                                                    sim_BtoA$best_score)
+          sim_BtoA$best_score)
       n_sim_completed <- last
       if (verbose == TRUE){
         utils::setTxtProgressBar(pb, last)
@@ -1788,14 +1791,14 @@ cvcoco <- function(data = NULL,
     }
   }
 
-  # ------------------------------------------------------------- p-values
+  # P-values
   mc_sym <- cvcoco_mc_p(null_symmetric, score_symmetric)
   mc_cons <- cvcoco_mc_p(null_consensus, score_consensus)
   mc_AtoB <- cvcoco_mc_p(null_AtoB, score_AtoB)
   mc_BtoA <- cvcoco_mc_p(null_BtoA, score_BtoA)
   if (n_sim_completed > 0 &&
       (mc_sym$n_valid != n_sim_completed || mc_cons$n_valid != n_sim_completed ||
-       mc_AtoB$n_valid != n_sim_completed || mc_BtoA$n_valid != n_sim_completed)){
+          mc_AtoB$n_valid != n_sim_completed || mc_BtoA$n_valid != n_sim_completed)){
     stop("At least one Monte Carlo realization produced a nonfinite statistic")
   }
   cvcoco_check_counts(valid_AtoB, curve_AtoB, n_sim_completed, "A-to-B")
@@ -1810,74 +1813,74 @@ cvcoco <- function(data = NULL,
   pcoco <- cvcoco_pcoco(curve_consensus, p_curve_cons)
   pcoco_max <- cvcoco_curve_max(pcoco, sr_grid)
 
-  # --------------------------------------------------------- result lists
+  # Result lists
   train_A <- cvcoco_train_result(tr_A, grp_A, sr_grid, geom_A)
   train_B <- cvcoco_train_result(tr_B, grp_B, sr_grid, geom_B)
   validate_AtoB <- cvcoco_validation_result(curve_AtoB, score_AtoB,
-                                            va_AtoB$best_rate[1], sr_grid,
-                                            geom_B, frozen_A)
+      va_AtoB$best_rate[1], sr_grid,
+      geom_B, frozen_A)
   validate_BtoA <- cvcoco_validation_result(curve_BtoA, score_BtoA,
-                                            va_BtoA$best_rate[1], sr_grid,
-                                            geom_A, frozen_B)
+      va_BtoA$best_rate[1], sr_grid,
+      geom_A, frozen_B)
   validate_AtoB$p_directional <- mc_AtoB$p
   validate_AtoB$p_confidence_interval <- mc_AtoB$ci
   validate_AtoB$p_global_curve <- p_curve_AtoB
   validate_AtoB$p_local_curve <- p_local_AtoB
   validate_AtoB$p_local_at_best <- cvcoco_value_at(p_local_AtoB,
-                                                   validate_AtoB$best_index)
+      validate_AtoB$best_index)
   validate_BtoA$p_directional <- mc_BtoA$p
   validate_BtoA$p_confidence_interval <- mc_BtoA$ci
   validate_BtoA$p_global_curve <- p_curve_BtoA
   validate_BtoA$p_local_curve <- p_local_BtoA
   validate_BtoA$p_local_at_best <- cvcoco_value_at(p_local_BtoA,
-                                                   validate_BtoA$best_index)
+      validate_BtoA$best_index)
   active_AtoB <- cvcoco_active_counts(geom_B, frozen_A)
   active_BtoA <- cvcoco_active_counts(geom_A, frozen_B)
   active_consensus <- rowSums(active_AtoB$mask & active_BtoA$mask)
 
   consensus <- list(curve = curve_consensus,
-                    best_rate = cons_max$rate,
-                    best_index = cons_max$index,
-                    best_correlation = score_consensus,
-                    valid_rate_mask = geom_A$valid_rate_mask &
-                      geom_B$valid_rate_mask,
-                    p_global = mc_cons$p,
-                    p_confidence_interval = mc_cons$ci,
-                    p_global_curve = p_curve_cons,
-                    p_local_curve = p_local_cons,
-                    p_global_at_best = cvcoco_value_at(p_curve_cons,
-                                                       cons_max$index),
-                    p_local_at_best = cvcoco_value_at(p_local_cons,
-                                                      cons_max$index),
-                    p_directional_max = cvcoco_max_pair(mc_AtoB$p, mc_BtoA$p),
-                    p_directional_max_curve = cvcoco_max_pair(p_curve_AtoB,
-                                                              p_curve_BtoA),
-                    active_orbit_count_curve = active_consensus,
-                    active_orbit_count_at_best =
-                      cvcoco_value_at(active_consensus, cons_max$index),
-                    null_maximum = null_consensus[seq_len(n_sim_completed)],
-                    local_exceedance_count = exceed_cons,
-                    local_valid_count = valid_cons,
-                    pcoco = pcoco,
-                    best_pcoco = pcoco_max$score,
-                    best_pcoco_rate = pcoco_max$rate,
-                    best_pcoco_index = pcoco_max$index)
+      best_rate = cons_max$rate,
+      best_index = cons_max$index,
+      best_correlation = score_consensus,
+      valid_rate_mask = geom_A$valid_rate_mask &
+      geom_B$valid_rate_mask,
+      p_global = mc_cons$p,
+      p_confidence_interval = mc_cons$ci,
+      p_global_curve = p_curve_cons,
+      p_local_curve = p_local_cons,
+      p_global_at_best = cvcoco_value_at(p_curve_cons,
+          cons_max$index),
+      p_local_at_best = cvcoco_value_at(p_local_cons,
+          cons_max$index),
+      p_directional_max = cvcoco_max_pair(mc_AtoB$p, mc_BtoA$p),
+      p_directional_max_curve = cvcoco_max_pair(p_curve_AtoB,
+          p_curve_BtoA),
+      active_orbit_count_curve = active_consensus,
+      active_orbit_count_at_best =
+      cvcoco_value_at(active_consensus, cons_max$index),
+      null_maximum = null_consensus[seq_len(n_sim_completed)],
+      local_exceedance_count = exceed_cons,
+      local_valid_count = valid_cons,
+      pcoco = pcoco,
+      best_pcoco = pcoco_max$score,
+      best_pcoco_rate = pcoco_max$rate,
+      best_pcoco_index = pcoco_max$index)
 
   spectra <- list(
-    train_A = cvcoco_spectrum_diagnostic(power_A, geom_A, tr_A$best_rate[1],
-                                         tr_A$amplitude[, 1], group_index,
-                                         "adaptive"),
-    train_B = cvcoco_spectrum_diagnostic(power_B, geom_B, tr_B$best_rate[1],
-                                         tr_B$amplitude[, 1], group_index,
-                                         "adaptive"),
-    validate_AtoB = cvcoco_spectrum_diagnostic(power_B, geom_B,
-                                               va_AtoB$best_rate[1],
-                                               frozen_A[, 1], group_index,
-                                               "fixed"),
-    validate_BtoA = cvcoco_spectrum_diagnostic(power_A, geom_A,
-                                               va_BtoA$best_rate[1],
-                                               frozen_B[, 1], group_index,
-                                               "fixed"))
+      train_A = cvcoco_spectrum_diagnostic(power_A, geom_A, tr_A$best_rate[1],
+          tr_A$amplitude[, 1], group_index,
+          "adaptive"),
+      train_B = cvcoco_spectrum_diagnostic(power_B, geom_B, tr_B$best_rate[1],
+          tr_B$amplitude[, 1], group_index,
+          "adaptive"),
+      validate_AtoB = cvcoco_spectrum_diagnostic(power_B, geom_B,
+          va_AtoB$best_rate[1],
+          frozen_A[, 1], group_index,
+          "fixed"),
+      validate_BtoA = cvcoco_spectrum_diagnostic(power_A, geom_A,
+          va_BtoA$best_rate[1],
+          frozen_B[, 1], group_index,
+          "fixed"))
 
   if (is_interleaved == TRUE){
     split_depth <- NA
@@ -1886,124 +1889,124 @@ cvcoco <- function(data = NULL,
   }
   keep <- seq_len(n_sim_completed)
   result <- list(
-    name = analysis_name,
-    method = method,
-    target_model = target_model,
-    degraded_mode = degraded_mode,
-    training_completeness = ifelse(degraded_mode, "partial-orbit",
-                                   "complete-nine"),
-    training_completeness_A = completeness_A,
-    training_completeness_B = completeness_B,
-    warning_message = warning_message,
-    sr_grid = sr_grid,
-    split_depth = split_depth,
-    interleaved_phase = interleaved_phase,
-    fold_labels = fold_labels,
-    data_clean = prep$clean,
-    raw_index_A = prep$index_A,
-    raw_index_B = prep$index_B,
-    data_A = data_A,
-    data_B = data_B,
-    sampling_interval_A = prep$dz_A,
-    sampling_interval_B = prep$dz_B,
-    interpolation_A = prep$info_A,
-    interpolation_B = prep$info_B,
-    train_A = train_A,
-    train_B = train_B,
-    validate_AtoB = validate_AtoB,
-    validate_BtoA = validate_BtoA,
-    consensus = consensus,
-    spectra = spectra,
-    score_symmetric = score_symmetric,
-    score_consensus = score_consensus,
-    score_mean = score_mean,
-    p_sym = mc_sym$p,
-    p_sym_confidence_interval = mc_sym$ci,
-    p_consensus = mc_cons$p,
-    p_consensus_confidence_interval = mc_cons$ci,
-    p_robust = cvcoco_max_pair(mc_AtoB$p, mc_BtoA$p),
-    p_AtoB = mc_AtoB$p,
-    p_BtoA = mc_BtoA$p,
-    p_A = mc_BtoA$p,
-    p_B = mc_AtoB$p,
-    p_A_confidence_interval = mc_BtoA$ci,
-    p_B_confidence_interval = mc_AtoB$ci,
-    p_curve_AtoB = p_curve_AtoB,
-    p_curve_BtoA = p_curve_BtoA,
-    p_local_curve_AtoB = p_local_AtoB,
-    p_local_curve_BtoA = p_local_BtoA,
-    p_curve_consensus = p_curve_cons,
-    p_local_curve_consensus = p_local_cons,
-    pcoco = pcoco,
-    best_pcoco = pcoco_max$score,
-    best_pcoco_rate = pcoco_max$rate,
-    null_symmetric = null_symmetric[keep],
-    null_consensus = null_consensus[keep],
-    null_AtoB = null_AtoB[keep],
-    null_BtoA = null_BtoA[keep],
-    null_best_rate_AtoB = null_rate_AtoB[keep],
-    null_best_rate_BtoA = null_rate_BtoA[keep],
-    local_exceedance_count_AtoB = exceed_AtoB,
-    local_exceedance_count_BtoA = exceed_BtoA,
-    local_valid_count_AtoB = valid_AtoB,
-    local_valid_count_BtoA = valid_BtoA,
-    rho_A = rho_A,
-    rho_B = rho_B,
-    rho_full = rho_full,
-    rho_used_in_null = ifelse(is_interleaved, "rho_full", "rho_A and rho_B"),
-    n_sim_requested = n_sim,
-    n_sim_completed = n_sim_completed,
-    n_sim_valid = mc_sym$n_valid,
-    n_sim_valid_consensus = mc_cons$n_valid,
-    n_sim_valid_AtoB = mc_AtoB$n_valid,
-    n_sim_valid_BtoA = mc_BtoA$n_valid,
-    seed = seed,
-    orbit_periods = orbit9,
-    group_names = group_names,
-    group_index = group_index,
-    valid_rate_mask_A = geom_A$valid_rate_mask,
-    valid_rate_mask_B = geom_B$valid_rate_mask,
-    training_rate_mask_A = geom_A$training_rate_mask,
-    training_rate_mask_B = geom_B$training_rate_mask,
-    strict_training_rate_mask_A = strict_A,
-    strict_training_rate_mask_B = strict_B,
-    partial_training_rate_mask_A = geom_A$partial_training_rate_mask,
-    partial_training_rate_mask_B = geom_B$partial_training_rate_mask,
-    training_active_group_mask_A = geom_A$training_active_group_mask,
-    training_active_group_mask_B = geom_B$training_active_group_mask,
-    orbit_count_A = geom_A$orbit_count,
-    orbit_count_B = geom_B$orbit_count,
-    resolved_group_count_A = geom_A$resolved_group_count,
-    resolved_group_count_B = geom_B$resolved_group_count,
-    resolved_orbit_mask_A = geom_A$resolved_orbit_mask,
-    resolved_orbit_mask_B = geom_B$resolved_orbit_mask,
-    active_orbit_count_AtoB = active_AtoB$count,
-    active_orbit_count_BtoA = active_BtoA$count,
-    active_group_count_AtoB = active_AtoB$group_counts,
-    active_group_count_BtoA = active_BtoA$group_counts,
-    active_orbit_count_consensus = active_consensus,
-    cross_group_band_overlap_A = geom_A$cross_group_band_overlap,
-    cross_group_band_overlap_B = geom_B$cross_group_band_overlap,
-    group_leakage_rcond_A = geom_A$partial_group_leakage_rcond,
-    group_leakage_rcond_B = geom_B$partial_group_leakage_rcond,
-    full_group_leakage_rcond_A = geom_A$group_leakage_rcond,
-    full_group_leakage_rcond_B = geom_B$group_leakage_rcond,
-    all_nine_rate_range_A = geom_A$all_nine_rate_range,
-    all_nine_rate_range_B = geom_B$all_nine_rate_range,
-    all_nine_rate_range_shared = c(max(geom_A$all_nine_rate_range[1],
-                                       geom_B$all_nine_rate_range[1]),
-                                   min(geom_A$all_nine_rate_range[2],
-                                       geom_B$all_nine_rate_range[2])),
-    config = list(pad = pad, nfft_A = geom_A$nfft, nfft_B = geom_B$nfft,
-                  sr1 = sr1, sr2 = sr2, srstep = srstep, red = red,
-                  n_sim = n_sim, cor_method = cor_method,
-                  batch_size = actual_batch, seed = seed, method = method,
-                  target_model = target_model,
-                  max_frequency = max_frequency,
-                  max_frequency_default = max_frequency_default,
-                  minimum_leakage_rcond = geom_A$minimum_leakage_rcond,
-                  active_group_weight_tolerance = 1e-8),
-    conclusion = NULL)
+      name = analysis_name,
+      method = method,
+      target_model = target_model,
+      degraded_mode = degraded_mode,
+      training_completeness = ifelse(degraded_mode, "partial-orbit",
+          "complete-nine"),
+      training_completeness_A = completeness_A,
+      training_completeness_B = completeness_B,
+      warning_message = warning_message,
+      sr_grid = sr_grid,
+      split_depth = split_depth,
+      interleaved_phase = interleaved_phase,
+      fold_labels = fold_labels,
+      data_clean = prep$clean,
+      raw_index_A = prep$index_A,
+      raw_index_B = prep$index_B,
+      data_A = data_A,
+      data_B = data_B,
+      sampling_interval_A = prep$dz_A,
+      sampling_interval_B = prep$dz_B,
+      interpolation_A = prep$info_A,
+      interpolation_B = prep$info_B,
+      train_A = train_A,
+      train_B = train_B,
+      validate_AtoB = validate_AtoB,
+      validate_BtoA = validate_BtoA,
+      consensus = consensus,
+      spectra = spectra,
+      score_symmetric = score_symmetric,
+      score_consensus = score_consensus,
+      score_mean = score_mean,
+      p_sym = mc_sym$p,
+      p_sym_confidence_interval = mc_sym$ci,
+      p_consensus = mc_cons$p,
+      p_consensus_confidence_interval = mc_cons$ci,
+      p_robust = cvcoco_max_pair(mc_AtoB$p, mc_BtoA$p),
+      p_AtoB = mc_AtoB$p,
+      p_BtoA = mc_BtoA$p,
+      p_A = mc_BtoA$p,
+      p_B = mc_AtoB$p,
+      p_A_confidence_interval = mc_BtoA$ci,
+      p_B_confidence_interval = mc_AtoB$ci,
+      p_curve_AtoB = p_curve_AtoB,
+      p_curve_BtoA = p_curve_BtoA,
+      p_local_curve_AtoB = p_local_AtoB,
+      p_local_curve_BtoA = p_local_BtoA,
+      p_curve_consensus = p_curve_cons,
+      p_local_curve_consensus = p_local_cons,
+      pcoco = pcoco,
+      best_pcoco = pcoco_max$score,
+      best_pcoco_rate = pcoco_max$rate,
+      null_symmetric = null_symmetric[keep],
+      null_consensus = null_consensus[keep],
+      null_AtoB = null_AtoB[keep],
+      null_BtoA = null_BtoA[keep],
+      null_best_rate_AtoB = null_rate_AtoB[keep],
+      null_best_rate_BtoA = null_rate_BtoA[keep],
+      local_exceedance_count_AtoB = exceed_AtoB,
+      local_exceedance_count_BtoA = exceed_BtoA,
+      local_valid_count_AtoB = valid_AtoB,
+      local_valid_count_BtoA = valid_BtoA,
+      rho_A = rho_A,
+      rho_B = rho_B,
+      rho_full = rho_full,
+      rho_used_in_null = ifelse(is_interleaved, "rho_full", "rho_A and rho_B"),
+      n_sim_requested = n_sim,
+      n_sim_completed = n_sim_completed,
+      n_sim_valid = mc_sym$n_valid,
+      n_sim_valid_consensus = mc_cons$n_valid,
+      n_sim_valid_AtoB = mc_AtoB$n_valid,
+      n_sim_valid_BtoA = mc_BtoA$n_valid,
+      seed = seed,
+      orbit_periods = orbit9,
+      group_names = group_names,
+      group_index = group_index,
+      valid_rate_mask_A = geom_A$valid_rate_mask,
+      valid_rate_mask_B = geom_B$valid_rate_mask,
+      training_rate_mask_A = geom_A$training_rate_mask,
+      training_rate_mask_B = geom_B$training_rate_mask,
+      strict_training_rate_mask_A = strict_A,
+      strict_training_rate_mask_B = strict_B,
+      partial_training_rate_mask_A = geom_A$partial_training_rate_mask,
+      partial_training_rate_mask_B = geom_B$partial_training_rate_mask,
+      training_active_group_mask_A = geom_A$training_active_group_mask,
+      training_active_group_mask_B = geom_B$training_active_group_mask,
+      orbit_count_A = geom_A$orbit_count,
+      orbit_count_B = geom_B$orbit_count,
+      resolved_group_count_A = geom_A$resolved_group_count,
+      resolved_group_count_B = geom_B$resolved_group_count,
+      resolved_orbit_mask_A = geom_A$resolved_orbit_mask,
+      resolved_orbit_mask_B = geom_B$resolved_orbit_mask,
+      active_orbit_count_AtoB = active_AtoB$count,
+      active_orbit_count_BtoA = active_BtoA$count,
+      active_group_count_AtoB = active_AtoB$group_counts,
+      active_group_count_BtoA = active_BtoA$group_counts,
+      active_orbit_count_consensus = active_consensus,
+      cross_group_band_overlap_A = geom_A$cross_group_band_overlap,
+      cross_group_band_overlap_B = geom_B$cross_group_band_overlap,
+      group_leakage_rcond_A = geom_A$partial_group_leakage_rcond,
+      group_leakage_rcond_B = geom_B$partial_group_leakage_rcond,
+      full_group_leakage_rcond_A = geom_A$group_leakage_rcond,
+      full_group_leakage_rcond_B = geom_B$group_leakage_rcond,
+      all_nine_rate_range_A = geom_A$all_nine_rate_range,
+      all_nine_rate_range_B = geom_B$all_nine_rate_range,
+      all_nine_rate_range_shared = c(max(geom_A$all_nine_rate_range[1],
+          geom_B$all_nine_rate_range[1]),
+          min(geom_A$all_nine_rate_range[2],
+              geom_B$all_nine_rate_range[2])),
+      config = list(pad = pad, nfft_A = geom_A$nfft, nfft_B = geom_B$nfft,
+          sr1 = sr1, sr2 = sr2, srstep = srstep, red = red,
+          n_sim = n_sim, cor_method = cor_method,
+          batch_size = actual_batch, seed = seed, method = method,
+          target_model = target_model,
+          max_frequency = max_frequency,
+          max_frequency_default = max_frequency_default,
+          minimum_leakage_rcond = geom_A$minimum_leakage_rcond,
+          active_group_weight_tolerance = 1e-8),
+      conclusion = NULL)
   if (target_model == "four-group"){
     result$conclusion <- cvcoco_conclusion(result)
   }

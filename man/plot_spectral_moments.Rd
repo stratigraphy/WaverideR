@@ -17,26 +17,37 @@ plot_spectral_moments(
 )
 }
 \arguments{
-\item{sm}{Output of \code{\link{spectral_moments}}.}
+\item{sm}{Spectral moments result to plot: the list returned by \code{\link{spectral_moments}} (its
+\code{result} table, and \code{spectra} and \code{anchor} when present, are used). Required (\code{Default=NULL}
+gives an error).}
 
-\item{x_lab}{Label of the x-axis \code{Default="depth"}}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth"}.}
 
-\item{y_lab}{Label of the frequency axis \code{Default="frequency (cycles/unit)"}}
+\item{y_lab}{Label of the frequency axis of the moments panel (and of the image when \code{yaxis = "frequency"})
+(character). \code{Default="frequency (cycles/unit)"}.}
 
-\item{sr_lab}{Label of the sedimentation-rate axis
-\code{Default="sed. rate"}}
+\item{sr_lab}{Label of the sedimentation-rate axis of the sedimentation-rate panel, drawn when \code{sm}
+contains a sedimentation-rate estimate (character). \code{Default="sed. rate"}.}
 
 \item{image}{Draw the periodograms of all windows as an image (frequency or period against depth, the evolutive
-spectrum the moments are computed from) above the moments \code{Default=TRUE}.}
+spectrum the moments are computed from) above the moments, with the mean frequency and bandwidth overlain
+(logical, TRUE or FALSE); only drawn when \code{sm} contains the window spectra. \code{Default=TRUE}.}
 
-\item{yaxis}{\code{"frequency"} or \code{"period"} (log2 axis) for the image \code{Default="frequency"}.}
+\item{yaxis}{Spectral axis of the image (character): \code{"frequency"} (cycles per unit, linear axis) or
+\code{"period"} (log2 axis). \code{Default="frequency"} (the first element of \code{c("frequency", "period")}).}
 
-\item{scale}{Colour scale of the image: \code{"log"} (log10 power from the 2nd percentile), \code{"quantile"}
-(histogram-equalised) or \code{"linear"} \code{Default="log"}.}
+\item{scale}{Colour scale of the image (character): \code{"log"} (log10 power, floored at the 2nd percentile of
+the positive power), \code{"quantile"} (histogram-equalised, 64 classes) or \code{"linear"}.
+\code{Default="log"} (the first element of \code{c("log", "quantile", "linear")}).}
 
-\item{palette}{\code{hcl.colors} palette \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{freq_max}{Upper frequency shown in the image \code{Default=NULL} (all).}
+\item{freq_max}{Highest frequency shown in the image, in cycles per unit of depth/time (numeric, > 0); \code{NULL}
+shows all frequencies. \code{Default=NULL}.}
 }
 \value{
 No return value, called for its side effect (a base graphics plot).

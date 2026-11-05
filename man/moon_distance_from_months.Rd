@@ -8,9 +8,12 @@
 moon_distance_from_months(months, kind = c("sidereal", "synodic"))
 }
 \arguments{
-\item{months}{Number of months per year.}
+\item{months}{Number of lunar months per year (numeric vector, > 0; about 13.37 sidereal or 12.37 synodic
+months today), e.g. counted in tidal rhythmites. Required (no default).}
 
-\item{kind}{Type of month, `"sidereal"` or `"synodic"`.}
+\item{kind}{Type of lunar month counted in \code{months} (character): \code{"sidereal"} (relative to the stars)
+or \code{"synodic"} (new moon to new moon; converted with sidereal = synodic + 1).
+\code{Default=c("sidereal", "synodic")}, i.e. \code{"sidereal"}.}
 }
 \description{
 Earth-Moon distance from the number of lunar months per year

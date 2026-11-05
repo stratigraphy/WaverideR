@@ -36,30 +36,33 @@ analyze_wavelet(
 )
 }
 \arguments{
-\item{data}{Input data, should be a matrix or data frame in which
-the first column is depth or time and the second column is proxy record.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2.
+Rows with \code{NA} are removed, the rows are sorted by depth/time and the record is linearly interpolated to
+an even spacing equal to the median sampling interval. Required (\code{Default=NULL} gives an error).}
 
-\item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
-which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
-in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
-the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
-Increasing the increases the computational time of the CWT \code{Default=1/200}.}
+\item{dj}{Spacing between successive scales in octaves (numeric, > 0). The periods analysed increase by powers
+of 2 (1, 2, 4, 8, ...), and \code{dj} sets how many steps are made per doubling of the period: \code{dj=1/x}
+gives x periods per octave. Smaller values give a finer period axis but increase the computation time.
+\code{Default=1/100}.}
 
-\item{lowerPeriod}{Lowest period to be analysed \code{Default=2}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
-scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{lowerPeriod}{Shortest period to analyse, in the same unit as the depth/time column of \code{data}
+(numeric, > 0; at least twice the sampling interval). Together with \code{upperPeriod} it sets the range of
+cycles analysed; because the period axis is log2-scaled, a power of 2 gives the neatest plots. \code{Default=2}.}
 
-\item{upperPeriod}{Upper period to be analysed \code{Default=1024}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
- scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{upperPeriod}{Longest period to analyse, in the same unit as the depth/time column of \code{data}
+(numeric, > \code{lowerPeriod}; normally not more than the length of the record); a power of 2 gives the
+neatest plots. \code{Default=1024}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Print the sampling interval to which the record was interpolated and, when \code{pval=TRUE},
+show a progress bar of the simulations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{omega_nr}{The omega number: central angular frequency of the Morlet wavelet. A larger value gives a longer wavelet with more oscillations, a better frequency resolution and a worse resolution in depth/time}
+\item{omega_nr}{Number of cycles of the Morlet wavelet, i.e. its central angular frequency omega_0 (numeric,
+> 0, typically 5 to 15). A larger value gives a longer wavelet with more oscillations: a better period
+resolution and a worse depth/time resolution. Also used as the default parameter of \code{"morlet0"} and to
+match the bandwidth of some other wavelets. \code{Default=8}.}
 
-\item{wavelet}{Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
+\item{wavelet}{Mother wavelet (character string or function), given as a name (PyWavelets style names with the
+order appended, such as
 \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
 \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
@@ -71,48 +74,50 @@ Morlet with bandwidth and centre frequency as in Matlab/PyWavelets), \code{"cgau
 (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+(real
 Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
-well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.}
+well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.
+\code{Default="morlet"}.}
 
-\item{wavelet_order}{Parameter(s) of the wavelet: \code{paul}: order m (default 4); \code{dog}: derivative m
+\item{wavelet_order}{Parameter(s) of the wavelet (numeric scalar or vector; \code{NULL} uses the defaults
+listed here): \code{paul}: order m (default 4); \code{dog}: derivative m
 (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
 \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0
+(default 5);
 \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
 (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.
 The period axis is always the Fourier period, i.e. the period of the sinusoid at which the wavelet has its maximum
-response, so the results of different wavelets are comparable.}
+response, so the results of different wavelets are comparable. \code{Default=NULL}.}
 
-\item{pval}{calculate the P-value  \code{Default=FALSE}. The p-value is based on
-Monte Carlo modelling runs on surrogate data generated based on autocorrelated noise (red noise) the calculated using a windowed
-(the window is half the size of the data set) temporal autocorrelation
-and on shuffling the data set resulting in a random data sets which has similar spectral characteristics
-to the original data set.The shuffling of the data set creates white noise which ensures that high amplitude high frequency/short
-period cycles do not result in statistical significant peaks. The part of the data generated using the  autocorrelated noise (red noise)
-based on the windowed  (the window is half the size of the data set) temporal autocorrelation represent a spectral signature similar to
-to that of the original data. The original data might include spectral peaks which are the result of astronomical
-forcing. The result is that the spectral power profile is biased towards rejecting the 0-hypothesis (e.g. no astronomical forcing).
-By combining the shuffling of the data set with autocorrelated noise a surrogate data set is created which rejects
-high amplitude high frequency/short period cycles and a reduced biased towards towards rejecting the 0-hypothesis if the data was
-solely the result of autocorrelated noise}
+\item{pval}{Calculate p-values of the wavelet power by Monte Carlo simulation (logical, TRUE or FALSE).
+\code{Default=FALSE}. Each simulation analyses a surrogate record made of the average of a shuffled copy of
+the data (white noise) and an AR(1) red-noise series with the mean and standard deviation of the data and a
+lag-1 autocorrelation drawn around the value estimated in a moving window of half the record length. The
+shuffled part keeps high-amplitude short-period cycles from becoming significant; the red-noise part gives
+a spectrum similar to that of the data without being biased by possible astronomical peaks in it. The
+p-value is the fraction of simulations whose power is at least the observed power (returned as
+\code{Power.pval} and \code{Power.avg.pval}).}
 
-\item{n_simulations}{Number of simulation to be ran to generate the p-value}
+\item{n_simulations}{Number of Monte Carlo simulations used for the p-values (integer, > 0); only used when
+\code{pval=TRUE}. More simulations give more precise p-values but take longer. \code{Default=10}.}
 
-\item{run_multicore}{Run p-value calculation with one core or multiple cores}
+\item{run_multicore}{Run the Monte Carlo simulations in parallel on several cores (logical, TRUE or FALSE);
+only used when \code{pval=TRUE}. \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore=TRUE} (integer, > 0); \code{NULL} picks an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory. Set
+\code{options(waverider.n_cores = ...)} to change that default. A value > 1 also switches on parallel
+computing. Results do not depend on the number of cores. \code{Default=NULL}.}
 }
 \value{
 The output is a list (wavelet object) which contain 20 objects which are the result of the continuous wavelet transform (CWT).

@@ -21,39 +21,52 @@ amtm_spectrum(
 )
 }
 \arguments{
-\item{data}{Input data set: a matrix or data frame with 2 columns, the first
-being depth or time (evenly spaced, increasing), the second the proxy values.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 (evenly spaced; rows are sorted
+by increasing depth/time) and the proxy value in column 2 (no \code{NA}/\code{Inf} values). Required
+(\code{Default=NULL} gives an error).}
 
-\item{nw}{Time-bandwidth product NW \code{Default=3}}
+\item{nw}{Time-bandwidth product NW of the multitaper spectrum (numeric, > 0, typically 2 to 4). Larger values
+give a smoother spectrum with lower variance but a coarser frequency resolution (2NW/T). \code{Default=3}.}
 
-\item{k}{Number of tapers \code{Default=NULL} (uses \code{round(2*nw-1)}, as Python)}
+\item{k}{Number of DPSS tapers (integer, >= 2, at most about \code{2*nw - 1}); \code{NULL} uses
+\code{round(2*nw - 1)}, as in the Python code. \code{Default=NULL}.}
 
-\item{nfft}{Number of FFT points \code{Default=NULL} (uses the series length N, the
-Python default; values smaller than N are replaced by 2N+1, as in 'multitaper')}
+\item{nfft}{Number of FFT points, i.e. zero padding (integer); \code{NULL} uses the series length N (the Python
+default); values smaller than N are replaced by 2N+1, as in 'multitaper'. \code{Default=NULL}.}
 
-\item{models}{Background models to fit, any of \code{"WHT","PL","AR1","BPL"}
-\code{Default=c("WHT","PL","AR1","BPL")}}
+\item{models}{Background models to fit (character vector, any combination of \code{"WHT"} (white noise),
+\code{"PL"} (power law), \code{"AR1"} (first-order autoregressive, red noise) and \code{"BPL"} (bending power
+law); case-insensitive). \code{Default=c("WHT", "PL", "AR1", "BPL")}.}
 
-\item{selection}{Model-selection criterion, \code{"MERIT"} or \code{"AIC"}
-\code{Default="MERIT"}}
+\item{selection}{Criterion used to choose the background model among \code{models} (character, case-insensitive):
+\code{"MERIT"} (MERIT goodness-of-fit function of SPD_MTM) or \code{"AIC"} (Akaike information criterion);
+the model with the lowest value is selected. \code{Default="MERIT"}.}
 
-\item{bkg_model}{Force this background model for the detection instead of the
-automatically selected one \code{Default=NULL}}
+\item{bkg_model}{Background model to use for the detection instead of the automatically selected one
+(character, one of the names in \code{models}); \code{NULL} uses the model chosen by \code{selection}.
+\code{Default=NULL}.}
 
-\item{freq_range}{Frequency range \code{c(f_low, f_high)} (cycles per unit of the
-first column) for the background fit and the detection \code{Default=NULL}
-(uses [2NW/T, f_Nyq - 2NW/T])}
+\item{freq_range}{Frequency range used for the background fit and the detection: numeric vector
+\code{c(f_low, f_high)} with \code{f_low < f_high}, in cycles per unit of column 1 of \code{data} (e.g.
+cycles/m); \code{NULL} uses [2NW/T, f_Nyq - 2NW/T]. At least 12 frequencies must fall in the range.
+\code{Default=NULL}.}
 
-\item{conf_level}{Confidence level used for the detection \code{Default=0.99}}
+\item{conf_level}{Confidence level of the gamma-test and F-test thresholds used for the detection (numeric,
+strictly between 0 and 1, e.g. 0.95 or 0.99). \code{Default=0.99}.}
 
-\item{prewhiten}{Prewhiten the series with an AR model before the analysis
-(see \code{\link{amtm_prewhiten}}) \code{Default=FALSE}}
+\item{prewhiten}{Prewhiten the series with an AR(\code{pw_order}) filter (via \code{\link{amtm_prewhiten}} with
+its default \code{nw=4}, \code{k=7}) before the analysis (logical, TRUE or FALSE); the spectrum, fits and
+detection are then made on the prewhitened series and a recoloured PSD is returned in \code{prewhiten}.
+\code{Default=FALSE}.}
 
-\item{pw_order}{Order of the AR prewhitening filter \code{Default=2}}
+\item{pw_order}{Order of the AR prewhitening filter (integer, >= 1); only used when \code{prewhiten=TRUE}.
+\code{Default=2}.}
 
-\item{genplot}{Plot the results with \code{\link{plot_amtm_spectrum}} \code{Default=FALSE}}
+\item{genplot}{Plot the results with \code{\link{plot_amtm_spectrum}} (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{verbose}{Print progress and fit information \code{Default=FALSE}}
+\item{verbose}{Print progress messages, the fitted parameters of each model and the selected model (logical,
+TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

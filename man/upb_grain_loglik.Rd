@@ -16,19 +16,34 @@ upb_grain_loglik(
 )
 }
 \arguments{
-\item{grains}{data.frame with columns \code{id} (bed), \code{age} (single-grain date,
-in \code{age_unit}) and either \code{sd} (1 sigma) or \code{sd2} (2 sigma, analytical).}
+\item{grains}{Single-grain dates (data frame) with the columns \code{id} (name of the bed, character or factor),
+\code{age} (single-grain date, numeric, in Ma or any other age unit used consistently with \code{D_max},
+\code{W_inherit}, \code{W_pbloss} and \code{step}) and either \code{sd} (analytical 1 sigma uncertainty) or
+\code{sd2} (analytical 2 sigma uncertainty, halved). Rows with missing ages or uncertainties are skipped. Required,
+no default.}
 
-\item{D_max}{maximum crystallisation interval (age units). Default 0.6 (Ma).}
+\item{D_max}{Maximum duration of the crystallisation interval before the eruption (numeric, >= 0, in age units);
+the duration \emph{D} is marginalised over a uniform prior between 0 and \code{D_max}. 0 gives the likelihood of a
+weighted mean, large values move the eruption age towards the youngest grains. \code{Default=0.6} (Ma).}
 
-\item{p_inherit, p_pbloss}{probabilities of inherited and Pb-loss grains. Defaults 0.1 and 0.05.}
+\item{p_inherit}{Probability that a grain is inherited or recycled (numeric, >= 0; \code{p_inherit + p_pbloss}
+must be < 1); such grains are modelled as uniform over \code{W_inherit} older than the eruption.
+\code{Default=0.1}.}
 
-\item{W_inherit, W_pbloss}{widths of the inherited and Pb-loss components (age units).
-Defaults 20 and 3 (Ma).}
+\item{p_pbloss}{Probability that a grain suffered residual Pb loss (numeric, >= 0); such grains are modelled as
+uniform over \code{W_pbloss} younger than the eruption. \code{Default=0.05}.}
 
-\item{step}{grid step of the eruption age (age units). Default 0.002 (2 kyr for Ma).}
+\item{W_inherit}{Width of the inherited-grain component, i.e. how much older than the eruption inherited grains
+can be (numeric, > 0, in age units). \code{Default=20} (Ma).}
 
-\item{nD}{number of grid values for the marginalisation over \emph{D}. Default 61.}
+\item{W_pbloss}{Width of the Pb-loss component, i.e. how much younger than the eruption grains with Pb loss can
+appear (numeric, > 0, in age units). \code{Default=3} (Ma).}
+
+\item{step}{Grid step of the eruption age on which the likelihood is computed (numeric, > 0, in age units); smaller
+steps are more precise and slower. \code{Default=0.002} (2 kyr for ages in Ma).}
+
+\item{nD}{Number of grid values of the crystallisation duration \emph{D} between 0 and \code{D_max} used for the
+marginalisation (integer, >= 1). \code{Default=61}.}
 }
 \value{
 A list with \code{loglik} (named list of functions, one per bed, of the eruption
@@ -66,7 +81,8 @@ its outlier mixture.
 \examples{
 set.seed(2)
 g <- data.frame(id = rep(c("ashA", "ashB"), each = 8),
-                age = c(430 + runif(8, 0, 0.1) + rnorm(8, 0, 0.04), 431 + runif(8, 0, 0.1) + rnorm(8, 0, 0.04)),
+                age = c(430 + runif(8, 0, 0.1) + rnorm(8, 0, 0.04),
+                        431 + runif(8, 0, 0.1) + rnorm(8, 0, 0.04)),
                 sd = 0.04)
 g$age[3] <- 433.2                                     # one inherited grain
 gl <- upb_grain_loglik(g)

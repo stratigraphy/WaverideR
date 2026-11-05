@@ -31,37 +31,59 @@ modBchron(
 )
 }
 \arguments{
-\item{ages}{Vector of ages}
+\item{ages}{Ages of the dated samples (numeric vector, one value per date, in one time unit such as kyr or Ma that
+is used for all age arguments). Required (no default).}
 
-\item{ageSds}{Vector of 1-sigma values for ages. Must be the same length and given in the same order as \code{ages}}
+\item{ageSds}{One-sigma uncertainties of \code{ages} (numeric vector, > 0, same unit, length and order as
+\code{ages}); for \code{distTypes = "U"} it is the half-width of the uniform distribution. Required (no default).}
 
-\item{positions}{Vector of stratigraphic positions for ages. Must be the same length and given in the same order as \code{ages}. Must be input as distance above base of section.}
+\item{positions}{Stratigraphic positions of the dated samples as distance above the base of the section, e.g. in
+metres (numeric vector, same length and order as \code{ages}; unordered positions are sorted with a warning).
+Required (no default).}
 
-\item{positionThicknesses}{Vector of stratigraphic uncertainties for each age. Specified as half thicknesses. Must be the same length and given in the same order as \code{ages}}
+\item{positionThicknesses}{Stratigraphic uncertainty of each date, given as half thickness in the unit of
+\code{positions} (numeric vector, >= 0, same length and order as \code{ages}).
+\code{Default=rep(0, length(positions))} (no positional uncertainty).}
 
-\item{ids}{Vector of sample names for each age. All samples with the same ids will be combined into a single age PDF. Must be the same length and given in the same order as \code{ages}}
+\item{ids}{Sample names of the dates (character or numeric vector, same length and order as \code{ages}); all
+dates with the same id are combined into a single age PDF of one dated horizon. Required (no default).}
 
-\item{distTypes}{c('G','U') Vector of distribution types to model each age as. Choices are 'G' for Gaussian, and 'U' uniform. Must be the same length and given in the same order as \code{ages}}
+\item{distTypes}{Distribution used for each date (character vector, same length and order as \code{ages}):
+\code{"G"} Gaussian (mean \code{ages}, standard deviation \code{ageSds}) or \code{"U"} uniform
+(\code{ages} plus or minus \code{ageSds}). \code{Default=rep('G', length(ages))}.}
 
-\item{MC}{Number of MCMC iteration to run for. Defaults to 10000}
+\item{MC}{Number of MCMC iterations (integer, > \code{burn}). \code{Default=10000}.}
 
-\item{burn}{Number of initial iterations to discard. Defaults to 2000}
+\item{burn}{Number of initial MCMC iterations discarded as burn-in when the intervals are computed (integer,
+>= 1 and < \code{MC}). \code{Default=2000}.}
 
-\item{probability}{Desired probability of the returned interval. Defaults to 0.95 (95 percent)}
+\item{probability}{Probability of the returned highest density interval and of the outlier check of the dates
+(numeric, between 0 and 1; 0.95 is 95 percent). \code{Default=0.95}.}
 
-\item{adapt}{Should the proposal standard deviation for model parameters be determined using the adaptive proposal algorithm of Haario et al., 1998. Defaults to TRUE}
+\item{adapt}{Tune the proposal standard deviations of the model parameters during the run with the adaptive
+proposal algorithm of Haario et al. (1998) (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{mhSD}{Metropolis-Hastings proposal standard deviation for the age parameters. If adapt = TRUE it will be determined by the model run. Otherwise a vector of standard deviations must be specified with length = \code{unique(ids)}}
+\item{mhSD}{Metropolis-Hastings proposal standard deviations of the ages of the dated horizons, in the age unit
+(numeric vector of length \code{length(unique(ids))}, > 0); the starting values when \code{adapt = TRUE}, used
+as they are otherwise. \code{Default=rep(0.001, length(unique(ids)))}.}
 
-\item{psiSD}{Metropolis-Hastings proposal standard deviation for the Compound Poisson-Gamma scale parameter. If adapt = TRUE it will be determined by the model run.}
+\item{psiSD}{Metropolis-Hastings proposal standard deviation of the Compound Poisson-Gamma scale parameter psi
+(numeric, > 0); the starting value when \code{adapt = TRUE}. \code{Default=0.001}.}
 
-\item{muSD}{Metropolis-Hastings proposal standard deviation for the Compound Poisson-Gamma mean parameter. If adapt = TRUE it will be determined by the model run.}
+\item{muSD}{Metropolis-Hastings proposal standard deviation of the Compound Poisson-Gamma mean parameter mu
+(numeric, > 0); the starting value when \code{adapt = TRUE}. \code{Default=0.001}.}
 
-\item{mu0}{Optional warm-start centre for the initial Compound Poisson-Gamma mean parameter mu. If NULL (default), mu is initialised the original way, from the raw date/position spacing. If given, the chain instead starts at \code{abs(rnorm(1, mean = mu0, sd = muSD))} -- lets you restart the chain near a previously-known-good region of parameter space (e.g. in a rejection-sampling/restart scheme) instead of re-exploring from scratch every time. Does not change the Metropolis-Hastings acceptance ratio at all, only where the chain begins.}
+\item{mu0}{Warm-start centre of the initial Compound Poisson-Gamma mean parameter mu (numeric, > 0, or \code{NULL}).
+If \code{NULL}, mu is initialised the original way, from the raw date/position spacing. If given, the chain starts
+at \code{abs(rnorm(1, mean = mu0, sd = muSD))}, so that a chain can be restarted near a previously known good region
+of parameter space (e.g. in a rejection-sampling/restart scheme) instead of re-exploring from scratch. It does not
+change the Metropolis-Hastings acceptance ratio, only where the chain begins. \code{Default=NULL}.}
 
-\item{psi0}{Optional warm-start centre for the initial Compound Poisson-Gamma scale parameter psi, analogous to \code{mu0}. If NULL (default), psi is initialised the original way (\code{abs(rnorm(1, 1, sd = psiSD))}).}
+\item{psi0}{Warm-start centre of the initial Compound Poisson-Gamma scale parameter psi (numeric, > 0, or
+\code{NULL}), analogous to \code{mu0}. If \code{NULL}, psi is initialised the original way
+(\code{abs(rnorm(1, 1, sd = psiSD))}). \code{Default=NULL}.}
 
-\item{thetas0}{Optional warm-start vector of starting ages for the dated horizons (one per unique
+\item{thetas0}{Warm-start vector of starting ages of the dated horizons (numeric vector, one value per unique
 id, in the same order as \code{unique(ids)}). If NULL (default) each is initialised from its own
 likelihood peak, as before. This matters most in a batch-RESTART scheme: the adaptive proposal
 SDs start at their \code{mhSD} default of 0.001 and grow by only about a factor of 10 per
@@ -72,11 +94,11 @@ horizons stay pinned within a fraction of a kyr of their starting values, so the
 reports near-ZERO age uncertainty at the dated horizons. Passing \code{thetas0} together with
 the previous run's adapted \code{mhSD}/\code{psiSD}/\code{muSD} lets a restarted chain resume
 properly mixed instead of paying that burn-in again. Values are still clipped into
-[truncateUp, truncateDown].}
+[truncateUp, truncateDown]. \code{Default=NULL}.}
 
-\item{mu_fixed, psi_fixed}{Optionally HOLD the Compound Poisson-Gamma mean/scale parameters at a
-  supplied value, skipping their Metropolis-Hastings updates entirely. NULL (default) estimates
-  them as before.
+\item{mu_fixed, psi_fixed}{Hold the Compound Poisson-Gamma mean (\code{mu_fixed}) or scale (\code{psi_fixed})
+  parameter at the given value and skip its Metropolis-Hastings updates (numeric, > 0, or \code{NULL}).
+  \code{NULL} estimates the parameter in the MCMC as before. \code{Default=NULL} for both.
 
   WHY THIS EXISTS. mu and psi are estimated from the gaps BETWEEN dated horizons, so n dates give
   only n-1 numbers to estimate both. With a handful of dates psi is effectively UNIDENTIFIED: on a
@@ -110,30 +132,39 @@ properly mixed instead of paying that burn-in again. Values are still clipped in
   and once psi is pinned they are no longer a refinement -- they are the thing standing between you
   and a confidently wrong answer. Report a sensitivity range over psi rather than a single value.}
 
-\item{predictPositions}{Vector of stratigraphic positions to evaluate the model at. Defaults to 500 evenly spaced points from the bottom to top of the section}
+\item{predictPositions}{Stratigraphic positions at which the age model is evaluated, in the unit of
+\code{positions} (numeric vector); positions above the top or below the base date are extrapolated.
+\code{Default=seq(min(positions), max(positions), length = 500)} (500 evenly spaced points from the bottom to the
+top dated horizon).}
 
-\item{truncateUp}{Truncation age for extrapolating above the top of the section. Defaults to 0.
-IMPORTANT: this is a HARD lower bound on the age of the TOPMOST DATED HORIZON as well, not
-just on extrapolated points above it -- it is used directly as the `low` limit of that
-horizon's Metropolis-Hastings proposal. So if your top date's own likelihood sits close to
-this bound (the common case being a "present day" date of 0 +/- sd with the default
-truncateUp = 0), roughly the lower half of that date's likelihood is excluded by the bound,
-and its posterior comes out correspondingly narrower and skewed. For a date of 0 +/- 15 with
-truncateUp = 0 the posterior is a half-normal: sd ~9.0 instead of 15, and a 95\% width of
-~33 kyr instead of ~59 kyr -- verified against both the model output and the closed-form
-half-normal. That is the model correctly doing what you told it, NOT uncertainty being lost;
-the age-depth model's uncertainty at a dated horizon equals that date's POSTERIOR, which for
-any date far from a bound comes back essentially equal to the input (e.g. 7500 +/- 15 at the
-base returns a 95\% width of ~58.6 kyr against the input's 58.8 kyr). If you did not intend the
-bound to bite, set truncateUp below the youngest age you want to permit (e.g. -1000) and the
-full date uncertainty is recovered. The same reasoning applies to \code{truncateDown} and the
-bottommost date.}
+\item{truncateUp}{Youngest permitted age, used as truncation for extrapolating above the top of the section
+(numeric, in the age unit). \code{Default=0}.
+  IMPORTANT: this is a HARD lower bound on the age of the TOPMOST DATED HORIZON as well, not
+  just on extrapolated points above it -- it is used directly as the \code{low} limit of that
+  horizon's Metropolis-Hastings proposal. So if your top date's own likelihood sits close to
+  this bound (the common case being a "present day" date of 0 +/- sd with the default
+  truncateUp = 0), roughly the lower half of that date's likelihood is excluded by the bound,
+  and its posterior comes out correspondingly narrower and skewed. For a date of 0 +/- 15 with
+  truncateUp = 0 the posterior is a half-normal: sd ~9.0 instead of 15, and a 95\% width of
+  ~33 kyr instead of ~59 kyr -- verified against both the model output and the closed-form
+  half-normal. That is the model correctly doing what you told it, NOT uncertainty being lost;
+  the age-depth model's uncertainty at a dated horizon equals that date's POSTERIOR, which for
+  any date far from a bound comes back essentially equal to the input (e.g. 7500 +/- 15 at the
+  base returns a 95\% width of ~58.6 kyr against the input's 58.8 kyr). If you did not intend the
+  bound to bite, set truncateUp below the youngest age you want to permit (e.g. -1000) and the
+  full date uncertainty is recovered. The same reasoning applies to \code{truncateDown} and the
+  bottommost date.}
 
-\item{extrapUp}{Number of extrapolations to perform above the top of the section. defaults to 100}
+\item{extrapUp}{Number of Compound Poisson-Gamma events simulated for every extrapolated age path above the top
+dated horizon (integer, > 1); it must be large enough for the path to reach the highest \code{predictPositions}.
+\code{Default=100}.}
 
-\item{truncateDown}{Truncation age for extrapolation below the bottom of the section. Defaults to 1e10 (a really big number). See the note on \code{truncateUp}: this is likewise a hard upper bound on the bottommost dated horizon's age, not only on extrapolated points.}
+\item{truncateDown}{Oldest permitted age, used as truncation for extrapolating below the bottom of the section
+(numeric, in the age unit). See the note on \code{truncateUp}: it is likewise a hard upper bound on the age of the
+bottommost dated horizon, not only on extrapolated points. \code{Default=1e10} (in effect no bound).}
 
-\item{extrapDown}{Number of extrapolations to perform below the bottom of the section. defaults to 100}
+\item{extrapDown}{Number of Compound Poisson-Gamma events simulated for every extrapolated age path below the
+bottom dated horizon (integer, > 1), as \code{extrapUp}. \code{Default=100}.}
 }
 \value{
 HDI = specified probability highest density interval for the model run

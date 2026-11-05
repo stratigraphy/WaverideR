@@ -9,23 +9,26 @@
 #'The traced period result from the \code{\link{track_period_wavelet}}
 #'function with boundaries is used to extract spectral power in the depth domain from a wavelet spectra.
 #'
-#'@param tracked_period_curve Traced period result from the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
-#'function completed using the \code{\link{completed_series}}.
-#'The input can be pre-smoothed using the the \code{\link{loess_auto}} function.
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
-#'or \code{\link{track_period}} function.
-#'@param period_up Upper period as a factor of the to be extracted power \code{Default=1.2}.
-#'@param period_down Lower period as a factor of the to be extracted power \code{Default=0.8}.
-#'@param tracked_cycle_period Period of the tracked cycle (make sure that
-#'\code{tracked_cycle_period}) and \code{extract_cycle_power}) are of the same
-#'unit (either depth or time domain).
-#'@param extract_cycle_power Period of the cycle for which the power will be
-#'extracted (make sure that \code{extract_cycle_power}) and
-#'\code{tracked_cycle_period}) are of the same unit (either depth or time domain).
-#'
-#'@param ... older input previous versions
-#'
-#'
+#' @param tracked_period_curve Tracked period of the cycle along the record (matrix or data frame: depth/time in
+#' column 1, period in column 2, in the depth/time unit of the scalogram), e.g. the output of
+#' \code{\link{track_period_wavelet}} or \code{\link{track_period}} completed with \code{\link{completed_series}},
+#' optionally smoothed with \code{\link{loess_auto}}. Rows with \code{NA} are dropped and the curve is linearly
+#' interpolated (and extrapolated) to the depth/time axis of the scalogram. Required (\code{Default=NULL}).
+#' @param scalogram Wavelet or superlet object (list of class \code{analyze.wavelet} or \code{analyze.superlet})
+#' created with \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}, whose power is summed. Required
+#' (\code{Default=NULL}).
+#' @param period_up Upper boundary of the band whose power is summed, as a factor of the (rescaled) tracked period
+#' (numeric, > \code{period_down}). \code{Default=1.2}.
+#' @param period_down Lower boundary of the band whose power is summed, as a factor of the (rescaled) tracked period
+#' (numeric, > 0). \code{Default=0.8}.
+#' @param tracked_cycle_period Period of the tracked cycle, e.g. 405 for the 405-kyr eccentricity cycle (numeric,
+#' > 0), in the same unit as \code{extract_cycle_power}. The tracked curve is multiplied by
+#' \code{extract_cycle_power / tracked_cycle_period}. Required (\code{Default=NULL}).
+#' @param extract_cycle_power Period of the cycle whose power is extracted (numeric, > 0), in the same unit as
+#' \code{tracked_cycle_period} (both in time or both in depth). Use the same value as \code{tracked_cycle_period}
+#' to extract the tracked cycle itself. Required (\code{Default=NULL}).
+#' @param ... Old argument names of earlier versions: \code{wavelet} (used as \code{scalogram}) and
+#' \code{completed_series} (used as \code{tracked_period_curve}).
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo.
@@ -109,11 +112,11 @@
 
 
 extract_power <- function(tracked_period_curve = NULL,
-                          scalogram = NULL,
-                          period_up = 1.2,
-                          period_down = 0.8,
-                          tracked_cycle_period = NULL,
-                          extract_cycle_power = NULL,...) {
+    scalogram = NULL,
+    period_up = 1.2,
+    period_down = 0.8,
+    tracked_cycle_period = NULL,
+    extract_cycle_power = NULL,...) {
 
   dots <- list(...)
 
@@ -133,9 +136,11 @@ extract_power <- function(tracked_period_curve = NULL,
   my.data <- cbind(scalogram$x, scalogram$y)
 
   if(inherits(scalogram,"analyze.superlet") == TRUE){
-    Power <- t(my.w$Power)}
+    Power <- t(my.w$Power)
+  }
   if(inherits(scalogram,"analyze.wavelet") == TRUE ){
-    Power <- my.w$Power}
+    Power <- my.w$Power
+  }
 
 
   my.data <- cbind(scalogram$x, scalogram$y)
@@ -146,16 +151,16 @@ extract_power <- function(tracked_period_curve = NULL,
 
 
   tracked_period_curve[, 2] <-
-    tracked_period_curve[, 2] * (extract_cycle_power / tracked_cycle_period)
+      tracked_period_curve[, 2] * (extract_cycle_power / tracked_cycle_period)
   tracked_period_curve <- na.omit(tracked_period_curve)
 
   app <-
-    wr_approx_extrap(
-      x = tracked_period_curve[, 1],
-      y = tracked_period_curve[, 2],
-      xout = my.data[, 1],
-      method = "linear"
-    )
+      wr_approx_extrap(
+          x = tracked_period_curve[, 1],
+          y = tracked_period_curve[, 2],
+          xout = my.data[, 1],
+          method = "linear"
+      )
   interpolated <- cbind(app$x, app$y)
 
   Period = my.w$Period
@@ -168,7 +173,7 @@ extract_power <- function(tracked_period_curve = NULL,
   for (i in 1:nrow(filtered_power)) {
     row_nr_high <- wr_closest(Period[], interpolated[i, 3], which = TRUE)
     row_nr_low <-
-      wr_closest(Period[], interpolated[i, 4], which = TRUE)
+        wr_closest(Period[], interpolated[i, 4], which = TRUE)
 
     row_nr_high <- row_nr_high[1]
     row_nr_low <- row_nr_low[1]
@@ -182,13 +187,12 @@ extract_power <- function(tracked_period_curve = NULL,
   total_pwr <- colSums(Power, na.rm = TRUE)
   filtered_power$total <- total_pwr
   filtered_power$pwr_div_total <-
-    filtered_power[, 2] / filtered_power[, 3]
+      filtered_power[, 2] / filtered_power[, 3]
 
   colnames(filtered_power) <- c("x_axis","sum_pwr","total_pwr","pwr_div_total")
 
   return(filtered_power)
 }
-
 
 
 

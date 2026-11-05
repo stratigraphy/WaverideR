@@ -1,10 +1,13 @@
 #' Lunar mean motion and months per year from the Earth-Moon distance
 #' (Kepler's third law, n^2 a^3 = G(M_E + M_M), as in Farhat et al. 2022 Table D.2)
-#' @param a_RE Earth-Moon distance in Earth radii.
-#' @param kind Type of month, `"sidereal"` or `"synodic"`.
+#' @param a_RE Earth-Moon distance (semi-major axis of the lunar orbit) in Earth radii (numeric vector, > 0; the
+#' present-day value is about 60.14). Required (no default).
+#' @param kind Type of lunar month that is counted per year (character): \code{"sidereal"} (relative to the stars)
+#' or \code{"synodic"} (new moon to new moon, one fewer per year). \code{Default=c("sidereal", "synodic")},
+#' i.e. \code{"sidereal"}.
 #' @export
 months_per_year <- function(a_RE, kind = c("sidereal", "synodic")){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   astro_constants <- function(){
     AU <- 1.495978707e11            # m
@@ -18,22 +21,22 @@ months_per_year <- function(a_RE, kind = c("sidereal", "synodic")){
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   kind <- match.arg(kind)
   n <- sqrt(.AC$GMEM / (a_RE * .AC$RE)^3)        # rad/s
   sid <- n * .AC$yr / (2 * pi)

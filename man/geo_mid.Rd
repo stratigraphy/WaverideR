@@ -7,7 +7,10 @@
 geo_mid(name = NULL)
 }
 \arguments{
-\item{name}{Name of the geologchronological subdivision}
+\item{name}{Name of the geochronological subdivision (character, exact and case-sensitive), e.g. an eon, era,
+period, epoch or stage such as \code{"Silurian"} or \code{"Rhuddanian"}, as listed in column 1 of
+\code{\link{GTS_info}} (Geologic Time Scale 2020).
+The mean of the top and bottom age (Ma) of that unit is returned. Required (\code{Default=NULL}).}
 }
 \value{
 Returns the mean age of the geochronological subdivision

@@ -1,8 +1,10 @@
 #' @title Fixed sinusoid-amplitude weights for a COCO target (cocoFixedTargetWeights.m)
-#' @param orbit vector of target periods (kyr)
+#' @param orbit Target periods in kyr (numeric vector). With nine distinct periods the weights follow their rank
+#' (longest five, i.e. eccentricity: 1.0; sixth, obliquity: 0.8; shortest three, precession: 0.6); otherwise
+#' periods of 80 kyr and longer get 1.0, 30 to 80 kyr 0.8 and shorter ones 0.6. Required, no default.
 #' @export
 coco_fixed_target_weights <- function(orbit){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   # Physical groups of a 9-period target by descending rank (cocoOrbitGroups.m)
   coco_orbit_groups <- function(orbit9){
@@ -18,7 +20,7 @@ coco_fixed_target_weights <- function(orbit){
     idx
   }
 
-  # ---- main code ----
+  # Main code
   w <- rep(0.6, length(orbit))
   if (length(orbit) == 9 && length(unique(orbit)) == 9){
     g <- coco_orbit_groups(orbit)

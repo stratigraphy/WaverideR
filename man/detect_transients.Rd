@@ -16,18 +16,31 @@ detect_transients(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Record to scan (matrix or data frame): depth in column 1 and the proxy in column 2; incomplete rows
+are dropped, the rows sorted, the record linearly interpolated to its median spacing and standardised.
+Required, no default.}
 
-\item{lowerPeriod, upperPeriod, dj}{Period range and spacing of the transform.}
+\item{lowerPeriod}{Shortest period of the Morlet wavelet transform, in depth units (numeric, > 0; at least twice
+the sample spacing). Required, no default.}
 
-\item{omega_nr}{Morlet omega_0 \code{Default=6} (short wavelets localise transients best).}
+\item{upperPeriod}{Longest period of the transform, in depth units (numeric, larger than \code{lowerPeriod});
+it also sets the defaults of \code{min_distance} and \code{window}. Required, no default.}
 
-\item{threshold}{Peaks above this multiple of the running median of the transient energy are reported
-\code{Default=4}.}
+\item{dj}{Spacing of the periods of the transform, in octaves (numeric, > 0; \code{1/20} gives 20 periods per
+doubling). \code{Default=1/20}.}
 
-\item{min_distance}{Minimum distance between reported transients (depth units) \code{Default=upperPeriod / 4}.}
+\item{omega_nr}{Central angular frequency (omega_0) of the Morlet wavelet (numeric, > 0); small values give short
+wavelets, which localise transients best. \code{Default=6}.}
 
-\item{window}{Length (depth units) of the running median \code{Default=2 * upperPeriod}.}
+\item{threshold}{Detection threshold (numeric, > 1): positions where the reassigned (transient) energy exceeds
+this multiple of the running median of the energy are reported as transients. \code{Default=4}.}
+
+\item{min_distance}{Minimum distance between two reported transients, in depth units (numeric, >= 0); of
+candidates closer together only the strongest is kept. \code{NULL} uses \code{upperPeriod / 4}.
+\code{Default=NULL}.}
+
+\item{window}{Length of the running median that forms the baseline of the energy, in depth units (numeric, > 0).
+\code{NULL} uses \code{2 * upperPeriod}. \code{Default=NULL}.}
 }
 \value{
 A list with \code{profile} (data frame: depth, energy, ratio to the running median) and \code{transients}

@@ -17,25 +17,37 @@ fft_uncertainty(
 )
 }
 \arguments{
-\item{tracked_cycle}{Curve of the tracked cycle: a matrix or data frame whose first column is depth or time and the
-second column the period.}
+\item{tracked_cycle}{Curve of the tracked cycle, e.g. the output of \code{\link{track_period_wavelet}}: a matrix or
+data frame with depth in column 1 and the period of the tracked cycle (in the same depth unit, e.g. metres) in
+column 2; further columns are ignored. Required (\code{Default=NULL}).}
 
-\item{period_of_tracked_cycle}{Period of the tracked cycle in time (e.g. 405 kyr).}
+\item{period_of_tracked_cycle}{Duration of one cycle of the tracked cycle in time (numeric, > 0, e.g. 405 for the
+405-kyr eccentricity cycle); passed to \code{\link{curve2time}} and sets the time unit of the output. Required
+(\code{Default=NULL}).}
 
-\item{signal_length}{Length of the record (or window) that sets the frequency uncertainty, in the unit of the
-depth column. \code{Default=NULL}: the extent of \code{tracked_cycle}.}
+\item{signal_length}{Length of the record (or of the window of an evolutive spectrum) that sets the frequency
+uncertainty, in the depth unit of \code{tracked_cycle} (numeric, > 0). \code{NULL} uses the depth range of
+\code{tracked_cycle}. \code{Default=NULL}.}
 
-\item{type}{\code{"practical"} (1/T, default) or \code{"gabor"} (1/(4 pi T), the theoretical limit).}
+\item{type}{Definition of the frequency uncertainty (character): \code{"practical"} uses the FFT bin spacing
+\eqn{1/T}; \code{"gabor"} uses the Heisenberg-Gabor limit \eqn{1/(4 \pi T)}, which is about 12.6 times smaller.
+\code{Default=c("practical", "gabor")}, i.e. \code{"practical"}.}
 
-\item{multi}{Multiple of the uncertainty that is used \code{Default=1}.}
+\item{multi}{Multiple of the frequency uncertainty that is added to and subtracted from the frequency of the tracked
+cycle (numeric, > 0; e.g. 2 for twice the uncertainty). \code{Default=1}.}
 
-\item{verbose}{Print text \code{Default=FALSE}.}
+\item{verbose}{Print the total duration, its uncertainty and the frequency uncertainty (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{genplot_time}{Plot the time curves with the upper and lower uncertainty \code{Default=FALSE}.}
+\item{genplot_time}{Plot the time-depth curves of the mean, lower and upper uncertainty (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{genplot_uncertainty}{Plot the period curves with the upper and lower uncertainty \code{Default=FALSE}.}
+\item{genplot_uncertainty}{Plot the period-depth curves of the tracked cycle with its lower and upper uncertainty
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep the plot settings after plotting \code{Default=FALSE}.}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+\code{Default=FALSE}.}
 }
 \value{
 A data frame with the columns "depth", "period", "frequency", "uncertainty in frequency", "uncertainty in

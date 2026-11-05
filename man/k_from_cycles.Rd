@@ -24,37 +24,68 @@ k_from_cycles(
 )
 }
 \arguments{
-\item{cycles}{named vector of cycle periods in kyr, names are terms
-("k+s3", "k+g5", "k+g2", "k+g4", "k+g3"), e.g. c("k+s3" = 30.8, "k+g5" = 19.9)}
+\item{cycles}{Measured cycle periods in kyr (named numeric vector); every name is the astronomical term the cycle
+is read as, e.g. \code{c("k+s3" = 30.8, "k+g5" = 19.9)}. Terms with k (\code{"k+s3"}, \code{"k+g5"},
+\code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"}, ...) give the precession constant; terms without k (e.g.
+\code{"e405"}, \code{"g2-g5"}) only constrain the secular frequencies (element \code{secular} of the output).
+\code{\link{astro_terms}} lists the names that can be used. Required (no default).}
 
-\item{age_ma}{approximate age (Ma); single value or c(min, max)}
+\item{age_ma}{Age of the record in Ma (numeric): one value, or \code{c(min, max)} to draw the age uniformly
+from that range in the Monte Carlo simulation. Required (no default).}
 
-\item{record_length_kyr}{length of the analysed record in kyr, for the
-frequency resolution; or give `tol` (relative half-width)}
+\item{record_length_kyr}{Length of the analysed record in kyr (numeric, > 0); with it the uncertainty band of
+each cycle is set by the frequency resolution \code{mult / record_length_kyr} (see \code{\link{cycle_band}}).
+\code{NULL} uses the relative half-width \code{tol} instead. \code{Default=NULL}.}
 
-\item{tol, mult}{see cycle_band()}
+\item{tol}{Relative half-width of the uncertainty band of each cycle, used only when \code{record_length_kyr}
+is \code{NULL} (numeric, > 0; 0.05 is plus or minus 5\%). \code{NULL} gives 0.05 (see \code{\link{cycle_band}}).
+\code{Default=NULL}.}
 
-\item{nsim}{number of Monte Carlo draws; 0 gives the plain point estimate}
+\item{mult}{Multiple of the frequency resolution \code{1 / record_length_kyr} used as half-width of the band
+(numeric, > 0; 1 is plus or minus one bandwidth). \code{Default=1}.}
 
-\item{method}{"angular_momentum" or "astrogeo22"}
+\item{nsim}{Number of Monte Carlo draws (integer, >= 0); within its band each cycle is drawn uniformly.
+\code{0} gives the plain point estimate without uncertainty. \code{Default=20000}.}
 
-\item{combine}{"multiply" (product of the individual densities, as in
-Zeeden et al. 2023) or "pool" (all samples together)}
+\item{method}{How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+(character, passed to \code{\link{ctest_earthmoon}} and \code{\link{earthmoon_state}}): \code{"angular_momentum"}
+(conservation of Earth-Moon angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat
+et al., 2022). \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{seed}{optional RNG seed}
+\item{combine}{How the estimates of several k terms are combined (character): \code{"multiply"} (product of the
+individual densities, as in Zeeden et al., 2023, via \code{\link{ctest_combine}}) or \code{"pool"} (all
+samples together). \code{Default=c("multiply", "pool")}, i.e. \code{"multiply"}.}
 
-\item{tuned_to}{if the record was tuned, the period you assumed for the
-tuning target in kyr (e.g. 405). The true duration of that target at this
-age is uncertain, so every measured period is stretched by
-(true target period)/(tuned_to); set this to propagate that error.
-NULL (default) treats the input periods as true durations.}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{anchor_term}{the tuning target term}
+\item{tuned_to}{If the record was tuned, the period in kyr that was assumed for the tuning target (numeric, e.g.
+405). The true duration of that target at this age is uncertain, so every measured period is stretched by
+(true target period)/\code{tuned_to} to propagate that error. \code{NULL} treats the input periods as true
+durations. \code{Default=NULL}.}
 
-\item{sampleorb, g4g3_range_kyr, s4s3_range_kyr, s3_uncertainty}{passed to the
-secular-frequency sampler}
+\item{anchor_term}{Astronomical term of the tuning target (character; a secular difference without k, e.g.
+\code{"e405"} or \code{"g2-g5"}); only used when \code{tuned_to} is given. \code{Default="e405"}.}
 
-\item{data_dir}{folder with the data tables}
+\item{sampleorb}{Shape of the distribution from which the uncertain secular frequencies g2, g3, g4, g5 and s3
+are drawn (character): \code{"U"} uniform or \code{"N"} normal. \code{Default="U"}.}
+
+\item{g4g3_range_kyr}{Range \code{c(min, max)} of the period of the g4-g3 term in kyr (numeric vector of
+length 2), drawn uniformly to allow for a chaotic resonance transition (g3 and g4 are moved symmetrically);
+\code{NULL} keeps g4-g3 at its La2004 value. \code{Default=NULL}.}
+
+\item{s4s3_range_kyr}{Range \code{c(min, max)} of the period of the s4-s3 term in kyr (numeric vector of
+length 2), drawn uniformly as for \code{g4g3_range_kyr}; \code{NULL} keeps s4-s3 at its La2004 value.
+\code{Default=NULL}.}
+
+\item{s3_uncertainty}{How the uncertainty of s3 is applied (character): \code{"published"} uses the relative
+uncertainty directly as standard deviation of the s3 period in years, as in the published code;
+\code{"scaled"} multiplies it by the s3 period (a much wider spread).
+\code{Default=c("published", "scaled")}, i.e. \code{"published"}.}
+
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 list: `per_term` (one row per cycle), `combined` (k and Earth-Moon

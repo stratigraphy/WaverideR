@@ -18,10 +18,17 @@ astroMCBchron(
   tau0_sd = 0.03,
   outer_sd = 0.2,
   anchor = NULL,
-  two_stage = TRUE,
+  date_model = c("mixture", "two_stage", "gaussian"),
+  two_stage = NULL,
+  outlier_type = c("scaled", "old", "young"),
+  outlier_prior = c(1, 19),
   nu = 4,
   outlier_z = 3,
   outlier_k = 4,
+  inflate_mswd = TRUE,
+  tracer_rel = 0.00015,
+  decay_rel = 0.00054,
+  depth_offset_sd = NULL,
   n_iter = 3e+05,
   thin = 50,
   burn_frac = 0.2,
@@ -35,113 +42,225 @@ astroMCBchron(
   bchron = FALSE,
   bchron_split = FALSE,
   bchron_args = list(),
+  temper = NULL,
+  loo_ids = NULL,
+  misfit = c("window", "localised", "stretch"),
+  misfit_window = 100,
+  band = c("analytic", "curves"),
   seed = NULL,
   verbose = TRUE,
   genplot = FALSE
 )
 }
 \arguments{
-\item{dates}{data.frame with one row per dated horizon and columns \code{id},
-\code{age}, \code{sd} (1 sigma, same unit as \code{age}), \code{position} and, optionally,
-\code{thickness} (half thickness of the stratigraphic position uncertainty; default 0).
-Ages are given in \code{age_unit}. Use the internal (analytical) uncertainty when all
-dates come from the same laboratory and tracer.}
+\item{dates}{Radioisotopic dates (data frame with one row per dated horizon, at least two rows). Required columns:
+\code{age} (in \code{age_unit}), \code{sd} (1 sigma, same unit as \code{age}, > 0) and \code{position} (depth or
+height, same unit as the tracks; two dates may not share a position). Optional columns:
+\itemize{
+\item \code{id} (character; default \code{"date_1"}, \code{"date_2"}, ...);
+\item \code{thickness} (half thickness of the uniform stratigraphic position uncertainty, position units;
+default 0);
+\item \code{mswd} (MSWD of a weighted-mean date; its sd is multiplied by sqrt(MSWD) when MSWD > 1 and
+\code{inflate_mswd = TRUE});
+\item \code{group} (laboratory or tracer group, character or numeric; dates of other groups than that of the
+anchor get an estimated systematic offset; \code{NA} = the first group);
+\item \code{tracer_rel} (1 sd relative tracer-calibration uncertainty of the date; overrides the argument
+\code{tracer_rel});
+\item \code{depth_group} (label of dates whose depths share one unknown offset, e.g. samples correlated from
+another section; \code{NA} = none; needs \code{depth_offset_sd}).
+}
+Give the internal (analytical, X) uncertainty in \code{sd}: the tracer and decay-constant terms are handled by
+\code{group}, \code{tracer_rel} and \code{decay_rel}. Required, no default.}
 
-\item{tracks}{list with one element per continuous segment (number of hiatuses + 1),
-ordered from the youngest (top) to the oldest (base) segment. Each element is either
-(i) a list with \code{position} (vector) and \code{period} (matrix, positions x
-realisations, or a vector), (ii) the output of \code{\link{retrack_wt_MC}} style
-objects, i.e. a list whose first element is a matrix with the position in its first
-column and whose second element is the matrix of period realisations, or (iii) a
-matrix/data.frame with position in the first column and one or more period
-realisations in the other columns. Periods are in position units (e.g. m) per
-\code{target_period}.}
+\item{tracks}{Floating astrochronology: list with one element per continuous segment (number of hiatuses + 1),
+ordered from the youngest (top) to the oldest (base) segment. Each element is either (i) a list with
+\code{position} (numeric vector) and \code{period} (matrix positions x realisations, or a vector), (ii) a
+\code{\link{retrack_wt_MC}}-style object, i.e. a list whose first element is a matrix with the position in its
+first column and whose second element is the matrix of period realisations, or (iii) a matrix/data frame with
+the position in column 1 and one or more period realisations in the other columns. Periods are in position units
+(e.g. m) per \code{target_period}. Without hiatuses a single such object may be given. Required, no default.}
 
-\item{hiatuses}{optional data.frame with columns \code{position}, \code{mean} and
-\code{sd} (1 sigma; duration prior in kyr). Default \code{NULL} (no hiatus).}
+\item{hiatuses}{Hiatuses (data frame with the columns \code{position}, \code{mean} and \code{sd}: position of the
+hiatus and the mean and 1 sigma (> 0) of the normal prior on its duration in kyr, truncated at zero);
+\code{NULL} means no hiatus. \code{Default=NULL}.}
 
-\item{position_type}{"depth" (positions increase downwards, default) or "height"
-(positions increase upwards).}
+\item{position_type}{Direction of the positions (character): \code{"depth"} (positions increase downwards, i.e.
+with age) or \code{"height"} (positions increase upwards). \code{Default=c("depth", "height")}, i.e.
+\code{"depth"}.}
 
-\item{age_unit}{unit of \code{dates$age}, \code{dates$sd} and of the output: "Ma"
-(default) or "ka" (= kyr).}
+\item{age_unit}{Unit of \code{dates$age}, \code{dates$sd} and of the output ages (character): \code{"Ma"} or
+\code{"ka"} (= kyr). \code{Default=c("Ma", "ka")}, i.e. \code{"Ma"}.}
 
-\item{target_period}{period of the tracked cycle (kyr). Default 405.}
+\item{target_period}{Period in kyr of the tracked astronomical cycle (numeric, > 0); the floating duration of an
+interval is the number of tracked cycles times \code{target_period}. \code{Default=405}.}
 
-\item{proxy_tracks}{optional list (one element per segment) of named lists of single
-per-proxy tracks (data.frame or matrix with position and period). Used to compute
-tau (stretch prior) and eps (within-interval spread) from the between-proxy spread.}
+\item{proxy_tracks}{Single-proxy tracks used to compute \code{tau} (stretch prior) and \code{eps}
+(within-interval spread) from the between-proxy spread (list with one element per segment, each a named list of
+per-proxy tracks given as a data frame or matrix with the position in column 1 and the period in column 2);
+\code{NULL} uses the spread of the realisations in \code{tracks}. \code{Default=NULL}.}
 
-\item{tau}{optional numeric vector (one value per interval between consecutive dates,
-log units, or a single value used for all intervals) that overrides the computed
-stretch-prior widths.}
+\item{tau}{Widths (sd in log units) of the stretch priors that override the computed ones (numeric vector with
+one value per interval between consecutive dates, or a single value used for all intervals); \code{NULL}
+computes them (see \code{tau_method}). \code{Default=NULL}.}
 
-\item{tau_method}{"se" (between-proxy sd / sqrt(n), default) or "sd" (between-proxy
-sd). Only used with \code{proxy_tracks}. Without \code{proxy_tracks}, tau is the sd of
-the log floating durations over the track realisations.}
+\item{tau_method}{How tau is computed from \code{proxy_tracks} (character): \code{"se"} (between-proxy sd /
+sqrt(number of proxies)) or \code{"sd"} (between-proxy sd). Without \code{proxy_tracks}, tau is the sd of the
+log floating durations over the track realisations. \code{Default=c("se", "sd")}, i.e. \code{"se"}.}
 
-\item{eps}{optional within-interval relative spread per cycle: a single number, or a
-data.frame with \code{position} and \code{eps}. Default: computed from
-\code{proxy_tracks} (between-proxy standard error per cycle) or, without them, from
-the spread of the track realisations.}
+\item{eps}{Within-interval relative spread per cycle used for the gamma (Dirichlet) bridge between the dates: a
+single number (>= 0), or a data frame with the columns \code{position} and \code{eps}; \code{NULL} computes it
+from \code{proxy_tracks} (between-proxy standard error per cycle) or, without them, from the spread of the track
+realisations. \code{Default=NULL}.}
 
-\item{tau0_sd}{sd of the half-normal prior on the common slack tau0 (log units).
-Default 0.03. Set to 0 to fix tau0 at 0.}
+\item{tau0_sd}{Standard deviation (log units) of the half-normal prior on the common additional slack tau0 of all
+stretch factors (numeric, >= 0); \code{0} fixes tau0 at 0. \code{Default=0.03}.}
 
-\item{outer_sd}{sd (log units) tying the stretch factors of the outer intervals to their
-neighbours. Default 0.2.}
+\item{outer_sd}{Standard deviation (log units) of the prior tying the stretch factors of the two outer intervals
+(not bracketed by dates) to those of their neighbours (numeric, > 0). \code{Default=0.2}.}
 
-\item{anchor}{id of the date used as anchor. Default: the most precise date.}
+\item{anchor}{\code{id} of the date used as the age anchor (a single value of the type of \code{dates$id});
+\code{NULL} uses the most precise date (smallest \code{sd}). \code{Default=NULL}.}
 
-\item{two_stage}{logical; robust two-stage outlier screening (default TRUE).}
+\item{date_model}{Likelihood model of the dates (character): \code{"mixture"} (each date is a mixture of a
+Gaussian and an outlier component, with an estimated outlier probability; see \code{outlier_type},
+\code{outlier_prior}, \code{outlier_k}), \code{"two_stage"} (the robust two-stage screening of version 1: a
+Student-t stage flags dates that move more than \code{outlier_z} sd, flagged dates enter the final Gaussian
+stage with \code{outlier_k} x sd) or \code{"gaussian"} (plain Gaussian likelihood, no outlier treatment).
+\code{Default=c("mixture", "two_stage", "gaussian")}, i.e. \code{"mixture"}.}
 
-\item{nu}{degrees of freedom of the Student-t likelihood in stage 1. Default 4.}
+\item{two_stage}{Deprecated, kept for compatibility with version 1 (logical or \code{NULL}): \code{TRUE} is
+\code{date_model = "two_stage"}, \code{FALSE} is \code{date_model = "gaussian"}; if given it overrides
+\code{date_model}. \code{NULL} uses \code{date_model}. \code{Default=NULL}.}
 
-\item{outlier_z}{flag a date when its stage-1 shift exceeds \code{outlier_z} x its sd.}
+\item{outlier_type}{Outlier component of the mixture (character): \code{"scaled"} (Gaussian around the date
+with \code{outlier_k} x sd), \code{"old"} (one-sided: the true age may be younger than the date, i.e. the date
+too old, e.g. inherited or recycled zircon) or \code{"young"} (one-sided: the date may be too young, e.g.
+residual Pb loss). Only used with \code{date_model = "mixture"}.
+\code{Default=c("scaled", "old", "young")}, i.e. \code{"scaled"}.}
 
-\item{outlier_k}{flagged dates enter stage 2 with \code{outlier_k} x their sd.}
+\item{outlier_prior}{Shape parameters of the beta prior on the outlier probability p (numeric vector of length 2,
+both > 0: \code{c(a, b)}, prior mean a / (a + b)). Only used with \code{date_model = "mixture"}.
+\code{Default=c(1, 19)} (prior mean 0.05).}
 
-\item{n_iter}{number of MCMC iterations (stage 2; stage 1 uses half). Default 3e5.}
+\item{nu}{Degrees of freedom of the Student-t likelihood of the dates in stage 1 of
+\code{date_model = "two_stage"} (numeric, > 0); smaller values are more robust to outliers. \code{Default=4}.}
 
-\item{thin}{thinning interval. Default 50.}
+\item{outlier_z}{Threshold for flagging a date in \code{date_model = "two_stage"}: a date is flagged when its
+stage-1 shift exceeds \code{outlier_z} times its sd (numeric, > 0). \code{Default=3}.}
 
-\item{burn_frac}{fraction of iterations discarded as burn-in (and used for adapting the
-proposal widths). Default 0.2.}
+\item{outlier_k}{Width of the outlier component in multiples of the sd of the date (\code{date_model =
+"mixture"}), or the factor by which the sd of a flagged date is multiplied in the final stage of
+\code{date_model = "two_stage"} (numeric, >= 1). \code{Default=4}.}
 
-\item{n_tracks}{number of track realisations drawn per segment. Default 1000.}
+\item{inflate_mswd}{Multiply the sd of dates with an MSWD > 1 (column \code{dates$mswd}) by sqrt(MSWD) (logical,
+TRUE or FALSE); without that column it has no effect. \code{Default=TRUE}.}
 
-\item{loo}{logical; leave-one-out prediction of every date. Default TRUE.}
+\item{tracer_rel}{Relative tracer-calibration uncertainty (1 sd, as a fraction of the age) of the dates (numeric,
+>= 0); a column \code{dates$tracer_rel} overrides it per date. It sets the prior of the offsets between
+laboratory groups and the tracer envelope \code{sd2_tracer_kyr}. \code{Default=1.5e-4} (0.03 \% at 2 sd,
+EARTHTIME ET535/ET2535; Condon et al., 2015).}
 
-\item{loo_iter}{iterations per leave-one-out run. Default \code{n_iter / 3}.}
+\item{decay_rel}{Relative 238U decay-constant uncertainty (1 sd, as a fraction of the age) (numeric, >= 0); only
+used for the total envelope \code{sd2_total_kyr}, it does not affect durations. \code{Default=5.4e-4} (0.108 \% at
+2 sd; Jaffey et al., 1971).}
 
-\item{predict_positions}{positions at which the model is evaluated. Default: 501
-equidistant positions spanning the dates and the tracks.}
+\item{depth_offset_sd}{Standard deviation (position units) of the common depth offset of each depth group
+(numeric, > 0: one value for all groups, or a vector named by the labels in \code{dates$depth_group}). Required
+when \code{dates$depth_group} is given, ignored otherwise. \code{Default=NULL}.}
 
-\item{max_curves}{maximum number of age-depth curves stored. Default 5000.}
+\item{n_iter}{Number of MCMC iterations of the final stage (integer, > 0; stage 1 of \code{"two_stage"} uses
+half). \code{Default=3e5}.}
 
-\item{n_bridge}{bridge realisations per posterior draw used for the percentiles
-(default: enough for >= 10,000 curves, at most 20).}
+\item{thin}{Thinning interval of the MCMC chain: every \code{thin}-th state after the burn-in is kept (integer,
+>= 1). \code{Default=50}.}
 
-\item{date_loglik}{optional list (one function per date, same order as \code{dates})
-returning the log-likelihood of an age (in \code{age_unit}); replaces the Gaussian date
-likelihood (e.g. for Bayesian eruption-age estimates). Disables the two-stage screening.}
+\item{burn_frac}{Fraction of the iterations discarded as burn-in, during which the proposal widths are adapted
+(numeric, between 0 and 1). \code{Default=0.2}.}
 
-\item{bchron}{logical; also run the U-Pb-only \code{\link{modBchron}} model with the same
-dates. Default FALSE.}
+\item{n_tracks}{Number of track realisations drawn per segment for the floating astrochronology (integer, > 0).
+\code{Default=1000}.}
 
-\item{bchron_split}{logical; with hiatuses, run one \code{modBchron} model per segment
-(dates within the segment) and estimate the hiatus duration from the difference
-between the models at the hiatus (as in Cramer et al., 2026). Default FALSE (one model
-through all dates).}
+\item{loo}{Predict every date (or the dates in \code{loo_ids}) from all other dates and the astrochronology
+(leave-one-out), which tests the consistency between dates and cycles (logical, TRUE or FALSE); this runs one
+extra MCMC per date, with the date model refitted each time. \code{Default=TRUE}.}
 
-\item{bchron_args}{list of further arguments passed to \code{\link{modBchron}} (e.g.
-\code{MC}, \code{burn}, \code{truncateUp}, \code{truncateDown}).}
+\item{loo_iter}{Number of MCMC iterations per leave-one-out run (integer, > 0); \code{NULL} uses
+\code{round(n_iter / 3)}. \code{Default=NULL}.}
 
-\item{seed}{optional random seed.}
+\item{predict_positions}{Positions at which the age model is evaluated (numeric vector, same unit and type as
+\code{dates$position}; must span all dated positions); \code{NULL} uses 501 equidistant positions spanning the
+dates and the tracks. \code{Default=NULL}.}
 
-\item{verbose}{logical; print progress. Default TRUE.}
+\item{max_curves}{Maximum number of age-depth curves stored in the result (integer, > 0); larger values need more
+memory. \code{Default=5000}.}
 
-\item{genplot}{logical; plot the result. Default FALSE.}
+\item{n_bridge}{Number of bridge realisations per posterior draw used for the percentiles (integer, > 0);
+\code{NULL} uses enough for at least 10000 curves, at most 20 per draw. \code{Default=NULL}.}
+
+\item{date_loglik}{Own likelihoods of the dates that replace the Gaussian date likelihood, e.g. from
+single-zircon dates with \code{\link{upb_grain_loglik}} (list with one function per date, in the order of the
+rows of \code{dates}; each takes an age in \code{age_unit} and returns its log-likelihood). The functions are
+normalised numerically and combined with the outlier mixture; \code{dates$age} and \code{dates$sd} then only set
+the integration grid. Cannot be combined with \code{date_model = "two_stage"} (\code{"mixture"} is used, with a
+warning). \code{NULL} uses the Gaussian likelihood. \code{Default=NULL}.}
+
+\item{bchron}{Also run the U-Pb-only \code{\link{modBchron}} age-depth model with the same dates on the same
+prediction grid, for comparison (logical, TRUE or FALSE). \code{Default=FALSE}.}
+
+\item{bchron_split}{With hiatuses, run one \code{\link{modBchron}} model per segment (dates within the segment) and
+estimate the hiatus duration from the difference between the models at the hiatus, as in Cramer et al. (2026)
+(logical, TRUE or FALSE); \code{FALSE} runs one model through all dates. \code{Default=FALSE}.}
+
+\item{bchron_args}{Further arguments passed to \code{\link{modBchron}} (named list, e.g. \code{MC}, \code{burn},
+\code{truncateUp}, \code{truncateDown}). \code{Default=list()}.}
+
+\item{temper}{Inverse temperatures for parallel tempering of the final stage (numeric vector, first value 1,
+strictly decreasing, all > 0; Swendsen and Wang, 1986), e.g. \code{exp(seq(0, log(0.01), length.out = 8))}.
+Only the astronomical part of the posterior (stretch-factor priors, ties of the outer intervals and hiatus
+priors) is tempered; the dates, positions and tau0 enter every chain at full weight (partial tempering, Kjellson
+et al., 2026). Hot chains can change the number of cycles between dates, so alternative solutions that a single
+chain would miss are found and weighted; samples are taken from the chain at 1. Costs one MCMC per temperature.
+\code{NULL} runs one chain. \code{Default=NULL}.}
+
+\item{loo_ids}{\code{id}s of the dates for the leave-one-out test (vector of values of \code{dates$id});
+\code{NULL} tests all dates. Only used with \code{loo = TRUE}. \code{Default=NULL}.}
+
+\item{misfit}{How the posterior departure of an interval's duration from its posterior mean (the misfit between
+the floating time scale and the dates) is placed inside the interval (character; one of \code{"window"},
+\code{"localised"}, \code{"stretch"}). \code{"window"}: at one random position,
+spread uniformly in time over one contiguous window of \code{misfit_window} kyr of floating time (one cycle with a
+different accumulation rate); a negative misfit compresses the window (the window is widened where needed so that
+no step loses more than 70 \% of its time). \code{"localised"}: at one horizon of unknown position (one step of the
+prediction grid; a miscounted cycle or a condensed level). \code{"stretch"}: spread uniformly over the interval
+(rigid stretch, the behaviour of earlier versions). With \code{"stretch"} the age between two dates is a fixed
+interpolation between two uncertain end ages, whose variance (1 - w)^2 V_i + w^2 V_i+1 + 2 w (1 - w) C is convex and
+can be smaller between the dates than at either date. With \code{"localised"} the variance becomes (1 - w) V_i + w
+V_i+1 (w = fraction of the interval in floating time) plus the per-cycle bridge variance: linear between the dated
+horizons, so it never has an interior minimum. With \code{"window"} the variance is the rigid-stretch variance plus
+2 (E[F] - w) Cov(a_i, delta) + (E[F^2] - w^2) E[delta^2] (F = share of the window below w), which tends to the
+localised variance for a short window and stays within a few kyr of it for windows of ~100 kyr, while the stored
+curves keep time everywhere (no empty steps, no one-step jumps). No option loosens a constraint: the posterior, the
+mean age model and the interval durations between dates are the same. Where a hiatus inside an interval (an
+uncertainty step at a known position) or Monte Carlo noise would still create a dip, the 2 sd and the half-widths
+of the 95 \% band are replaced by their smallest unimodal majorant within each dated interval (conservative;
+\code{"window"} and \code{"localised"} only; the amount is reported in \code{summary$guard_raise_kyr}).
+\code{Default=c("window", "localised", "stretch")}, i.e. \code{"window"}.}
+
+\item{misfit_window}{Length in kyr of floating time of the window used for \code{misfit = "window"} (numeric,
+single value > 0). \code{Default=100} (about one short-eccentricity cycle).}
+
+\item{band}{How the 95 \% band and the median in \code{summary} are computed (character): \code{"analytic"} mean
++/- 1.96 x the analytic sd, median = mean (no Monte Carlo noise), or \code{"curves"} the 2.5, 50 and 97.5
+percentiles of the age-depth curves. Both are returned (\code{median_mc}, \code{lower_mc}, \code{upper_mc} hold
+the percentiles). \code{Default=c("analytic", "curves")}, i.e. \code{"analytic"}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the MCMC results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
+
+\item{verbose}{Print progress messages (logical, TRUE or FALSE). \code{Default=TRUE}.}
+
+\item{genplot}{Plot the result with \code{plot()} (\code{plot.astroMCBchron}) (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 }
 \value{
 An object of class \code{astroMCBchron}: a list with
@@ -150,10 +269,17 @@ An object of class \code{astroMCBchron}: a list with
   realisations), in \code{age_unit}; the same layout as the \code{model} element of
   \code{\link{modBchron}} output.}
   \item{predictPositions}{positions of the rows of \code{model}.}
-  \item{summary}{data.frame: position, mean, median, 2.5 and 97.5 percentiles and the
-  analytical 2 sd (age_unit, 2 sd in kyr).}
-  \item{dates}{data.frame: date, posterior age and 2 sd, shift (kyr) and shift in sd of
-  the date, outlier flag, leave-one-out prediction and z-score.}
+  \item{summary}{data.frame: position, mean, median, lower and upper end of the 95 \% band (see \code{band}), the
+  internal 2 sd (\code{sd2_kyr}), the 2 sd including the tracer term (\code{sd2_tracer_kyr}) and including the
+  decay constant (\code{sd2_total_kyr}) with the corresponding 95 \% ranges (\code{lower_tracer},
+  \code{upper_tracer}, \code{lower_total}, \code{upper_total}), the 2.5, 50 and 97.5 percentiles of the curves
+  (\code{median_mc}, \code{lower_mc}, \code{upper_mc}) and the amount by which the guard raised the 2 sd
+  (\code{guard_raise_kyr}).}
+  \item{dates}{data.frame: date, effective date (mean and 2 sd of its likelihood), posterior
+  age and 2 sd, shift (kyr and sd), posterior outlier probability and flag (> 0.5),
+  leave-one-out prediction and z-score.}
+  \item{outlier_prob, group_offsets, depth_offsets}{posterior draws of the outlier
+  probability (\code{date_model = "mixture"} only), the laboratory offsets (kyr) and the depth offsets.}
   \item{stretch}{matrix of posterior stretch factors (draws x intervals).}
   \item{hiatus}{matrix of posterior hiatus durations (kyr).}
   \item{tau, tau0, eps}{stretch-prior widths, posterior of the common slack and the
@@ -161,8 +287,8 @@ An object of class \code{astroMCBchron}: a list with
   \item{stage1, loo}{stage-1 screening and leave-one-out tables.}
   \item{bchron, comparison}{the \code{modBchron} model(s) and a comparison table of the
   2 sd of both models (if \code{bchron = TRUE}).}
-  \item{posterior, acceptance, call, settings}{raw posterior states, acceptance rates
-  and settings.}
+  \item{posterior, tempering, acceptance, call, settings}{raw posterior states, parallel-tempering diagnostics
+  (swap acceptance, round trips; \code{NULL} without \code{temper}), acceptance rates and settings.}
 }
 }
 \description{
@@ -189,21 +315,41 @@ The model (Arts et al., in prep.):
   \item each hiatus has a duration H with a normal prior (\code{hiatuses$mean},
   \code{hiatuses$sd}), truncated at zero;
   \item the stratigraphic position of each date may vary uniformly within
-  +/- \code{thickness};
+  +/- \code{thickness} (give the real half-thickness of the sampled interval, e.g. 0.005 m
+  for a bed located to the nearest cm); dates that share a \code{depth_group} can in
+  addition be shifted together by a common depth offset (prior sd \code{depth_offset_sd}),
+  for dates whose depths come from a different depth scale than the tracks (e.g. outcrop
+  samples correlated into a core, or box-label depths);
   \item the floating astrochronology is drawn from the realisations of the tracked period
   (one realisation per segment and MCMC state);
   \item the age of every position follows from the age of an anchor date plus the
   cumulative stretched floating durations and the hiatuses;
-  \item the dates are screened in two stages: a robust Student-t stage flags dates that
-  move more than \code{outlier_z} standard deviations; in the second stage the retained
-  dates have a Gaussian likelihood and flagged dates only enter as a weak guard
-  (\code{outlier_k} times their uncertainty);
+  \item date model (\code{date_model}): by default (\code{"mixture"}) every date has a mixture
+  likelihood, (1 - p) x N(date, sd) + p x outlier component, with the outlier probability
+  p estimated (beta prior \code{outlier_prior}) and the posterior outlier probability of
+  each date reported. The outlier component is a Gaussian with \code{outlier_k} x sd
+  (\code{"scaled"}), or one-sided: \code{"old"} (the date may be too old, inherited or recycled
+  zircon) or \code{"young"} (residual Pb loss). \code{"two_stage"} reproduces version 1 (a robust
+  Student-t stage flags dates that move more than \code{outlier_z} sd; flagged dates enter
+  the final stage with \code{outlier_k} x sd); \code{"gaussian"} uses no outlier treatment.
+  Instead of a Gaussian, any date can have its own likelihood (\code{date_loglik}, e.g.
+  from single-zircon dates with \code{\link{upb_grain_loglik}}); it is normalised and
+  combined with the same outlier mixture;
+  \item systematic uncertainties: dates from different laboratories or tracers
+  (\code{group}) get a systematic offset relative to the reference group (the group of the
+  anchor date), with a prior from the tracer calibration uncertainty of both groups, so
+  that their relative offset is estimated by the astrochronology. The tracer uncertainty
+  of the reference group and the 238U decay-constant uncertainty are common to all ages
+  and are reported as additional envelopes (\code{sd2_tracer_kyr}, \code{sd2_total_kyr});
+  they do not affect durations;
   \item the within-interval uncertainty is added as a monotone gamma (Dirichlet) bridge
   between the dates (free gamma walks beyond the outermost dates), with a dispersion per
   cycle equal to the relative between-proxy spread of the cycle durations; the reported 2
   sd is computed analytically (Rao-Blackwellised) from the posterior draws;
   \item optionally, every date is predicted from all other dates and the astrochronology
-  (leave-one-out), which tests the consistency between dates and cycles.
+  (leave-one-out), which tests the consistency between dates and cycles. The date model
+  (outlier probability, or the two-stage screening) is refitted in every leave-one-out run,
+  so that no information from the full fit is reused.
 }
 With \code{bchron = TRUE}, a U-Pb-only Bayesian age-depth model with the same dates
 (\code{\link{modBchron}}, a pure-R implementation of modifiedBChron; Trayler et al.,
@@ -224,8 +370,13 @@ z_dates <- c(10, 35, 55, 70, 95)
 dates <- data.frame(id = paste0("ash", 1:5), position = z_dates,
                     age = true_age(z_dates) / 1000 + rnorm(5, 0, 0.08), sd = 0.08,
                     thickness = 0.5)
-trk <- function(z) list(position = z, period = sapply(1:40, function(i)
-  405 * rate(z) * exp(rnorm(1, 0, 0.02))))
+trk <- function(z) {
+  period <- matrix(NA_real_, length(z), 40)
+  for (i in 1:40) {
+    period[, i] <- 405 * rate(z) * exp(rnorm(1, 0, 0.02))
+  }
+  list(position = z, period = period)
+}
 fit <- astroMCBchron(dates, tracks = list(trk(seq(0, 60, 0.25)), trk(seq(60, 100, 0.25))),
                      hiatuses = data.frame(position = 60, mean = 280, sd = 60),
                      n_iter = 5000, loo = FALSE, bchron = TRUE,
@@ -238,15 +389,25 @@ mean(abs(s$median - true_age(s$position) / 1000)) * 1000                     # k
 }
 }
 \references{
-Haslett, J., Parnell, A., 2008. A simple monotone process with application to
-radiocarbon-dated depth chronologies. Journal of the Royal Statistical Society C 57,
-399-418.
-
-Trayler, R.B., Schmitz, M.D., Cuitino, J.I., Kohn, M.J., Bargo, M.S., Kay, R.F.,
-Stromberg, C.A.E., Vizcaino, S.F., 2020. An improved approach to age-modeling in deep
-time: Implications for the Santa Cruz Formation, Argentina. GSA Bulletin 132, 233-244.
+Condon, D.J., Schoene, B., McLean, N.M., Bowring, S.A., Parrish, R.R., 2015. Metrology and traceability of U-Pb
+isotope dilution geochronology (EARTHTIME Tracer Calibration Part I). Geochimica et Cosmochimica Acta 164,
+464-480.
 
 Cramer, B.D., Schmitz, M.D., Trayler, R.B., Stolfus, B.M., Peate, D.W., McAdams,
 N.E.B., Arts, M., Da Silva, A.-C., 2026. Quantifying uncertainty in the structure and
 duration of Silurian biogeochemical events. Scientific Reports.
+
+Haslett, J., Parnell, A., 2008. A simple monotone process with application to
+radiocarbon-dated depth chronologies. Journal of the Royal Statistical Society C 57,
+399-418.
+
+Jaffey, A.H., Flynn, K.F., Glendenin, L.E., Bentley, W.C., Essling, A.M., 1971. Precision measurement of
+half-lives and specific activities of 235U and 238U. Physical Review C 4, 1889-1906.
+
+Swendsen, R.H., Wang, J.-S., 1986. Replica Monte Carlo simulation of spin-glasses. Physical Review Letters 57,
+2607-2609.
+
+Trayler, R.B., Schmitz, M.D., Cuitino, J.I., Kohn, M.J., Bargo, M.S., Kay, R.F.,
+Stromberg, C.A.E., Vizcaino, S.F., 2020. An improved approach to age-modeling in deep
+time: Implications for the Santa Cruz Formation, Argentina. GSA Bulletin 132, 233-244.
 }

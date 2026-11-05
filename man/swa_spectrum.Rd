@@ -15,30 +15,29 @@ swa_spectrum(
 )
 }
 \arguments{
-\item{data}{Matrix or data frame with two columns: depth/time and proxy
-value. Rows are sorted on the first column and non-finite rows removed.
-For \code{method = "mtm"} the data must be evenly spaced; as in Acycle
-the series is used as is (remove the mean/trend beforehand).}
+\item{data}{Record to analyse (required): matrix or data frame with depth/time in column 1 and the proxy value in
+column 2. Rows are sorted on the first column and non-finite rows removed. For \code{method = "mtm"} the data must
+be evenly spaced; as in Acycle the series is used as is (remove the mean/trend beforehand). \code{method = "lomb"}
+also accepts unevenly spaced data or data with gaps. \code{Default=NULL}.}
 
-\item{method}{\code{"mtm"} or \code{"lomb"} (see Description).
-\code{Default="mtm"}}
+\item{method}{Spectral estimator (character): \code{"mtm"} (multi-taper spectrum) or \code{"lomb"} (Lomb-Scargle
+program of Weedon); see Description. \code{Default="mtm"}.}
 
-\item{nw}{Time-bandwidth product of the multi-taper spectrum
-(\code{method = "mtm"} only). \code{Default=2}}
+\item{nw}{Time-bandwidth product of the multi-taper spectrum (numeric, > 0; \code{method = "mtm"} only). It sets the
+number of tapers (2 x \code{nw} - 1, or 2 for \code{nw = 1}) and so the degrees of freedom and the smoothing of the
+spectrum. \code{Default=2}.}
 
-\item{pad_times}{Zero-padding factor; nfft = max(n, round(pad_times * n))
-(\code{method = "mtm"} only). \code{Default=1}}
+\item{pad_times}{Zero-padding factor (numeric; \code{method = "mtm"} only): nfft = max(n, round(\code{pad_times} * n)),
+so values <= 1 give no padding and larger values a finer frequency grid. \code{Default=1}.}
 
-\item{background}{Background fit used for \code{method = "lomb"}:
-\code{"specswa"} uses \code{\link{swa_background}} (current specswa.m
-algorithm, also used by \code{method = "mtm"}); \code{"legacy"}
-reproduces the older SWA fit coded inside specswafdr.m, i.e. exactly
-what the Acycle SWA window reports. \code{Default="specswa"}}
+\item{background}{Background fit used for \code{method = "lomb"} (character): \code{"specswa"} uses
+\code{\link{swa_background}} (current specswa.m algorithm, also used by \code{method = "mtm"}); \code{"legacy"}
+reproduces the older SWA fit coded inside specswafdr.m, i.e. exactly what the Acycle SWA window reports (not
+allowed with \code{method = "mtm"}). \code{Default="specswa"}.}
 
-\item{genplot}{Plot the spectrum, background and confidence levels.
-\code{Default=FALSE}}
+\item{genplot}{Plot the spectrum, the background and the confidence levels (logical). \code{Default=FALSE}.}
 
-\item{verbose}{Print progress information. \code{Default=FALSE}}
+\item{verbose}{Print progress information (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

@@ -22,8 +22,8 @@ retrack_wt_MC(
   period_down = 0.5,
   plot.COI = TRUE,
   n.levels = 100,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
   add_avg = FALSE,
@@ -39,146 +39,128 @@ retrack_wt_MC(
 )
 }
 \arguments{
-\item{wt_list}{a list containing all the wavelet objects created using the
-\link[WaverideR]{analyse_wavelet} wavelet function
-To create a list use the \link[base]{list} function}
+\item{wt_list}{Wavelet scalograms of the different proxy records (required): a \code{list} of objects created with
+\code{\link{analyse_wavelet}}, one per proxy, in the same order as the columns of \code{data_track}. In every
+simulation one of them is picked at random and the cycle is re-tracked in it. \code{Default=NULL}.}
 
-\item{data_track}{a matrix containing all the tracked period values.
-To create the matrix use the \link[base]{cbind} function and only add the
-tracked period values so do not add the depth axis. When combining the
-tracked period values make sure that all curves have a similar depth
-spacing.}
+\item{data_track}{Tracked periods of the cycle in each proxy record (required): numeric matrix with one column per
+proxy (same order as \code{wt_list}) and one row per value of \code{x_axis}; contains only the period values, not the
+depth axis. Build it with \code{\link[base]{cbind}} from tracked curves that were interpolated to the same depths.
+\code{Default=NULL}.}
 
-\item{x_axis}{The x-axis of the tracked period values}
+\item{x_axis}{Depth/time values of the rows of \code{data_track} (numeric vector, evenly spaced, same length as
+\code{nrow(data_track)}). Required. \code{Default=NULL}.}
 
-\item{smoothing}{setting the smoothing parameter and value to either "auto" which uses
-a automatic loess smoother,"loess" where one can specify Lowess smoothing
-parameter. or "window" where one can specific the window length of the moving
-average. one should specify the parameter and its value as vector
-#'@param wt_list a list containing all the wavelet objects created using the
-\link[WaverideR]{analyse_wavelet} wavelet function
-To create a list use the \link[base]{list} function}
+\item{smoothing}{Smoothing of every re-tracked curve (character vector of length 1 or 2):
+\itemize{
+\item \code{"auto"}: loess smoothing with an automatically selected span (\code{\link{loess_auto}}),
+\item \code{c("loess", span)}: loess smoothing with the given span (0 to 1; \code{smooth} of \code{astrochron::noLow}),
+\item \code{c("window", length)}: moving average with the given window length in depth/time units (\code{win} of
+\code{astrochron::mwStats}).
+}
+Any other value applies no smoothing. \code{Default=c("auto")}.}
 
-\item{nr_simulations}{The number of Monte-Carlo simulations which are to be
-conducted\code{Default=50}}
+\item{nr_simulations}{Number of Monte Carlo simulations (re-tracked curves) (integer, > 0). \code{Default=50}.}
 
-\item{seed_nr}{The seed number of the Monte-Carlo simulations.
-\code{Default=1337}}
+\item{seed_nr}{Seed of the random number generator (integer), so that the random choice of scalogram and of the
+weights of the synthetic curve can be reproduced. \code{Default=1337}.}
 
-\item{verbose}{Print text when running the function  \code{Default=FALSE}}
+\item{verbose}{Show the progress of the simulations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{genplot}{Plot a plot with the mean period and + and - standard
-deviation \code{Default=FALSE}}
+\item{genplot}{Plot the mean re-tracked period (green) with the mean minus (red) and plus (blue) one standard
+deviation of the frequency (logical). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting
-\code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters of the plot after the function returns, so that extra elements
+can be added (logical); only used with \code{genplot = TRUE}. \code{Default=FALSE}.}
 
-\item{create_GIF}{Create a GIF with the re-tracked lines in the wavelet
-scalograms \code{Default=FALSE}}
+\item{create_GIF}{Save one image per simulation, showing the re-tracked curve on the selected scalogram (drawn with
+\code{\link{plot_wavelet}}), in the folder \code{file_name} and join them into an animated GIF (logical; needs the
+\pkg{magick} package). \code{Default=FALSE}.}
 
-\item{plot_GIF}{Plot a GIF with the re-tracked lines in the wavelet
-scalograms\code{Default=FALSE}}
+\item{plot_GIF}{Display the GIF after it is created (logical); only used with \code{create_GIF = TRUE}.
+\code{Default=FALSE}.}
 
-\item{width_plt}{width of the re-tracked plot \code{Default=600}}
+\item{width_plt}{Width of the GIF images in pixels (integer). \code{Default=600}.}
 
-\item{height_plt}{width of the re-tracked plot \code{Default=450}}
+\item{height_plt}{Height of the GIF images in pixels (integer). \code{Default=450}.}
 
-\item{period_up}{The period_up parameter is the factor with which the linear interpolated tracked_curve
-curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_up factor is
-the upper boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
-curve. If no spectral peak is detected within the specified boundary the interpolated
-value is used instead. between spectral peaks \code{Default=1.5},}
+\item{period_up}{Factor (numeric, > 1) by which the synthetic tracked curve is multiplied to get the upper boundary of
+the search window for the nearest spectral peak (passed to \code{\link{completed_series}}). If no peak is found
+within the window the interpolated value is used. \code{Default=1.5}.}
 
-\item{period_down}{The period_down parameter is the factor with which the linear interpolated tracked_curve
-curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_down factor is
-the lower boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
-curve. If no spectral peak is detected within the specified boundary the interpolated
-value is used instead. between spectral peaks \code{Default=0.5},}
+\item{period_down}{Factor (numeric, between 0 and 1) by which the synthetic tracked curve is multiplied to get the
+lower boundary of the search window for the nearest spectral peak (passed to \code{\link{completed_series}}).
+\code{Default=0.5}.}
 
-\item{plot.COI}{Option to plot the cone of influence \code{Default=TRUE}.}
+\item{plot.COI}{Draw the cone of influence on the scalograms of the GIF images (logical); only used with
+\code{create_GIF = TRUE}. \code{Default=TRUE}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the scalograms of the GIF images (integer, > 1). \code{Default=100}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{periodlab}{Label for the y-axis \code{Default="Period (metres)"}.}
+\item{periodlab}{Label of the period axis of the plots (character). \code{Default="Period (metres)"}.}
 
-\item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label of the depth/time axis of the plots (character). \code{Default="depth (metres)"}.}
 
-\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+\item{add_avg}{Draw the average wavelet power next to the scalograms of the GIF images (logical; passed to
+\code{\link{plot_wavelet}}); only used with \code{create_GIF = TRUE}. \code{Default=FALSE}.}
 
-\item{time_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then time_dir should be set to FALSE \code{time_dir=TRUE}}
+\item{time_dir}{Direction of the depth/time axis in the GIF images (logical): \code{TRUE} if time increases with
+increasing depth/time values (e.g. a core that gets older downwards), \code{FALSE} if it decreases (e.g. a section
+log where 0 m is the base); only used with \code{create_GIF = TRUE}. \code{Default=TRUE}.}
 
-\item{file_name}{Name of the images created using this function. Each file
-gets a number added to it which corresponds to which number of simulation it was
-the files are saved in a folder with a similar name created in the current
-directory}
+\item{file_name}{Name (character) of the folder created in the working directory for the GIF images, also used as the
+base name of the images (\code{file_name_<simulation number>.jpeg}) and of the GIF (\code{file_name.gif}). Required
+when \code{create_GIF = TRUE}. \code{Default=NULL}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+\item{run_multicore}{Run the Monte Carlo simulations in parallel on several cores (logical). \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer, or \code{NULL}). \code{NULL} uses an
+automatic, safe number: physical cores minus one, at most 4, and limited by the free memory; set
+\code{options(waverider.n_cores = ...)} to change it. A value > 1 also switches on parallel computing. Results do
+not depend on the number of cores. \code{Default=NULL}.}
 
-\item{output}{#'If output = 1, output is a list which contain 3 objects.
-object 1 is a matrix with the x-axis and the mean tracked frequency and
-standard deviation. #'object 2 is a matrix with all the tracked periods.
-Object 3 is a GIF in which #'all the tracked periods are plotted.
-If output = 2, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked frequency and standard deviation.
-object 2 is a matrix with all the tracked periods.
-If output = 3, output is a list which contain 2 objects. object 1 is a matrix
-with the x-axis and the mean tracked frequency and standard deviation.
-Object 2 is a GIF in which
-all the tracked periods are plotted.
-If output = 4, output is a list which contain 3 objects. Object 1 is a matrix
-with all the tracked periods. Object 2 is a GIF in which  all the tracked
-periods are plotted.
-If output = 4 output is a list which contain 3 objects. Object 1 is a matrix
-with all the tracked periods. Object 2 is a GIF in which  all the tracked
-periods are plotted.
-If output = 5 a matrix with the x-axis and the mean tracked frequency and
-standard deviation is returned.
-If output = 6, a matrix with all the tracked periods is returned.
-If output = 7, a GIF in which all the tracked periods are plotted is returned.
-\code{Default=1}}
+\item{output}{What is returned (integer, 1 to 7):
+\itemize{
+\item 1: list of (1) a matrix with the x-axis, the mean tracked frequency and its standard deviation (columns
+\code{depth}, \code{mean_freq}, \code{sd}), (2) a matrix with all the re-tracked periods (one column per simulation)
+and (3) the GIF (\code{NULL} without \code{create_GIF = TRUE}),
+\item 2: list of the mean/sd matrix and the matrix of re-tracked periods,
+\item 3: list of the mean/sd matrix and the GIF,
+\item 4: list of the matrix of re-tracked periods and the GIF,
+\item 5: the mean/sd matrix only,
+\item 6: the matrix of re-tracked periods only,
+\item 7: the GIF only.
+}
+\code{Default=1}.}
 
-\item{n_imgs}{Number images used in creating the GIF a high number of images
-is computationally intensive and will create a large sized GIF \code{Default=50}}
+\item{n_imgs}{Number of images (simulations) put in the GIF (integer, > 0; at most \code{nr_simulations}). Many
+images take long to process and give a large GIF. \code{Default=50}.}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis
-is depth or y axis power \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the scalograms of the GIF images (logical): \code{TRUE} puts depth/time on the
+x-axis, \code{FALSE} on the y-axis. \code{Default=TRUE}.}
 
-\item{empty_folder}{Empty the folder in which the images created using
-this function are saved \code{Default=FALSE}}
+\item{empty_folder}{Delete all files in the folder \code{file_name} before the new images are written (logical);
+only used with \code{create_GIF = TRUE}. \code{Default=FALSE}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 The output depends on the output setting

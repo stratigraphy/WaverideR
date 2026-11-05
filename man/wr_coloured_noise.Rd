@@ -13,13 +13,16 @@ wr_brewer_palettes()
 wr_colored_noise(timesteps, mean, sd, phi)
 }
 \arguments{
-\item{timesteps}{Number of values to generate.}
+\item{timesteps}{Number of values to generate (integer, >= 1; with 1 a single normal value is returned). Required,
+no default.}
 
-\item{mean}{Mean of the noise.}
+\item{mean}{Mean of the noise (numeric, in the unit of the series to be simulated). Required, no default.}
 
-\item{sd}{Standard deviation of the noise.}
+\item{sd}{Standard deviation of the noise (numeric, > 0); the marginal standard deviation of the AR(1) process.
+Required, no default.}
 
-\item{phi}{Lag-1 autocorrelation (0-1).}
+\item{phi}{Lag-1 autocorrelation of the AR(1) process (numeric, between 0 and 1, below 1; 0 gives white noise,
+values close to 1 give strongly red noise). Required, no default.}
 }
 \value{
 \code{wr_coloured_noise}: numeric vector. \code{wr_brewer_palettes}: data frame with the palettes.

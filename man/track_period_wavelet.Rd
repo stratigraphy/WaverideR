@@ -11,8 +11,8 @@ track_period_wavelet(
   track_peaks = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   plot_horizontal = TRUE,
   plot_dir = TRUE,
   lowerPeriod = NULL,
@@ -25,70 +25,74 @@ track_period_wavelet(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (class \code{analyze.wavelet}) created with \code{\link{analyse_wavelet}} in
+which the cycle is tracked; the elements \code{x}, \code{y}, \code{Power}, \code{Period}, \code{axis.2},
+\code{coi.1}, \code{coi.2} and \code{Power.avg} are used. Must be given (the \code{NULL} default fails).
+\code{Default=NULL}.}
 
-\item{astro_cycle}{Duration (in kyr) of the cycle which traced.}
+\item{astro_cycle}{Duration of the astronomical cycle that is tracked (numeric, > 0, in kyr, e.g. 405 for the long
+eccentricity cycle). It is used to convert the tracked period into the sedimentation rate of the output
+(period / \code{astro_cycle} * 100, i.e. cm/kyr for a record in metres). \code{Default=405}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the power scale (integer, > 1); the breaks are quantiles of the power.
+\code{Default=100}.}
 
-\item{track_peaks}{Setting which indicates whether tracking is restricted
-to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
-spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}. With \code{track_peaks=TRUE} a click selects the
-nearest local power maximum (black circles); with \code{track_peaks=FALSE} any point of the scalogram can be
-clicked: the click is snapped to the nearest depth of the wavelet and its period is used as clicked.
-In both modes clicking a selected point again removes it; finish with right-click/Esc (or "Finish" in RStudio).}
+\item{track_peaks}{Restrict the selection to spectral peaks (logical, TRUE or FALSE). With \code{TRUE} the local
+power maxima along the period axis are drawn as black circles and a click selects the nearest one; with
+\code{FALSE} any point of the wavelet spectrum can be clicked (the click is snapped to the nearest depth of the wavelet
+and its period is used as clicked). In both modes clicking a selected point again removes it; finish with
+right-click/Esc (or "Finish" in RStudio). \code{Default=TRUE}.}
 
-\item{periodlab}{label for the y-axis \code{Default="Period (metres)"}.}
+\item{periodlab}{Label of the period axis (character). \code{Default="Period (metres)"}.}
 
-\item{x_lab}{label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth (metres)"}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{plot_horizontal}{\code{TRUE}: depth on the x-axis and period on the y-axis; \code{FALSE}: period on the
-x-axis and depth on the y-axis. The output is the same in both layouts \code{Default=TRUE}}
+\item{plot_horizontal}{Layout of the plot (logical, TRUE or FALSE): \code{TRUE} depth/time on the x-axis and period
+on the y-axis; \code{FALSE} period on the x-axis and depth/time on the y-axis. The output is the same in both layouts.
+\code{Default=TRUE}.}
 
-\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
+\item{plot_dir}{Direction of the depth/time axis (logical, TRUE or FALSE): \code{TRUE} plots it from low to high
+values (e.g. borehole data that get older with increasing depth); \code{FALSE} reverses the axis (e.g. outcrop logs
+in which 0 m is the base of the section). \code{Default=TRUE}.}
 
-\item{lowerPeriod}{Lowest period value which will be plotted}
+\item{lowerPeriod}{Shortest period shown on the period axis (numeric, in the depth/time unit of the record);
+\code{NULL} uses the shortest period of \code{wavelet}. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value which will be plotted}
+\item{upperPeriod}{Longest period shown on the period axis (numeric, in the depth/time unit of the record);
+\code{NULL} uses the longest period of \code{wavelet}. \code{Default=NULL}.}
 
-\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-should be period values  \code{Default=NULL}}
+\item{add_lines}{Optional lines to draw on the wavelet plot (matrix or data frame: depth/time in column 1, one or more
+columns of periods after it; one line per period column). \code{Default=NULL}.}
 
-\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-should be period values \code{Default=NULL}}
+\item{add_points}{Optional points to draw on the wavelet plot (matrix or data frame: depth/time in column 1, one or
+more columns of periods after it). \code{Default=NULL}.}
 
-\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_h}{Optional horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5)}), drawn at these
+depths/times; only used in the vertical layout (\code{plot_horizontal = FALSE}), the horizontal layout ignores
+it. \code{Default=NULL}.}
 
-\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_v}{Optional vertical reference lines (numeric vector), drawn at these periods; only used in the
+vertical layout (\code{plot_horizontal = FALSE}), the horizontal layout ignores it. \code{Default=NULL}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.

@@ -23,44 +23,65 @@ wavelet_significance(
 )
 }
 \arguments{
-\item{object}{A wavelet (\code{\link{analyse_wavelet}}) or superlet (\code{\link{analyse_superlet}}) object.}
+\item{object}{Scalogram to test: a wavelet object (class \code{analyze.wavelet}, from \code{\link{analyse_wavelet}})
+or a superlet object (class \code{analyze.superlet}, from \code{\link{analyse_superlet}}). Synchrosqueezed
+transforms are not accepted. Required, no default.}
 
-\item{method}{\code{"analytic"} (Torrence and Compo, wavelets only) or \code{"surrogate"}. \code{Default="analytic"}
-for wavelets and \code{"surrogate"} for superlets.}
+\item{method}{How the critical levels are computed (character, \code{"analytic"} or \code{"surrogate"}):
+\code{"analytic"} the Torrence and Compo (1998) levels (wavelets only, instantaneous), \code{"surrogate"} Monte
+Carlo levels from \code{n_sim} noise surrogates transformed like the data. \code{NULL} chooses \code{"analytic"} for
+wavelets and \code{"surrogate"} for superlets. \code{Default=NULL}.}
 
-\item{background}{Noise background for the surrogates: \code{"ar1"}, \code{"white"}, \code{"ar1_corrected"} or
-\code{"powerlaw"}. The analytic method supports \code{"ar1"} and \code{"white"}. \code{Default="ar1"}.}
+\item{background}{Noise background of the null hypothesis (character, one of \code{"ar1"}, \code{"white"},
+\code{"ar1_corrected"}, \code{"powerlaw"}): \code{"ar1"} red noise with lag-1 autocorrelation \code{lag1};
+\code{"white"} white noise; \code{"ar1_corrected"} AR(1) noise whose coefficient is estimated after removing the
+bands around \code{notch_periods}; \code{"powerlaw"} \eqn{1/f^\beta} noise with \eqn{\beta} fitted to the
+periodogram (outside the \code{notch_periods} bands). The analytic method supports only \code{"ar1"} and
+\code{"white"}. \code{Default="ar1"}.}
 
-\item{siglvl}{Significance level (0-1) \code{Default=0.95}.}
+\item{siglvl}{Significance level (numeric, between 0 and 1, e.g. 0.95 for the 95\% level). \code{Default=0.95}.}
 
-\item{n_sim}{Number of surrogates (\code{method = "surrogate"}) \code{Default=200}. Use 1000 or more for publication.}
+\item{n_sim}{Number of noise surrogates (integer, >= 1), only used with \code{method = "surrogate"}; more
+surrogates give more stable levels and take longer. Use 1000 or more for publication. \code{Default=200}.}
 
-\item{lag1}{Lag-1 autocorrelation of the red noise. \code{Default=NULL}: estimated from the record (maximum
-likelihood for the surrogates, the lag-1 and lag-2 autocorrelation \eqn{(\alpha_1+\sqrt{\alpha_2})/2} of Torrence and
-Compo for the analytic method).}
+\item{lag1}{Lag-1 autocorrelation of the red noise (numeric, between 0 and 1), used for \code{"ar1"} and
+\code{"ar1_corrected"}. \code{NULL} estimates it from the record: maximum likelihood (AR(1) fit) for the
+surrogates, the lag-1 and lag-2 autocorrelation \eqn{(\alpha_1+\sqrt{\alpha_2})/2} of Torrence and Compo for the
+analytic method. \code{Default=NULL}.}
 
-\item{notch_periods}{Periods of the candidate cycles that are removed before the AR(1) coefficient or the power law
-exponent is estimated (\code{"ar1_corrected"} and \code{"powerlaw"}) \code{Default=NULL}.}
+\item{notch_periods}{Periods of the candidate cycles (numeric vector, in the depth/time unit of the record) that are
+removed before the AR(1) coefficient (\code{"ar1_corrected"}) or the power law exponent (\code{"powerlaw"}) is
+estimated, so that the cycles that are tested do not inflate the noise background; \code{NULL} removes nothing.
+\code{Default=NULL}.}
 
-\item{notch_tol}{Relative width of the removed bands, 0.2 removes periods within 20 percent of every
-notch period \code{Default=0.2}.}
+\item{notch_tol}{Relative half width of the removed bands around \code{notch_periods} (numeric, between 0 and 1;
+0.2 removes periods within 20 percent of every notch period). \code{Default=0.2}.}
 
-\item{candidates}{Optional periods of candidate cycles. For each, the p-value of the largest time averaged power within
-\code{candidate_tol} of the period is calculated against the surrogates (the largest value in the band is compared
-with the largest value of every surrogate, which corrects for searching a band).}
+\item{candidates}{Optional periods of candidate cycles (numeric vector, optionally named, in the depth/time unit of
+the record), only used with \code{method = "surrogate"}. For each, the p-value of the largest time averaged power
+within \code{candidate_tol} of the period is calculated against the surrogates (the largest value in the band is
+compared with the largest value of every surrogate, which corrects for searching a band). \code{Default=NULL}.}
 
-\item{candidate_tol}{Relative width of the candidate bands \code{Default=0.2}.}
+\item{candidate_tol}{Relative half width of the candidate bands (numeric, between 0 and 1). \code{Default=0.2}.}
 
-\item{gamma}{Decorrelation factor of the wavelet used in the degrees of freedom of the global spectrum. The default NULL takes the value of Torrence and Compo (1998, table 2) for the wavelet of the object: 2.32 (Morlet), 1.17 (Paul), 1.43 (DOG of order 2); 2.32 is used for the other wavelets
-\code{Default=2.32} (Torrence and Compo, 1998, for the Morlet wavelet).}
+\item{gamma}{Decorrelation factor of the wavelet used in the degrees of freedom of the global spectrum of the
+analytic method (numeric, > 0; Torrence and Compo 1998, eq. 23). \code{NULL} takes the value of Torrence and Compo
+(1998, table 2) for the wavelet of the object: 2.32 (Morlet), 1.17 (Paul), 1.43 (DOG of order 2); 2.32 is used for
+the other wavelets. \code{Default=NULL}.}
 
-\item{run_multicore}{Run the surrogates on several cores \code{Default=FALSE}.}
+\item{run_multicore}{Run the surrogates in parallel on several cores (logical, TRUE or FALSE); with \code{TRUE} and
+\code{n_cores = NULL} a safe number of cores is chosen automatically. \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores (see \code{\link{analyse_wavelet}}) \code{Default=NULL}.}
+\item{n_cores}{Number of cores for the surrogates (integer, >= 1); \code{NULL} uses the option
+\code{waverider.n_cores} or the choice of \code{run_multicore}. The number is capped by the available cores and
+memory (see \code{\link{analyse_wavelet}}). \code{Default=NULL}.}
 
-\item{seed}{Optional random seed. Results do not depend on the number of cores.}
+\item{seed}{Seed of the random number generator for the surrogates (integer), so that the surrogate levels can be
+reproduced; \code{NULL} derives it from the current random state (so \code{set.seed()} before the call also gives
+reproducible results). Results do not depend on the number of cores, and the random state of the session is not
+changed. \code{Default=NULL}.}
 
-\item{verbose}{Print messages \code{Default=FALSE}.}
+\item{verbose}{Show a progress bar of the surrogate simulations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list of class \code{"wr_significance"} with

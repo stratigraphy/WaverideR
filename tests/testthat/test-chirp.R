@@ -14,7 +14,7 @@ test_that("chirp-matched EHA recovers the rate gradient and the rate with the te
   a <- mk()
   ap <- data.frame(period = c(100, 41, 23.7, 19), weight = c(0.3, 1, 1, 0.6))
   ce <- analyse_chirp_eha(a$d, window = 600, step = 10, chirp = seq(-0.004, 0.004, by = 0.001), nw = 2, lowerPeriod = 10,
-                          upperPeriod = 300, dj = 1 / 40, criterion = "template", astro_periods = ap, sedrate = c(0.8, 5))
+      upperPeriod = 300, dj = 1 / 40, criterion = "template", astro_periods = ap, sedrate = c(0.8, 5))
   expect_s3_class(ce, "analyze.wavelet")
   expect_equal(dim(ce$template_score_all)[3], length(ce$axis.1))
   st <- stats::approx(a$z, a$sr, ce$axis.1)$y
@@ -27,7 +27,7 @@ test_that("chirp-matched EHA recovers the rate gradient and the rate with the te
   expect_true(!is.null(attr(tk, "posterior")))
   # steered map
   cs <- analyse_chirp_eha(a$d, window = 600, step = 10, chirp = seq(-0.004, 0.004, by = 0.001), nw = 2, lowerPeriod = 10,
-                          upperPeriod = 300, dj = 1 / 40, steer = tk)
+      upperPeriod = 300, dj = 1 / 40, steer = tk)
   expect_equal(dim(cs$Power_norm), dim(cs$Power))
 })
 
@@ -35,7 +35,7 @@ test_that("chirp-matched wavelet evidence and the gradient HMM on a plain scalog
   a <- mk(2, 0.5)
   ap <- data.frame(period = c(100, 41, 23.7, 19), weight = c(0.3, 1, 1, 0.6))
   cw <- analyse_chirp_wavelet(a$d, lowerPeriod = 10, upperPeriod = 300, dj = 1 / 40, omega_nr = 8,
-                              chirp = seq(-0.004, 0.004, by = 0.002), astro_periods = ap, sedrate = c(0.8, 5), step = 10)
+      chirp = seq(-0.004, 0.004, by = 0.002), astro_periods = ap, sedrate = c(0.8, 5), step = 10)
   expect_equal(length(cw$positions), dim(cw$template_score_all)[3])
   tk <- track_chirp_hmm(cw, n_samples = 0)
   st <- stats::approx(a$z, a$sr, tk$depth)$y
@@ -44,8 +44,8 @@ test_that("chirp-matched wavelet evidence and the gradient HMM on a plain scalog
   tk2 <- suppressMessages(track_chirp_hmm(w, astro_periods = ap, sedrate = c(0.8, 5), chirp = seq(-0.004, 0.004, by = 0.002), n_samples = 0))
   expect_s3_class(tk2, "wr_track")
   cws <- analyse_chirp_wavelet(a$d, lowerPeriod = 10, upperPeriod = 300, dj = 1 / 40, omega_nr = 8,
-                               chirp = seq(-0.004, 0.004, by = 0.002), astro_periods = ap, sedrate = c(0.8, 5), step = 10,
-                               steer = tk, squeeze = TRUE)
+      chirp = seq(-0.004, 0.004, by = 0.002), astro_periods = ap, sedrate = c(0.8, 5), step = 10,
+      steer = tk, squeeze = TRUE)
   expect_equal(dim(cws$Power_sst), dim(cws$Power))
 })
 
@@ -53,7 +53,7 @@ test_that("automatic windows, jumps, combined evidence and the surrogate signifi
   a <- mk(3, 0.6)
   ap <- data.frame(period = c(100, 41, 23.7, 19), weight = c(0.3, 1, 1, 0.6))
   ce <- suppressMessages(analyse_chirp_eha(a$d, window = NULL, chirp = "auto", nw = 2, lowerPeriod = 10, upperPeriod = 300,
-                                           dj = 1 / 40, criterion = "template", astro_periods = ap, sedrate = c(0.8, 5)))
+      dj = 1 / 40, criterion = "template", astro_periods = ap, sedrate = c(0.8, 5)))
   expect_length(ce$windows, 2)
   expect_equal(length(ce$positions), dim(ce$template_score_all)[3])
   w <- analyse_wavelet(a$d, lowerPeriod = 10, upperPeriod = 300, dj = 1 / 40, omega_nr = 8, verbose = FALSE)
@@ -61,7 +61,7 @@ test_that("automatic windows, jumps, combined evidence and the surrogate signifi
   st <- stats::approx(a$z, a$sr, tk$depth)$y
   expect_gt(cor(log(tk$sedrate), log(st)), 0.7)
   cs <- analyse_chirp_eha(a$d, window = 600, step = 20, chirp = seq(-0.004, 0.004, by = 0.001), nw = 2, lowerPeriod = 10,
-                          upperPeriod = 300, dj = 1 / 40, steer = tk)
+      upperPeriod = 300, dj = 1 / 40, steer = tk)
   cs <- chirp_eha_significance(cs, a$d, n_sim = 3)
   expect_equal(dim(cs$Power_sig), dim(cs$Power_norm))
   expect_true(all(cs$Power_pval >= 0 & cs$Power_pval <= 1))
@@ -71,7 +71,7 @@ test_that("track_astro_auto(method = 'both') returns both tracks and their agree
   a <- mk(4, 0.6)
   ap <- data.frame(period = c(100, 41, 23.7, 19), weight = c(0.3, 1, 1, 0.6))
   res <- suppressMessages(suppressWarnings(track_astro_auto(a$d, sedrate = c(0.8, 5), astro_periods = ap, scalogram = "cwt",
-                                                            omega_nr = 8, dj = 1 / 40, n_samples = 5)))
+      omega_nr = 8, dj = 1 / 40, n_samples = 5)))
   expect_true(all(c("track", "track_hmm", "chirp_eha", "agreement") %in% names(res)))
   expect_true("disagreement" %in% names(res$check))
   st <- stats::approx(a$z, a$sr, res$track$depth)$y
@@ -93,7 +93,11 @@ test_that("analyse_dechirped maps a transform to the time of a track and back", 
   expect_equal(ncol(dc$Power_norm), length(dc$depth$axis.1))
   expect_equal(dim(dc$Power_sig), dim(dc$Power_norm))
   # in the tuned scalogram the 23.7-kyr line is at 23.7 kyr
-  j <- which.min(abs(dc$tuned$Period - 23.7)); band <- abs(log2(dc$tuned$Period / 23.7)) < 0.3
+  j <- which.min(abs(dc$tuned$Period - 23.7))
+  band <- abs(log2(dc$tuned$Period / 23.7)) < 0.3
   expect_equal(dc$tuned$Period[band][which.max(rowMeans(dc$tuned$Power[band, ]))], 23.7, tolerance = 0.1)
-  pdf(NULL); plot_dechirped(dc, "tuned", show = 23.7); plot_dechirped(dc, "outline", show = 23.7); dev.off()
+  pdf(NULL)
+  plot_dechirped(dc, "tuned", show = 23.7)
+  plot_dechirped(dc, "outline", show = 23.7)
+  dev.off()
 })

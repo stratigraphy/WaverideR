@@ -1,4 +1,4 @@
-# Internal helpers of flmw() and flmw_path() --------------------------------------------------------------------------
+# Internal helpers of flmw() and flmw_path()
 
 # Spectral peaks of one wavelet spectrum (column of the power matrix). Reproduces the peak selection that flmw() always
 # used: local maxima/minima are found by comparing a point with the points two steps away, after which consecutive
@@ -6,12 +6,16 @@
 .flmw_peaks <- function(period, power) {
   n <- length(power)
   empty <- list(period = numeric(0), power = numeric(0))
-  if (n < 5) return(empty)
+  if (n < 5) {
+    return(empty)
+  }
   i <- 3:(n - 2)
   is_max <- (power[i] - power[i + 2] > 0) & (power[i] - power[i - 2] > 0)
   is_min <- (power[i] - power[i + 2] < 0) & (power[i] - power[i - 2] < 0)
   sel <- which(is_max | is_min)
-  if (length(sel) == 0) return(empty)
+  if (length(sel) == 0) {
+    return(empty)
+  }
   idx <- i[sel]
   per <- period[idx]
   pw <- power[idx]
@@ -23,23 +27,29 @@
       dropped <- FALSE
       # the four checks of the original code, each one evaluated on the already reduced set
       drops <- list(
-        list(t = 1,  cmp = `>`, which = 1),
-        list(t = 1,  cmp = `<`, which = 0),
-        list(t = -1, cmp = `<`, which = 1),
-        list(t = -1, cmp = `>`, which = 0)
+          list(t = 1,  cmp = `>`, which = 1),
+          list(t = 1,  cmp = `<`, which = 0),
+          list(t = -1, cmp = `<`, which = 1),
+          list(t = -1, cmp = `>`, which = 0)
       )
       for (d in drops) {
         if (yes(ty[i] == d$t) && yes(ty[i + 1] == d$t) && yes(d$cmp(pw[i], pw[i + 1]))) {
           k <- i + d$which
-          per <- per[-k]; pw <- pw[-k]; ty <- ty[-k]
+          per <- per[-k]
+          pw <- pw[-k]
+          ty <- ty[-k]
           dropped <- TRUE
         }
       }
       if (!dropped) {                      # identical power: keep the first one
-        per <- per[-(i + 1)]; pw <- pw[-(i + 1)]; ty <- ty[-(i + 1)]
+        per <- per[-(i + 1)]
+        pw <- pw[-(i + 1)]
+        ty <- ty[-(i + 1)]
       }
     }
-    if (is.na(ty[i + 1]) || ty[i] != ty[i + 1]) i <- i + 1
+    if (is.na(ty[i + 1]) || ty[i] != ty[i + 1]) {
+      i <- i + 1
+    }
   }
   keep <- ty > 0
   list(period = per[keep], power = pw[keep])
@@ -51,7 +61,9 @@
   nsr <- length(srs)
   out <- matrix(0, nsr, 4)
   nc <- length(cycles)
-  if (length(pk) == 0 || nc == 0) return(out)
+  if (length(pk) == 0 || nc == 0) {
+    return(out)
+  }
   tgt <- outer(cycles, srs) / 100                              # cycles in depth [cycle, rate]
   K <- matrix(max.col(-abs(outer(as.vector(tgt), pk, "-")), ties.method = "first"), nc, nsr)
   X <- matrix(pk[K], nc, nsr)                                  # nearest peak
@@ -60,7 +72,9 @@
   if (nc > 1) {
     for (k in seq_len(nc)) {
       for (k2 in seq_len(nc)) {
-        if (k2 == k) next
+        if (k2 == k) {
+          next
+        }
         keep[k, ] <- keep[k, ] & !((K[k, ] == K[k2, ]) & (D[k2, ] < D[k, ] | (D[k2, ] == D[k, ] & k2 > k)))
       }
     }
@@ -74,7 +88,9 @@
     ybar <- colSums(w * tgt) / pmax(n, 1)
     dx <- (X - rep(xbar, each = nc)) * w
     dy <- (tgt - rep(ybar, each = nc)) * w
-    sxx <- colSums(dx^2); syy <- colSums(dy^2); sxy <- colSums(dx * dy)
+    sxx <- colSums(dx^2)
+    syy <- colSums(dy^2)
+    sxy <- colSums(dx * dy)
     slope <- sxy / sxx
     icpt <- ybar - slope * xbar
     out[ok, 1] <- abs(1 - slope[ok])
@@ -93,7 +109,7 @@
     np <- length(pk$period)
     rnd <- array(NA_real_, c(length(srs), 4, rand_simulations))
     for (rt in seq_len(rand_simulations)) {
-      rp <- if (np > 0) sort(pk$period * randomize_mat[seq_len(np), rt]) else numeric(0)
+      rp <- if (np > 0) { sort(pk$period * randomize_mat[seq_len(np), rt]) } else { numeric(0) }
       rnd[, , rt] <- .flmw_metrics(rp, cycles, srs)
     }
     pm <- function(j) rowMeans(matrix(rnd[, j, ], nrow = length(srs)) <= fits[, j])
@@ -114,7 +130,9 @@
   nc <- length(cycles)
   score <- numeric(nsr)
   np <- length(pk$period)
-  if (np == 0 || !is.finite(max(power)) || max(power) <= 0) return(score)
+  if (np == 0 || !is.finite(max(power)) || max(power) <= 0) {
+    return(score)
+  }
   a <- pk$power / max(power)
   lp <- log(pk$period)
   for (s in seq_len(nsr)) {
@@ -123,7 +141,9 @@
     tot <- 0
     for (r in seq_len(min(nc, np))) {
       mx <- which.max(M)
-      if (M[mx] <= 0) break
+      if (M[mx] <= 0) {
+        break
+      }
       tot <- tot + M[mx]
       rr <- (mx - 1) %% nc + 1
       cc <- (mx - 1) %/% nc + 1
@@ -146,7 +166,9 @@
     tg <- log(cycles * srs[s] / 100)
     inside <- tg >= min(lp) & tg <= max(lp)
     frac[s] <- sum(inside) / nc
-    for (k in which(inside)) Tm[, s] <- Tm[, s] + exp(-0.5 * ((lp - tg[k]) / tolerance)^2)
+    for (k in which(inside)) {
+      Tm[, s] <- Tm[, s] + exp(-0.5 * ((lp - tg[k]) / tolerance)^2)
+    }
   }
   cs <- function(M) {
     M <- sweep(M, 2, colMeans(M), "-")

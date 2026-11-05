@@ -14,23 +14,23 @@ gaussian_bandpass(
 )
 }
 \arguments{
-\item{data}{Input data set, a matrix or data frame with 2 columns: the
-first column being depth/time (strictly increasing and regularly sampled
-to a relative spacing tolerance of 1e-5) and the second column being the
-proxy value.}
+\item{data}{Numeric two-column matrix or data frame: depth/time in column 1 (strictly increasing and regularly
+sampled, relative spacing tolerance 1e-5; interpolate first if needed) and the proxy value in column 2; at least
+eight rows, all values finite. Required (\code{Default=NULL}).}
 
-\item{f_low}{Lower half-power frequency of the pass band (cycles per unit
-of the first column).}
+\item{f_low}{Lower half-power (-3 dB) frequency of the pass band, in cycles per unit of the depth/time column
+(numeric, > 0; e.g. 1/25 to keep periods shorter than 25 m). Required (\code{Default=NULL}).}
 
-\item{f_high}{Upper half-power frequency of the pass band; must be larger
-than \code{f_low} and strictly below the Nyquist frequency.}
+\item{f_high}{Upper half-power (-3 dB) frequency of the pass band, in cycles per unit of the depth/time column
+(numeric, > \code{f_low} and strictly below the Nyquist frequency \code{1 / (2 * sampling interval)}). Required
+(\code{Default=NULL}).}
 
-\item{genplot}{Generate a plot of the data, the filtered signal, its
-envelope and the filter response \code{Default=FALSE}.}
+\item{genplot}{Plot the demeaned data with the filtered signal and its envelope, and the filter response
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{x_lab}{label for the x-axis \code{Default="depth"}.}
+\item{x_lab}{Label of the x-axis of the data plot (character). \code{Default="depth"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="proxy"}.}
+\item{y_lab}{Label of the y-axis of the data plot (character). \code{Default="proxy"}.}
 }
 \value{
 A list with elements

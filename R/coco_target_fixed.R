@@ -11,15 +11,21 @@
 #' on the data spectrum. Translated from Acycle v3.1 freq2targetFixed.m and
 #' cocoFixedTargetWeights.m (Mingsong Li).
 #'
-#' @param data Two-column matrix (depth, value) defining the sampling grid;
-#' only the depth column is used. NULL uses 5 x max(orbit9) unit-spaced
-#' samples. \code{Default=NULL}
-#' @param pad Periodogram length. \code{Default=5000}
-#' @param orbit9 Orbital periods (kyr).
-#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}
-#' @param freq Temporal frequencies (cycles/kyr) at which the target power
-#' is returned. \code{Default=NULL}
-#' @param sr Sedimentation rate (cm/kyr). \code{Default=NULL}
+#' @param data Record whose sampling grid the target is synthesised on (matrix or data frame; only the depth
+#' column 1, in metres, is used): the target has as many samples as \code{data}, at the median depth spacing
+#' converted to time with \code{sr}. \code{NULL} (or \code{sr=NULL}) uses \code{5 * max(orbit9)} samples spaced
+#' 1 kyr apart. \code{Default=NULL}.
+#' @param pad Length (number of points) of the zero-padded periodogram of the target (integer, > 0; at least the
+#' number of samples is used); a larger value gives a finer frequency grid. \code{NULL} or invalid values are
+#' replaced by 5000. \code{Default=5000}.
+#' @param orbit9 Astronomical periods of the target sinusoids, in kyr (numeric vector, > 0; usually nine values);
+#' their amplitudes are fixed by \code{\link{coco_fixed_target_weights}} (1.0 eccentricity, 0.8 obliquity, 0.6
+#' precession). The default is the present-day set.
+#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.
+#' @param freq Frequencies at which the target power is returned, in cycles/kyr (numeric vector); values outside
+#' the periodogram grid get 0. \code{NULL} returns an empty vector. \code{Default=NULL}.
+#' @param sr Sedimentation rate used to convert the depth grid of \code{data} to time, in cm/kyr (single numeric
+#' value, > 0); \code{NULL} uses the 1-kyr grid described under \code{data}. \code{Default=NULL}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' @references Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking
@@ -39,11 +45,11 @@
 #' @export
 #' @importFrom stats sd approx median
 coco_target_fixed <- function(data = NULL, pad = 5000,
-                              orbit9 = c(405.6912, 130.6979, 123.8532,
-                                         98.8517, 94.8856, 40.9897, 23.6820,
-                                         22.3758, 18.9519),
-                              freq = NULL, sr = NULL){
-  # ---- internal helper functions (local to this function) ----
+    orbit9 = c(405.6912, 130.6979, 123.8532,
+        98.8517, 94.8856, 40.9897, 23.6820,
+        22.3758, 18.9519),
+    freq = NULL, sr = NULL){
+  # Internal helper functions (local to this function)
 
   detrend_linear <- function(x){
     # Least-squares removal of a straight line from every column (MATLAB detrend(x,1)).
@@ -67,7 +73,7 @@ coco_target_fixed <- function(data = NULL, pad = 5000,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -103,7 +109,7 @@ coco_target_fixed <- function(data = NULL, pad = 5000,
     list(p = p_out, f = f)
   }
 
-  # ---- main code ----
+  # Main code
   freq <- as.numeric(freq)
   la <- rep(0, length(freq))
   if (length(freq) < 1){

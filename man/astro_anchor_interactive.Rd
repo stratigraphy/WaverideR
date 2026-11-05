@@ -21,41 +21,53 @@ astro_anchor_interactive(
 )
 }
 \arguments{
-\item{astro_solution}{Astronomical solution (matrix or data frame, first column time/age, second column value).}
+\item{astro_solution}{Astronomical solution to tie to (matrix or data frame with two columns: time/age (e.g.
+kyr) in column 1, value in column 2; rows with \code{NA} are removed and rows are sorted on column 1).
+Required, no default (\code{Default=NULL} gives an error).}
 
-\item{proxy_signal}{Proxy record (first column depth/time, second column value). Use
-\code{\link{extract_signal}} first if a single cycle of the record should be tied.}
+\item{proxy_signal}{Proxy record to be tied (matrix or data frame with two columns: depth/time in column 1,
+proxy value in column 2; rows with \code{NA} are removed). Use \code{\link{extract_signal}} first if a single
+cycle of the record should be tied. Required, no default (\code{Default=NULL} gives an error).}
 
-\item{proxy_min_or_max}{Tie maxima (\code{"max"}) or minima (\code{"min"}) of the proxy record \code{Default="max"}.}
+\item{proxy_min_or_max}{Tie the maxima or the minima of the proxy record (character): \code{"max"} or
+\code{"min"}. \code{Default="max"}.}
 
-\item{astrosolution_min_or_max}{Tie maxima or minima of the astronomical solution \code{Default="max"}.}
+\item{astrosolution_min_or_max}{Tie the maxima or the minima of the astronomical solution (character):
+\code{"max"} or \code{"min"}. \code{Default="max"}.}
 
-\item{pts}{Number of points to the left and right that a point has to exceed to count as a peak
-(see \code{\link{max_detect}}) \code{Default=3}.}
+\item{pts}{Number of points to the left and right of a value that the peak detection (\code{\link{max_detect}},
+\code{\link{min_detect}}) compares it with (integer, >= 1); larger values give fewer, more certain peaks.
+\code{Default=3}.}
 
-\item{ties}{Optional existing tie points to start from: a data frame with the columns \code{data_x} and
-\code{insolation_x} (or the output of \code{\link{astro_anchor}}). They are snapped to the nearest peaks.}
+\item{ties}{Existing tie points to start from (data frame with the columns \code{data_x} (proxy depth/time) and
+\code{insolation_x} (astronomical age), otherwise the first two columns are used; e.g. the output of
+\code{\link{astro_anchor}}). They are snapped to the nearest peaks. \code{NULL} starts without tie points.
+\code{Default=NULL}.}
 
-\item{time_dir}{\code{TRUE} if time increases with increasing depth/time values of the proxy record, \code{FALSE}
-if it decreases (the proxy axis is then reversed) \code{Default=TRUE}.}
+\item{time_dir}{Direction of time in the proxy record (logical): \code{TRUE} if time increases with increasing
+depth/time values, \code{FALSE} if it decreases (the proxy axis is then reversed). \code{Default=TRUE}.}
 
-\item{peaks_in_view}{Approximate number of peaks shown in a window at the start \code{Default=12}.}
+\item{peaks_in_view}{Approximate number of peaks shown in each window at the start (numeric, > 0).
+\code{Default=12}.}
 
-\item{inspect_period}{Period (in the time units of the astronomical solution) of the cycle that is extracted from the
-tuned record in the inspection window \code{Default=NULL}: the median spacing of the peaks of the astronomical solution.}
+\item{inspect_period}{Period of the cycle extracted from the tuned record in the inspection window, in the time
+unit of the astronomical solution (numeric, > 0); \code{NULL} uses the median spacing of the peaks of the
+astronomical solution. \code{Default=NULL}.}
 
-\item{inspect_band}{Relative half width of the extracted band, \code{0.25} gives 0.75 to 1.25 times the period
-\code{Default=0.25}.}
+\item{inspect_band}{Relative half-width of the extracted band (numeric, between 0 and 1): \code{0.25} extracts
+0.75 to 1.25 times \code{inspect_period}. \code{Default=0.25}.}
 
-\item{sedrate_factor}{Factor applied to the sedimentation rate (depth units per time unit) in the inspection window,
-for example 100 to go from metres/kyr to cm/kyr \code{Default=1}.}
+\item{sedrate_factor}{Factor applied to the sedimentation rate (depth units per time unit) shown in the inspection
+window (numeric, > 0), for example 100 to go from m/kyr to cm/kyr. \code{Default=1}.}
 
-\item{inspect_wavelet}{Also show the wavelet scalogram of the tuned record in the inspection window \code{Default=FALSE}.}
+\item{inspect_wavelet}{Also show the wavelet scalogram of the tuned record in the inspection window at the start
+(logical, TRUE or FALSE); it can be switched on and off with the \emph{Wavelet} button. \code{Default=FALSE}.}
 
-\item{locator_fun}{Function that returns the next mouse click in normalised device coordinates, like
-\code{\link[graphics]{locator}(1)}. \code{Default=NULL}: \code{locator}. Another function (for example one that
-replays a list of clicks) allows scripted use and testing. When no interactive device is available and \code{ties} is
-given, the snapped tie points are returned without opening a window.}
+\item{locator_fun}{Function without arguments that returns the next mouse click in normalised device
+coordinates as a list with \code{x} and \code{y}, like \code{\link[graphics]{locator}(1)}; returning
+\code{NULL} finishes. \code{NULL} uses \code{graphics::locator(1)}. Another function (for example one that
+replays a list of clicks) allows scripted use and testing. When no interactive device is available and
+\code{ties} is given, the snapped tie points are returned without opening a window. \code{Default=NULL}.}
 }
 \value{
 A data frame with the tie points sorted by depth/time: \code{data_x}, \code{data_y} (proxy),

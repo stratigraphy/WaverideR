@@ -7,12 +7,14 @@
 expSedRamp(data, sr_start, sr_end)
 }
 \arguments{
-\item{data}{Input data set  should consist of a matrix with 2 columns with the first being time
-and the second being the proxy}
+\item{data}{Time series to convert to stratigraphy (matrix or data frame with two columns: time in kyr in column 1,
+increasing and preferably evenly sampled, proxy value in column 2). Required, no default.}
 
-\item{sr_start}{Initial sedimentation rate (in cm/kyr).}
+\item{sr_start}{Sedimentation rate at the start (minimum time) of the series, in cm/kyr (numeric, > 0). Required,
+no default.}
 
-\item{sr_end}{Final sedimentation rate (in cm/kyr).}
+\item{sr_end}{Sedimentation rate at the end (maximum time) of the series, in cm/kyr (numeric, > 0). The rate
+changes exponentially (linearly in log2) from \code{sr_start} to \code{sr_end}. Required, no default.}
 }
 \value{
 Returns a list which contains 10 elements

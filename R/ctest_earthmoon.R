@@ -4,21 +4,31 @@
 #' precession_frequency() (Farhat et al. 2022, eq. A.7), either by inverting
 #' the AstroGeo22 curve or by assuming Earth-Moon angular-momentum conservation.
 #'
-#' @param x a ctest object, or a numeric vector of precession constants (yr)
-#' @param age_ma age of the record; used for the obliquity of the
-#'   angular-momentum inversion and for the comparison row
-#' @param method "angular_momentum" (default) or "astrogeo22"
-#' @param obliquity_deg obliquity used in the angular-momentum inversion;
-#'   NULL takes it from AstroGeo22 at `age_ma`
-#' @param probs quantiles to report
-#' @param data_dir folder with the AstroGeo22 table
+#' @param x Precession constants to convert: a \code{ctest} object from \code{\link{ctest}} (its samples of
+#' \code{k} are used) or a numeric vector of precession constants given as periods in years. Required, no default.
+#' @param age_ma Age of the record in Ma (numeric), used for the obliquity of the angular-momentum inversion (when
+#' \code{obliquity_deg} is \code{NULL}) and for the comparison with AstroGeo22 at that age (\code{model_at_age}).
+#' \code{NULL} uses the mean of the age range of a \code{ctest} object, or no age for a numeric vector (then the
+#' present-day obliquity is used and no comparison is made). \code{Default=NULL}.
+#' @param method How the precession constant is converted to Earth-Moon distance and length of day (character):
+#' \code{"angular_momentum"} assumes conservation of the Earth-Moon angular momentum at the given obliquity;
+#' \code{"astrogeo22"} reads distance, length of day, obliquity and the equivalent model age off the AstroGeo22
+#' curve (last 1000 Myr). \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.
+#' @param obliquity_deg Obliquity in degrees (numeric) used in the angular-momentum inversion; \code{NULL} takes
+#' the AstroGeo22 value at \code{age_ma} (or the present-day 23.25 degrees when no age is known). Ignored by
+#' \code{method="astrogeo22"}. \code{Default=NULL}.
+#' @param probs Probabilities of the quantiles reported in the summary next to the mean (numeric vector, values
+#' between 0 and 1). \code{Default=c(0.025, 0.5, 0.975)}.
+#' @param data_dir Folder that contains the astronomical data table \code{AstroGeo22.txt} (character path);
+#' \code{NULL} uses the table installed with the package (or the folder set with
+#' \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return list with `summary`, `samples`, `method`, `age_ma` and, when an age
 #'   is known, `model_at_age`
 #' @export
 ctest_earthmoon <- function(x, age_ma = NULL, method = c("angular_momentum", "astrogeo22"),
-                            obliquity_deg = NULL, probs = c(0.025, 0.5, 0.975),
-                            data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    obliquity_deg = NULL, probs = c(0.025, 0.5, 0.975),
+    data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -47,17 +57,17 @@ ctest_earthmoon <- function(x, age_ma = NULL, method = c("angular_momentum", "as
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .astrogeo22_table <- function(data_dir = NULL){
@@ -66,12 +76,12 @@ ctest_earthmoon <- function(x, age_ma = NULL, method = c("angular_momentum", "as
     }
     tab <- utils::read.table(file.path(data_dir, "AstroGeo22.txt"), comment.char = "%")
     names(tab)[1:13] <- c("t_ga", "a", "amin", "amax", "lod", "lodmin", "lodmax",
-                          "obli", "oblimin", "oblimax", "pre", "premin", "premax")
+        "obli", "oblimin", "oblimax", "pre", "premin", "premax")
     tab$age_ma <- tab$t_ga * 1000
     tab
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -88,7 +98,7 @@ ctest_earthmoon <- function(x, age_ma = NULL, method = c("angular_momentum", "as
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   if (is.numeric(x)){
     k <- x
@@ -128,28 +138,28 @@ ctest_earthmoon <- function(x, age_ma = NULL, method = c("angular_momentum", "as
     c(mean = mean(v, na.rm = TRUE), stats::quantile(v, probs, na.rm = TRUE))
   }
   summ <- rbind(
-    `k, precession constant (kyr)` = q(k / 1000),
-    `precession frequency (arcsec/yr)` = q(p_arcsec),
-    `Earth-Moon distance (R_E)` = q(a_RE),
-    `Earth-Moon distance (km)` = q(a_RE * .AC$RE / 1000),
-    `solar day (h)` = q(lod),
-    `sidereal day (h)` = q(lod_hours(earth_omega(lod, "solar"), "sidereal")),
-    `days per year` = q(days_per_year(lod)),
-    `sidereal months per year` = q(months_per_year(a_RE, "sidereal")),
-    `synodic months per year` = q(months_per_year(a_RE, "synodic")),
-    `obliquity (deg)` = q(obl))
+      `k, precession constant (kyr)` = q(k / 1000),
+      `precession frequency (arcsec/yr)` = q(p_arcsec),
+      `Earth-Moon distance (R_E)` = q(a_RE),
+      `Earth-Moon distance (km)` = q(a_RE * .AC$RE / 1000),
+      `solar day (h)` = q(lod),
+      `sidereal day (h)` = q(lod_hours(earth_omega(lod, "solar"), "sidereal")),
+      `days per year` = q(days_per_year(lod)),
+      `sidereal months per year` = q(months_per_year(a_RE, "sidereal")),
+      `synodic months per year` = q(months_per_year(a_RE, "synodic")),
+      `obliquity (deg)` = q(obl))
   if (method == "astrogeo22"){
     summ <- rbind(summ, `equivalent AstroGeo22 age (Ma)` = q(model_age))
   }
   out <- list(summary = as.data.frame(summ), method = method, age_ma = age_ma,
-              samples = data.frame(k = k, p_arcsec = p_arcsec, a_RE = a_RE,
-                                   a_km = a_RE * .AC$RE / 1000,
-                                   lod_solar_h = lod,
-                                   lod_sidereal_h = lod_hours(earth_omega(lod, "solar"), "sidereal"),
-                                   days_per_year = days_per_year(lod),
-                                   sidereal_months_per_year = months_per_year(a_RE, "sidereal"),
-                                   synodic_months_per_year = months_per_year(a_RE, "synodic"),
-                                   obliquity_deg = obl, model_age_ma = model_age))
+      samples = data.frame(k = k, p_arcsec = p_arcsec, a_RE = a_RE,
+          a_km = a_RE * .AC$RE / 1000,
+          lod_solar_h = lod,
+          lod_sidereal_h = lod_hours(earth_omega(lod, "solar"), "sidereal"),
+          days_per_year = days_per_year(lod),
+          sidereal_months_per_year = months_per_year(a_RE, "sidereal"),
+          synodic_months_per_year = months_per_year(a_RE, "synodic"),
+          obliquity_deg = obl, model_age_ma = model_age))
   if (!is.null(age_ma)){
     out$model_at_age <- astrogeo22(age_ma, data_dir = data_dir)
   }

@@ -1,8 +1,8 @@
 test_that("base replacements behave", {
   expect_equal(WaverideR:::wr_closest(c(1, 5, 9), 6), 5)
   m <- matrix(c(1, 2, 3, 4, 5, 7), 2)
-  expect_equal(WaverideR:::wr_row_sds(m), apply(m, 1, stats::sd))
-  expect_equal(WaverideR:::wr_row_mins(m), apply(m, 1, min))
+  expect_equal(WaverideR:::wr_row_sds(m), c(stats::sd(m[1, ]), stats::sd(m[2, ])))
+  expect_equal(WaverideR:::wr_row_mins(m), c(min(m[1, ]), min(m[2, ])))
   set.seed(1)
   x <- WaverideR:::wr_rtruncnorm(200, a = 0, b = 1, mean = 0.5, sd = 0.5)
   expect_true(all(x >= 0 & x <= 1))

@@ -15,22 +15,30 @@ lag_1(
 )
 }
 \arguments{
-\item{data}{Input data set  should consist of a matrix with 2 columns with first column being depth and the second column being a proxy}
+\item{data}{Two-column matrix or data frame: depth or time in column 1 and the proxy value in column 2; it is
+sorted and linearly interpolated to its mean sampling interval. Required (\code{Default=NULL}).}
 
-\item{n_sim}{number of simulations to be ran}
+\item{n_sim}{Number of Monte Carlo simulations (integer, > 0). In every simulation the record is resampled at a
+random sampling interval (truncated normal around the mean interval) and a random window size between
+\code{win_min} and \code{win_max} is used; the output is the mean and standard deviation over the simulations.
+\code{Default=10}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+\item{run_multicore}{Run the simulations in parallel on several cores (logical, TRUE or FALSE). Results do not
+depend on it. \code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer or \code{NULL}). \code{NULL} gives an
+automatic, safe number (physical cores minus one, at most 4, limited by the free memory); change this default with
+\code{options(waverider.n_cores = ...)}. A value > 1 also switches on parallel computing. Results do not depend
+on the number of cores. \code{Default=NULL}.}
 
-\item{win_max}{maximum window size}
+\item{win_max}{Largest width of the moving window in which the lag-1 autocorrelation is computed, in the unit of
+the first column of \code{data} (numeric, > 0). Required (\code{Default=NULL}).}
 
-\item{win_min}{minimum window size}
+\item{win_min}{Smallest width of the moving window, in the unit of the first column of \code{data} (numeric, > 0;
+the window width of each simulation is drawn uniformly between \code{win_min} and \code{win_max}). Required
+(\code{Default=NULL}).}
 
-\item{verbose}{print text}
+\item{verbose}{Show a progress bar of the simulations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 Returns a matrix which contains 3 columns

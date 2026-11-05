@@ -9,12 +9,16 @@
 #'function for a given, \code{cycle}, \code{period_up} and \code{period_down}
 #'
 #'
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
-#'or \code{\link{track_period}} function
-#'@param cycle Period of cycle for which the power will be extracted from the record.
-#'@param period_up Species the upper period of the to be extracted power \code{Default=1.2}.
-#'@param period_down specifies the lower period of the to be extracted power \code{Default=0.8}.
-#'@param ... additional input parameters from older versions
+#' @param scalogram Wavelet or superlet object (list of class \code{analyze.wavelet} or \code{analyze.superlet})
+#' created with \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}, whose power is summed. Required
+#' (\code{Default=NULL}).
+#' @param cycle Constant period of the cycle whose power is extracted, in the depth/time unit of the scalogram
+#' (numeric, > 0). Required (\code{Default=NULL}).
+#' @param period_up Upper boundary of the band whose power is summed, as a factor of \code{cycle} (numeric,
+#' > \code{period_down}). \code{Default=1.2}.
+#' @param period_down Lower boundary of the band whose power is summed, as a factor of \code{cycle} (numeric, > 0).
+#' \code{Default=0.8}.
+#' @param ... Old argument names of earlier versions: \code{wavelet} (used as \code{scalogram}).
 #' @author
 #' Code based on the reconstruct function of the 'WaveletComp' R package
 #' which is based on the wavelet 'MATLAB' code written by Christopher Torrence and Gibert P. Compo (1998).
@@ -66,9 +70,9 @@
 #' @export
 
 extract_power_stable <- function(scalogram = NULL,
-                                 cycle = NULL,
-                                 period_up = 1.2,
-                                 period_down = 0.8,...) {
+    cycle = NULL,
+    period_up = 1.2,
+    period_down = 0.8,...) {
   dots <- list(...)
 
   # Alias: wavelet -> scalogram
@@ -84,12 +88,14 @@ extract_power_stable <- function(scalogram = NULL,
   extract_power_low <- cycle * period_down
   low_rownr <- wr_closest(Period[, 1], extract_power_low, which = TRUE)
   high_rownr <-
-    wr_closest(Period[, 1], extract_power_high, which = TRUE)
+      wr_closest(Period[, 1], extract_power_high, which = TRUE)
 
   if(inherits(scalogram,"analyze.superlet") == TRUE){
-    Power <- t(my.w$Power)}
+    Power <- t(my.w$Power)
+  }
   if(inherits(scalogram,"analyze.wavelet") == TRUE ){
-    Power <- my.w$Power}
+    Power <- my.w$Power
+  }
 
   Power_sel <- Power[(low_rownr:high_rownr),]
   Power_sel <- as.data.frame(colSums(Power_sel))
@@ -98,7 +104,7 @@ extract_power_stable <- function(scalogram = NULL,
   total_pwr <- colSums(Power, na.rm = TRUE)
   filtered_power$total <- total_pwr
   filtered_power$pwr_div_total <-
-    filtered_power[, 2] / filtered_power[, 3]
+      filtered_power[, 2] / filtered_power[, 3]
 
   colnames(filtered_power) <- c("x_axis","sum_pwr","total_pwr","pwr_div_total")
 

@@ -24,45 +24,61 @@
 #' (Mingsong Li). Uses the COCO helper functions of this package
 #' (helpers_coco.R and the ecoco_* functions).
 #'
-#' @param data Two-column matrix: depth (m) and proxy value. Irregular data
-#' are linearly interpolated at the median spacing (cocoPrepareRegularData).
-#' @param orbit9 Nine orbital periods (kyr).
-#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}
-#' @param window Sliding-window length (m). \code{Default=NULL}: 25\% of the
-#' record length (Acycle GUI default).
-#' @param sr Sedimentation-rate grid (cm/kyr), strictly increasing.
-#' \code{Default=NULL}: the Acycle GUI default range.
-#' @param step_depth Spacing of the output window centres (m).
-#' \code{Default=NULL}: the Acycle GUI default (dt, or dt*ceiling(n/300)).
-#' @param step Legacy integer sample step, used when
-#' \code{window_mode = "legacy-count"}. \code{Default=1}
-#' @param pad Periodogram length (nfft, at least the window point count).
-#' \code{Default=NULL}: Acycle's defaultPad (5000 for up to 2500 points).
-#' @param red Background removal: 0 none, 1 classical AR(1), 2 robust AR(1),
-#' 3 smoothed-window average (SWA). \code{Default=0}
-#' @param n_sim Number of Monte Carlo simulations. \code{Default=2000}
-#' @param method Correlation, "Pearson" or "Spearman". \code{Default="Pearson"}
-#' @param max_frequency Maximum temporal frequency (cycles/kyr) in the
-#' correlation. \code{Default=NULL}: 1.2/min(orbit9).
-#' @param seed Random seed (\code{set.seed}); NULL leaves the RNG state.
-#' \code{Default=1}
-#' @param anchor_fraction Anchor spacing as a fraction of the window
-#' (0 < x <= 2). \code{Default=0.5}
-#' @param window_mode "physical-depth" (Acycle wrapper and GUI) or
-#' "legacy-count" (fixed sample count). \code{Default="physical-depth"}
-#' @param edge_pad Zero-pad half a window at both ends and restrict the
-#' output centres to the original record (Acycle GUI requirement for Blocked
-#' eCOCO). \code{Default=TRUE}
-#' @param center_limits Optional c(first, last) output-centre limits
-#' (overrides the limits set by \code{edge_pad}). \code{Default=NULL}
-#' @param compute_local_p Also compute same-rate local p-values.
-#' \code{Default=TRUE}
-#' @param consensus_policy "supported" (one-direction fallback at edges) or
-#' "strict" (bidirectional windows only). \code{Default="supported"}
-#' @param batch_size Monte Carlo simulations per batch (results do not depend
-#' on it). \code{Default=20}
-#' @param genplot Plot the result with \code{plot_ecoco_cv}. \code{Default=FALSE}
-#' @param verbose Print progress messages. \code{Default=FALSE}
+#' @param data Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+#' column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+#' interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required
+#' (\code{Default=NULL}).
+#' @param orbit9 The nine astronomical target periods in kyr (numeric vector of nine distinct positive values: long
+#' eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+#' \code{\link{orbit9_at_age}} for the age of the record.
+#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.
+#' @param window Length of the sliding validation and anchor windows, in metres (numeric, > 0; every window must
+#' contain at least 8 samples). \code{NULL} uses 25\% of the record length (Acycle GUI default).
+#' \code{Default=NULL}.
+#' @param sr Sedimentation rates to test, in cm/kyr (numeric vector, > 0, strictly increasing). \code{NULL} uses the
+#' Acycle GUI default: from \code{2 * dt * 0.065 * 100} up to 100 cm/kyr (reduced so that the longest period fits in
+#' the record), in steps of 0.1 cm/kyr or at most 300 steps. \code{Default=NULL}.
+#' @param step_depth Spacing of the output (validation) window centres, in metres (numeric, > 0); only used with
+#' \code{window_mode="physical-depth"}. \code{NULL} uses the sample interval \code{dt}, or
+#' \code{dt * ceiling(n / 300)} for more than 300 samples. \code{Default=NULL}.
+#' @param step Step between successive validation windows, in samples (integer, >= 1); only used with
+#' \code{window_mode="legacy-count"}. \code{Default=1}.
+#' @param pad Length (number of points) to which every window is zero-padded for the periodogram (integer, at least
+#' the number of points per window). \code{NULL} uses the Acycle default: 5000 for up to 2500 samples, 10000 for up
+#' to 5000 samples, and \code{floor(n / 5000) * 5000 + 5000} above that. \code{Default=NULL}.
+#' @param red Background (red-noise) removal applied to every window spectrum (integer): \code{0} none, \code{1}
+#' classical AR(1) background, \code{2} robust AR(1) background, \code{3} smoothed-window-average (SWA) background.
+#' Negative power after subtraction is set to zero. \code{Default=0}.
+#' @param n_sim Number of AR(1) Monte Carlo simulations used for the global and local p-values (integer, >= 0); each
+#' simulation repeats the anchor training and validation. \code{Default=2000}.
+#' @param method Correlation coefficient between the window spectrum and the target spectrum (character):
+#' \code{"Pearson"} or \code{"Spearman"}. \code{Default="Pearson"}.
+#' @param max_frequency Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+#' (numeric, at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=1}.
+#' @param anchor_fraction Spacing of the anchor windows (where the target amplitudes are trained) as a fraction of
+#' \code{window} (numeric, > 0 and <= 2); smaller values give more, overlapping anchors. \code{Default=0.5}.
+#' @param window_mode How the windows are defined (character): \code{"physical-depth"} (windows of fixed length in
+#' metres centred every \code{step_depth}, as in the Acycle wrapper and GUI) or \code{"legacy-count"} (windows of a
+#' fixed number of samples moved by \code{step} samples; needs evenly sampled data).
+#' \code{Default="physical-depth"}.
+#' @param edge_pad Zero-pad the record by half a window at both ends and restrict the output centres to the original
+#' record, so that windows reach the record ends (logical, TRUE or FALSE; Acycle GUI setting for Blocked eCOCO).
+#' Only used with \code{window_mode="physical-depth"}. \code{Default=TRUE}.
+#' @param center_limits Depths of the first and last output window centre, in metres (numeric vector
+#' \code{c(first, last)}, or \code{NULL}); overrides the limits set by \code{edge_pad}. \code{NULL} uses the record
+#' ends (with \code{edge_pad=TRUE}) or \code{c(first depth + window/2, last depth - window/2)}.
+#' \code{Default=NULL}.
+#' @param compute_local_p Also compute the local p-values, comparing each rate with the null correlations at the same
+#' rate (logical, TRUE or FALSE). \code{Default=TRUE}.
+#' @param consensus_policy How windows at the record edges, which have an anchor on only one side, are treated
+#' (character): \code{"supported"} uses the available direction, \code{"strict"} leaves windows without both a
+#' forward and a backward anchor empty. \code{Default="supported"}.
+#' @param batch_size Number of Monte Carlo simulations processed together (integer, >= 1); larger batches are faster
+#' but use more memory, the results do not depend on it. \code{Default=20}.
+#' @param genplot Plot the result with \code{\link{plot_ecoco_cv}} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param verbose Print progress messages (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' @references Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking
@@ -101,29 +117,30 @@
 #' \code{geometry} (rate masks), \code{rho_m} (per-window AR(1)),
 #' \code{best} (best rate per window) and \code{track} (tracked ridge:
 #' depth, sr, rho, p_global, norbit, score, sr_low, sr_high).
-#' @param centre_limits British spelling of \code{center_limits}; if given it overrides \code{center_limits}.
+#' @param centre_limits British spelling of \code{center_limits}; if given (not \code{NULL}) it overrides
+#' \code{center_limits}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats rnorm median
 #' @importFrom utils txtProgressBar setTxtProgressBar
 ecoco_blocked <- function(data = NULL,
-                          orbit9 = c(405.6912, 130.6979, 123.8532, 98.8517,
-                                     94.8856, 40.9897, 23.6820, 22.3758,
-                                     18.9519),
-                          window = NULL, sr = NULL, step_depth = NULL,
-                          step = 1, pad = NULL, red = 0, n_sim = 2000,
-                          method = "Pearson", max_frequency = NULL, seed = 1,
-                          anchor_fraction = 0.5,
-                          window_mode = "physical-depth", edge_pad = TRUE,
-                          center_limits = NULL, compute_local_p = TRUE,
-                          consensus_policy = "supported", batch_size = 20,
-                          genplot = FALSE, verbose = FALSE,
-  centre_limits = NULL){
-  if (!is.null(centre_limits)) center_limits <- centre_limits  # British spelling synonym
-  # ---- internal helper functions (local to this function) ----
+    orbit9 = c(405.6912, 130.6979, 123.8532, 98.8517,
+        94.8856, 40.9897, 23.6820, 22.3758,
+        18.9519),
+    window = NULL, sr = NULL, step_depth = NULL,
+    step = 1, pad = NULL, red = 0, n_sim = 2000,
+    method = "Pearson", max_frequency = NULL, seed = 1,
+    anchor_fraction = 0.5,
+    window_mode = "physical-depth", edge_pad = TRUE,
+    center_limits = NULL, compute_local_p = TRUE,
+    consensus_policy = "supported", batch_size = 20,
+    genplot = FALSE, verbose = FALSE,
+    centre_limits = NULL){
+  if (!is.null(centre_limits)) {
+    center_limits <- centre_limits
+  }  # British spelling synonym
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # MATLAB-compatible scalar helpers
-  # ---------------------------------------------------------------------------
 
   ecocox_round <- function(x){
     # MATLAB round: halves away from zero (R round() rounds half to even)
@@ -210,9 +227,7 @@ ecoco_blocked <- function(data = NULL,
     seq(sedmin, sedmax, by = sedstep)
   }
 
-  # ---------------------------------------------------------------------------
   # Variance / AR(1) helpers
-  # ---------------------------------------------------------------------------
 
   ecocox_resolved_variance <- function(original, detrended){
     # cocoResolvedDetrendedVariance.m
@@ -234,7 +249,7 @@ ecoco_blocked <- function(data = NULL,
     s <- rs * sqrt(energy / (n - 1))
     out$sd <- s
     out$resolved <- is.finite(rel) && rel > 256 * .Machine$double.eps &&
-      is.finite(s) && s > 0
+        is.finite(s) && s > 0
     out
   }
 
@@ -277,9 +292,7 @@ ecoco_blocked <- function(data = NULL,
     list(rho = rho, sd = sdv, valid = valid)
   }
 
-  # ---------------------------------------------------------------------------
   # Spectra with background removal (ecocoWindowSpectra.m, spectrumBatch)
-  # ---------------------------------------------------------------------------
 
   ecocox_window_spectra <- function(values, dt, nfft, red = 0){
     values <- as.matrix(values)
@@ -313,7 +326,7 @@ ecoco_blocked <- function(data = NULL,
       }
       fl <- max(2.2250738585072014e-308, max(pos) * .Machine$double.eps)
       bg <- swa_background(f, log10(pmax(p, fl)), nrow(values),
-                           verbose = FALSE)$swa
+          verbose = FALSE)$swa
       bg <- as.numeric(bg)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The selected background model returned invalid values.")
@@ -325,9 +338,7 @@ ecoco_blocked <- function(data = NULL,
     list(power = P, f = f)
   }
 
-  # ---------------------------------------------------------------------------
   # Exact four-variable nonnegative least squares (cocoNonnegativeLeakageSolve.m)
-  # ---------------------------------------------------------------------------
 
   ecocox_nnls4 <- function(M, E){
     E <- as.matrix(E)
@@ -374,10 +385,8 @@ ecoco_blocked <- function(data = NULL,
     G * matrix(cs, 4, ns, byrow = TRUE)
   }
 
-  # ---------------------------------------------------------------------------
   # Shared four-group coherent-nine geometry
   # (prepareGeometry in ecocoCrossfitCore.m and in cvcoco.m, four-group branch)
-  # ---------------------------------------------------------------------------
 
   ecocox_group_overlap <- function(center, rayleigh, upper, resolved, gindex){
     active <- which(resolved)
@@ -403,7 +412,7 @@ ecoco_blocked <- function(data = NULL,
   }
 
   ecocox_geometry <- function(n, dz, periods, sr_grid, nfft, max_frequency,
-                              engine = c("blocked", "cvcoco")){
+      engine = c("blocked", "cvcoco")){
     engine <- match.arg(engine)
     gindex <- coco_orbit_groups(periods)
     fs <- 1 / dz
@@ -419,28 +428,28 @@ ecoco_blocked <- function(data = NULL,
       w1[nf] <- 1
     }
     geom <- list(n = n, dz = dz, fs = fs, nfft = nfft, frequency = frequency,
-                 rayleigh = rayleigh, nyquist = nyquist, sr_grid = sr_grid,
-                 group_index = gindex, engine = engine,
-                 one_sided = w1, spectrum_scale = 1 / (fs * n),
-                 basis = vector("list", n_rate),
-                 group_basis = vector("list", n_rate),
-                 band_index = vector("list", n_rate),
-                 solve_matrix = vector("list", n_rate),
-                 leakage = vector("list", n_rate),
-                 corr_index = vector("list", n_rate),
-                 group_unit_energy = matrix(NaN, n_rate, 4),
-                 full_rcond = rep(NaN, n_rate),
-                 active_rcond = rep(NaN, n_rate),
-                 valid_rate = rep(FALSE, n_rate),
-                 strict_training = rep(FALSE, n_rate),
-                 partial_training = rep(FALSE, n_rate),
-                 active_group = matrix(FALSE, n_rate, 4),
-                 active_orbit = matrix(FALSE, n_rate, n_orbit),
-                 resolved = matrix(FALSE, n_rate, n_orbit),
-                 orbit_count = rep(0, n_rate),
-                 resolved_group_count = matrix(0, n_rate, 4),
-                 overlap = rep(FALSE, n_rate),
-                 all_nine_range = ecocox_all_period_rate_range(periods, dz, n))
+        rayleigh = rayleigh, nyquist = nyquist, sr_grid = sr_grid,
+        group_index = gindex, engine = engine,
+        one_sided = w1, spectrum_scale = 1 / (fs * n),
+        basis = vector("list", n_rate),
+        group_basis = vector("list", n_rate),
+        band_index = vector("list", n_rate),
+        solve_matrix = vector("list", n_rate),
+        leakage = vector("list", n_rate),
+        corr_index = vector("list", n_rate),
+        group_unit_energy = matrix(NaN, n_rate, 4),
+        full_rcond = rep(NaN, n_rate),
+        active_rcond = rep(NaN, n_rate),
+        valid_rate = rep(FALSE, n_rate),
+        strict_training = rep(FALSE, n_rate),
+        partial_training = rep(FALSE, n_rate),
+        active_group = matrix(FALSE, n_rate, 4),
+        active_orbit = matrix(FALSE, n_rate, n_orbit),
+        resolved = matrix(FALSE, n_rate, n_orbit),
+        orbit_count = rep(0, n_rate),
+        resolved_group_count = matrix(0, n_rate, 4),
+        overlap = rep(FALSE, n_rate),
+        all_nine_range = ecocox_all_period_rate_range(periods, dz, n))
     pad_rows <- nfft - n
     for (m in seq_len(n_rate)){
       sr <- sr_grid[m]
@@ -469,7 +478,7 @@ ecoco_blocked <- function(data = NULL,
       }
       tt <- (0:(n - 1)) * (100 * dz / sr)
       ph <- matrix(2 * pi * tt, n, n_orbit) /
-        matrix(periods, n, n_orbit, byrow = TRUE)
+          matrix(periods, n, n_orbit, byrow = TRUE)
       us <- detrend_linear(sin(ph))
       uc <- detrend_linear(cos(ph))
       if (pad_rows > 0){
@@ -505,7 +514,7 @@ ecoco_blocked <- function(data = NULL,
       }
       geom$band_index[[m]] <- bands
       geom$overlap[m] <- ecocox_group_overlap(spatial, rayleigh, upper, res,
-                                              gindex)
+          gindex)
       L <- matrix(0, 4, 4)
       for (g in 1:4){
         if (length(bands[[g]]) > 0){
@@ -530,7 +539,7 @@ ecoco_blocked <- function(data = NULL,
       }
       geom$valid_rate[m] <- any(gt > 0)
       ag <- geom$resolved_group_count[m, ] > 0 &
-        is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
+          is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
       ag[is.na(ag)] <- FALSE
       geom$active_group[m, ] <- ag
       geom$active_orbit[m, ] <- res & ag[gindex]
@@ -548,12 +557,12 @@ ecoco_blocked <- function(data = NULL,
         }
       }
       geom$partial_training[m] <- geom$valid_rate[m] && any(ag) &&
-        is.finite(geom$active_rcond[m]) && geom$active_rcond[m] >= 1e-10 &&
-        !geom$overlap[m]
+          is.finite(geom$active_rcond[m]) && geom$active_rcond[m] >= 1e-10 &&
+          !geom$overlap[m]
       ue <- geom$group_unit_energy[m, ]
       geom$strict_training[m] <- all(res) && all(is.finite(ue) & ue > 0) &&
-        is.finite(geom$full_rcond[m]) && geom$full_rcond[m] >= 1e-10 &&
-        !geom$overlap[m]
+          is.finite(geom$full_rcond[m]) && geom$full_rcond[m] >= 1e-10 &&
+          !geom$overlap[m]
     }
     geom$training_rate <- geom$strict_training
     geom
@@ -566,7 +575,7 @@ ecoco_blocked <- function(data = NULL,
       tf <- geom$group_basis[[m]] %*% amp
     } else {
       ex <- amp[geom$group_index, , drop = FALSE] *
-        as.numeric(geom$resolved[m, ])
+          as.numeric(geom$resolved[m, ])
       tf <- geom$basis[[m]] %*% ex
     }
     Mod(tf)^2 * geom$one_sided * geom$spectrum_scale
@@ -617,7 +626,7 @@ ecoco_blocked <- function(data = NULL,
       tp <- ecocox_target_power(geom, m, GA)
       idx <- geom$corr_index[[m]]
       r <- .column_correlation(power[idx, , drop = FALSE],
-                               tp[idx, , drop = FALSE], method)
+          tp[idx, , drop = FALSE], method)
       if (keep_curve){
         curve[m, ] <- r
       }
@@ -630,7 +639,7 @@ ecoco_blocked <- function(data = NULL,
     }
     best_score[!is.finite(best_rate)] <- NaN
     list(curve = curve, best_rate = best_rate, best_score = best_score,
-         amplitude = amp_best)
+        amplitude = amp_best)
   }
 
   ecocox_normalize <- function(amp){
@@ -668,7 +677,7 @@ ecoco_blocked <- function(data = NULL,
       tp <- ecocox_target_power(geom, m, weights)
       idx <- geom$corr_index[[m]]
       curve[m, ] <- .column_correlation(power[idx, , drop = FALSE],
-                                        tp[idx, , drop = FALSE], method)
+          tp[idx, , drop = FALSE], method)
     }
     curve
   }
@@ -708,12 +717,10 @@ ecoco_blocked <- function(data = NULL,
     rho * abs(log10(ps))
   }
 
-  # ---------------------------------------------------------------------------
   # Physical-depth window sampling (ecocoPhysicalWindowValues.m)
-  # ---------------------------------------------------------------------------
 
   ecocox_physical_window_values <- function(data, window, centers, nominal_dt,
-                                            min_source = 8){
+      min_source = 8){
     depth <- data[, 1]
     proxy <- data[, 2]
     nd <- length(depth)
@@ -738,17 +745,17 @@ ecoco_blocked <- function(data = NULL,
       lo <- centers[w] - window / 2
       hi <- centers[w] + window / 2
       tol <- 64 * ecocox_eps(max(c(1, abs(depth[1]), abs(depth[nd]), abs(lo),
-                                   abs(hi), abs(window)))) * max(1, nd)
+          abs(hi), abs(window)))) * max(1, nd)
       if (lo < depth[1] - tol || hi > depth[nd] + tol){
         stop(sprintf(paste0("Physical window %d requests bounds %.12g to %.12g, ",
-                            "outside the data support %.12g to %.12g."),
-                     w, lo, hi, depth[1], depth[nd]))
+            "outside the data support %.12g to %.12g."),
+            w, lo, hi, depth[1], depth[nd]))
       }
       ii <- which(depth >= lo - tol & depth <= hi + tol)
       count[w] <- length(ii)
       if (length(ii) < min_source){
         stop(sprintf("Physical window %d contains %d observations; at least %d are required.",
-                     w, length(ii), min_source))
+            w, length(ii), min_source))
       }
       first[w] <- ii[1]
       last[w] <- ii[length(ii)]
@@ -785,7 +792,7 @@ ecoco_blocked <- function(data = NULL,
       }
     }
     list(values = V, n = npt, dt = adt, first = first, last = last,
-         count = count, observed_center = obs_center, observed_span = obs_span)
+        count = count, observed_center = obs_center, observed_span = obs_span)
   }
 
   ecocox_zeropad <- function(data, window, padding = 1){
@@ -816,9 +823,7 @@ ecoco_blocked <- function(data = NULL,
     rbind(cbind(x1, y1), cbind(x, y), cbind(x2, y2))
   }
 
-  # ---------------------------------------------------------------------------
   # Result helpers shared by Blocked and Interleaved eCOCO
-  # ---------------------------------------------------------------------------
 
   ecocox_values_at <- function(M, index){
     out <- rep(NaN, length(index))
@@ -845,18 +850,18 @@ ecoco_blocked <- function(data = NULL,
     }
     pc <- ecocox_pcoco(rho, p_global)
     list(rho = rho, p_global = p_global, p_local = p_local, norbit = norbit,
-         pcoco = pc, score = pc, best_rate = best_rate,
-         best_index = best_index, best_rho = best_rho,
-         best_p_global = ecocox_values_at(p_global, best_index),
-         supported = supported)
+        pcoco = pc, score = pc, best_rate = best_rate,
+        best_index = best_index, best_rho = best_rho,
+        best_p_global = ecocox_values_at(p_global, best_index),
+        supported = supported)
   }
 
   ecocox_finish <- function(out, sr, depth, verbose){
     # bestPerWindowSummary + trackEcocoRidge (ecoco.m) via ecoco_track_ridge()
     best <- ecoco_best_per_window(sr, depth, out$rho, out$p_global, out$norbit,
-                                  out$score)
+        out$score)
     track <- ecoco_track_ridge(out$score, sr, depth, out$rho, out$p_global,
-                               out$norbit, best)
+        out$norbit, best)
     out$best <- best
     out$track <- track
     if (verbose){
@@ -866,16 +871,16 @@ ecoco_blocked <- function(data = NULL,
         med <- stats::median(track$sr[ok])
       }
       message(sprintf("%s: %d windows, %d with a tracked rate (median %.4g cm/kyr)",
-                      out$method, length(depth), sum(ok), med))
+          out$method, length(depth), sum(ok), med))
     }
     out
   }
 
   ecocox_blocked_core <- function(dat, orbit9, window, dt, step, red, pad, sr,
-                                  n_sim, method, max_frequency, seed,
-                                  anchor_fraction, compute_local_p,
-                                  window_mode, step_depth, center_limits,
-                                  batch_size, verbose){
+      n_sim, method, max_frequency, seed,
+      anchor_fraction, compute_local_p,
+      window_mode, step_depth, center_limits,
+      batch_size, verbose){
     depth <- dat[, 1]
     nd <- length(depth)
     if (any(diff(depth) <= 0)){
@@ -896,18 +901,18 @@ ecoco_blocked <- function(data = NULL,
       stop("pad must be at least the window point count")
     }
     dtol <- max(ecocox_sampling_tolerance(min(window, dt)),
-                128 * ecocox_eps(max(1, max(abs(depth)))))
+        128 * ecocox_eps(max(1, max(abs(depth)))))
     if (window_mode == "physical-depth"){
       vcent <- ecoco_physical_centers(depth, window, step_depth, center_limits)
       anchor_step_depth <- anchor_fraction * window
       acent <- ecoco_physical_centers(depth, window, anchor_step_depth,
-                                      center_limits)
+          center_limits)
       comb <- c(vcent, acent)
       ord <- order(comb)
       sc <- comb[ord]
       mtol <- max(ecocox_sampling_tolerance(min(max(sc[length(sc)] - sc[1], dt),
-                                                dt)),
-                  128 * ecocox_eps(max(1, max(abs(depth)))))
+          dt)),
+          128 * ecocox_eps(max(1, max(abs(depth)))))
       uc <- rep(0, length(sc))
       sidx <- rep(0L, length(sc))
       nu <- 0
@@ -993,16 +998,16 @@ ecoco_blocked <- function(data = NULL,
       }
     }
     geom <- ecocox_geometry(n_win, adt, orbit9, sr, pad, max_frequency,
-                            "blocked")
+        "blocked")
     partial <- FALSE
     if (!any(geom$strict_training) && any(geom$partial_training)){
       partial <- TRUE
       geom$training_rate <- geom$partial_training
       warning(sprintf(paste0("Blocked eCOCO has no tested rate with complete ",
-                             "all-nine training geometry; continuing with the ",
-                             "partial-orbit target at %d of %d rates ",
-                             "(degraded/exploratory result)."),
-                      sum(geom$training_rate), n_rate))
+          "all-nine training geometry; continuing with the ",
+          "partial-orbit target at %d of %d rates ",
+          "(degraded/exploratory result)."),
+          sum(geom$training_rate), n_rate))
     }
     if (!any(geom$training_rate)){
       stop("No tested sedimentation rate has a resolvable, well-conditioned training geometry.")
@@ -1012,7 +1017,7 @@ ecoco_blocked <- function(data = NULL,
     }
     if (verbose){
       message(sprintf("Blocked eCOCO: %d windows, %d anchors, %d points per window, %d rates",
-                      n_pos, n_anchor, n_win, n_rate))
+          n_pos, n_anchor, n_win, n_rate))
     }
     block_power <- ecocox_window_spectra(values, adt, pad, red)$power
     ar <- ecocox_estimate_ar1(values)
@@ -1020,12 +1025,12 @@ ecoco_blocked <- function(data = NULL,
     atr <- ecocox_train(apow, geom, method, TRUE)
     aw <- ecocox_normalize(atr$amplitude)
     avalid <- is.finite(atr$best_rate) & colSums(!is.finite(aw)) == 0 &
-      ar$valid[ablock]
+        ar$valid[ablock]
     a_best_index <- match(atr$best_rate, sr)
     a_partial <- rep(FALSE, n_anchor)
     ok <- avalid & !is.na(a_best_index)
     a_partial[ok] <- geom$partial_training[a_best_index[ok]] &
-      !geom$strict_training[a_best_index[ok]]
+        !geom$strict_training[a_best_index[ok]]
     has_f <- !is.na(fwd)
     has_b <- !is.na(bwd)
     for (j in seq_len(n_pos)){
@@ -1043,12 +1048,12 @@ ecoco_blocked <- function(data = NULL,
     if (any(has_f)){
       iw <- which(has_f)
       rho_f[, iw] <- ecocox_validate(vpow[, iw, drop = FALSE], geom,
-                                     aw[, fwd[iw], drop = FALSE], method)
+          aw[, fwd[iw], drop = FALSE], method)
     }
     if (any(has_b)){
       iw <- which(has_b)
       rho_b[, iw] <- ecocox_validate(vpow[, iw, drop = FALSE], geom,
-                                     aw[, bwd[iw], drop = FALSE], method)
+          aw[, bwd[iw], drop = FALSE], method)
     }
     both <- has_f & has_b
     fonly <- has_f & !has_b
@@ -1119,8 +1124,8 @@ ecoco_blocked <- function(data = NULL,
         }
         npow <- ecocox_window_spectra(Z, adt, pad, red)$power
         acol <- as.numeric(matrix(ablock, n_anchor, nb) +
-                             matrix((0:(nb - 1)) * n_block, n_anchor, nb,
-                                    byrow = TRUE))
+            matrix((0:(nb - 1)) * n_block, n_anchor, nb,
+                byrow = TRUE))
         ntr <- ecocox_train(npow[, acol, drop = FALSE], geom, method, FALSE)
         nw <- ecocox_normalize(ntr$amplitude)
         if (any(!is.finite(ntr$best_rate)) || any(!is.finite(nw))){
@@ -1138,7 +1143,7 @@ ecoco_blocked <- function(data = NULL,
             wcol <- fwd[j] + (0:(nb - 1)) * n_anchor
             nf_c <- ecocox_validate(nvp, geom, nw[, wcol, drop = FALSE], method)
             cg_f[, j] <- cg_f[, j] + ecocox_global_exceed(nf_c, rho_f[, j],
-                                                          geom$valid_rate)
+                geom$valid_rate)
             if (compute_local_p){
               cl_f[, j] <- cl_f[, j] + ecocox_local_exceed(nf_c, rho_f[, j])
             }
@@ -1147,7 +1152,7 @@ ecoco_blocked <- function(data = NULL,
             wcol <- bwd[j] + (0:(nb - 1)) * n_anchor
             nb_c <- ecocox_validate(nvp, geom, nw[, wcol, drop = FALSE], method)
             cg_b[, j] <- cg_b[, j] + ecocox_global_exceed(nb_c, rho_b[, j],
-                                                          geom$valid_rate)
+                geom$valid_rate)
             if (compute_local_p){
               cl_b[, j] <- cl_b[, j] + ecocox_local_exceed(nb_c, rho_b[, j])
             }
@@ -1160,7 +1165,7 @@ ecoco_blocked <- function(data = NULL,
             nc_c <- nb_c
           }
           cg_c[, j] <- cg_c[, j] + ecocox_global_exceed(nc_c, rho_c[, j],
-                                                        geom$valid_rate)
+              geom$valid_rate)
           if (compute_local_p){
             cl_c[, j] <- cl_c[, j] + ecocox_local_exceed(nc_c, rho_c[, j])
           }
@@ -1205,46 +1210,46 @@ ecoco_blocked <- function(data = NULL,
     strict <- ecocox_direction(rho_s, pg_s, pl_s, nor_s, sr, both)
     strict$p_directional_max <- p_both
     windows <- data.frame(center = vcent, lower = vbounds[, 1],
-                          upper = vbounds[, 2], start_index = vstart,
-                          end_index = vend, block = vblock,
-                          forward_anchor = fwd, backward_anchor = bwd,
-                          has_forward = has_f, has_backward = has_b,
-                          support = support, rho_m = ar$rho[vblock],
-                          valid_null = ar$valid[vblock],
-                          stringsAsFactors = FALSE)
+        upper = vbounds[, 2], start_index = vstart,
+        end_index = vend, block = vblock,
+        forward_anchor = fwd, backward_anchor = bwd,
+        has_forward = has_f, has_backward = has_b,
+        support = support, rho_m = ar$rho[vblock],
+        valid_null = ar$valid[vblock],
+        stringsAsFactors = FALSE)
     anchors <- data.frame(center = acent, lower = abounds[, 1],
-                          upper = abounds[, 2], block = ablock,
-                          best_rate = atr$best_rate,
-                          best_rho = atr$best_score,
-                          w_long_ecc = aw[1, ], w_short_ecc = aw[2, ],
-                          w_obliquity = aw[3, ], w_precession = aw[4, ],
-                          valid = avalid, partial_orbit = a_partial,
-                          rho_m = ar$rho[ablock])
+        upper = abounds[, 2], block = ablock,
+        best_rate = atr$best_rate,
+        best_rho = atr$best_score,
+        w_long_ecc = aw[1, ], w_short_ecc = aw[2, ],
+        w_obliquity = aw[3, ], w_precession = aw[4, ],
+        valid = avalid, partial_orbit = a_partial,
+        rho_m = ar$rho[ablock])
     list(method = "Blocked eCOCO", sr = sr, depth = vcent,
-         rho = rho_c, p_global = pg_c, p_local = pl_c, norbit = nor_c,
-         pcoco = consensus$pcoco, score = consensus$score,
-         forward = forward, backward = backward, consensus = consensus,
-         strict = strict, support = support, windows = windows,
-         anchors = anchors, anchor_train_curve = atr$curve,
-         block_center = block_center, block_count = block_count,
-         rho_m = ar$rho[vblock], window = window, window_points = n_win,
-         analysis_dt = adt, sampling_dt = dt, step_depth = step_depth,
-         anchor_step_depth = anchor_step_depth, anchor_step = anchor_step,
-         anchor_fraction = anchor_fraction, window_mode = window_mode,
-         geometry = list(valid_rate = geom$valid_rate,
-                         training_rate = geom$training_rate,
-                         strict_training = geom$strict_training,
-                         partial_training = geom$partial_training,
-                         orbit_count = geom$orbit_count,
-                         active_group = geom$active_group,
-                         leakage_rcond = geom$active_rcond,
-                         full_leakage_rcond = geom$full_rcond,
-                         group_overlap = geom$overlap,
-                         rayleigh = geom$rayleigh, nyquist = geom$nyquist),
-         degraded = partial, n_sim = n_sim,
-         p_floor = ecocox_p_floor(n_sim), seed = seed,
-         red = red, pad = pad, max_frequency = max_frequency, orbit9 = orbit9,
-         correlation = method)
+        rho = rho_c, p_global = pg_c, p_local = pl_c, norbit = nor_c,
+        pcoco = consensus$pcoco, score = consensus$score,
+        forward = forward, backward = backward, consensus = consensus,
+        strict = strict, support = support, windows = windows,
+        anchors = anchors, anchor_train_curve = atr$curve,
+        block_center = block_center, block_count = block_count,
+        rho_m = ar$rho[vblock], window = window, window_points = n_win,
+        analysis_dt = adt, sampling_dt = dt, step_depth = step_depth,
+        anchor_step_depth = anchor_step_depth, anchor_step = anchor_step,
+        anchor_fraction = anchor_fraction, window_mode = window_mode,
+        geometry = list(valid_rate = geom$valid_rate,
+            training_rate = geom$training_rate,
+            strict_training = geom$strict_training,
+            partial_training = geom$partial_training,
+            orbit_count = geom$orbit_count,
+            active_group = geom$active_group,
+            leakage_rcond = geom$active_rcond,
+            full_leakage_rcond = geom$full_rcond,
+            group_overlap = geom$overlap,
+            rayleigh = geom$rayleigh, nyquist = geom$nyquist),
+        degraded = partial, n_sim = n_sim,
+        p_floor = ecocox_p_floor(n_sim), seed = seed,
+        red = red, pad = pad, max_frequency = max_frequency, orbit9 = orbit9,
+        correlation = method)
   }
 
   ecocox_global_exceed <- function(null_curve, observed, valid_rate){
@@ -1258,7 +1263,7 @@ ecoco_blocked <- function(data = NULL,
       stop("A Monte Carlo realization has no finite SR-global maximum.")
     }
     cnt <- rowSums(matrix(nmax, length(observed), length(nmax), byrow = TRUE) >=
-                     matrix(observed, length(observed), length(nmax)))
+        matrix(observed, length(observed), length(nmax)))
     cnt[!is.finite(observed)] <- 0
     cnt
   }
@@ -1304,7 +1309,7 @@ ecoco_blocked <- function(data = NULL,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -1340,7 +1345,7 @@ ecoco_blocked <- function(data = NULL,
     list(p = p_out, f = f)
   }
 
-  # --- Interpolation ------------------------------------------------------------
+  # Interpolation
   interp1_na <- function(x, y, xi){
     # Linear interpolation, NA outside range (MATLAB interp1 default).
     o <- order(x)
@@ -1348,7 +1353,7 @@ ecoco_blocked <- function(data = NULL,
     y <- y[o]
     keep <- !duplicated(x)
     stats::approx(x[keep], y[keep], xout = xi, method = "linear", rule = 1,
-                  ties = "ordered")$y
+        ties = "ordered")$y
   }
 
   interp1_extrap <- function(x, y, xi){
@@ -1368,7 +1373,7 @@ ecoco_blocked <- function(data = NULL,
     out
   }
 
-  # --- Moving median with shrinking endpoints -----------------------------------
+  # Moving median with shrinking endpoints
   move_median <- function(x, w){
     x <- as.vector(x)
     n <- length(x)
@@ -1387,7 +1392,7 @@ ecoco_blocked <- function(data = NULL,
     out
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -1424,7 +1429,7 @@ ecoco_blocked <- function(data = NULL,
         rss <- colSums(base^2)
         ls <- log(s0_g)
         matrix(rss, length(rho_g), length(s0_g)) + 2 * outer(rs, ls) +
-          length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
+            length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
       }
     }
     nn <- 50
@@ -1488,9 +1493,7 @@ ecoco_blocked <- function(data = NULL,
     idx
   }
 
-  # ---------------------------------------------------------------------------
   # Batched spectra with background removal (ecocoWindowSpectra.m)
-  # ---------------------------------------------------------------------------
   coco_window_spectra <- function(values, dt, pad, red = 1, already_detrended = FALSE){
     values <- as.matrix(values)
     if (!already_detrended){
@@ -1533,7 +1536,7 @@ ecoco_blocked <- function(data = NULL,
   coco_swa_subtract <- function(P, f, n_data){
     if (nrow(P) < 33){
       stop(paste0("red = 3 (smoothed-window average) requires at least 33 ",
-                  "one-sided spectral bins; increase pad"))
+          "one-sided spectral bins; increase pad"))
     }
     for (j in seq_len(ncol(P))){
       p <- P[, j]
@@ -1545,7 +1548,7 @@ ecoco_blocked <- function(data = NULL,
       }
       fl <- max(2.2250738585072014e-308, sc * .Machine$double.eps)
       bg <- as.numeric(swa_background(f, log10(pmax(p, fl)), n_data,
-                                      verbose = FALSE)$swa)
+          verbose = FALSE)$swa)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The smoothed-window background is nonpositive or nonfinite.")
       }
@@ -1592,9 +1595,7 @@ ecoco_blocked <- function(data = NULL,
     r
   }
 
-  # ---------------------------------------------------------------------------
   # Physical-depth windows (ecocoPhysicalCenters.m / ecocoPhysicalWindowValues.m)
-  # ---------------------------------------------------------------------------
   ecoco_physical_centers <- function(depth, window, step_depth, center_limits = NULL){
     if (is.null(center_limits)){
       lim <- c(depth[1] + window / 2, depth[length(depth)] - window / 2)
@@ -1613,12 +1614,10 @@ ecoco_blocked <- function(data = NULL,
     cen[cen <= lim[2] + 64 * .eps * max(1, abs(lim), abs(cen))]
   }
 
-  # ---------------------------------------------------------------------------
   # Small helpers
-  # ---------------------------------------------------------------------------
   .eps <- .Machine$double.eps
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method, c("Pearson", "Spearman"))
   window_mode <- match.arg(window_mode, c("physical-depth", "legacy-count"))
   consensus_policy <- match.arg(consensus_policy, c("supported", "strict"))
@@ -1672,9 +1671,9 @@ ecoco_blocked <- function(data = NULL,
     dt <- prep$dt
   }
   res <- ecocox_blocked_core(dat, orbit9, window, dt, step, red, pad, sr,
-                             n_sim, method, max_frequency, seed,
-                             anchor_fraction, compute_local_p, window_mode,
-                             step_depth, center_limits, batch_size, verbose)
+      n_sim, method, max_frequency, seed,
+      anchor_fraction, compute_local_p, window_mode,
+      step_depth, center_limits, batch_size, verbose)
   if (consensus_policy == "strict"){
     res$rho <- res$strict$rho
     res$p_global <- res$strict$p_global

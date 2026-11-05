@@ -7,15 +7,18 @@
 resonance_state(ecc_kyr, obl_kyr, max_ratio = 4, data_dir = NULL)
 }
 \arguments{
-\item{ecc_kyr}{measured period of the long eccentricity modulation (the
-"2.4 Myr" cycle, g4-g3)}
+\item{ecc_kyr}{Measured period of the long eccentricity modulation (the "2.4 Myr" cycle, g4-g3), in kyr (numeric,
+> 0, e.g. \code{2400}). Required, no default.}
 
-\item{obl_kyr}{measured period of the obliquity modulation (the "1.2 Myr"
-cycle, s4-s3)}
+\item{obl_kyr}{Measured period of the obliquity modulation (the "1.2 Myr" cycle, s4-s3), in kyr (numeric, > 0, e.g.
+\code{1200}). Required, no default.}
 
-\item{max_ratio}{largest integer ratio to consider}
+\item{max_ratio}{Largest integer p and q considered when searching the simple ratio p:q closest to the measured
+frequency ratio f(obliquity modulation) / f(eccentricity modulation) (integer, >= 1). \code{Default=4}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Directory that contains the data file \code{La04gisi.csv} with the La2004 secular frequencies used
+for the modern values (character path). \code{NULL} uses the data installed with the package (or
+\code{options(cocoR.data)}). \code{Default=NULL}.}
 }
 \value{
 list: the implied frequencies, their ratio, the nearest simple

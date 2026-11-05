@@ -20,30 +20,53 @@ analyse_dechirped(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Input record in the depth domain: a matrix or data frame with depth in column 1 and the proxy value
+in column 2 (further columns are ignored). Incomplete rows are removed, the rows are sorted and the record is
+interpolated to the median depth spacing. Required, no default.}
 
-\item{track}{A \code{wr_track} (or \code{\link{track_astro_auto}} result) with \code{depth}, \code{sedrate} and
-\code{time}.}
+\item{track}{Sedimentation-rate track used to warp the record to time: a \code{wr_track} (from
+\code{\link{track_chirp_hmm}} or \code{\link{track_astro_hmm}}) or a \code{\link{track_astro_auto}} result
+(whose \code{track} element is used), i.e. a list with \code{depth}, \code{sedrate} (depth units per kyr) and
+\code{time} (kyr). Beyond the depth range of the track the time is extrapolated with the end rates. Required, no
+default.}
 
-\item{transform}{\code{"wavelet"}, \code{"superlet_sst"}, \code{"wavelet_sst"} (multisynchrosqueezing),
-\code{"chirplet_sst"}, \code{"eha"} or \code{"combined"}: the geometric mean of the rank-normalised Morlet,
-multitaper EHA and superlet-SST maps (the Morlet is best at the long periods, the EHA at the short ones and the
-superlet-SST localises the periods best; the product keeps what all three agree on).}
+\item{transform}{Transform computed in the time domain (character), one of:
+\itemize{
+\item \code{"wavelet"}: Morlet wavelet (\code{\link{analyse_wavelet}});
+\item \code{"superlet_sst"}: superlet synchrosqueezing (\code{\link{analyse_superlet_sst}});
+\item \code{"wavelet_sst"}: multisynchrosqueezing (\code{\link{analyse_wavelet_sst}} with \code{n_iter = 4});
+\item \code{"chirplet_sst"}: chirplet synchrosqueezing (\code{\link{analyse_chirplet_sst}});
+\item \code{"eha"}: multitaper EHA (\code{\link{analyse_chirp_eha}} with \code{chirp = 0});
+\item \code{"combined"}: the geometric mean of the rank-normalised Morlet, multitaper EHA and superlet-SST maps
+(the Morlet is best at the long periods, the EHA at the short ones and the superlet-SST localises the periods
+best; the product keeps what all three agree on).
+}
+\code{Default="wavelet"} (the first element of the list of choices).}
 
-\item{lowerPeriod, upperPeriod}{Period range in kyr \code{Default=10 and 600}.}
+\item{lowerPeriod, upperPeriod}{Shortest and longest period of the transform in the time domain, in kyr (numeric,
+0 < \code{lowerPeriod} < \code{upperPeriod}). Defaults: \code{lowerPeriod}: \code{Default=10};
+\code{upperPeriod}: \code{Default=600}.}
 
-\item{dj}{Period spacing \code{Default=1/50}.}
+\item{dj}{Spacing of the period axis in octaves (numeric, > 0), used both in time and for the period axis of
+the depth map. \code{Default=1/50}.}
 
-\item{omega_nr}{Morlet omega_0 for \code{"wavelet"} (and the orders of the superlets / chirplets when a vector)
+\item{omega_nr}{Number of cycles omega_0 of the Morlet wavelet for \code{"wavelet"}, \code{"wavelet_sst"} and
+\code{"combined"} (numeric; the first value is used). For \code{"superlet_sst"} and \code{"chirplet_sst"} a
+vector of several values gives the orders; a single value uses the orders \code{c(8, 12, 16)}.
 \code{Default=10}.}
 
-\item{window}{Window length in kyr for \code{"eha"} \code{Default=20 x lowerPeriod}.}
+\item{window}{Length of the moving window of the \code{"eha"} and \code{"combined"} transforms, in kyr (numeric,
+> 0); \code{NULL} uses \code{20 * lowerPeriod}. \code{Default=NULL}.}
 
-\item{n_sim}{Number of AR1 surrogates for the significance \code{Default=0}.}
+\item{n_sim}{Number of AR(1) surrogates of the record that are warped and transformed in the same way to test
+the significance of the de-chirped power (integer, >= 0; 0 skips the test). \code{Default=0}.}
 
-\item{seed}{Seed of the surrogates.}
+\item{seed}{Seed of the random number generator for the surrogates (integer), so that the significance test can
+be reproduced; only used when \code{n_sim > 0}. \code{Default=1}.}
 
-\item{...}{Further arguments of the transform.}
+\item{...}{Further arguments passed to the transform function chosen with \code{transform}
+(\code{\link{analyse_wavelet}}, \code{\link{analyse_superlet_sst}}, \code{\link{analyse_wavelet_sst}},
+\code{\link{analyse_chirplet_sst}} or \code{\link{analyse_chirp_eha}}); not used for \code{"combined"}.}
 }
 \value{
 A list of class \code{wr_dechirped} with \code{tuned} (the transform in time: an \code{analyze.wavelet}

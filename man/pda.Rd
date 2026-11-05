@@ -17,33 +17,38 @@ pda(
 )
 }
 \arguments{
-\item{data}{Matrix with two columns: depth/time (strictly increasing,
-evenly spaced) and proxy value. \code{Default=NULL}}
+\item{data}{Numeric two-column matrix or data frame: depth/time in column 1 (strictly increasing and evenly
+spaced, relative spacing tolerance 1e-5; interpolate first if needed) and the proxy value in column 2; at least
+eight rows, all values finite. Required (\code{Default=NULL}).}
 
-\item{target_bands}{Target frequency bands, either a B x 2 matrix
-[lower, upper] (rows ordered by increasing lower limit, non-overlapping)
-or a vector of paired limits c(lower1, upper1, lower2, upper2, ...).
-\code{Default=c(1/45, 1/25)}}
+\item{target_bands}{Target frequency bands whose summed power is divided by the power of \code{total_band}, in
+cycles per unit of the depth/time column: either a B x 2 matrix with the lower limit in column 1 and the upper
+limit in column 2 (rows ordered by increasing lower limit, non-overlapping), or a numeric vector of paired limits
+\code{c(lower1, upper1, lower2, upper2, ...)}. Every band must lie inside \code{total_band}, below the Nyquist
+frequency and be at least as wide as the FFT resolution. \code{Default=c(1/45, 1/25)}.}
 
-\item{window}{Window length (first-to-last coordinate span), in units of
-the depth/time column. Rounded to a whole number of sample intervals.
-\code{Default=500}}
+\item{window}{Length of the moving window (first-to-last coordinate span), in the unit of the depth/time column
+(numeric, > 0 and not longer than the record; rounded to a whole number of sample intervals, at least 8 samples).
+\code{Default=500}.}
 
-\item{step}{Step between successive windows in depth/time units (rounded
-to whole samples). If NULL one sample interval is used. \code{Default=NULL}}
+\item{step}{Distance between the starts of successive windows, in the unit of the depth/time column (numeric,
+> 0; rounded to whole samples). \code{NULL} uses one sample interval. \code{Default=NULL}.}
 
-\item{nw}{Time-bandwidth product of the DPSS tapers. \code{Default=2}}
+\item{nw}{Time-bandwidth product of the DPSS (Slepian) tapers of the multitaper spectrum (numeric, >= 0.5 and less
+than half the number of samples per window); larger values smooth the spectrum more. \code{Default=2}.}
 
-\item{nfft}{Even FFT length, at least the number of samples per window.
-If NULL the next power of two of the window sample count is used.
-\code{Default=NULL}}
+\item{nfft}{Length of the FFT (even integer, at least the number of samples per window); larger values give a
+finer frequency grid. \code{NULL} uses the next power of two of the number of samples per window.
+\code{Default=NULL}.}
 
-\item{total_band}{Total frequency band c(lower, upper). If NULL
-c(0, Nyquist) is used. \code{Default=NULL}}
+\item{total_band}{Total frequency band \code{c(lower, upper)} in cycles per unit of the depth/time column (numeric
+vector of length 2, 0 <= lower < upper <= Nyquist frequency), the denominator of the power ratio. \code{NULL} uses
+\code{c(0, Nyquist frequency)}. \code{Default=NULL}.}
 
-\item{genplot}{Plot the data and the power ratio. \code{Default=FALSE}}
+\item{genplot}{Plot the data and the power ratio against depth/time (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{verbose}{Show a progress bar. \code{Default=FALSE}}
+\item{verbose}{Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

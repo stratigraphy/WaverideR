@@ -14,17 +14,22 @@ test_tuned_check(
 )
 }
 \arguments{
-\item{k_true}{known precession constants (kyr) to test.}
+\item{k_true}{Known precession constants of the synthetic records, in kyr (numeric vector); one record is built and
+tested for each value. \code{Default=c(20.7, 21.0, 21.2, 21.4)}.}
 
-\item{tbw}{MTM time-bandwidth product.}
+\item{tbw}{MTM time-bandwidth product passed to \code{\link{test_tuned}} (numeric, > 0); see \code{tbw} there.
+\code{Default=2}.}
 
-\item{noise}{standard deviation of the AR(1) noise.}
+\item{noise}{Standard deviation multiplier of the AR(1) noise (coefficient 0.7) added to the orbital signal
+(numeric, >= 0); the orbital terms have amplitudes up to 1. \code{Default=1.5}.}
 
-\item{seed}{random seed.}
+\item{seed}{Seed of the random number generator (integer), reset before each synthetic record so that the phases
+and noise can be reproduced. \code{Default=1}.}
 
-\item{len}{length of the synthetic record (kyr).}
+\item{len}{Length of the synthetic records in kyr, sampled every 1 kyr (numeric, > 0). \code{Default=5500}.}
 
-\item{...}{passed on to \code{\link{test_tuned}}.}
+\item{...}{Further arguments passed on to \code{\link{test_tuned}} (e.g. \code{age_ma}, \code{k_search});
+\code{tbw}, \code{n_surr = 2} and \code{plot = FALSE} are already set.}
 }
 \value{
 Prints one line per \code{k_true}.

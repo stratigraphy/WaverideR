@@ -10,8 +10,8 @@ The ages, durations, uncertainties and colors of the Geological
 timescale 2020 are included in the data set
 }
 \details{
-Column 1: name	\cr
-Column 2: type	\cr
+Column 1: name  \cr
+Column 2: type  \cr
 Column 1: top age\cr
 Column 1: top error\cr
 Column 1: bottom age\cr
@@ -22,8 +22,8 @@ Column 1: Yellow value\cr
 Column 1: Key  value\cr
 Column 1: Red Value\cr
 Column 1: Green value\cr
-Column 1: Blue value	\cr
-Column 1: font style	\cr
+Column 1: Blue value  \cr
+Column 1: font style  \cr
 Column 1: font color\cr
 }
 \references{

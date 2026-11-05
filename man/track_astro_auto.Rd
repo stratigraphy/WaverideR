@@ -29,68 +29,101 @@ track_astro_auto(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Record to analyse (matrix or data frame with two columns: depth in column 1, proxy value in column 2;
+further columns are ignored and rows with missing values removed). Required, no default.}
 
-\item{sedrate}{Range \code{c(lower, upper)} of the sedimentation rate (depth units per kyr).}
+\item{sedrate}{Range of the sedimentation rate in which the track is searched (numeric vector
+\code{c(lower, upper)}, > 0, in depth units per kyr, e.g. m/kyr for a record in metres). It also sets the period
+range of the scalogram. Required, no default.}
 
-\item{age_ma, k_yr}{Age (Ma) or precession constant for the astronomical periods (see
-\code{\link{astro_periods_tracking}}) \code{Default=0} (present-day periods).}
+\item{age_ma}{Age of the record in Ma (numeric, >= 0), used to compute the deep-time astronomical periods and their
+weights with \code{\link{astro_periods_tracking}}; ignored when \code{astro_periods} is given. \code{Default=0}
+(present-day periods).}
 
-\item{astro_periods}{Optional data frame (term, family, period, weight) or vector of periods replacing the ones from
-\code{age_ma}.}
+\item{k_yr}{Optional precession constant (numeric, the period of the axial precession in years) passed to
+\code{\link{astro_periods_tracking}} instead of the AstroGeo22 value for \code{age_ma}. \code{Default=NULL}.}
 
-\item{scalogram}{\code{"msst"} (default), \code{"superlet_sst"}, \code{"chirplet_sst"} (matched chirped wavelets,
-\code{\link{analyse_chirplet_sst}}; sharper where the sedimentation rate changes quickly, about 4 times slower) or
-\code{"cwt"} (a plain Morlet scalogram with \code{omega_nr}). In records in which only the eccentricity cycles are resolved, a CWT with a low \code{omega_nr}
-(5-6) followed the ridges more continuously than the synchrosqueezed maps (Klonk, Pridoli).}
+\item{astro_periods}{Optional astronomical periods (kyr) replacing the ones from \code{age_ma}: a numeric vector of
+periods or a data frame with the columns \code{term}, \code{family}, \code{period}, \code{weight} (the format of
+\code{\link{astro_periods_tracking}}). \code{Default=NULL}.}
 
-\item{omega_nr}{Morlet \code{omega_nr} for \code{scalogram = "cwt"} \code{Default=6}.}
+\item{scalogram}{Scalogram that is computed and tracked (character, one of \code{"msst"}, \code{"superlet_sst"},
+\code{"cwt"}, \code{"chirplet_sst"}): \code{"msst"} \code{\link{analyse_wavelet_sst}} with \code{omega_nr = 12} and
+four reassignment iterations; \code{"superlet_sst"} \code{\link{analyse_superlet_sst}}; \code{"chirplet_sst"}
+matched chirped wavelets (\code{\link{analyse_chirplet_sst}}; sharper where the sedimentation rate changes quickly,
+about 4 times slower); \code{"cwt"} a plain Morlet scalogram (\code{\link{analyse_wavelet}}) with \code{omega_nr}. In
+records in which only the eccentricity cycles are resolved, a CWT with a low \code{omega_nr} (5-6) followed the ridges
+more continuously than the synchrosqueezed maps (Klonk, Pridoli). \code{Default="msst"}.}
 
-\item{guide, guide_tolerance, jump_depths}{Optional prior information, see \code{\link{track_astro_hmm}}.}
+\item{omega_nr}{Number of oscillations of the Morlet wavelet (numeric, > 0; larger values give a finer period
+resolution and a coarser depth resolution); only used with \code{scalogram = "cwt"}. \code{Default=6}.}
 
-\item{duration}{Approximate duration of the record (kyr), e.g. from biostratigraphy or radiometric ages. It is turned
-into a guide with the constant mean sedimentation rate and a tolerance of \code{duration_tolerance} (default 0.5,
-i.e. the rate may differ by a factor 1.5 from the mean). Strongly recommended for real records.}
+\item{guide}{Optional rough sedimentation rate curve (two-column data frame or matrix: depth, sedimentation rate in
+depth units per kyr), passed to \code{\link{track_astro_hmm}} and to the scalogram evidence of
+\code{\link{track_chirp_hmm}}; rates outside \code{guide * (1 +- guide_tolerance)} are penalised. \code{NULL} with
+\code{duration} builds a guide from the duration. \code{Default=NULL}.}
 
-\item{duration_tolerance}{Relative tolerance of the \code{duration} guide \code{Default=0.5}.}
+\item{guide_tolerance}{Relative half width of the band around \code{guide} (numeric, > 0); replaced by
+\code{duration_tolerance} when the guide is built from \code{duration}. \code{Default=0.4}.}
 
-\item{constraints}{Optional duration constraints (data frame \code{from}, \code{to}, \code{duration} in kyr and
-optionally \code{tolerance}, default 0.025), e.g. from radiometric ages or well-dated stage boundaries, see
-\code{\link{track_astro_hmm}}. Recommended whenever available: with the Pridoli duration (Klonk) the published age
-model was reproduced within about 0.3 Myr; without it the track settled on other cycles.}
+\item{duration}{Approximate duration of the record (numeric, kyr), e.g. from biostratigraphy or radiometric ages.
+If given and \code{guide} is \code{NULL}, it is turned into a guide with the constant mean sedimentation rate
+(thickness / \code{duration}) and a tolerance of \code{duration_tolerance}. Strongly recommended for real records.
+\code{Default=NULL}.}
 
-\item{long_weight}{Weight of the long-window evidence inside the main track \code{Default=0}; set to 1 for records in
-which the cycles are barely visible.}
+\item{duration_tolerance}{Relative tolerance of the guide built from \code{duration} (numeric, > 0; 0.5 lets the rate
+differ by a factor 1.5 from the mean). \code{Default=0.5}.}
 
-\item{flag_ratio}{Relative difference between the track and the long-window estimate above which an interval is
-flagged when \code{flag_long = TRUE} \code{Default=0.25}.}
+\item{constraints}{Optional duration constraints for the scalogram track (data frame with the columns \code{from},
+\code{to} (depths), \code{duration} (kyr) and optionally \code{tolerance} (relative, default 0.025)), e.g. from
+radiometric ages or well-dated stage boundaries, passed to \code{\link{track_astro_hmm}}. Recommended whenever
+available: with the Pridoli duration (Klonk) the published age model was reproduced within about 0.3 Myr; without it
+the track settled on other cycles. \code{Default=NULL}.}
 
-\item{min_confidence}{Intervals where less than this posterior probability lies within 10 percent of the tracked
-sedimentation rate (\code{confidence10}) are flagged \code{Default=0.5}.}
+\item{jump_depths}{Optional depths of known hiatuses or abrupt facies changes (numeric vector, depth units) where the
+jump probability is raised, passed to \code{\link{track_astro_hmm}} (and to the scalogram evidence of the
+chirp-matched track). \code{Default=NULL}.}
 
-\item{flag_long}{Also flag intervals where the long-window estimate disagrees \code{Default=FALSE}. In real records
-the long-window estimate was itself often biased, so its disagreement is reported in \code{check} but not used for the
-flags by default.}
+\item{long_weight}{Weight of the long-window evidence inside the main scalogram track (numeric, >= 0; passed to
+\code{\link{track_astro_hmm}}); set to 1 for records in which the cycles are barely visible. The independent
+long-window check is always computed. \code{Default=0}.}
 
-\item{dj}{Spacing of the period axis \code{Default=1/50}.}
+\item{flag_ratio}{Relative difference between the track and the long-window estimate above which a position is
+flagged when \code{flag_long = TRUE} (numeric, > 0; 0.25 flags ratios beyond 1.25 or below 1/1.25).
+\code{Default=0.25}.}
 
-\item{method}{\code{"both"} (default): the scalogram is tracked with \code{\link{track_astro_hmm}}
-(\code{track_hmm}) and, in addition, chirp-matched windowed spectra (\code{\link{analyse_chirp_eha}}, automatic
-windows and gradient grid) are tracked with \code{\link{track_chirp_hmm}} with the scalogram evidence added for
-locality; this chirp-matched track is returned as \code{track}, \code{check} holds both rates and their
-disagreement, and \code{agreement} the fraction of the record where they are within 10 percent. \code{"chirp"}
-and \code{"hmm"} run only one of them. In the tests the chirp-matched track was better or equal everywhere:
-CIP Case 3 with the rate unknown over 1-20 cm/kyr, correlation with the true rate 0.97 against 0.08 for the HMM
-track (92 against 40 percent within 10 percent); CIP Case 2, both 0.93-0.95; synthetic records with three abrupt
-jumps, 0.86-0.94 against 0.00-0.92. Where the two agree both are probably right; where they disagree, look at
-\code{\link{rate_gram}} and \code{\link{plot_astro_evidence}}. The chirp-matched tracking adds 1-2 minutes.}
+\item{min_confidence}{Positions where less than this posterior probability lies within 10 percent of the tracked
+sedimentation rate (column \code{confidence10} of the scalogram track) are flagged (numeric, between 0 and 1).
+\code{Default=0.5}.}
 
-\item{jump_prob}{Jump probability of the chirp-matched tracker, see \code{\link{track_chirp_hmm}}
-\code{Default=0}. Tested on all records: with \code{1e-3} the age errors of two of the four synthetic records
-with jumps halved (57 and 70 against 123 and 215 kyr) and those of the other two doubled, and Case 3 collapsed
-(0.97 to 0.10), so it stays off unless hiatuses or abrupt facies changes are known.}
+\item{flag_long}{Also flag positions where the long-window estimate disagrees by more than \code{flag_ratio}
+(logical, TRUE or FALSE). In real records the long-window estimate was itself often biased, so its disagreement is
+reported in \code{check} but not used for the flags by default. \code{Default=FALSE}.}
 
-\item{...}{Further arguments for \code{\link{track_astro_hmm}}.}
+\item{dj}{Spacing of the period axis of the scalogram and of the chirp-matched spectra, in octaves (numeric, > 0;
+smaller values give a finer grid and a slower run). \code{Default=1/50}.}
+
+\item{method}{Which trackers are run (character, one of \code{"both"}, \code{"chirp"}, \code{"hmm"}).
+\code{"both"}: the scalogram is tracked with \code{\link{track_astro_hmm}} (\code{track_hmm}) and, in addition,
+chirp-matched windowed spectra (\code{\link{analyse_chirp_eha}}, automatic windows and gradient grid) are tracked with
+\code{\link{track_chirp_hmm}} with the scalogram evidence added for locality; this chirp-matched track is returned as
+\code{track}, \code{check} holds both rates and their disagreement, and \code{agreement} the fraction of the record
+where they are within 10 percent. \code{"chirp"} gives the same result (the scalogram track is still computed for the
+flags and the check); \code{"hmm"} runs only the scalogram tracker, whose result is then \code{track}. In the tests
+the chirp-matched track was better or equal everywhere: CIP Case 3 with the rate unknown over 1-20 cm/kyr,
+correlation with the true rate 0.97 against 0.08 for the HMM track (92 against 40 percent within 10 percent); CIP
+Case 2, both 0.93-0.95; synthetic records with three abrupt jumps, 0.86-0.94 against 0.00-0.92. Where the two agree
+both are probably right; where they disagree, look at \code{\link{rate_gram}} and \code{\link{plot_astro_evidence}}.
+The chirp-matched tracking adds 1-2 minutes. \code{Default="both"}.}
+
+\item{jump_prob}{Jump probability of the chirp-matched tracker (numeric, between 0 and 1), passed to
+\code{\link{track_chirp_hmm}}; not used with \code{method = "hmm"}. Tested on all records: with \code{1e-3} the age
+errors of two of the four synthetic records with jumps halved (57 and 70 against 123 and 215 kyr) and those of the
+other two doubled, and Case 3 collapsed (0.97 to 0.10), so it stays off unless hiatuses or abrupt facies changes are
+known. \code{Default=0}.}
+
+\item{...}{Further arguments passed to \code{\link{track_astro_hmm}} for the main scalogram track (e.g.
+\code{sd_change}, \code{normalise}, \code{n_samples}, \code{seed}).}
 }
 \value{
 A list with \code{scalogram}, \code{track} (see \code{\link{track_astro_hmm}}), \code{check} (data frame:

@@ -8,7 +8,9 @@ on the astrochronozone time scale of Arts and Da Silva.}
 example_pridoli(file = NULL)
 }
 \arguments{
-\item{file}{Name of the example file.}
+\item{file}{Path of an output file for the final figure, passed to \code{\link{plot_astro}} (character): a name
+ending in \code{".png"} writes a PNG file, any other name a PDF file; \code{NULL} draws on the current device.
+\code{Default=NULL}.}
 }
 \description{
 The Pridoli example: the four terms resolved at Cellon (Carnic Alps)

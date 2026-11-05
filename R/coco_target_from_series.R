@@ -1,23 +1,34 @@
 #' @title Target periodogram from an astronomical time series (e.g. La2004 ETP)
 #' @description Periodogram of an astronomical series, or of an ETP series built
 #'   from eccentricity, obliquity and precession as in gentarget.m.
-#' @param time_kyr evenly spaced time (kyr)
-#' @param value astronomical series \code{Default=NULL}; OR give ecc, obl, prec
-#'   to build ETP as in gentarget.m
-#' @param ne,nt,np ETP weights of eccentricity, obliquity and precession
-#' @param f1,f2 frequency interval kept (cycles/kyr)
-#' @param pad zero padding \code{Default=10000}
-#' @param ecc Eccentricity series used instead of `value`.
-#' @param obl Obliquity series used instead of `value`.
-#' @param prec Precession series used instead of `value`.
+#' @param time_kyr Time axis of the astronomical series, in kyr (numeric vector, evenly spaced; the series is
+#' sorted by it and its first step is used as the sampling interval). Required, no default.
+#' @param value Astronomical series to use as target (numeric vector, same length as \code{time_kyr}), e.g. an ETP
+#' series; \code{NULL} builds an ETP series from \code{ecc}, \code{obl} and \code{prec}. \code{Default=NULL}.
+#' @param ecc Eccentricity series (numeric vector, same length and order as \code{time_kyr}), used with \code{obl}
+#' and \code{prec} instead of \code{value}: the ETP series is \code{ne * z(ecc) + nt * z(obl) - np * z(prec)},
+#' with \code{z} the standardisation to zero mean and unit standard deviation (as in Acycle gentarget.m).
+#' \code{Default=NULL}.
+#' @param obl Obliquity series (numeric vector, same length and order as \code{time_kyr}), used to build the ETP
+#' series when \code{value} is \code{NULL}. \code{Default=NULL}.
+#' @param prec Precession (index) series (numeric vector, same length and order as \code{time_kyr}), used with a
+#' negative sign to build the ETP series when \code{value} is \code{NULL}. \code{Default=NULL}.
+#' @param ne Weight of the standardised eccentricity in the ETP series (numeric). \code{Default=1}.
+#' @param nt Weight of the standardised obliquity in the ETP series (numeric). \code{Default=0.6}.
+#' @param np Weight of the standardised precession in the ETP series (numeric). \code{Default=0.5}.
+#' @param f1 Lowest frequency of the target that is returned, in cycles/kyr (numeric, >= 0). \code{Default=0}.
+#' @param f2 Highest frequency of the target that is returned, in cycles/kyr (numeric, > \code{f1}).
+#' \code{Default=0.06}.
+#' @param pad Length (number of points) to which the series is zero-padded for the periodogram (integer; at least
+#' the series length is used); a larger value gives a finer frequency grid. \code{Default=10000}.
 #' @return two-column matrix: frequency (cycles/kyr), power
 #' @export
 coco_target_from_series <- function(time_kyr, value = NULL, ecc = NULL, obl = NULL,
-                                    prec = NULL, ne = 1, nt = 0.6, np = 0.5,
-                                    f1 = 0, f2 = 0.06, pad = 10000){
-  # ---- internal helper functions (local to this function) ----
+    prec = NULL, ne = 1, nt = 0.6, np = 0.5,
+    f1 = 0, f2 = 0.06, pad = 10000){
+  # Internal helper functions (local to this function)
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -57,7 +68,7 @@ coco_target_from_series <- function(time_kyr, value = NULL, ecc = NULL, obl = NU
     x[x[, 1] >= lo & x[, 1] <= hi, , drop = FALSE]
   }
 
-  # ---- main code ----
+  # Main code
   if (is.null(value)){
     if (is.null(ecc) || is.null(obl) || is.null(prec)){
       stop("Supply either 'value' or all of 'ecc', 'obl', 'prec'")

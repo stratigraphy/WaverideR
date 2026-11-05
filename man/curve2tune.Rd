@@ -13,23 +13,25 @@ curve2tune(
 )
 }
 \arguments{
-\item{data}{Data set (matrix with 2 columns 1st column depth 2nd column proxy value)
-which was used as input for the \code{\link{analyse_wavelet}} function. \cr
-That result was then used to tracked a cycle using the \code{\link{track_period_wavelet}} function}
+\item{data}{Record to convert to the time domain (matrix or data frame, two columns): depth in metres in column 1
+and the proxy in column 2, normally the data set that was analysed with \code{\link{analyse_wavelet}} to track
+the cycle. Depths outside the tracked curve get the age of its nearest end. Required (\code{Default=NULL} gives
+an error).}
 
-\item{tracked_cycle_curve}{Tracking result of a cycle tracked using the
-\code{\link{track_period_wavelet}} function \cr
-Any input (matrix or data frame) in which the first column
-is depth in meters and the second column is period in meters can be used.}
+\item{tracked_cycle_curve}{Tracked period curve of one astronomical cycle (matrix or data frame, two columns):
+depth in metres in column 1 and the period of the tracked cycle in metres in column 2, e.g. the output of
+\code{\link{track_period_wavelet}} (preferably completed with \code{\link{completed_series}}). Rows with
+\code{NA} are dropped. Required (\code{Default=NULL} gives an error).}
 
-\item{tracked_cycle_period}{Period of the tracked curve (in kyr).}
+\item{tracked_cycle_period}{Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+long eccentricity cycle), used to convert the tracked period to a sedimentation rate that is integrated to time.
+Required (\code{Default=NULL} gives an error).}
 
-\item{genplot}{If \code{genplot=TRUE} 3 plots stacked on top of each other will be plotted.
-Plot 1: the original data set.
-Plot 2: the depth time plot.
-Plot 3: the data set in the time domain.}
+\item{genplot}{Plot three panels stacked on top of each other (logical, TRUE or FALSE): the data in the depth
+domain, the depth-time curve and the data in the time domain. \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters of the plot so that extra elements can be added afterwards
+(logical, TRUE or FALSE); \code{FALSE} restores the previous \code{par} settings. \code{Default=FALSE}.}
 }
 \value{
 The output is a matrix with 2 columns.

@@ -24,37 +24,63 @@ mesa_evolutive(
 )
 }
 \arguments{
-\item{data}{Input is a time series with the first column being depth or time and the second
-column being a proxy.}
+\item{data}{Record to analyse: a two-column matrix or data frame with depth or time in column 1 and the proxy
+value in column 2; an unevenly sampled record is interpolated when \code{regularise = TRUE}. Required
+(\code{Default=NULL}).}
 
-\item{window}{Window length (in the units of the first column). A vector gives several windows,
-for example \code{c(30, 40, 50)}. The default is a fifth of the record.}
+\item{window}{Length of the moving window, in the unit of the first column of \code{data} (numeric, each value
+at least 8 sampling intervals). A vector gives several window lengths at once, e.g. \code{c(30, 40, 50)}.
+\code{NULL} uses a fifth of the record length. \code{Default=NULL}.}
 
-\item{step}{Distance between the centres of successive windows. The default is a tenth of the
-shortest window.}
+\item{step}{Distance between the centres of successive window positions, in the unit of the first column of
+\code{data} (numeric, > 0). \code{NULL} uses a tenth of the shortest window (at least one sampling interval).
+\code{Default=NULL}.}
 
-\item{order}{AR order used in every window. The default NULL chooses the order in each window with
-\code{criterion}; a fixed order gives windows of the same spectral smoothness, which is easier
-to compare along the record.}
+\item{order}{AR order used in every window (integer, >= 1). \code{NULL} chooses the order in each window with
+\code{criterion}; a fixed order gives windows of the same spectral smoothness, which are easier to compare along
+the record. \code{Default=NULL}.}
 
-\item{order_max, criterion, demean, detrend, regularise}{see \code{\link{mesa_spectrum}}. The
-mean (or trend) is removed in every window.}
+\item{order_max}{Largest AR order considered when the order is selected (integer, >= 1); \code{NULL} uses
+\code{min(floor(N / 3), 300)} for N samples in the window (see \code{\link{mesa_spectrum}}). \code{Default=NULL}.}
 
-\item{pad}{Filling of the part of a window that lies outside the record: \code{"reflect"} (mirror
-the record at its edge; default), \code{"mean"}, \code{"zero"} or \code{"none"} (the window is
-cut at the edge of the record; windows with less than \code{min_cover} of their length inside
-the record are left empty).}
+\item{criterion}{Order-selection criterion (character), one of \code{"fpe"} (final prediction error),
+\code{"aic"} (Akaike information criterion), \code{"mdl"} (minimum description length) or \code{"cat"}
+(criterion autoregressive transfer); ignored when \code{order} is given (see \code{\link{mesa_spectrum}}).
+\code{Default=c("fpe", "aic", "mdl", "cat")}, i.e. \code{"fpe"}.}
 
-\item{min_cover}{For \code{pad = "none"}: smallest fraction of a window that must lie in the record.}
+\item{demean}{Remove the mean of the record, and again of every window, before the analysis (logical, TRUE or
+FALSE). \code{Default=TRUE}.}
 
-\item{nfreq}{Number of frequencies of the spectra.}
+\item{detrend}{Remove a linear trend of the whole record before the analysis instead of only the mean; every
+window is then demeaned (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{fmin, fmax}{Frequency range. Defaults 0 and the Nyquist frequency.}
+\item{regularise}{Linearly interpolate an unevenly sampled record to its median sampling interval (logical, TRUE
+or FALSE); with \code{FALSE} an unevenly sampled record gives an error. \code{Default=TRUE}.}
 
-\item{n_peaks}{Maximum number of peaks stored per window position (the strongest).}
+\item{pad}{Filling of the part of a window that lies outside the record (character): \code{"reflect"} (mirror
+the record at its edge), \code{"mean"} (the mean of the part of the window inside the record), \code{"zero"}
+(zero, i.e. the mean of the record after demeaning) or \code{"none"} (the window is cut at the edge of the record;
+windows with less than \code{min_cover} of their length inside the record are left empty).
+\code{Default=c("reflect", "mean", "zero", "none")}, i.e. \code{"reflect"}.}
 
-\item{min_prominence}{Peaks with a prominence (peak power divided by the higher of its two
-neighbouring minima) below this value are not stored.}
+\item{min_cover}{Only for \code{pad = "none"}: smallest fraction of a window that must lie inside the record for
+its spectrum to be computed (numeric, between 0 and 1). \code{Default=0.5}.}
+
+\item{nfreq}{Number of frequencies, evenly spaced between \code{fmin} and \code{fmax}, of every spectrum (integer,
+> 1). \code{Default=512}.}
+
+\item{fmin}{Lowest frequency of the spectra, in cycles per unit of the first column of \code{data} (numeric,
+>= 0 and < \code{fmax}). \code{Default=0}.}
+
+\item{fmax}{Highest frequency of the spectra, in cycles per unit of the first column of \code{data} (numeric;
+values above the Nyquist frequency are reduced to it). \code{NULL} uses the Nyquist frequency.
+\code{Default=NULL}.}
+
+\item{n_peaks}{Maximum number of spectral peaks stored per window position, the strongest ones (integer, > 0).
+\code{Default=8}.}
+
+\item{min_prominence}{Smallest prominence of a stored peak (numeric, >= 1): the prominence is the peak power divided
+by the higher of its two neighbouring minima; weaker peaks are not stored. \code{Default=1.5}.}
 }
 \value{
 A list of class \code{mesa_evolutive} with

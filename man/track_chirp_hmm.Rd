@@ -23,58 +23,68 @@ track_chirp_hmm(
 )
 }
 \arguments{
-\item{ce}{Result of \code{\link{analyse_chirp_eha}} with \code{criterion = "template"} or of
-\code{\link{analyse_chirp_wavelet}}; or any scalogram (\code{\link{analyse_wavelet}},
-\code{\link{analyse_superlet_sst}}, ...): the evidence of \code{\link{track_astro_hmm}} is then tracked with
-the gradient as a hidden state (arguments of \code{track_astro_hmm} such as \code{astro_periods} and
-\code{sedrate} in \code{...}, gradient grid \code{chirp}); the evidence then does not depend on the gradient,
-only the continuity of the rate's slope steers the track.}
+\item{ce}{Evidence to track (required, no default): the result of \code{\link{analyse_chirp_eha}} with
+\code{criterion = "template"} or of \code{\link{analyse_chirp_wavelet}} (both contain \code{template_score_all});
+or any scalogram of class \code{analyze.wavelet} (\code{\link{analyse_wavelet}}, \code{\link{analyse_superlet_sst}},
+...): the evidence of \code{\link{track_astro_hmm}} is then tracked with the gradient as a hidden state (arguments
+of \code{track_astro_hmm} such as \code{astro_periods} and \code{sedrate} in \code{...}, gradient grid
+\code{chirp}); the evidence then does not depend on the gradient, only the continuity of the rate's slope steers
+the track.}
 
-\item{weight}{Weight of the template score of one window against the transition prior \code{Default=10}. On CIP
+\item{weight}{Weight of the template score of one window against the transition prior (numeric, > 0). On CIP
 Case 3 (window 20 m, step 0.6 m) the result was the same for 5-20; below 3 the track no longer follows the
-evidence.}
+evidence. \code{Default=10}.}
 
-\item{sd_rate}{Standard deviation (octaves per window step) of the rate beyond the move given by the gradient
-\code{Default=0.01}.}
+\item{sd_rate}{Standard deviation of the change of the rate beyond the move given by the gradient, in octaves
+(log2 units) per window step (numeric, > 0; at least 0.3 grid bins are used). \code{Default=0.01}.}
 
 \item{sd_gradient}{Standard deviation of the change of the gradient per window step, in units of the gradient grid
-spacing \code{Default=0.7}.}
+spacing (numeric, > 0; at least 0.3 is used). \code{Default=1.5}.}
 
-\item{jump_prob}{Probability per window step of a jump of the rate to any value (an abrupt change: a hiatus,
-an erosion surface, a facies change), after which the gradient restarts at zero \code{Default=0}. A jump is
+\item{jump_prob}{Probability per window step of a jump of the rate to any value (numeric, between 0 and 1; an
+abrupt change: a hiatus, an erosion surface, a facies change), after which the gradient restarts at zero. A jump is
 not a gradient: without this the gradient-steered track can only reach a new rate through a ramp. Any value above
 zero lets the track jump wherever the evidence gains more than the (log) probability: on the synthetic records
 with three jumps \code{1e-3} halved the age errors, on CIP Case 3 (no jumps) it introduced a few spurious jumps
 (correlation 0.97 to 0.88), so it is off by default and should be switched on for records with hiatuses or
-abrupt facies changes.}
+abrupt facies changes. \code{Default=0}.}
 
-\item{gradient_prior}{Standard deviation (in steps of the gradient grid) of a zero-centred prior on the gradient,
-applied at every window \code{Default=Inf} (none; a prior of 3 grid steps lowered the Case 3 result from 0.97 to
-0.55 and did not help the records with jumps).}
+\item{gradient_prior}{Standard deviation (in steps of the gradient grid) of a zero-centred Gaussian prior on the
+gradient, applied at every window (numeric, > 0; \code{Inf} means no prior). A prior of 3 grid steps lowered the
+Case 3 result from 0.97 to 0.55 and did not help the records with jumps. \code{Default=Inf}.}
 
-\item{scalogram}{Optional scalogram (\code{\link{analyse_wavelet}} etc.) whose \code{\link{track_astro_hmm}}
-evidence is added as complementary, local evidence (same \code{astro_periods} in \code{scalogram_args}): the
-windows of the chirp-matched spectra need 15-25 cycles and straddle abrupt changes of the rate, the short wavelets
-see them; the sum has the sharp lines of the one and the locality of the other.}
+\item{scalogram}{Scalogram (\code{\link{analyse_wavelet}} etc., or \code{NULL} for none) whose
+\code{\link{track_astro_hmm}} evidence is added as complementary, local evidence (give the same
+\code{astro_periods} in \code{scalogram_args}): the windows of the chirp-matched spectra need 15-25 cycles and
+straddle abrupt changes of the rate, the short wavelets see them; the sum has the sharp lines of the one and the
+locality of the other. \code{Default=NULL}.}
 
-\item{scalogram_weight}{Weight of that evidence relative to the template scores (both scaled by their standard
-deviation) \code{Default=1}.}
+\item{scalogram_weight}{Weight of the scalogram evidence relative to the template scores (numeric, >= 0; both are
+scaled by their standard deviation); only used with \code{scalogram}. \code{Default=1}.}
 
-\item{scalogram_args}{Arguments of \code{\link{track_astro_hmm}} for the scalogram evidence.}
+\item{scalogram_args}{Further arguments of \code{\link{track_astro_hmm}} for the scalogram evidence (named list, e.g.
+\code{list(astro_periods = c(405, 125, 95))}; \code{sedrate} is set to the rate range of \code{ce}).
+\code{Default=list()}.}
 
-\item{n_samples}{Posterior paths for the credible band \code{Default=100}.}
+\item{n_samples}{Number of posterior paths for the credible band (integer). Currently not used: the band is taken
+from the filtering posterior. \code{Default=100}.}
 
-\item{level}{Credible level \code{Default=0.95}.}
+\item{level}{Probability content of the credible band of the sedimentation rate (numeric, between 0 and 1, e.g.
+0.95 for the 2.5 to 97.5 percentiles). \code{Default=0.95}.}
 
-\item{seed}{Seed \code{Default=1}.}
+\item{seed}{Seed of the random number generator (integer). Currently not used (no random sampling is done).
+\code{Default=1}.}
 
-\item{debias}{Remove, for every gradient, the mean score over all rates and windows \code{Default=TRUE} (the
-warped windows of a strong gradient have a slightly different noise continuum, which otherwise favours or
-penalises that gradient everywhere).}
+\item{debias}{Remove, for every gradient, the mean score over all rates and windows (logical). The warped windows of
+a strong gradient have a slightly different noise continuum, which otherwise favours or penalises that gradient
+everywhere. \code{Default=TRUE}.}
 
-\item{chirp}{Gradient grid for a plain scalogram.}
+\item{chirp}{Gradient grid used when \code{ce} is a plain scalogram: relative rate gradients
+g = d ln(rate) / d depth, per depth unit (numeric vector, should include 0). Ignored for chirp-matched input, which
+brings its own grid. \code{Default=seq(-0.05, 0.05, by = 0.005)}.}
 
-\item{...}{Arguments of \code{\link{track_astro_hmm}} for a plain scalogram.}
+\item{...}{Further arguments passed to \code{\link{track_astro_hmm}} when \code{ce} is a plain scalogram (e.g.
+\code{astro_periods}, \code{sedrate}); ignored otherwise.}
 }
 \value{
 A \code{wr_track} data frame (depth, sedrate, gradient, sedrate_lower, sedrate_upper, confidence10, time,
@@ -104,6 +114,7 @@ ce <- analyse_chirp_eha(data.frame(z, x), window = 250, step = 10, chirp = seq(-
                         lowerPeriod = 10, upperPeriod = 150, criterion = "template",
                         astro_periods = c(41, 23.7, 19), sedrate = c(0.8, 5))
 tr <- track_chirp_hmm(ce)
-plot(tr$depth, tr$sedrate, type = "l"); lines(z, approx(zt, sr, z)$y, col = 2)
+plot(tr$depth, tr$sedrate, type = "l")
+lines(z, approx(zt, sr, z)$y, col = 2)
 }
 }

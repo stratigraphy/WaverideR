@@ -8,53 +8,56 @@
 #'indicates that the previously selected point is deselected. Deselecting points can be quite tricky
 #'due to the close spacing of  points and such the \code{\link{delpts_tracked_period_wt}} can be used to
 #'delete points were previously selected using the \code{\link{track_period_wavelet}} function.
-#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#' @param astro_cycle Duration (in kyr) of the cycle which traced.
-#' @param n.levels Number of color levels \code{Default=100}.
-#' @param track_peaks Setting which indicates whether tracking is restricted
-#' to spectral peaks (track_peaks=TRUE) or whether any point within the wavelet
-#' spectra can be selected (track_peaks=FALSE) \code{Default=TRUE}. With \code{track_peaks=TRUE} a click selects the
-#' nearest local power maximum (black circles); with \code{track_peaks=FALSE} any point of the scalogram can be
-#' clicked: the click is snapped to the nearest depth of the wavelet and its period is used as clicked.
-#' In both modes clicking a selected point again removes it; finish with right-click/Esc (or "Finish" in RStudio).
-#' @param periodlab label for the y-axis \code{Default="Period (metres)"}.
-#' @param x_lab label for the x-axis \code{Default="depth (metres)"}.
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
-#'@param plot_horizontal \code{TRUE}: depth on the x-axis and period on the y-axis; \code{FALSE}: period on the
-#' x-axis and depth on the y-axis. The output is the same in both layouts \code{Default=TRUE}
-#'@param lowerPeriod Lowest period value which will be plotted
-#'@param upperPeriod Highest period value which will be plotted
-#'@param plot_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-#'(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-#'if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-#'then plot_dir should be set to FALSE \code{plot_dir=TRUE}
-#'@param add_lines Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-#'should be period values  \code{Default=NULL}
-#'@param add_points Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-#'should be period values \code{Default=NULL}
-#'@param add_abline_h Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
-#'@param add_abline_v Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}
+#' @param wavelet Wavelet object (class \code{analyze.wavelet}) created with \code{\link{analyse_wavelet}} in
+#' which the cycle is tracked; the elements \code{x}, \code{y}, \code{Power}, \code{Period}, \code{axis.2},
+#' \code{coi.1}, \code{coi.2} and \code{Power.avg} are used. Must be given (the \code{NULL} default fails).
+#' \code{Default=NULL}.
+#' @param astro_cycle Duration of the astronomical cycle that is tracked (numeric, > 0, in kyr, e.g. 405 for the long
+#' eccentricity cycle). It is used to convert the tracked period into the sedimentation rate of the output
+#' (period / \code{astro_cycle} * 100, i.e. cm/kyr for a record in metres). \code{Default=405}.
+#' @param n.levels Number of colour levels of the power scale (integer, > 1); the breaks are quantiles of the power.
+#' \code{Default=100}.
+#' @param track_peaks Restrict the selection to spectral peaks (logical, TRUE or FALSE). With \code{TRUE} the local
+#' power maxima along the period axis are drawn as black circles and a click selects the nearest one; with
+#' \code{FALSE} any point of the wavelet spectrum can be clicked (the click is snapped to the nearest depth of the wavelet
+#' and its period is used as clicked). In both modes clicking a selected point again removes it; finish with
+#' right-click/Esc (or "Finish" in RStudio). \code{Default=TRUE}.
+#' @param periodlab Label of the period axis (character). \code{Default="Period (metres)"}.
+#' @param x_lab Label of the depth/time axis (character). \code{Default="depth (metres)"}.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
+#' @param plot_horizontal Layout of the plot (logical, TRUE or FALSE): \code{TRUE} depth/time on the x-axis and period
+#' on the y-axis; \code{FALSE} period on the x-axis and depth/time on the y-axis. The output is the same in both layouts.
+#' \code{Default=TRUE}.
+#' @param lowerPeriod Shortest period shown on the period axis (numeric, in the depth/time unit of the record);
+#' \code{NULL} uses the shortest period of \code{wavelet}. \code{Default=NULL}.
+#' @param upperPeriod Longest period shown on the period axis (numeric, in the depth/time unit of the record);
+#' \code{NULL} uses the longest period of \code{wavelet}. \code{Default=NULL}.
+#' @param plot_dir Direction of the depth/time axis (logical, TRUE or FALSE): \code{TRUE} plots it from low to high
+#' values (e.g. borehole data that get older with increasing depth); \code{FALSE} reverses the axis (e.g. outcrop logs
+#' in which 0 m is the base of the section). \code{Default=TRUE}.
+#' @param add_lines Optional lines to draw on the wavelet plot (matrix or data frame: depth/time in column 1, one or more
+#' columns of periods after it; one line per period column). \code{Default=NULL}.
+#' @param add_points Optional points to draw on the wavelet plot (matrix or data frame: depth/time in column 1, one or
+#' more columns of periods after it). \code{Default=NULL}.
+#' @param add_abline_h Optional horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5)}), drawn at these
+#' depths/times; only used in the vertical layout (\code{plot_horizontal = FALSE}), the horizontal layout ignores
+#' it. \code{Default=NULL}.
+#' @param add_abline_v Optional vertical reference lines (numeric vector), drawn at these periods; only used in the
+#' vertical layout (\code{plot_horizontal = FALSE}), the horizontal layout ignores it. \code{Default=NULL}.
 #'@return Results of the tracking of a cycle in the wavelet spectra is a matrix with 3 columns.
 #'The first column is depth/time
 #'The second column is the period of the tracked cycle
@@ -99,7 +102,8 @@
 #'add_abline_v = NULL)
 #'}}
 #'
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats quantile
 #' @importFrom graphics par
@@ -124,24 +128,26 @@
 #' @importFrom grDevices hcl.colors
 
 track_period_wavelet <- function(wavelet = NULL,
-                                 astro_cycle = 405,
-                                 n.levels = 100,
-                                 track_peaks = TRUE,
-                                 periodlab =  "Period (metres)",
-                                 x_lab = "depth (metres)",
-                                 palette_name = "rainbow",
-                                 color_brewer = "grDevices",
-                                 plot_horizontal = TRUE,
-                                 plot_dir = TRUE,
-                                 lowerPeriod = NULL,
-                                 upperPeriod = NULL,
-                                 add_lines = NULL,
-                                 add_points = NULL,
-                                 add_abline_h = NULL,
-                                 add_abline_v = NULL,
-  colour_brewer = NULL)
+    astro_cycle = 405,
+    n.levels = 100,
+    track_peaks = TRUE,
+    periodlab =  "Period (metres)",
+    x_lab = "depth (metres)",
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    plot_horizontal = TRUE,
+    plot_dir = TRUE,
+    lowerPeriod = NULL,
+    upperPeriod = NULL,
+    add_lines = NULL,
+    add_points = NULL,
+    add_abline_h = NULL,
+    add_abline_v = NULL,
+    colour_brewer = NULL)
 {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))
 
@@ -149,9 +155,9 @@ track_period_wavelet <- function(wavelet = NULL,
 
   maximum.level = max(wavelet$Power)
   power_max_mat.levels = quantile(wavelet$Power, probs = seq(
-    from = 0,
-    to = 1,
-    length.out = n.levels + 1
+      from = 0,
+      to = 1,
+      length.out = n.levels + 1
   ))
 
 
@@ -165,27 +171,27 @@ track_period_wavelet <- function(wavelet = NULL,
   lwd.axis = 1
 
   legend.params = list(
-    width = 1.2,
-    shrink = 0.9,
-    mar = 5.1,
-    n.ticks = 6,
-    label.digits = 3,
-    label.format = "f",
-    lab = NULL,
-    lab.line = 2.5
+      width = 1.2,
+      shrink = 0.9,
+      mar = 5.1,
+      n.ticks = 6,
+      label.digits = 3,
+      label.format = "f",
+      lab = NULL,
+      lab.line = 2.5
   )
 
   key.marks = round(seq(
-    from = 0,
-    to = 1,
-    length.out = legend.params$n.ticks
+      from = 0,
+      to = 1,
+      length.out = legend.params$n.ticks
   ) *
-    n.levels)
+      n.levels)
 
   key.labels = formatC(
-    as.numeric(power_max_mat.levels),
-    digits = legend.params$label.digits,
-    format = legend.params$label.format
+      as.numeric(power_max_mat.levels),
+      digits = legend.params$label.digits,
+      format = legend.params$label.format
   )[key.marks + 1]
 
 
@@ -227,32 +233,32 @@ track_period_wavelet <- function(wavelet = NULL,
 
 
     layout.matrix <- matrix(c(1, 2, 4, 3),
-                            nrow = 2,
-                            ncol = 2 ,
-                            byrow = TRUE)
+        nrow = 2,
+        ncol = 2 ,
+        byrow = TRUE)
     graphics::layout(mat = layout.matrix,
-                     heights = c(0.25, 1),
-                     # Heights of the two rows
-                     widths = c(8, 2))
+        heights = c(0.25, 1),
+        # Heights of the two rows
+        widths = c(8, 2))
 
     power_max_mat.levels = quantile(pmax_avg_sel,
-                                    probs = seq(
-                                      from = 0,
-                                      to = 1,
-                                      length.out = n.levels + 1
-                                    ))
+        probs = seq(
+            from = 0,
+            to = 1,
+            length.out = n.levels + 1
+        ))
 
     par(mar = c(0, 4, 2, 0))
 
     plot(
-      y = wavelet$y,
-      x = wavelet$x,
-      type = "l",
-      xaxs = "i",
-      xlab = "",
-      ylab = "proxy value",
-      xaxt = "n",
-      xlim = xlim_vals
+        y = wavelet$y,
+        x = wavelet$x,
+        type = "l",
+        xaxs = "i",
+        xlab = "",
+        ylab = "proxy value",
+        xaxt = "n",
+        xlim = xlim_vals
 
     )
 
@@ -268,50 +274,50 @@ track_period_wavelet <- function(wavelet = NULL,
         mgp = c(2, 1, 0))
 
     image(
-      x = seq(from = 0, to = n.levels),
-      y = 1,
-      z = t(matrix(power_max_mat.levels,
-                   nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "Power",
-      ylab = ""
+        x = seq(from = 0, to = n.levels),
+        y = 1,
+        z = t(matrix(power_max_mat.levels,
+            nrow = 1)),
+        col = key.cols,
+        breaks = power_max_mat.levels,
+        useRaster = TRUE,
+        yaxt = "n",
+        xaxt = "n",
+        xlab = "Power",
+        ylab = ""
     )
 
     axis(
-      1,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl =  1.2
+        1,
+        lwd = lwd.axis,
+        at = key.marks,
+        labels = NA,
+        tck = 0.02,
+        tcl =  1.2
     )
 
     mtext(
-      key.labels,
-      side = 1,
-      at = key.marks,
-      line = 0.1,
-      las = 2,
-      cex = 0.75
+        key.labels,
+        side = 1,
+        at = key.marks,
+        line = 0.1,
+        las = 2,
+        cex = 0.75
     )
     box(lwd = lwd.axis)
 
     par(new = FALSE, mar = c(4, 0, 0, 0.5))
 
     plot(
-      x = wavelet$Power.avg,
-      y = wavelet$Period,
-      log = "y",
-      type = "l",
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "Wt. power",
-      xaxs = "i",
-      ylim = ylim_vals
+        x = wavelet$Power.avg,
+        y = wavelet$Period,
+        log = "y",
+        type = "l",
+        yaxs = "i",
+        yaxt = "n",
+        xlab = "Wt. power",
+        xaxs = "i",
+        ylim = ylim_vals
     )
 
 
@@ -327,29 +333,29 @@ track_period_wavelet <- function(wavelet = NULL,
         xpd = FALSE)
 
     image(
-      x = wavelet$x,
-      y = wavelet$axis.2,
-      z = t(wavelet$Power),
-      col = key.cols,
-      breaks =  power_max_mat.levels,
-      useRaster = TRUE,
-      ylab = periodlab,
-      xlab = x_lab,
-      axes = TRUE,
-      yaxt = "n" ,
-      main = main,
-      xlim = xlim_vals,
-      ylim = log2(ylim_vals)
+        x = wavelet$x,
+        y = wavelet$axis.2,
+        z = t(wavelet$Power),
+        col = key.cols,
+        breaks =  power_max_mat.levels,
+        useRaster = TRUE,
+        ylab = periodlab,
+        xlab = x_lab,
+        axes = TRUE,
+        yaxt = "n" ,
+        main = main,
+        xlim = xlim_vals,
+        ylim = log2(ylim_vals)
     )
 
 
     polygon(
-      x = wavelet$coi.1 ,
-      y = wavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
+        x = wavelet$coi.1 ,
+        y = wavelet$coi.2,
+        border = NA,
+        col = rgb(1, 1, 1, 0.5),
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
     )
 
     box(lwd = lwd.axis)
@@ -358,39 +364,41 @@ track_period_wavelet <- function(wavelet = NULL,
     period.tick = na.omit(period.tick)
     period.tick.label = 2 ^ (period.tick)
     axis(
-      2,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        2,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     axis(
-      4,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        4,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
     mtext(
-      period.tick.label,
-      side = 2,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        period.tick.label,
+        side = 2,
+        at = period.tick,
+        las = 2,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:ncol(add_lines))
+      for (i  in 2:ncol(add_lines)) {
         lines(add_lines[, 1], log2(add_lines[, i]))
+      }
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:ncol(add_points))
+      for (i  in 2:ncol(add_points)) {
         points(add_points[, 1], log2(add_points[, i]))
+      }
     }
 
 
@@ -408,7 +416,7 @@ track_period_wavelet <- function(wavelet = NULL,
       Pwert <- wavelet$Power
 
       maxdetect <-
-        matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+          matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
@@ -435,12 +443,12 @@ track_period_wavelet <- function(wavelet = NULL,
       colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
 
       points(
-        y = maxdetect2$x_val,
-        x = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
+          y = maxdetect2$x_val,
+          x = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
       )
 
       n <- nrow(maxdetect2)
@@ -449,7 +457,7 @@ track_period_wavelet <- function(wavelet = NULL,
     }
 
     out <- .tpw_pick(wavelet, astro_cycle, horizontal = TRUE,
-                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
+        candidates = if (isTRUE(track_peaks)) { maxdetect2 } else { NULL })
   }
 
 
@@ -460,66 +468,66 @@ track_period_wavelet <- function(wavelet = NULL,
 
 
     layout.matrix <- matrix(c(1, 2, 3, 4),
-                            nrow = 2,
-                            ncol = 2 ,
-                            byrow = TRUE)
+        nrow = 2,
+        ncol = 2 ,
+        byrow = TRUE)
     graphics::layout(mat = layout.matrix,
-                     heights = c(1, 4),
-                     # Heights of the two rows
-                     widths = c(1, 4))
+        heights = c(1, 4),
+        # Heights of the two rows
+        widths = c(1, 4))
 
     power_max_mat.levels = quantile(pmax_avg_sel,
-                                    probs = seq(
-                                      from = 0,
-                                      to = 1,
-                                      length.out = n.levels + 1
-                                    ))
+        probs = seq(
+            from = 0,
+            to = 1,
+            length.out = n.levels + 1
+        ))
 
     par(mar = c(2, 0.5, 2, 6), xpd = NA)
 
 
     image(
-      y = seq(from = 0, to = n.levels),
-      x = 1,
-      z = (matrix(power_max_mat.levels,
-                  nrow = 1)),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      yaxt = "n",
-      xaxt = "n",
-      xlab = "",
-      ylab = "",
+        y = seq(from = 0, to = n.levels),
+        x = 1,
+        z = (matrix(power_max_mat.levels,
+            nrow = 1)),
+        col = key.cols,
+        breaks = power_max_mat.levels,
+        useRaster = TRUE,
+        yaxt = "n",
+        xaxt = "n",
+        xlab = "",
+        ylab = "",
     )
 
 
     axis(
-      2,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = 1.24
+        2,
+        lwd = lwd.axis,
+        at = key.marks,
+        labels = NA,
+        tck = 0.02,
+        tcl = 1.24
     )
 
     mtext(
-      key.labels,
-      side = 2,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        key.labels,
+        side = 2,
+        at = key.marks,
+        line = 0.5,
+        las = 2,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
     mtext(
-      c("Power"),
-      side = 1,
-      at = 1,
-      line = 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis,
-      las = 1,
-      xpd = NA
+        c("Power"),
+        side = 1,
+        at = 1,
+        line = 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis,
+        las = 1,
+        xpd = NA
     )
     #
 
@@ -531,16 +539,16 @@ track_period_wavelet <- function(wavelet = NULL,
 
 
     plot(
-      y = wavelet$Power.avg,
-      x = wavelet$Period,
-      log = "x",
-      type = "l",
-      xaxs = "i",
-      xaxt = "n",
-      ylab = "Wt. power",
-      xlab = "",
-      xaxs = "i",
-      xlim = ylim_vals
+        y = wavelet$Power.avg,
+        x = wavelet$Period,
+        log = "x",
+        type = "l",
+        xaxs = "i",
+        xaxt = "n",
+        ylab = "Wt. power",
+        xlab = "",
+        xaxs = "i",
+        xlim = ylim_vals
     )
 
     title(ylab = "Wt. power", xpd = NA)
@@ -550,14 +558,14 @@ track_period_wavelet <- function(wavelet = NULL,
 
 
     plot(
-      x = wavelet$y,
-      y = wavelet$x,
-      type = "l",
-      yaxs = "i",
-      xlab = "proxy value",
-      ylab = x_lab,
-      #yaxt = "n",
-      ylim = xlim_vals
+        x = wavelet$y,
+        y = wavelet$x,
+        type = "l",
+        yaxs = "i",
+        xlab = "proxy value",
+        ylab = x_lab,
+        #yaxt = "n",
+        ylim = xlim_vals
 
     )
 
@@ -567,30 +575,30 @@ track_period_wavelet <- function(wavelet = NULL,
         xpd = FALSE)
 
     image(
-      y = wavelet$x,
-      x = wavelet$axis.2,
-      z = (wavelet$Power),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xlab = periodlab,
-      ylab = "",
-      #axes = FALSE,
-      #yaxt = "n" ,
-      xaxt = "n" ,
-      yaxt = "n" ,
-      main = main,
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
+        y = wavelet$x,
+        x = wavelet$axis.2,
+        z = (wavelet$Power),
+        col = key.cols,
+        breaks = power_max_mat.levels,
+        useRaster = TRUE,
+        xlab = periodlab,
+        ylab = "",
+        #axes = FALSE,
+        #yaxt = "n" ,
+        xaxt = "n" ,
+        yaxt = "n" ,
+        main = main,
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
     )
 
     polygon(
-      y = wavelet$coi.1 ,
-      x = wavelet$coi.2,
-      border = NA,
-      col = rgb(1, 1, 1, 0.5),
-      ylim = xlim_vals,
-      xlim = log2(ylim_vals)
+        y = wavelet$coi.1 ,
+        x = wavelet$coi.2,
+        border = NA,
+        col = rgb(1, 1, 1, 0.5),
+        ylim = xlim_vals,
+        xlim = log2(ylim_vals)
     )
 
 
@@ -602,34 +610,36 @@ track_period_wavelet <- function(wavelet = NULL,
     period.tick.label = 2 ^ (period.tick)
 
     axis(
-      1,
-      lwd = lwd.axis,
-      at = period.tick,
-      labels = NA,
-      tck = periodtck,
-      tcl = periodtcl
+        1,
+        lwd = lwd.axis,
+        at = period.tick,
+        labels = NA,
+        tck = periodtck,
+        tcl = periodtcl
     )
 
 
     mtext(
-      period.tick.label,
-      side = 1,
-      at = period.tick,
-      las = 2,
-      line = par()$mgp[2] - 0.5,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        period.tick.label,
+        side = 1,
+        at = period.tick,
+        las = 2,
+        line = par()$mgp[2] - 0.5,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
 
     if (is.null(add_lines) != TRUE) {
-      for (i  in 2:ncol(add_lines))
+      for (i  in 2:ncol(add_lines)) {
         lines(y = add_lines[, 1], x = log2(add_lines[, i]))
+      }
     }
 
     if (is.null(add_points) != TRUE) {
-      for (i  in 2:ncol(add_points))
+      for (i  in 2:ncol(add_points)) {
         points(y = add_points[, 1], x = log2(add_points[, i]))
+      }
     }
 
 
@@ -650,7 +660,7 @@ track_period_wavelet <- function(wavelet = NULL,
       Pwert <- wavelet$Power
 
       maxdetect <-
-        matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
+          matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
 
       for (j in 1:ncol(Pwert)) {
         for (i in 2:(nrow(maxdetect) - 1)) {
@@ -678,12 +688,12 @@ track_period_wavelet <- function(wavelet = NULL,
       colnames(maxdetect2) <- c("y_val", "x_val", "ridge")
 
       points(
-        x = maxdetect2$x_val,
-        y = maxdetect2$y_val,
-        type = "p",
-        pch = 1,
-        col = "black",
-        lwd = "0.5"
+          x = maxdetect2$x_val,
+          y = maxdetect2$y_val,
+          type = "p",
+          pch = 1,
+          col = "black",
+          lwd = "0.5"
       )
 
       n <- nrow(maxdetect2)
@@ -691,7 +701,7 @@ track_period_wavelet <- function(wavelet = NULL,
     }
 
     out <- .tpw_pick(wavelet, astro_cycle, horizontal = FALSE,
-                     candidates = if (isTRUE(track_peaks)) maxdetect2 else NULL)
+        candidates = if (isTRUE(track_peaks)) { maxdetect2 } else { NULL })
   }
 
 
@@ -701,7 +711,7 @@ track_period_wavelet <- function(wavelet = NULL,
   return(out)
 }
 
-## ---- interactive picking used by track_period_wavelet() -------------------------------------------
+# Interactive picking used by track_period_wavelet()
 ## Mouse input goes through these two wrappers so that the tests can replace them by scripted clicks.
 .tpw_identify <- function(x, y) graphics::identify(x, y, n = 1, plot = FALSE, tolerance = 0.1)
 .tpw_locator  <- function() graphics::locator(n = 1)
@@ -716,33 +726,49 @@ track_period_wavelet <- function(wavelet = NULL,
 #' @return data.frame(depth, period, sedrate), sorted by depth, one row per depth.
 #' @noRd
 .tpw_pick <- function(wavelet, astro_cycle, horizontal = TRUE, candidates = NULL) {
-  to_plot <- function(d, lp) if (horizontal) list(x = d, y = lp) else list(x = lp, y = d)
-  usr <- graphics::par("usr"); tolx <- 0.01 * abs(diff(usr[1:2])); toly <- 0.01 * abs(diff(usr[3:4]))
+  to_plot <- function(d, lp) if (horizontal) { list(x = d, y = lp) } else { list(x = lp, y = d) }
+  usr <- graphics::par("usr")
+  tolx <- 0.01 * abs(diff(usr[1:2]))
+  toly <- 0.01 * abs(diff(usr[3:4]))
   if (!is.null(candidates)) {
-    cd <- as.numeric(candidates[, 1]); clp <- as.numeric(candidates[, 2])
-    pp <- to_plot(cd, clp); sel <- logical(length(cd))
+    cd <- as.numeric(candidates[, 1])
+    clp <- as.numeric(candidates[, 2])
+    pp <- to_plot(cd, clp)
+    sel <- logical(length(cd))
     repeat {
       ans <- .tpw_identify(pp$x, pp$y)
-      if (!length(ans)) break
+      if (!length(ans)) {
+        break
+      }
       sel[ans] <- !sel[ans]
-      graphics::points(pp$x[ans], pp$y[ans], pch = 19, col = if (sel[ans]) "white" else "red")
+      graphics::points(pp$x[ans], pp$y[ans], pch = 19, col = if (sel[ans]) { "white" } else { "red" })
     }
-    d <- cd[sel]; lp <- clp[sel]
+    d <- cd[sel]
+    lp <- clp[sel]
   } else {
-    d <- numeric(0); lp <- numeric(0)
+    d <- numeric(0)
+    lp <- numeric(0)
     repeat {
       cl <- .tpw_locator()
-      if (is.null(cl) || !length(cl$x)) break
-      cd <- if (horizontal) cl$x else cl$y; clp <- if (horizontal) cl$y else cl$x
+      if (is.null(cl) || !length(cl$x)) {
+        break
+      }
+      cd <- if (horizontal) { cl$x } else { cl$y }
+      clp <- if (horizontal) { cl$y } else { cl$x }
       cd <- wavelet$x[which.min(abs(wavelet$x - cd))]            # snap to the depth grid of the wavelet
-      pp <- to_plot(d, lp); hit <- which(abs(pp$x - (if (horizontal) cd else clp)) < tolx &
-                                           abs(pp$y - (if (horizontal) clp else cd)) < toly)
+      pp <- to_plot(d, lp)
+      hit <- which(abs(pp$x - (if (horizontal) { cd } else { clp })) < tolx &
+          abs(pp$y - (if (horizontal) { clp } else { cd })) < toly)
       if (length(hit)) {                                           # clicked an existing pick: remove it
-        q <- to_plot(d[hit], lp[hit]); graphics::points(q$x, q$y, pch = 19, col = "red")
-        d <- d[-hit]; lp <- lp[-hit]
+        q <- to_plot(d[hit], lp[hit])
+        graphics::points(q$x, q$y, pch = 19, col = "red")
+        d <- d[-hit]
+        lp <- lp[-hit]
       } else {
-        d <- c(d, cd); lp <- c(lp, clp)
-        q <- to_plot(cd, clp); graphics::points(q$x, q$y, pch = 19, col = "white")
+        d <- c(d, cd)
+        lp <- c(lp, clp)
+        q <- to_plot(cd, clp)
+        graphics::points(q$x, q$y, pch = 19, col = "white")
       }
     }
   }
@@ -753,7 +779,9 @@ track_period_wavelet <- function(wavelet = NULL,
 #' @noRd
 .tpw_output <- function(depth, log2period, astro_cycle) {
   ok <- is.finite(depth) & is.finite(log2period)
-  if (!any(ok)) return(data.frame(depth = numeric(0), period = numeric(0), sedrate = numeric(0)))
+  if (!any(ok)) {
+    return(data.frame(depth = numeric(0), period = numeric(0), sedrate = numeric(0)))
+  }
   a <- stats::aggregate(log2period[ok], by = list(depth = depth[ok]), FUN = mean)   # sorted by depth
   out <- data.frame(depth = a$depth, period = 2^a$x)
   out$sedrate <- out$period / astro_cycle * 100

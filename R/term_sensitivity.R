@@ -1,18 +1,26 @@
 #' Sensitivity of every cycle to each fundamental frequency
 #'
-#' @param delta fractional change applied to each fundamental (0.01 = +1\%)
-#' @param age_ma Age(s) in Ma.
-#' @param k_yr Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).
-#' @param fundamentals Fundamental frequencies to vary.
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param delta Fractional change applied to each fundamental frequency in turn (numeric, e.g. \code{0.01} = +1\%; may
+#'   be negative). \code{Default=0.01}.
+#' @param age_ma Age in Ma (numeric, single value, 0 to 4429) at which the term periods are computed; the precession
+#'   constant is taken from \code{\link{astrogeo22}} at this age unless \code{k_yr} is given. \code{Default=0}.
+#' @param k_yr Your own precession constant k, as a period in years (numeric, > 0), used instead of the AstroGeo22
+#'   value at \code{age_ma}; \code{NULL} uses the AstroGeo22 value (\code{astrogeo22(age_ma)$p_arcsec}).
+#'   \code{Default=NULL}.
+#' @param fundamentals Fundamental frequencies to vary, one column of the result each (character vector): any of
+#'   \code{"g1"} to \code{"g9"}, \code{"s1"} to \code{"s9"} (La2004 secular frequencies) and \code{"k"} (precession
+#'   constant). Names of a named vector are used as column names.
+#'   \code{Default=c("g1", "g2", "g3", "g4", "g5", "s1", "s3", "s4", "s6", "k")}.
+#' @param data_dir Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#'   path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.
 #' @return matrix of percent change in each term's period (rows) per `delta`
 #'   change in each fundamental (columns), including the precession constant k
 #' @export
 term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
-                             fundamentals = c("g1", "g2", "g3", "g4", "g5",
-                                              "s1", "s3", "s4", "s6", "k"),
-                             data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    fundamentals = c("g1", "g2", "g3", "g4", "g5",
+        "s1", "s3", "s4", "s6", "k"),
+    data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -61,8 +69,8 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -105,7 +113,7 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -155,8 +163,8 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -168,7 +176,7 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -183,7 +191,7 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -192,26 +200,26 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   gs <- .la04_gisi(data_dir)
   if (is.null(k_yr)){
     p0 <- astrogeo22(age_ma, data_dir = data_dir)$p_arcsec
@@ -231,7 +239,7 @@ term_sensitivity <- function(age_ma = 0, delta = 0.01, k_yr = NULL,
     col_names <- names(fundamentals)
   }
   out <- matrix(0, n_terms, length(fundamentals),
-                dimnames = list(tab$term, col_names))
+      dimnames = list(tab$term, col_names))
   for (m in seq_along(fundamentals)){
     fd <- fundamentals[m]
     g <- gs$g

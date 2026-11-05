@@ -17,25 +17,30 @@
 #' Translated from Acycle v3.1 acyclePowerDecomposition.m and pda.m
 #' (Mingsong Li).
 #'
-#' @param data Matrix with two columns: depth/time (strictly increasing,
-#' evenly spaced) and proxy value. \code{Default=NULL}
-#' @param target_bands Target frequency bands, either a B x 2 matrix
-#' [lower, upper] (rows ordered by increasing lower limit, non-overlapping)
-#' or a vector of paired limits c(lower1, upper1, lower2, upper2, ...).
-#' \code{Default=c(1/45, 1/25)}
-#' @param window Window length (first-to-last coordinate span), in units of
-#' the depth/time column. Rounded to a whole number of sample intervals.
-#' \code{Default=500}
-#' @param step Step between successive windows in depth/time units (rounded
-#' to whole samples). If NULL one sample interval is used. \code{Default=NULL}
-#' @param nw Time-bandwidth product of the DPSS tapers. \code{Default=2}
-#' @param nfft Even FFT length, at least the number of samples per window.
-#' If NULL the next power of two of the window sample count is used.
-#' \code{Default=NULL}
-#' @param total_band Total frequency band c(lower, upper). If NULL
-#' c(0, Nyquist) is used. \code{Default=NULL}
-#' @param genplot Plot the data and the power ratio. \code{Default=FALSE}
-#' @param verbose Show a progress bar. \code{Default=FALSE}
+#' @param data Numeric two-column matrix or data frame: depth/time in column 1 (strictly increasing and evenly
+#' spaced, relative spacing tolerance 1e-5; interpolate first if needed) and the proxy value in column 2; at least
+#' eight rows, all values finite. Required (\code{Default=NULL}).
+#' @param target_bands Target frequency bands whose summed power is divided by the power of \code{total_band}, in
+#' cycles per unit of the depth/time column: either a B x 2 matrix with the lower limit in column 1 and the upper
+#' limit in column 2 (rows ordered by increasing lower limit, non-overlapping), or a numeric vector of paired limits
+#' \code{c(lower1, upper1, lower2, upper2, ...)}. Every band must lie inside \code{total_band}, below the Nyquist
+#' frequency and be at least as wide as the FFT resolution. \code{Default=c(1/45, 1/25)}.
+#' @param window Length of the moving window (first-to-last coordinate span), in the unit of the depth/time column
+#' (numeric, > 0 and not longer than the record; rounded to a whole number of sample intervals, at least 8 samples).
+#' \code{Default=500}.
+#' @param step Distance between the starts of successive windows, in the unit of the depth/time column (numeric,
+#' > 0; rounded to whole samples). \code{NULL} uses one sample interval. \code{Default=NULL}.
+#' @param nw Time-bandwidth product of the DPSS (Slepian) tapers of the multitaper spectrum (numeric, >= 0.5 and less
+#' than half the number of samples per window); larger values smooth the spectrum more. \code{Default=2}.
+#' @param nfft Length of the FFT (even integer, at least the number of samples per window); larger values give a
+#' finer frequency grid. \code{NULL} uses the next power of two of the number of samples per window.
+#' \code{Default=NULL}.
+#' @param total_band Total frequency band \code{c(lower, upper)} in cycles per unit of the depth/time column (numeric
+#' vector of length 2, 0 <= lower < upper <= Nyquist frequency), the denominator of the power ratio. \code{NULL} uses
+#' \code{c(0, Nyquist frequency)}. \code{Default=NULL}.
+#' @param genplot Plot the data and the power ratio against depth/time (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param verbose Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' and Linda Hinnov (Acycle).
@@ -77,19 +82,17 @@
 #' @importFrom graphics plot
 
 pda <- function(data = NULL,
-                target_bands = c(1/45, 1/25),
-                window = 500,
-                step = NULL,
-                nw = 2,
-                nfft = NULL,
-                total_band = NULL,
-                genplot = FALSE,
-                verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    target_bands = c(1/45, 1/25),
+    window = 500,
+    step = NULL,
+    nw = 2,
+    nfft = NULL,
+    total_band = NULL,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -224,9 +227,7 @@ pda <- function(data = NULL,
     x
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB periodogram / pmtm (one-sided, adaptive weights)
-  # ---------------------------------------------------------------------------
 
   acy_datawrap <- function(x, nfft){
     n <- length(x)
@@ -272,7 +273,7 @@ pda <- function(data = NULL,
   }
 
   acy_pmtm <- function(x, nw = 4, nfft = NULL, fs = NULL, drop_last = TRUE,
-                       method = "adapt"){
+      method = "adapt"){
     x <- as.numeric(x)
     n <- length(x)
     if (is.null(nfft)){
@@ -331,9 +332,7 @@ pda <- function(data = NULL,
     list(pxx = P, f = acy_freq_vector(nfft, fs), tapers = E, eigenvalues = V)
   }
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -415,13 +414,11 @@ pda <- function(data = NULL,
     sum(diff(fi) * (pi_[-1] + pi_[-n]) / 2)
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
 
   data <- as.matrix(data)
   if (!is.numeric(data) || ncol(data) != 2){
@@ -495,7 +492,7 @@ pda <- function(data = NULL,
     nfft <- 2^acy_nextpow2(window_samples)
   }
   if (!(is.numeric(nfft) && length(nfft) == 1 && is.finite(nfft) &&
-        nfft == trunc(nfft) && nfft >= window_samples && nfft %% 2 == 0)){
+      nfft == trunc(nfft) && nfft >= window_samples && nfft %% 2 == 0)){
     stop("nfft must be an even integer at least as large as the window sample count")
   }
   if (is.null(total_band)){
@@ -586,19 +583,19 @@ pda <- function(data = NULL,
   colnames(band_powers) <- c("center", paste0("band_", seq_len(n_band)))
 
   meta <- list(sample_interval = dt,
-               nyquist = nyquist,
-               window_samples = window_samples,
-               effective_window_length = window_intervals * dt,
-               step_samples = step_samples,
-               effective_step_length = step_samples * dt,
-               nw = nw,
-               nfft = nfft,
-               frequency_resolution = resolution,
-               target_bands = bands,
-               total_band = total_band,
-               value_scale = value_scale,
-               window_count = n_win,
-               unused_trailing_samples = n_rows - end_idx[n_win])
+      nyquist = nyquist,
+      window_samples = window_samples,
+      effective_window_length = window_intervals * dt,
+      step_samples = step_samples,
+      effective_step_length = step_samples * dt,
+      nw = nw,
+      nfft = nfft,
+      frequency_resolution = resolution,
+      target_bands = bands,
+      total_band = total_band,
+      value_scale = value_scale,
+      window_count = n_win,
+      unused_trailing_samples = n_rows - end_idx[n_win])
 
   if (genplot == TRUE){
     oldpar <- graphics::par(no.readonly = TRUE)
@@ -606,7 +603,7 @@ pda <- function(data = NULL,
     graphics::par(mfrow = c(2, 1), mar = c(4, 4, 1, 1))
     graphics::plot(coordinates, values, type = "l", xlab = "depth/time", ylab = "value")
     graphics::plot(centers, ratio, type = "l", xlab = "depth/time", ylab = "Power ratio",
-                   xlim = range(coordinates))
+        xlim = range(coordinates))
   }
 
   list(result = result, band_powers = band_powers, meta = meta)

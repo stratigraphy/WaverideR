@@ -7,9 +7,10 @@
 \method{print}{ctest}(x, ...)
 }
 \arguments{
-\item{x}{a ctest object}
+\item{x}{CTest result to print: the output of \code{\link{ctest}} (an object of class \code{ctest}). Required,
+no default.}
 
-\item{...}{ignored}
+\item{...}{Not used; present for compatibility with the generic \code{print} function.}
 }
 \value{
 x, invisibly

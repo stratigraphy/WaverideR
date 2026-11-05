@@ -7,15 +7,20 @@
 chirp_eha_significance(ce, data, n_sim = 20, rho = NULL, seed = 1)
 }
 \arguments{
-\item{ce}{Result of \code{\link{analyse_chirp_eha}}.}
+\item{ce}{Result of \code{\link{analyse_chirp_eha}} (list of class \code{analyze.wavelet} with its \code{args}
+element); its settings are reused for the surrogates. Required, no default.}
 
-\item{data}{The record it was computed from.}
+\item{data}{The record \code{ce} was computed from: a matrix or data frame with depth in column 1 and the proxy
+value in column 2. Required, no default.}
 
-\item{n_sim}{Number of surrogates \code{Default=20}.}
+\item{n_sim}{Number of AR(1) surrogates (integer, > 0). More surrogates give more precise p-values and 95th
+percentiles but take longer (each one repeats the full analysis). \code{Default=20}.}
 
-\item{rho}{Lag-1 autocorrelation of the surrogates \code{Default=NULL}: estimated from the record.}
+\item{rho}{Lag-1 autocorrelation of the AR(1) surrogates (numeric, between -1 and 1); \code{NULL} estimates it
+from the record. \code{Default=NULL}.}
 
-\item{seed}{Seed.}
+\item{seed}{Seed of the random number generator for the surrogates (integer), so that the result can be
+reproduced. \code{Default=1}.}
 }
 \value{
 \code{ce} with \code{Power_sig} (observed \code{Power_norm} divided by the 95th percentile of the

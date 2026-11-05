@@ -7,14 +7,16 @@
 bayes_spectrum(data = NULL, genplot = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{data}{Matrix or data frame with two columns: depth/time and proxy
-value. Rows are sorted on the first column and non-finite rows removed.}
+\item{data}{Record to analyse (matrix or data frame with two columns: depth or time in column 1, proxy value
+in column 2; further columns are ignored). Rows are sorted on the first column and rows with non-finite values
+are removed; uneven spacing is allowed (Lomb-Scargle periodogram). Required, no default (\code{Default=NULL}
+gives an error).}
 
-\item{genplot}{Plot the periodogram and the Bayesian probability.
-\code{Default=FALSE}}
+\item{genplot}{Plot the periodogram and the Bayesian probability against frequency (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{verbose}{Print the frequency with maximum probability.
-\code{Default=FALSE}}
+\item{verbose}{Print the maximum probability and its frequency and period (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 }
 \value{
 A list with elements \code{freq} (frequencies), \code{period}

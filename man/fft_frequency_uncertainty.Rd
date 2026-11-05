@@ -13,16 +13,23 @@ fft_frequency_uncertainty(
 )
 }
 \arguments{
-\item{T_length}{Length of the record (time or depth). Alternatively give \code{N} and \code{fs}.}
+\item{T_length}{Length of the record \eqn{T} in time or depth (numeric, > 0; a vector gives one row per value),
+in any
+unit (e.g. metres or kyr); the frequencies of the output are in cycles per that unit. If \code{NULL}, it is computed
+as \code{N / fs}, so either \code{T_length} or \code{N} must be given. \code{Default=NULL}.}
 
-\item{N}{Number of samples (used with \code{fs} when \code{T_length} is not given).}
+\item{N}{Number of samples of the record (numeric, > 0); only used when \code{T_length} is \code{NULL}, together with
+\code{fs}, to compute \code{T_length = N / fs}. \code{Default=NULL}.}
 
-\item{fs}{Sampling frequency (samples per unit time or depth), \code{Default=1}.}
+\item{fs}{Sampling frequency, i.e. samples per unit of time or depth (numeric, > 0; the inverse of the sampling
+interval); only used with \code{N}. \code{Default=1}.}
 
-\item{f}{Optional frequency (or frequencies) of interest in cycles per unit. Gives the relative
-uncertainty and the corresponding period range.}
+\item{f}{Frequency or frequencies of interest in cycles per unit of \code{T_length} (numeric vector, > 0). If given,
+the output also contains the relative uncertainties and the period ranges at these frequencies. \code{NULL} gives
+only the absolute uncertainties. \code{Default=NULL}.}
 
-\item{period}{Optional period(s) of interest, an alternative to \code{f} (\code{f = 1 / period}).}
+\item{period}{Period(s) of interest in the unit of \code{T_length} (numeric vector, > 0), an alternative to \code{f}
+(converted with \code{f = 1 / period}); ignored when \code{f} is given. \code{Default=NULL}.}
 }
 \value{
 A data frame with the record length, the practical uncertainty \code{df_practical},

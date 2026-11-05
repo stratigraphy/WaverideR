@@ -10,8 +10,8 @@ plot_eha_log2(
   lowerPeriod = NULL,
   upperPeriod = NULL,
   n.levels = 100,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   useRaster = TRUE,
   periodlab = "Period (metres)",
   x_lab = "depth (metres)",
@@ -39,105 +39,120 @@ plot_eha_log2(
 )
 }
 \arguments{
-\item{eha_log2}{eha_log2 object created using the \code{\link{eha_log2}} function.}
+\item{eha_log2}{Evolutive harmonic analysis result to plot: the list returned by \code{\link{eha_log2}}. Required
+(\code{Default=NULL} gives an error).}
 
-\item{plot_opt}{plot options are  "Power", "Amplitude", "Probability" or "F_test"}
+\item{plot_opt}{Quantity shown in the spectrogram and in the average panel (character), one of
+\code{"Amplitude"}, \code{"Power"}, \code{"Probability"} (harmonic F-test probability) or \code{"F_test"}
+(F-test value); any other value plots the amplitude. \code{Default="Amplitude"}.}
 
-\item{lowerPeriod}{Lowest period value which will be plotted}
+\item{lowerPeriod}{Shortest period shown on the period axis, in the depth/time unit of the input record (numeric,
+> 0). \code{NULL} uses the shortest period of \code{eha_log2}. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value which will be plotted}
+\item{upperPeriod}{Longest period shown on the period axis, in the depth/time unit of the input record (numeric,
+> \code{lowerPeriod}). \code{NULL} uses the longest period of \code{eha_log2}. \code{Default=NULL}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the colour scale (integer, >= 2). \code{Default=100}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function
-The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
-“bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
-”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
-“hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
-”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
-”vik”,”vikO”
-The R package 'Viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{useRaster}{Plot as a raster or vector image \code{Default=TRUE}.
-WARNING plotting as a vector image is computationally intensive.}
+\item{useRaster}{Draw the spectrogram as a raster image (\code{TRUE}) or as vector polygons (\code{FALSE}) (logical).
+WARNING: plotting as a vector image is computationally intensive and gives large files. \code{Default=TRUE}.}
 
-\item{periodlab}{Label for the y-axis \code{Default="Period (metres)"}.}
+\item{periodlab}{Label of the period axis (character). \code{Default="Period (metres)"}.}
 
-\item{x_lab}{Label for the x-axis \code{Default="depth (metres)"}.}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth (metres)"}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the plot layout and graphical parameters (\code{par}) after plotting, so that extra
+elements can be added to the spectrogram panel with \code{lines}, \code{points} etc. (logical). With \code{FALSE} the
+previous \code{par} settings are restored on exit. \code{Default=FALSE}.}
 
-\item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
-than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
-opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
-on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
-\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
+\item{dev_new}{Open a new plotting window for the plot (logical, TRUE or FALSE). The wavelet plots contain a raster
+image that needs more room than the small RStudio plot pane, which gives "figure margins too large" errors or clipped
+text, so a separate window is opened by default in the RStudio GUI. In every other front end (plain R, ESS,
+Positron, knitr, Rscript) the plot is drawn on the current device and no window is opened. Set TRUE or FALSE to
+force either behaviour, or set \code{options(waverider.dev_new = TRUE/FALSE)}.
+\code{Default=wr_dev_new_default()}: TRUE in the RStudio GUI, FALSE elsewhere.}
 
-\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
+\item{plot_dir}{Direction of the depth/time axis (logical). \code{TRUE} plots increasing depth/time values from left
+to right (or bottom to top when \code{plot_horizontal=FALSE}); \code{FALSE} reverses the axis. \code{Default=TRUE}.}
 
-\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-should be period values  \code{Default=NULL}}
+\item{add_lines}{Lines to draw on the spectrogram: a matrix or data frame with depth/time in column 1 and, in each
+further column, period values (same unit as the period axis) of one line; \code{NULL} draws none.
+\code{Default=NULL}.}
 
-\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-should be period values \code{Default=NULL}}
+\item{add_points}{Points to draw on the spectrogram: a matrix or data frame with depth/time in column 1 and, in each
+further column, period values of one series of points; \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_h}{Numeric vector of positions of horizontal lines, e.g. \code{c(2, 3, 5, 6)}: periods when
+\code{plot_horizontal=TRUE}, depth/time values when \code{plot_horizontal=FALSE}; \code{NULL} draws none.
+\code{Default=NULL}.}
 
-\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_v}{Numeric vector of positions of vertical lines, e.g. \code{c(2, 3, 5, 6)}: depth/time values
+when \code{plot_horizontal=TRUE} (also drawn on the data panel), periods when \code{plot_horizontal=FALSE};
+\code{NULL} draws none. \code{Default=NULL}.}
 
-\item{add_MTM_peaks}{Add the MTM peak periods as horizontal lines \code{Default=FALSE}}
+\item{add_MTM_peaks}{Run a multitaper (MTM) analysis of the whole record (\code{\link[astrochron]{mtm}}) and draw
+the periods of its significant peaks (at \code{mtm_siglvl}) as dotted lines on the spectrogram (and in red on the
+MTM panels); the MTM result with a \code{Peak} column (1 = significant peak) is then returned invisibly
+(logical). \code{Default=FALSE}.}
 
-\item{add_data}{Plot the data on top of the wavelet \code{Default=TRUE}}
+\item{add_data}{Plot the input record in a panel beside the spectrogram (logical). \code{Default=TRUE}.}
 
-\item{add_avg}{Plot the average wavelet spectral power to the side of the wavelet \code{Default=FALSE}}
+\item{add_avg}{Plot the average of the plotted quantity (\code{plot_opt}) over the record in a panel beside the
+spectrogram (logical). \code{Default=FALSE}.}
 
-\item{pval_abline}{p value of the abline}
+\item{pval_abline}{Not used; kept for compatibility with older versions (numeric vector of p-values).
+\code{Default=c(0.1, 0.05)}.}
 
-\item{pval_cutoff}{p value cutoff below which no data is displayed}
+\item{pval_cutoff}{Not used; kept for compatibility with older versions (numeric p-value).
+\code{Default=c(0.1)}.}
 
-\item{add_MTM}{Add the MTM  plot next to the wavelet plot \code{Default=FALSE}}
+\item{add_MTM}{Add three panels beside the spectrogram with the MTM power spectrum of the whole record (with its
+AR(1) confidence levels), the AR(1) confidence level and the harmonic F-test confidence level (in \%), computed with
+\code{\link[astrochron]{mtm}} (logical). \code{Default=FALSE}.}
 
-\item{mtm_siglvl}{select the significance level  (0-1) for the MTM spectrum \code{Default=0.95}}
+\item{mtm_siglvl}{Significance level used to select the MTM peaks (numeric, between 0 and 1; \code{siglevel} of
+\code{\link[astrochron]{mtm}}). \code{Default=0.95}.}
 
-\item{demean_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
+\item{demean_mtm}{Remove the mean from the record before the MTM analysis (logical; \code{demean} of
+\code{\link[astrochron]{mtm}}). \code{Default=TRUE}.}
 
-\item{detrend_mtm}{Remove mean from data before conducting the MTM analysis \code{Default=TRUE}}
+\item{detrend_mtm}{Remove a linear trend from the record before the MTM analysis (logical; \code{detrend} of
+\code{\link[astrochron]{mtm}}). \code{Default=TRUE}.}
 
-\item{padfac_mtm}{Pad factor for the MTM analysis \code{Default=5}}
+\item{padfac_mtm}{Zero-padding factor of the MTM analysis (numeric, >= 1; \code{padfac} of
+\code{\link[astrochron]{mtm}}). \code{Default=5}.}
 
-\item{tbw_mtm}{time bandwidth product of the MTM analysis  \code{Default=3}}
+\item{tbw_mtm}{Time-bandwidth product of the MTM analysis (numeric, e.g. 2, 3 or 4; \code{tbw} of
+\code{\link[astrochron]{mtm}}); higher values give smoother spectra with lower frequency resolution.
+\code{Default=3}.}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the plot (logical): \code{TRUE} puts depth/time on the x axis and period on
+the y axis; \code{FALSE} puts depth/time on the y axis and period on the x axis. \code{Default=TRUE}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 
-\item{scale}{Colour scale as in \code{\link{plot_wavelet}} \code{Default="auto"}.}
+\item{scale}{Spacing of the colour breaks of the colour scale, as in all image plots of the package (character):
+\code{"quantile"} (histogram-equalised), \code{"log"}, \code{"sqrt"}, \code{"linear"} or \code{"auto"}
+(logarithmic for mostly empty maps or values spanning more than three orders of magnitude, quantiles otherwise);
+see \code{\link{plot_wavelet}}. \code{Default="auto"}.}
 }
 \value{
 The output is a plot of a EHA spectra.

@@ -13,15 +13,23 @@ modBchron_predict(
 )
 }
 \arguments{
-\item{model}{Output of the \code{ageModel} function}
+\item{model}{Age-depth model, the output of \code{\link{modBchron}} (a list with at least \code{model},
+\code{predictPositions} and \code{burn}). Required (no default).}
 
-\item{newPositions}{Vector of new stratigraphic positions to predict the age of. New positions must be within the bounds of the orignal model run}
+\item{newPositions}{Stratigraphic positions whose age is predicted, in the unit of the \code{positions} of the model
+(numeric vector); they must lie within the \code{predictPositions} range of the original model run, outside it
+the prediction is \code{NA}. Required (no default).}
 
-\item{ids}{optional vector of names for new positions. Defaults to 1, 2, 3, ...}
+\item{ids}{Names of the new positions, used as row names of the output (character or numeric vector, same length
+as \code{newPositions}). \code{Default=1:length(newPositions)}.}
 
-\item{newPositionThicknesses}{Vector of stratigraphic uncertanties for each position. Specified as half thicknesses. Must be the same length and given in the same order as \code{newPositions}. Default is no positional uncertanty}
+\item{newPositionThicknesses}{Stratigraphic uncertainty of each new position, given as half thickness in the
+unit of \code{newPositions} (numeric vector, >= 0, same length and order as \code{newPositions}); in every MCMC
+iteration the position is drawn uniformly within plus or minus this value.
+\code{Default=rep(0, length(newPositions))} (no positional uncertainty).}
 
-\item{probability}{Probability of the returned interval. Defaults to 0.95}
+\item{probability}{Probability of the returned highest density interval (numeric, between 0 and 1).
+\code{Default=0.95}.}
 }
 \value{
 HDI = 95 percent Highest Density Interval for each \code{newPosition}

@@ -7,12 +7,13 @@
 mesa_average(x, window = 1, normalise = TRUE)
 }
 \arguments{
-\item{x}{output of \code{\link{mesa_evolutive}}.}
+\item{x}{Evolutive MESA, the output of \code{\link{mesa_evolutive}}. Required (no default).}
 
-\item{window}{number (position in \code{x$windows}) or length of the window.}
+\item{window}{Which window length of \code{x} is averaged (numeric): either the window length itself (as given to
+\code{mesa_evolutive}) or its number, i.e. its position in \code{x$windows}. \code{Default=1}.}
 
-\item{normalise}{If TRUE (default) every window position is divided by its maximum before
-averaging, so that all positions weigh equally.}
+\item{normalise}{Divide the spectrum of every window position by its maximum before averaging, so that all
+positions weigh equally (logical, TRUE or FALSE). \code{Default=TRUE}.}
 }
 \value{
 data frame with \code{frequency}, \code{period} and \code{amplitude}.

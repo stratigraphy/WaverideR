@@ -7,16 +7,23 @@
 cycles_to_k(period_kyr, term = "k+s3", g = NULL, s = NULL, data_dir = NULL)
 }
 \arguments{
-\item{period_kyr}{the cycle period read from the record (kyr)}
+\item{period_kyr}{Period of the cycle read from the record, in kyr (numeric, > 0; can be a vector of several
+readings of the same term), i.e. from a tuned record or a known sedimentation rate. Required, no default.}
 
-\item{term}{which astronomical term it is: "k+s3" (obliquity), or one of
-the precession terms "k+g5", "k+g2", "k+g4", "k+g3"}
+\item{term}{Astronomical term the cycle represents (character): \code{"k+s3"} (obliquity) or one of the
+precession terms \code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"} (aliases such as \code{"obl"} and
+\code{"prec"} are accepted, see \code{\link{astro_terms}}); a term without k (an eccentricity term) gives an
+error. \code{Default="k+s3"}.}
 
-\item{g}{Optional g frequencies (arcsec/yr) overriding the defaults.}
+\item{g}{Secular frequencies g1 to g9 in arcsec/yr (numeric vector of length 9) used instead of the La2004
+values; \code{NULL} uses the La2004 values from \code{La04gisi.csv}. \code{Default=NULL}.}
 
-\item{s}{Optional s frequencies (arcsec/yr) overriding the defaults.}
+\item{s}{Secular frequencies s1 to s9 in arcsec/yr (numeric vector of length 9) used instead of the La2004
+values; \code{NULL} uses the La2004 values from \code{La04gisi.csv}. \code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+\code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 list: p in arcsec/yr and the precession constant k in years

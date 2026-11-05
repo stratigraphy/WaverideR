@@ -12,27 +12,30 @@
 #' or \code{\link{track_period}}. A a search a algorithm then looks up and replaces
 #' the interpolated curve values with the values of the nearest spectral peak in the wavelet spectra.
 #'
-#'@param scalogram Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
-#'or \code{\link{track_period}} function.
-#'@param tracked_curve Tracked period result from the \code{track_period_wavelet} or
-#'or \code{\link{track_period}} function.
-#'@param period_up The period_up parameter is the factor with which the linear interpolated tracked_curve
-#'curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_up factor is
-#'the upper boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
-#'curve. If no spectral peak is detected within the specified boundary the interpolated
-#'value is used instead. between spectral peaks \code{Default=1.2},
-#'@param period_down  The period_down parameter is the factor with which the linear interpolated tracked_curve
-#'curve is multiplied by. This linear interpolated tracked_curve multiplied by the period_down factor is
-#'the lower boundary which is used  for detecting the spectral peak nearest to the linear interpolated tracked_curve
-#'curve. If no spectral peak is detected within the specified boundary the interpolated
-#'value is used instead. between spectral peaks \code{Default=0.8},
-#'@param extrapolate Extrapolate the completed curve when through parts where no spectral peaks could be traced
-#' \code{Default=TRUE}.
-#'@param genplot Generate a plot \code{Default=TRUE}. The red curve is the completed curve,
-#'the black curve is the original curve.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#'
-#'@param ... older inputs from previous version
+#'@param scalogram Scalogram in which the cycle was tracked: the output of \code{\link{analyse_wavelet}} (class
+#'\code{analyze.wavelet}) or of \code{\link{analyse_superlet}} (class \code{analyze.superlet}). Its depth axis sets
+#'the positions of the completed curve. Required (\code{Default=NULL} gives an error).
+#'@param tracked_curve Incomplete tracked period curve (matrix or data frame, two columns: depth in column 1 and the
+#'tracked period in column 2, in the depth units of the scalogram), e.g. the output of
+#'\code{\link{track_period_wavelet}} or \code{\link{track_period}}; rows with \code{NA} are dropped. It is linearly
+#'interpolated onto the depth axis of the scalogram before the search for spectral peaks. Required
+#'(\code{Default=NULL} gives an error).
+#'@param period_up Factor (numeric, > 1) that sets the upper limit of the search window: at every depth the
+#'nearest spectral peak (local power maximum along the period axis) is used only if its period is below the
+#'interpolated period times \code{period_up}; otherwise no value is assigned there (see \code{extrapolate}).
+#'\code{Default=1.2}.
+#'@param period_down Factor (numeric, between 0 and 1) that sets the lower limit of the search window: the nearest
+#'spectral peak is used only if its period is above the interpolated period times \code{period_down}.
+#'\code{Default=0.8}.
+#'@param extrapolate Fill the depths where no spectral peak was found within the window by linear interpolation
+#'between the found values (with the first and last found values held constant towards the ends) (logical, TRUE
+#'or FALSE); \code{FALSE} leaves \code{NA} at those depths. \code{Default=TRUE}.
+#'@param genplot Plot the completed curve (red) together with the original tracked curve (black) (logical, TRUE or
+#'FALSE). \code{Default=FALSE}.
+#'@param keep_editable Keep the graphical parameters of the plot so that extra elements can be added afterwards
+#'(logical, TRUE or FALSE); \code{FALSE} restores the previous \code{par} settings. \code{Default=FALSE}.
+#'@param ... Arguments of older versions: \code{wavelet} is accepted as an alias of \code{scalogram}; other
+#'arguments are ignored.
 #'
 #'
 #'@examples
@@ -85,8 +88,8 @@
 #' @importFrom stats approx
 
 completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up = 1.2,
-                              period_down = 0.8, extrapolate = TRUE, genplot = FALSE,
-                              keep_editable = FALSE,...)
+    period_down = 0.8, extrapolate = TRUE, genplot = FALSE,
+    keep_editable = FALSE,...)
 {
 
 
@@ -100,9 +103,11 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
   my.data <- cbind(scalogram$x, scalogram$y)
 
   if(inherits(scalogram,"analyze.superlet") == TRUE){
-    Pwert <- t(my.w$Power)}
+    Pwert <- t(my.w$Power)
+  }
   if(inherits(scalogram,"analyze.wavelet") == TRUE ){
-    Pwert <- my.w$Power}
+    Pwert <- my.w$Power
+  }
 
   maxdetect <- matrix(nrow = (nrow(Pwert)), ncol = ncol(Pwert), 0)
   for (j in 1:ncol(Pwert)) {
@@ -119,28 +124,30 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
   yleft_out <- out[1, 2]
   yright_out <- out[nrow(out), 2]
   seq <- seq(
-    from = min(my.data[, 1]),
-    to = max(my.data[, 1]),
-    by = my.data[, 1][2] - my.data[, 1][1]
+      from = min(my.data[, 1]),
+      to = max(my.data[, 1]),
+      by = my.data[, 1][2] - my.data[, 1][1]
   )
   app <- approx(
-    x = out[, 1],
-    y = out[, 2],
-    xout = seq,
-    method = "linear",
-    yleft = yleft_out,
-    yright = yright_out
+      x = out[, 1],
+      y = out[, 2],
+      xout = seq,
+      method = "linear",
+      yleft = yleft_out,
+      yright = yright_out
   )
   app <- as.data.frame(cbind(app$x, app$y))
 
 
   if(inherits(scalogram,"analyze.superlet") == TRUE){
-    periods <- as.data.frame(rev(my.w$Period))}
+    periods <- as.data.frame(rev(my.w$Period))
+  }
   if(inherits(scalogram,"analyze.wavelet") == TRUE ){
-    periods <- as.data.frame(my.w$Period)}
+    periods <- as.data.frame(my.w$Period)
+  }
   completed_series <- matrix(data = NA,
-                             nrow = nrow(app[, ]),
-                             ncol = 2)
+      nrow = nrow(app[, ]),
+      ncol = 2)
   completed_series[, 1] <- app[, 1]
 
   for (i in 1:nrow(completed_series)) {
@@ -149,8 +156,7 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
     row_nr <- row_nr[1]
     if (maxdetect[row_nr, i] == 1) {
       completed_series[i, 2] <- periods[row_nr, ]
-    }
-    else {
+    } else {
       sel_row <- as.data.frame(maxdetect[, i])
       sel_row$period <- periods[, 1]
       sel_row <- sel_row[sel_row[, 1] > 0, ]
@@ -168,17 +174,17 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
     yleft_comp <- completed_series[1, 2]
     yright_com <- completed_series[nrow(completed_series), 2]
     seq <- seq(
-      from = min(my.data[, 1]),
-      to = max(my.data[, 1]),
-      by = my.data[, 1][2] - my.data[, 1][1]
+        from = min(my.data[, 1]),
+        to = max(my.data[, 1]),
+        by = my.data[, 1][2] - my.data[, 1][1]
     )
     app <- approx(
-      x = completed_series[, 1],
-      y = completed_series[, 2],
-      xout = seq,
-      method = "linear",
-      yleft = yleft_comp,
-      yright = yright_com
+        x = completed_series[, 1],
+        y = completed_series[, 2],
+        xout = seq,
+        method = "linear",
+        yleft = yleft_comp,
+        yright = yright_com
     )
     completed_series <- as.data.frame(cbind(app$x, app$y))
   }
@@ -188,10 +194,9 @@ completed_series <- function (scalogram = NULL, tracked_curve = NULL, period_up 
       on.exit(par(oldpar))
     }
     plot(completed_series,
-         type = "l",
-         col = "red")
+        type = "l",
+        col = "red")
     lines(tracked_curve, col = "black")
   }
   return(completed_series)
 }
-

@@ -7,10 +7,12 @@
 calculate_orbit9(age_ma, data_dir = NULL)
 }
 \arguments{
-\item{age_ma}{age in Ma (single finite number).}
+\item{age_ma}{Age at which the nine periods are calculated, in Ma (single finite numeric value, 0 to 4429);
+it is rounded to the nearest whole Ma because AstroGeo22 is tabulated in 1-Myr steps. Required, no default.}
 
-\item{data_dir}{folder holding AstroGeo22.txt and La04gisi.csv
-\code{Default=NULL} (searched with coco_data_dir()).}
+\item{data_dir}{Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+\code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 data.frame with columns term, group, freq_arcsec_yr, period_yr, period_kyr.

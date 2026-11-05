@@ -1,31 +1,47 @@
 #' @title CTest: astronomical parameters from interpreted spectral peaks
 #'
-#' @param data 8x2 table (matrix, data.frame or tibble) as read from the
-#'   published spreadsheet, or built with ctest_input()
-#' @param nsim number of successful samples to collect
-#' @param mode "PT", "P" or "T" (see file header)
-#' @param ptest range of precession constants to sample, in years
-#' @param sampleorb "U" uniform within 2 sigma (used in the paper) or "N" normal
-#' @param seed optional RNG seed
-#' @param max_attempts abort if no nsim successes are found within this many draws
-#' @param verbose print progress every 10\%
-#' @param engine "vectorized" (default, draws in blocks; fast) or "loop",
-#'   which follows the published draw order exactly and reproduces
-#'   mmc3/mmc4/mmc5 sample for sample under the same seed
-#' @param block number of draws per block for the vectorized engine
-#' @param s3_uncertainty "published" keeps the published code's draw for s3,
-#'   rnorm(1, s3, ds3*sqrt(t/1e8)), in which the relative uncertainty ds3 is
-#'   applied as an absolute one in years, so s3 is effectively fixed.
-#'   "scaled" applies it the same way as for g2-g5 (s3 * ds3 * sqrt(t/1e8)),
-#'   which gives s3 a realistic spread. Use "published" to reproduce the paper.
+#' @param data Interpreted spectral peaks as an 8 x 2 table (matrix, data frame or tibble), in the layout of the
+#' published spreadsheet, best built with \code{\link{ctest_input}}: row 1 the age range of the record in Ma
+#' (min, max); rows 2 to 8 the frequency ranges in cycles per metre of the 405-kyr, ~125-kyr and ~95-kyr
+#' eccentricity cycles, the obliquity cycle (k+s3) and the three precession cycles (k+g5; k+g2; k+g4 and k+g3), with
+#' the lower frequency (longer wavelength) in column 1 and the higher frequency in column 2. The obliquity row may
+#' be \code{NA} when \code{mode="P"} and the precession rows when \code{mode="T"}. Required, no default.
+#' @param nsim Number of accepted (successful) samples to collect (integer, > 0). \code{Default=1000}.
+#' @param mode Which cycles constrain the precession constant besides eccentricity (character): \code{"PT"}
+#' precession and obliquity (tilt), \code{"P"} precession only, \code{"T"} obliquity only.
+#' \code{Default=c("PT", "P", "T")}, i.e. \code{"PT"}.
+#' @param ptest Range of the precession constant that is sampled (uniformly), given as its period in years
+#' (numeric vector \code{c(min, max)}). \code{Default=c(10000, 28000)}.
+#' @param sampleorb Distribution from which the secular frequencies g2, g3, g4 and g5 are drawn around their
+#' Laskar et al. (2011) values, with an uncertainty that grows with the square root of age (character):
+#' \code{"U"} uniform within 2 sigma (used in the paper) or \code{"N"} normal. \code{Default=c("U", "N")}, i.e.
+#' \code{"U"}.
+#' @param seed Seed of the random number generator (integer), so that the samples can be reproduced; \code{NULL}
+#' leaves the current random state unchanged. \code{Default=NULL}.
+#' @param max_attempts Maximum number of draws (numeric); the function stops with an error if fewer than
+#' \code{nsim} samples have been accepted by then, which usually means the interpreted cycle ranges are
+#' inconsistent. \code{Default=5e7}.
+#' @param verbose Print progress messages with the number of accepted samples and the acceptance rate (logical,
+#' TRUE or FALSE). \code{Default=TRUE}.
+#' @param engine Sampling engine (character): \code{"vectorized"} draws in blocks of \code{block} samples (fast);
+#' \code{"loop"} draws one sample at a time in the published draw order and reproduces mmc3/mmc4/mmc5 sample for
+#' sample under the same seed. \code{Default=c("vectorized", "loop")}, i.e. \code{"vectorized"}.
+#' @param block Number of draws per block for \code{engine="vectorized"} (integer; limited to 1000 to 5e6); larger
+#' blocks are faster but use more memory. Ignored by \code{engine="loop"}. \code{Default=1e5}.
+#' @param s3_uncertainty How the uncertainty of the secular frequency s3 (used for obliquity) is applied
+#' (character): \code{"published"} keeps the draw of the published code,
+#' \code{rnorm(1, s3, ds3 * sqrt(t / 1e8))}, in which the relative uncertainty \code{ds3} is applied as an absolute
+#' one in years, so s3 is effectively fixed (use this to reproduce the paper); \code{"scaled"} applies it as for
+#' g2 to g5 (\code{s3 * ds3 * sqrt(t / 1e8)}), which gives s3 a realistic spread.
+#' \code{Default=c("published", "scaled")}, i.e. \code{"published"}.
 #' @return list with `summary` (table as in the paper), `samples`
 #'   (all accepted samples), `sampled_range` of g/s, and `acceptance`
 #' @export
 ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
-                  ptest = c(10000, 28000), sampleorb = c("U", "N"),
-                  seed = NULL, max_attempts = 5e7, verbose = TRUE,
-                  engine = c("vectorized", "loop"), block = 1e5,
-                  s3_uncertainty = c("published", "scaled")){
+    ptest = c(10000, 28000), sampleorb = c("U", "N"),
+    seed = NULL, max_attempts = 5e7, verbose = TRUE,
+    engine = c("vectorized", "loop"), block = 1e5,
+    s3_uncertainty = c("published", "scaled")){
   mode <- match.arg(mode)
   sampleorb <- match.arg(sampleorb)
   engine <- match.arg(engine)
@@ -82,10 +98,10 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
 
   keep <- matrix(NA_real_, nsim, 19)
   colnames(keep) <- c("SR", "Ecc405", "Ecc124", "Ecc130", "Ecc95", "Ecc99",
-                      "Obl", "--", "Prec1", "Prec2", "Prec3", "Prec4", "--",
-                      "g2", "g3", "g4", "g5", "s3", "p")
+      "Obl", "--", "Prec1", "Prec2", "Prec3", "Prec4", "--",
+      "g2", "g3", "g4", "g5", "s3", "p")
   SE <- matrix(c(g2, g3, g4, g5, s3), 5, 2,
-               dimnames = list(c("g2", "g3", "g4", "g5", "s3"), c("min", "max")))
+      dimnames = list(c("g2", "g3", "g4", "g5", "s3"), c("min", "max")))
   i <- 1
   attempts <- 0
   report <- max(1, round(nsim / 10))
@@ -145,15 +161,15 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
         SE[5, ] <- c(min(SE[5, 1], S3), max(SE[5, 2], S3))
       }
       ok <- low_405 < Re405 * SR & Re405 * SR < high_405 &
-        low_95 < Re95 * SR & low_95 < Re99 * SR & Re95 * SR < high_95 & Re99 * SR < high_95 &
-        low_125 < Re124 * SR & low_125 < Re130 * SR & Re124 * SR < high_125 & Re130 * SR < high_125
+          low_95 < Re95 * SR & low_95 < Re99 * SR & Re95 * SR < high_95 & Re99 * SR < high_95 &
+          low_125 < Re124 * SR & low_125 < Re130 * SR & Re124 * SR < high_125 & Re130 * SR < high_125
       if (useT){
         ok <- ok & o1_min > Ro3 * SR & Ro3 * SR > o1_max
       }
       if (useP){
         ok <- ok & p3_min > Rp3 * SR & p3_min > Rp4 * SR & Rp3 * SR > p3_max &
-          Rp4 * SR > p3_max & p2_min > Rp2 * SR & Rp2 * SR > p2_max &
-          p1_min > Rp1 * SR & Rp1 * SR > p1_max
+            Rp4 * SR > p3_max & p2_min > Rp2 * SR & Rp2 * SR > p2_max &
+            p1_min > Rp1 * SR & Rp1 * SR > p1_max
       }
       naccept <- sum(ok)
       accepted_total <- accepted_total + naccept
@@ -179,7 +195,7 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
       i <- i + length(idx)
       if (verbose){
         message(sprintf("CTest %s: %d of %d successful samples (%.3f%% accepted)",
-                        mode, i - 1, nsim, 100 * accepted_total / attempts))
+            mode, i - 1, nsim, 100 * accepted_total / attempts))
       }
     }
     i <- nsim + 1
@@ -241,12 +257,12 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
     }
 
     ok_ecc <- low_405 < Re405 * SR && Re405 * SR < high_405 &&
-      low_95 < Re95 * SR && low_95 < Re99 * SR && Re95 * SR < high_95 && Re99 * SR < high_95 &&
-      low_125 < Re124 * SR && low_125 < Re130 * SR && Re124 * SR < high_125 && Re130 * SR < high_125
+        low_95 < Re95 * SR && low_95 < Re99 * SR && Re95 * SR < high_95 && Re99 * SR < high_95 &&
+        low_125 < Re124 * SR && low_125 < Re130 * SR && Re124 * SR < high_125 && Re130 * SR < high_125
     ok_obl <- !useT || (o1_min > Ro3 * SR && Ro3 * SR > o1_max)
     ok_pre <- !useP || (p3_min > Rp3 * SR && p3_min > Rp4 * SR && Rp3 * SR > p3_max &&
-                          Rp4 * SR > p3_max && p2_min > Rp2 * SR && Rp2 * SR > p2_max &&
-                          p1_min > Rp1 * SR && Rp1 * SR > p1_max)
+        Rp4 * SR > p3_max && p2_min > Rp2 * SR && Rp2 * SR > p2_max &&
+        p1_min > Rp1 * SR && Rp1 * SR > p1_max)
     if (!(ok_ecc && ok_obl && ok_pre)){
       next
     }
@@ -266,7 +282,7 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
     keep[i, 19] <- p
     if (verbose && i %% report == 0){
       message(sprintf("CTest %s: %d of %d successful samples (%.2f%% accepted)",
-                      mode, i, nsim, 100 * i / attempts))
+          mode, i, nsim, 100 * i / attempts))
     }
     i <- i + 1
   }
@@ -292,19 +308,19 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
     row_kg3 <- rng(keep[, 12])
   }
   rows <- list(
-    "sedimentation rate (m/kyr)" = rng(keep[, 1]),
-    "405 kyr ecc"               = rng(keep[, 2]),
-    "125 kyr ecc"               = rng(keep[, 3:4]),
-    "95 kyr ecc"                = rng(keep[, 5:6]),
-    "obliquity (k+s3)"          = row_obl,
-    "precession k+g5"           = row_kg5,
-    "precession k+g2"           = row_kg2,
-    "precession k+g4"           = row_kg4,
-    "precession k+g3"           = row_kg3,
-    "g2 (yr)" = rng(keep[, 14]), "g3 (yr)" = rng(keep[, 15]),
-    "g4 (yr)" = rng(keep[, 16]), "g5 (yr)" = rng(keep[, 17]),
-    "s3 (yr)" = row_s3,
-    "precession constant k (yr)" = rng(keep[, 19]))
+      "sedimentation rate (m/kyr)" = rng(keep[, 1]),
+      "405 kyr ecc"               = rng(keep[, 2]),
+      "125 kyr ecc"               = rng(keep[, 3:4]),
+      "95 kyr ecc"                = rng(keep[, 5:6]),
+      "obliquity (k+s3)"          = row_obl,
+      "precession k+g5"           = row_kg5,
+      "precession k+g2"           = row_kg2,
+      "precession k+g4"           = row_kg4,
+      "precession k+g3"           = row_kg3,
+      "g2 (yr)" = rng(keep[, 14]), "g3 (yr)" = rng(keep[, 15]),
+      "g4 (yr)" = rng(keep[, 16]), "g5 (yr)" = rng(keep[, 17]),
+      "s3 (yr)" = row_s3,
+      "precession constant k (yr)" = rng(keep[, 19]))
   summ <- as.data.frame(do.call(rbind, rows))
   names(summ) <- c("lower", "upper", "mean", "sd")
   summ <- cbind(quantity = rownames(summ), summ)
@@ -312,61 +328,64 @@ ctest <- function(data, nsim = 1000, mode = c("PT", "P", "T"),
 
   samples <- as.data.frame(keep[, c(1:7, 9:12, 14:19)])
   names(samples) <- c("SR", "ecc405", "ecc124", "ecc130", "ecc95", "ecc99",
-                      "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg4", "prec_kg3",
-                      "g2", "g3", "g4", "g5", "s3", "k")
+      "obl_ks3", "prec_kg5", "prec_kg2", "prec_kg4", "prec_kg3",
+      "g2", "g3", "g4", "g5", "s3", "k")
   if (engine == "vectorized"){
     acceptance <- accepted_total / attempts
   } else {
     acceptance <- nsim / attempts
   }
   out <- list(summary = summ, samples = samples, raw = keep, sampled_range = SE,
-              mode = mode, nsim = nsim, attempts = attempts,
-              acceptance = acceptance, ptest = ptest, sampleorb = sampleorb,
-              age_ma = c(d(1, 1), d(1, 2)))
+      mode = mode, nsim = nsim, attempts = attempts,
+      acceptance = acceptance, ptest = ptest, sampleorb = sampleorb,
+      age_ma = c(d(1, 1), d(1, 2)))
   class(out) <- "ctest"
   out
 }
 
 #' @title Print a CTest result
-#' @param x a ctest object
-#' @param ... ignored
+#' @param x CTest result to print: the output of \code{\link{ctest}} (an object of class \code{ctest}). Required,
+#' no default.
+#' @param ... Not used; present for compatibility with the generic \code{print} function.
 #' @return x, invisibly
 #' @export
 print.ctest <- function(x, ...){
   cat(sprintf("CTest (%s), %d samples, %.3f%% of draws accepted, age %g-%g Ma\n",
-              x$mode, x$nsim, 100 * x$acceptance, x$age_ma[1], x$age_ma[2]))
+      x$mode, x$nsim, 100 * x$acceptance, x$age_ma[1], x$age_ma[2]))
   k <- x$samples$k
   cat(sprintf("Precession constant k = %.0f yr (%.2f kyr), sd %.0f yr, 95%% CI [%.0f, %.0f]\n",
-              mean(k), mean(k) / 1000, stats::sd(k),
-              stats::quantile(k, 0.025), stats::quantile(k, 0.975)))
+      mean(k), mean(k) / 1000, stats::sd(k),
+      stats::quantile(k, 0.025), stats::quantile(k, 0.975)))
   print(x$summary, digits = 5)
   invisible(x)
 }
 
 #' @title Plot the CTest posterior distributions
-#' @param x a ctest object
-#' @param ... ignored
+#' @param x CTest result to plot: the output of \code{\link{ctest}} (an object of class \code{ctest}). Required, no
+#' default.
+#' @param ... Not used; present for compatibility with the generic \code{plot} function.
 #' @export
 plot.ctest <- function(x, ...){
-  op <- graphics::par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
-  on.exit(graphics::par(op))
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op), add = TRUE)
+  graphics::par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
   graphics::plot(stats::density(x$samples$k), lwd = 2, main = "Precession constant",
-                 xlab = "k (yr)", ylab = "density")
+      xlab = "k (yr)", ylab = "density")
   graphics::abline(v = mean(x$samples$k), col = "red", lty = 2)
   graphics::plot(stats::density(x$samples$SR), lwd = 2, main = "Sedimentation rate",
-                 xlab = "m/kyr", ylab = "density")
+      xlab = "m/kyr", ylab = "density")
   if (all(is.finite(x$samples$obl_ks3))){
     graphics::plot(stats::density(x$samples$obl_ks3), lwd = 2,
-                   main = "Obliquity (k+s3)", xlab = "kyr", ylab = "density")
+        main = "Obliquity (k+s3)", xlab = "kyr", ylab = "density")
   }
   if (all(is.finite(x$samples$prec_kg5))){
     graphics::plot(stats::density(x$samples$prec_kg5), lwd = 2, col = "red",
-                   xlim = range(c(x$samples$prec_kg5, x$samples$prec_kg3)),
-                   main = "Precession components", xlab = "kyr", ylab = "density")
+        xlim = range(c(x$samples$prec_kg5, x$samples$prec_kg3)),
+        main = "Precession components", xlab = "kyr", ylab = "density")
     graphics::lines(stats::density(x$samples$prec_kg2), col = "black")
     graphics::lines(stats::density(x$samples$prec_kg4), col = "green4")
     graphics::lines(stats::density(x$samples$prec_kg3), col = "blue")
     graphics::legend("topright", c("k+g5", "k+g2", "k+g4", "k+g3"), bty = "n",
-                     col = c("red", "black", "green4", "blue"), lty = 1, cex = 0.8)
+        col = c("red", "black", "green4", "blue"), lty = 1, cex = 0.8)
   }
 }

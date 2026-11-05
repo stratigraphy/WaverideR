@@ -3,17 +3,23 @@
 #' Enumerates single terms and low-order combinations and returns those whose
 #' period matches, so an unidentified peak can be checked against the theory.
 #'
-#' @param period_kyr the measured period
-#' @param age_ma age, for the precession constant used in the k-bearing terms
-#' @param tol relative tolerance (0.03 = 3\%)
-#' @param max_order 1 = single terms only, 2 = also sums/differences of two
-#' @param k_yr Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param period_kyr The measured period of the unidentified peak, in kyr (numeric, single value > 0).
+#'   Required, no default.
+#' @param age_ma Age in Ma (numeric, single value, 0 to 4429) used to take the precession constant of the
+#'   k-bearing terms from \code{\link{astrogeo22}} (ignored when \code{k_yr} is given). \code{Default=0}.
+#' @param tol Relative tolerance for a match (numeric, > 0): a term is returned when
+#'   |period - \code{period_kyr}| / \code{period_kyr} <= \code{tol}, e.g. 0.03 = 3\%. \code{Default=0.03}.
+#' @param max_order Highest order of the candidate terms (numeric): \code{1} tests single terms only, \code{2}
+#'   (or more) also their harmonics 2(term) and the sums and differences of two terms. \code{Default=2}.
+#' @param k_yr Your own precession constant k, as a period in years (numeric, > 0), used instead of the
+#'   AstroGeo22 value; \code{NULL} takes it from \code{astrogeo22(age_ma)$p_arcsec}. \code{Default=NULL}.
+#' @param data_dir Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#'   path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.
 #' @return data.frame of candidate terms sorted by |offset from the measurement|
 #' @export
 astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
-                              k_yr = NULL, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    k_yr = NULL, data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -62,8 +68,8 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -106,7 +112,7 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -156,8 +162,8 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -169,7 +175,7 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -184,7 +190,7 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -193,34 +199,34 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   if (is.null(k_yr)){
     p <- astrogeo22(age_ma, data_dir = data_dir)$p_arcsec
   } else {
     p <- 360 * 3600 / k_yr
   }
   base <- c("g2-g5", "g3-g2", "g4-g2", "g3-g5", "g4-g5", "g4-g3",
-            "g2-g1", "g3-g1", "g4-g1", "g1-g5", "s4-s3", "s3-s6",
-            "k+g5", "k+g2", "k+g3", "k+g4", "k+g1", "k+s3", "k+s4", "k+s6")
+      "g2-g1", "g3-g1", "g4-g1", "g1-g5", "s4-s3", "s3-s6",
+      "k+g5", "k+g2", "k+g3", "k+g4", "k+g1", "k+s3", "k+s4", "k+s6")
   cand <- base
   if (max_order >= 2){
     pairs <- utils::combn(base, 2, simplify = FALSE)
@@ -252,9 +258,9 @@ astro_term_search <- function(period_kyr, age_ma = 0, tol = 0.03, max_order = 2,
     k_mult[j] <- info$k_mult
   }
   out <- data.frame(term = cand[keep], period_kyr = per[keep],
-                    offset_pct = 100 * (per[keep] - period_kyr) / period_kyr,
-                    carries_k = carries_k,
-                    k_mult = k_mult,
-                    order = ifelse(grepl("[()]", cand[keep]), 2, 1), row.names = NULL)
+      offset_pct = 100 * (per[keep] - period_kyr) / period_kyr,
+      carries_k = carries_k,
+      k_mult = k_mult,
+      order = ifelse(grepl("[()]", cand[keep]), 2, 1), row.names = NULL)
   out[order(abs(out$offset_pct)), ]
 }

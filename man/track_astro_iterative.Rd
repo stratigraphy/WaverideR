@@ -28,41 +28,73 @@ track_astro_iterative(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Record to analyse (required, no default): matrix or data frame with depth in column 1 and the proxy
+value in column 2; further columns are ignored, rows with missing values are removed and the rows are sorted by depth.}
 
-\item{sedrate}{Range \code{c(lower, upper)} of the sedimentation rate (depth units per kyr).}
+\item{sedrate}{Range of the sedimentation rate in which the first (depth) track is searched (required, no default):
+numeric vector \code{c(lower, upper)}, > 0, in depth units per kyr (e.g. m/kyr for a record in metres).}
 
-\item{n_iter}{Maximum number of warped iterations \code{Default=1}. In synthetic tests (three jumps of the
-sedimentation rate, AR1 noise) the first warped iteration lowered the largest age error by about 10-15 percent
-and a second one gave nothing more (it sometimes regressed), so one iteration is the default.}
+\item{n_iter}{Maximum number of warped (time-domain) iterations (integer, >= 0; 0 returns the depth track only).
+In synthetic tests (three jumps of the sedimentation rate, AR1 noise) the first warped iteration lowered the largest
+age error by about 10-15 percent and a second one gave nothing more (it sometimes regressed), so one iteration is the
+default. \code{Default=1}.}
 
-\item{residual}{Range of the residual stretch of the time axis that is searched in the warped iterations
-(\code{c(1/residual, residual)}); the first warped iteration uses \code{residual}, later ones
-\code{sqrt(residual)} \code{Default=1.6}.}
+\item{residual}{Largest residual stretch of the time axis searched in the warped iterations (numeric, > 1): the
+residual rate is searched in \code{c(1/residual, residual)} in the first warped iteration and in
+\code{c(1/sqrt(residual), sqrt(residual))} in later ones. \code{Default=1.6}.}
 
-\item{scalogram}{Scalogram of the first (depth) iteration: \code{"chirplet_sst"} (default; in the synthetic tests
+\item{scalogram}{Scalogram of the first (depth) iteration (character): \code{"chirplet_sst"} (in the synthetic tests
 its tracks had about 35 percent lower age errors than those of \code{"superlet_sst"}, at four times the cost),
-\code{"superlet_sst"}, \code{"msst"} or \code{"cwt"} (best for records that resolve only the eccentricity,
-e.g. Klonk; see \code{\link{track_astro_auto}}).}
+\code{"superlet_sst"}, \code{"msst"} or \code{"cwt"} (best for records that resolve only the eccentricity, e.g. Klonk);
+see \code{\link{track_astro_auto}}. \code{Default=c("chirplet_sst", "superlet_sst", "msst", "cwt")}, i.e.
+\code{"chirplet_sst"}.}
 
-\item{omega_nr}{Morlet \code{omega_nr} for \code{scalogram = "cwt"} \code{Default=6}.}
+\item{omega_nr}{Number of oscillations of the Morlet wavelet for \code{scalogram = "cwt"} (numeric, > 0).
+\code{Default=6}.}
 
-\item{omega_nr_warped}{Morlet omega_0 values of the superlet-SST orders in the warped (time) iterations
-\code{Default=c(12, 18, 24)}.}
+\item{omega_nr_warped}{Morlet omega_0 values of the superlet-SST orders (\code{omega_nr} of
+\code{\link{analyse_superlet_sst}}) used in the warped (time) iterations (numeric vector, > 0); higher values give
+sharper period resolution, which the nearly stationary time domain allows. \code{Default=c(12, 18, 24)}.}
 
-\item{age_ma, k_yr, astro_periods}{Astronomical periods, see \code{\link{track_astro_auto}}.}
+\item{age_ma}{Age of the record in Ma (numeric, >= 0), used to compute the astronomical periods with
+\code{\link{astro_periods_tracking}}; ignored when \code{astro_periods} is given. \code{Default=0}.}
 
-\item{guide, guide_tolerance, duration, duration_tolerance, constraints, jump_depths}{Prior information, see
-\code{\link{track_astro_auto}} and \code{\link{track_astro_hmm}}. Constraints and jump depths are given in depth and
-are carried into the warped iterations.}
+\item{k_yr}{Precession constant (numeric, the period of the axial precession in years) passed to
+\code{\link{astro_periods_tracking}} instead of the AstroGeo22 value for \code{age_ma}; \code{NULL} uses AstroGeo22.
+\code{Default=NULL}.}
 
-\item{dj}{Spacing of the period axis \code{Default=1/50}.}
+\item{astro_periods}{Astronomical periods in kyr replacing the ones from \code{age_ma}: a numeric vector of periods or
+a data frame in the format of \code{\link{astro_periods_tracking}}; \code{NULL} computes them. \code{Default=NULL}.}
 
-\item{n_samples}{Posterior paths \code{Default=100}.}
+\item{guide}{Rough sedimentation rate curve for the first track (two-column data frame or matrix: depth, rate in
+depth units per kyr, or \code{NULL}); see \code{\link{track_astro_auto}}. \code{Default=NULL}.}
 
-\item{verbose}{Print the progress \code{Default=TRUE}.}
+\item{guide_tolerance}{Relative half width of the band around \code{guide} (numeric, > 0). \code{Default=0.4}.}
 
-\item{...}{Further arguments for \code{\link{track_astro_hmm}} (e.g. \code{sd_change}, \code{seed}).}
+\item{duration}{Approximate duration of the record in kyr (numeric, or \code{NULL}); turned into a guide when
+\code{guide = NULL}, see \code{\link{track_astro_auto}}. Strongly recommended for real records. \code{Default=NULL}.}
+
+\item{duration_tolerance}{Relative tolerance of the guide built from \code{duration} (numeric, > 0).
+\code{Default=0.5}.}
+
+\item{constraints}{Duration constraints (data frame with the columns \code{from}, \code{to} (depths), \code{duration}
+(kyr) and optionally \code{tolerance}, or \code{NULL}); see \code{\link{track_astro_auto}} and
+\code{\link{track_astro_hmm}}. Given in depth and converted to model time for the warped iterations.
+\code{Default=NULL}.}
+
+\item{jump_depths}{Depths where an abrupt change of the sedimentation rate is plausible (numeric vector in depth
+units, or \code{NULL}); see \code{\link{track_astro_hmm}}. Converted to model time for the warped iterations.
+\code{Default=NULL}.}
+
+\item{dj}{Spacing of the period axis of the scalograms, in octaves (numeric, > 0; smaller values give a finer grid
+and a slower run). \code{Default=1/50}.}
+
+\item{n_samples}{Number of paths drawn from the posterior for the credible bands (integer, > 0). \code{Default=100}.}
+
+\item{verbose}{Print the confidence and duration of every iteration (logical, TRUE or FALSE). \code{Default=TRUE}.}
+
+\item{...}{Further arguments passed to \code{\link{track_astro_auto}} (first iteration) and to
+\code{\link{track_astro_hmm}} (warped iterations), e.g. \code{sd_change}, \code{seed}.}
 }
 \value{
 A \code{wr_track} data frame in depth as from \code{\link{track_astro_hmm}} (columns depth, sedrate,
@@ -101,7 +133,8 @@ zt <- c(0, cumsum(sr[-1] * diff(t)))
 z <- seq(0, max(zt), by = 1)
 x <- approx(zt, x_t, z)$y + rnorm(length(z), sd = 1.5)
 res <- track_astro_iterative(data.frame(z, x), sedrate = c(0.8, 5))
-plot(res$depth, res$sedrate, type = "l"); lines(z, approx(zt, sr, z)$y, col = 2)
+plot(res$depth, res$sedrate, type = "l")
+lines(z, approx(zt, sr, z)$y, col = 2)
 }
 }
 \references{

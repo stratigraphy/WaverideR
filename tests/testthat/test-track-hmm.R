@@ -1,9 +1,12 @@
 test_that("the HMM engine recovers a path through a gap", {
   set.seed(1)
-  ns <- 60; nt <- 200
+  ns <- 60
+  nt <- 200
   truep <- round(30 + 10 * sin(seq(0, 3, length.out = nt)))
   logE <- matrix(rnorm(ns * nt), ns, nt)
-  for (t in 1:nt) logE[truep[t] + (-1:1), t] <- logE[truep[t] + (-1:1), t] + 2
+  for (t in 1:nt) {
+    logE[truep[t] + (-1:1), t] <- logE[truep[t] + (-1:1), t] + 2
+  }
   logE[, 80:120] <- rnorm(ns * 41)
   h <- .wr_hmm(logE, 2, 1e-3, n_samples = 20)
   expect_lt(mean(abs(h$path - truep)), 3)
@@ -27,7 +30,11 @@ test_that("track_ridge_hmm gives a continuous track and age model", {
   true_t <- c(0, cumsum(20 / Pt[-1]))
   expect_lt(abs(tail(tr$time, 1) / tail(true_t, 1) - 1), 0.03)
   expect_true(all(tr$time_lower <= tr$time_upper))
-  expect_silent({pdf(NULL); plot_track(tr, s); dev.off()})
+  expect_silent({
+    pdf(NULL)
+    plot_track(tr, s)
+    dev.off()
+  })
 })
 
 test_that("track_astro_hmm tracks the sedimentation rate with all cycles", {
@@ -76,14 +83,19 @@ test_that("deep-time periods and the automatic workflow", {
   srz <- stats::approx(zt, sr, z)$y
   j <- which(z > 150 & z < max(z) - 150)
   expect_lt(stats::median(abs(log2(res$track$sedrate[j] / srz[j]))), 0.05)
-  expect_silent({pdf(NULL); plot_track(res$track, res$scalogram, show = c(41, 23.7), flags = res$flags); dev.off()})
+  expect_silent({
+    pdf(NULL)
+    plot_track(res$track, res$scalogram, show = c(41, 23.7), flags = res$flags)
+    dev.off()
+  })
   tl <- track_astro_hmm(res$scalogram, age_ma = 0, sedrate = c(0.8, 4), long_weight = 1, n_samples = 10)
   expect_true(all(is.finite(tl$sedrate)))
 })
 
 test_that("the constrained Viterbi path meets the duration constraint", {
   set.seed(1)
-  ns <- 40; nt <- 300
+  ns <- 40
+  nt <- 300
   logE <- matrix(rnorm(ns * nt, sd = 0.5), ns, nt)
   logE[25:35, ] <- logE[25:35, ] + 1
   zc <- seq(0, 3, length.out = nt)

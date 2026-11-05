@@ -17,23 +17,36 @@ astro_ctest(
 )
 }
 \arguments{
-\item{windows}{named list, term -> c(low, high) in kyr, as in astro_invert()}
+\item{windows}{Measured period windows of the astronomical terms, in kyr on the tuned time scale (named list;
+each element a numeric vector \code{c(low, high)}). Allowed names: \code{"e405"}, \code{"k+s3"} (obliquity),
+\code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"} and \code{"k+g3"} (precession), e.g.
+\code{list("e405" = c(400, 410), "k+s3" = c(29, 30.4))}. A draw is accepted only if every predicted period,
+rescaled by (sampled 405-kyr period)/\code{anchor_kyr}, falls inside its window. Required, no default.}
 
-\item{age_ma}{age of the record, or c(min, max)}
+\item{age_ma}{Age of the record in Ma (numeric): either \code{c(min, max)}, or a single value, in which case
+the range age_ma - 5 to age_ma + 5 Ma is used. Ages are sampled uniformly in this range and scale the
+uncertainty of the secular frequencies by sqrt(age/100 Myr). Required, no default.}
 
-\item{nsim}{number of accepted draws to collect}
+\item{nsim}{Number of accepted (consistent) draws to collect (integer, > 0). \code{Default=3000}.}
 
-\item{k_range}{prior range for the precession constant, kyr}
+\item{k_range}{Prior range of the precession constant k in kyr (numeric vector \code{c(min, max)});
+k is drawn uniformly in this range. \code{Default=c(10, 34)}.}
 
-\item{anchor_kyr}{the period assumed when the record was tuned}
+\item{anchor_kyr}{Period (kyr) that was assumed for the 405-kyr eccentricity cycle when the record was tuned
+(numeric, > 0); the measured windows are rescaled by (sampled 405-kyr period)/\code{anchor_kyr}.
+\code{Default=405}.}
 
-\item{seed}{Random seed for reproducibility.}
+\item{seed}{Seed of the random number generator (integer), passed to \code{set.seed()} so that the
+Monte Carlo results can be reproduced. \code{Default=1}.}
 
-\item{block}{Number of random draws per block.}
+\item{block}{Number of random draws made per iteration of the vectorised search (integer, > 0); larger values
+are faster but use more memory. \code{Default=2e5}.}
 
-\item{max_attempts}{Maximum number of draws before the search is aborted.}
+\item{max_attempts}{Maximum total number of draws before the search stops with an error because too few
+consistent draws were found (numeric, > 0). \code{Default=5e7}.}
 
-\item{verbose}{Print progress messages.}
+\item{verbose}{Print a message with the number of accepted draws and the acceptance rate
+(logical, TRUE or FALSE). \code{Default=TRUE}.}
 }
 \description{
 After Zeeden et al. (2023): draw a precession constant and a set of secular

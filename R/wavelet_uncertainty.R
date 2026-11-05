@@ -7,49 +7,46 @@
 #' continuous wavelet transform using a Morlet wavelet.
 #'
 #'
-#' @param tracked_cycle Curve of the cycle tracked using the \code{\link{track_period_wavelet}} function
-#' Any input (matrix or data frame) in which the first column is depth or
-#' time and the second column is period should work
-#' @param period_of_tracked_cycle period of the tracked curve (in kyr).
-#' @param wavelet wavelet object created using the \code{\link{analyse_wavelet}} function.
-#' @param multi multiple of the standard deviation to be used for defining uncertainty \code{Default=1}.
-#' @param verbose Print text \code{Default=FALSE}.
-#' @param genplot_time plot time curves with a upper and lower uncertainty based on Gabor uncertainty principle applied to the
-#' continuous wavelet transform using a Morlet wavelet, which uses the omega number (the central angular
-#' frequency of the Morlet wavelet) at one standard deviation to define the analytical uncertainty \code{Default=TRUE}
-#' @param genplot_uncertainty Plot period curves with upper and lower uncertainty based on Gabor uncertainty principle applied to the
-#' continuous wavelet transform using a Morlet wavelet, which uses the omega number
-#' (the central angular frequency of the Morlet wavelet) to define uncertainty at one standard deviation \code{Default=TRUE}
-#' @param genplot_uncertainty_wt generate a wavelet plot with the uncertainty based on Gabor uncertainty
-#' principle applied to the continuous wavelet transform using a Morlet wavelet superimposed on top of
-#'original wavelet plot. The red curve is period of the tracked curve plus the analytical uncertainty.
-#'The blue curve is period of the tracked curve min the analytical uncertainty.
-#'The  black curve is the curve tracked using the '\code{Default=tracked_cycle_curve} function \code{Default=TRUE}
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param tracked_cycle Curve of the tracked cycle (data frame with depth or time in column 1 and the period of the
+#' tracked cycle, in the same unit, in column 2; further columns are ignored), e.g. from
+#' \code{\link{track_period_wavelet}} completed with \code{\link{completed_series}} and smoothed with
+#' \code{\link{loess_auto}}. Must be given (the \code{NULL} default fails). \code{Default=NULL}.
+#' @param period_of_tracked_cycle Duration of the tracked cycle in time (numeric, > 0, in kyr, e.g. 405 for the long
+#' eccentricity cycle), passed to \code{\link{curve2time}} to convert the period curves into time. Must be given.
+#' \code{Default=NULL}.
+#' @param wavelet Wavelet object created with \code{\link{analyse_wavelet}} (class \code{analyze.wavelet}); its
+#' \code{omega_nr} sets the width of the Gabor uncertainty, and it is plotted with \code{genplot_uncertainty_wt}. Must
+#' be given. \code{Default=NULL}.
+#' @param multi Multiple of the standard deviation of the Gabor uncertainty (in frequency) used for the upper and lower
+#' curves (numeric, > 0; e.g. 2 for about 95 percent). \code{Default=1}.
+#' @param verbose Print the total duration, the uncertainty of the duration and the relative uncertainty per cycle
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param genplot_time Plot the depth-time curves (black: tracked period, red and blue: period plus and minus
+#' \code{multi} standard deviations of the Gabor uncertainty of the Morlet wavelet) (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param genplot_uncertainty Plot the tracked period against depth with the upper (red) and lower (blue) period
+#' curves of \code{multi} standard deviations (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param genplot_uncertainty_wt Plot the wavelet spectrum (\code{\link{plot_wavelet}}) with the tracked period
+#' (black), the period plus (red) and minus (blue) the uncertainty of \code{multi} standard deviations, and the area in
+#' between shaded in grey (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param keep_editable Keep the graphical parameters after plotting, so that extra features can be added to the last
+#' plot (logical, TRUE or FALSE); \code{FALSE} restores the previous settings. \code{Default=FALSE}.
 
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
-#'
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
 #'@return Results pertaining to the uncertainty calculated based on the Gabor uncertainty principle.\cr
 #'If the genplot_time is TRUE then a depth time plot will be plotted with 3 lines, the mean age,age plus
 #' x times the standard deviation and age minus x times the standard deviation . \cr
@@ -91,7 +88,7 @@
 #'
 #'Gabor, Dennis. Theory of communication. Part 1: The analysis of information.
 #' Journal of the Institution of Electrical Engineers-part III: radio and
-#' communication engineering 93, no. 26 (1946): 429-441.\url{https://doi.org/10.1049/ji-3-2.1946.0074}
+#' communication engineering 93, no. 26 (1946): 429-441. \doi{10.1049/ji-3-2.1946.0074}
 #'
 #'Russell, Brian, and Jiajun Han.Jean Morlet and the continuous wavelet transform.
 #'CREWES Res. Rep 28 (2016): 115. \url{https://www.crewes.org/Documents/ResearchReports/2016/CRR201668.pdf}
@@ -158,7 +155,8 @@
 #'   color_brewer= "grDevices"
 #' )
 #'}
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom grDevices dev.new
 #' @importFrom grDevices colorRampPalette
@@ -170,18 +168,20 @@
 #' @importFrom grDevices hcl.colors
 
 wavelet_uncertainty <- function(tracked_cycle = NULL,
-                                period_of_tracked_cycle = NULL,
-                                wavelet = NULL,
-                                multi = 1,
-                                verbose = FALSE,
-                                genplot_time = FALSE,
-                                genplot_uncertainty = FALSE,
-                                genplot_uncertainty_wt = FALSE,
-                                keep_editable = FALSE,
-                                palette_name="rainbow",
-                                color_brewer= "grDevices",
-  colour_brewer = NULL){
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+    period_of_tracked_cycle = NULL,
+    wavelet = NULL,
+    multi = 1,
+    verbose = FALSE,
+    genplot_time = FALSE,
+    genplot_uncertainty = FALSE,
+    genplot_uncertainty_wt = FALSE,
+    keep_editable = FALSE,
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    colour_brewer = NULL){
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   data <- tracked_cycle[, c(1, 2)]
   ncycles <- wavelet$omega_nr
   b <- (2 * sqrt(2 * log(2)))
@@ -203,21 +203,21 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
   sedrate <-  cbind(data[, 1], 1 / (data$f0))
 
   time_min <- curve2time(
-    tracked_cycle_curve = sedrate_min,
-    tracked_cycle_period = period_of_tracked_cycle,
-    genplot = FALSE
+      tracked_cycle_curve = sedrate_min,
+      tracked_cycle_period = period_of_tracked_cycle,
+      genplot = FALSE
   )
 
   time_plus <- curve2time(
-    tracked_cycle_curve = sedrate_plus,
-    tracked_cycle_period = period_of_tracked_cycle,
-    genplot = FALSE
+      tracked_cycle_curve = sedrate_plus,
+      tracked_cycle_period = period_of_tracked_cycle,
+      genplot = FALSE
   )
 
   time <- curve2time(
-    tracked_cycle_curve = sedrate,
-    tracked_cycle_period = period_of_tracked_cycle,
-    genplot = FALSE
+      tracked_cycle_curve = sedrate,
+      tracked_cycle_period = period_of_tracked_cycle,
+      genplot = FALSE
   )
 
 
@@ -239,10 +239,10 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
     }
     wr_open_device(width = 7, height = 7)
     plot(
-      time_min,
-      type = "l",
-      col = "red",
-      ylim = c(0, time_plus[nrow(time_plus), 2])
+        time_min,
+        type = "l",
+        col = "red",
+        ylim = c(0, time_plus[nrow(time_plus), 2])
     )
     lines(time_plus, col = "blue")
     lines(time, col = "black", lwd = 3)
@@ -260,22 +260,22 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
     min_y <- min(1 / (data$f0 + data$sd_morlet * multi))
 
     plot(
-      data[, 1],
-      1 / data$f0,
-      type = "l",
-      ylim = c(min_y, max_y),
-      lwd = 2,
-      xlab = "depth",
-      ylab = "period (m)"
+        data[, 1],
+        1 / data$f0,
+        type = "l",
+        ylim = c(min_y, max_y),
+        lwd = 2,
+        xlab = "depth",
+        ylab = "period (m)"
     )
     lines(data[, 1],
-          1 / (data$f0 - data$sd_morlet * multi),
-          col = "red",
-          lwd = 2)
+        1 / (data$f0 - data$sd_morlet * multi),
+        col = "red",
+        lwd = 2)
     lines(data[, 1],
-          1 / (data$f0 + data$sd_morlet * multi),
-          col = "blue",
-          lwd = 2)
+        1 / (data$f0 + data$sd_morlet * multi),
+        col = "blue",
+        lwd = 2)
   }
 
 
@@ -285,55 +285,55 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
       on.exit(par(oldpar))
     }
 
- res <- plot_wavelet(
-      wavelet = wavelet,
-      n.levels = 100,
-      palette_name = palette_name,
-      color_brewer= color_brewer,
-      useRaster = TRUE,
-      periodlab = "Period (metres)",
-      x_lab = "depth (metres)",
-      keep_editable = TRUE,
-      add_lines = NULL,
-      add_points= NULL,
-      add_abline_h = NULL,
-      add_abline_v = NULL,
-      add_MTM_peaks = FALSE,
-      add_data = TRUE,
-      add_avg = FALSE,
-      add_MTM = FALSE,
-      demean_mtm = TRUE,
-      detrend_mtm = TRUE,
-      padfac_mtm = 5,
-      tbw_mtm = 3)
+    res <- plot_wavelet(
+        wavelet = wavelet,
+        n.levels = 100,
+        palette_name = palette_name,
+        color_brewer= color_brewer,
+        useRaster = TRUE,
+        periodlab = "Period (metres)",
+        x_lab = "depth (metres)",
+        keep_editable = TRUE,
+        add_lines = NULL,
+        add_points= NULL,
+        add_abline_h = NULL,
+        add_abline_v = NULL,
+        add_MTM_peaks = FALSE,
+        add_data = TRUE,
+        add_avg = FALSE,
+        add_MTM = FALSE,
+        demean_mtm = TRUE,
+        detrend_mtm = TRUE,
+        padfac_mtm = 5,
+        tbw_mtm = 3)
 
 
 
     lines(data[, 1], log2(1 / data$f0), lwd = 2)
     lines(data[, 1], log2(1 / (data$f0 - data$sd_morlet * multi)), col =
-            "red", lwd = 2)
-          lines(data[, 1], log2(1 / (data$f0 + data$sd_morlet * multi)), col =
-                  "blue", lwd = 2)
+        "red", lwd = 2)
+    lines(data[, 1], log2(1 / (data$f0 + data$sd_morlet * multi)), col =
+        "blue", lwd = 2)
 
-          combined_sedrate <-
-            cbind(data[, 1], data$f0, data$sd_morlet * multi)
+    combined_sedrate <-
+        cbind(data[, 1], data$f0, data$sd_morlet * multi)
 
-          xcords <-
-            c(combined_sedrate[, 1],
-              sort(combined_sedrate[, 1], decreasing = TRUE))
-          xcords
-          data_sort1 <-
-            combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
-          ycords <-
-            c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
-              1 / (data_sort1[, 2] - data_sort1[, 3]))
+    xcords <-
+        c(combined_sedrate[, 1],
+            sort(combined_sedrate[, 1], decreasing = TRUE))
+    xcords
+    data_sort1 <-
+        combined_sedrate[order(combined_sedrate[, 1], decreasing = TRUE), ]
+    ycords <-
+        c(1 / (combined_sedrate[, 2] + combined_sedrate[, 3]),
+            1 / (data_sort1[, 2] - data_sort1[, 3]))
 
-          polygon(
-            x = xcords,
-            y = log2(ycords),
-            col = rgb(0.5, 0.5, 0.5, 0.5),
-            border = "black"
-          )
+    polygon(
+        x = xcords,
+        y = log2(ycords),
+        col = rgb(0.5, 0.5, 0.5, 0.5),
+        border = "black"
+    )
 
   }
 
@@ -341,14 +341,14 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
   data$time_min_sd <- time_min[, 2]
   data$time_plus_sd <- time_plus[, 2]
   colnames(data) <- c(
-    "depth",
-    "period",
-    "frequency",
-    "uncertainty in frequency FWHM",
-    "uncertainty in frequency x_times SD",
-    "time mean",
-    "time plus x_times sd",
-    "time min x_times sd"
+      "depth",
+      "period",
+      "frequency",
+      "uncertainty in frequency FWHM",
+      "uncertainty in frequency x_times SD",
+      "time mean",
+      "time plus x_times sd",
+      "time min x_times sd"
   )
-return(data)
+  return(data)
 }

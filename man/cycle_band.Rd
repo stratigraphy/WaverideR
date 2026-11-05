@@ -7,15 +7,19 @@
 cycle_band(period, record_length = NULL, tol = NULL, mult = 1)
 }
 \arguments{
-\item{period}{the measured cycle period (kyr) or wavelength (m)}
+\item{period}{Measured period of the cycle (single numeric value, > 0): in kyr for a tuned record or in metres
+for a depth series. Required, no default.}
 
-\item{record_length}{length of the analysed record, same units as `period`
-(kyr for a tuned record, m for a depth series). The half-width used is
-`mult / record_length` in frequency.}
+\item{record_length}{Length of the analysed record, in the same unit as \code{period} (numeric, > 0; kyr for a
+tuned record, metres for a depth series). The half-width of the band is \code{mult / record_length} in
+frequency (the Rayleigh resolution); a warning is given when the record holds fewer than two repeats of the
+cycle. \code{NULL} uses \code{tol} instead. \code{Default=NULL}.}
 
-\item{tol}{alternative: a relative half-width (0.05 = +-5\%)}
+\item{tol}{Relative half-width of the period range (numeric, between 0 and 1; \code{0.05} means +/-5\%), used
+only when \code{record_length} is \code{NULL}; \code{NULL} then uses 0.05. \code{Default=NULL}.}
 
-\item{mult}{multiples of the Rayleigh resolution to use (1 = +-1 bandwidth)}
+\item{mult}{Number of Rayleigh bandwidths used as half-width when \code{record_length} is given (numeric, > 0;
+\code{1} means +/-1 bandwidth). \code{Default=1}.}
 }
 \value{
 c(min, max) period range

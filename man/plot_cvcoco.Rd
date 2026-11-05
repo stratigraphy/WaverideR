@@ -7,10 +7,20 @@
 plot_cvcoco(result = NULL, pages = c("spectra", "result", "pcoco", "audit"))
 }
 \arguments{
-\item{result}{Output of \code{\link{cvcoco}}.}
+\item{result}{cvCOCO result to plot: the list returned by \code{\link{cvcoco}}. Required (\code{Default=NULL}
+gives an error).}
 
-\item{pages}{Pages to draw, any of "spectra", "result", "pcoco",
-"audit". \code{Default=c("spectra", "result", "pcoco", "audit")}}
+\item{pages}{Which pages to draw, in this order (character vector with any of):
+\itemize{
+\item \code{"spectra"}: the two depth series (folds A and B) and the two held-out validation spectra with their
+frozen astronomical targets;
+\item \code{"result"}: the directional and consensus correlation, global p, local p and the number of contributing
+astronomical periods against sedimentation rate (cm/kyr);
+\item \code{"pcoco"}: the consensus pCOCO curve with its maximum marked;
+\item \code{"audit"}: histograms of the Monte Carlo null distributions of the consensus and directional maxima
+with the observed statistics.
+}
+Values that are not in this list are ignored. \code{Default=c("spectra", "result", "pcoco", "audit")}.}
 }
 \value{
 Invisibly returns \code{NULL}; called for its plots.

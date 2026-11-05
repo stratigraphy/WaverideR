@@ -6,50 +6,52 @@
 #' The data is first normalised using the average spectral power curves
 #'  for a given percentile based on results of the \code{\link{model_red_noise_wt}} function
 #'
-#'@param red_noise Red noise curves generated using the \code{\link{model_red_noise_wt}} function
-#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function
-#'@param percentile Percentile value (0-1) of the rednoise runs which is used to normalize the data for.
-#'To account for the distribution/distortion of the spectral power distribution based on the analytical technique and
-#'random red-noise the data is normalised against a percentile based red-noise curve which is the results of the
-#''\code{\link{model_red_noise_wt}} modelling runs.
-#'@param sedrate_low Minimum sedimentation rate (cm/kyr)for which the sum of maximum spectral power is calculated for.
-#'@param sedrate_high Maximum sedimentation rate (cm/kyr) for which the sum of maximum spectral power is calculated  for.
-#'@param spacing Spacing (cm/kyr) between sedimentation rates
-#'@param cycles Astronomical cycles (in kyr) for which the combined sum of maximum spectral power is calculated for
-#'@param x_lab label for the y-axis \code{Default="depth"}
-#'@param y_lab label for the y-axis \code{Default="sedrate"}
-#'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
-#'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes
-#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-#'   parallel computing. Results do not depend on the number of cores.
-#'@param genplot Generate plot \code{Default="FALSE"}
-#'@param palette_name Name of the color palette which is used for plotting.
-#'The color palettes than can be chosen depends on which the R package is specified in
-#'the color_brewer parameter. The included R packages from which palettes can be chosen
-#'from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages \code{Default=rainbow}.
-#'The R package 'viridis' has the color palette options: “magma”, “plasma”,
-#'“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-#'To see the color palette options of the The R pacakge 'RColorBrewer' run
-#'the wr_brewer_palettes() function
-#'The R package 'colorRamps' has the color palette options:"blue2green",
-#'"blue2green2red", "blue2red",	"blue2yellow", "colorRamps",	"cyan2yellow",
-#'"green2red", "magenta2green", "matlab.like", "matlab.like2" and	"ygobb"
-#'The R package 'grDevices' has the built in  palette options:"rainbow",
-#'"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-#'To see even more color palette options of the The R pacakge 'grDevices' run
-#'the grDevices::hcl.pals() function
-#'@param color_brewer Name of the R package from which the color palette is chosen from.
-#'The included R packages from which palettes can be chosen
-#'are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-#'There are many options to choose from so please
-#'read the documentation of these packages. "\code{Default=grDevices}
-#'@param plot_res plot options are 1: sum max power or 2: nr of components \code{Default=2}
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
-#' @param verbose Print text \code{Default=FALSE}.
+#'@param red_noise Red-noise power curves (required): the output of \code{\link{model_red_noise_wt}} for the same
+#'\code{wavelet}, a matrix with one row per period of \code{wavelet} and one column per red-noise simulation.
+#'\code{Default=NULL}.
+#'@param wavelet Wavelet object (required) created with \code{\link{analyse_wavelet}}, of a record with depth in
+#'metres. \code{Default=NULL}.
+#'@param percentile Percentile of the red-noise power (numeric, between 0 and 1) by which the wavelet power is
+#'weighted: at every period the threshold is the \code{percentile} quantile of a normal distribution with the mean and
+#'standard deviation of the \code{red_noise} runs. This accounts for the distortion of the power spectrum by the
+#'analytical technique and by random red noise. Required. \code{Default=NULL}.
+#'@param sedrate_low Lowest sedimentation rate tested, in cm/kyr (numeric, > 0). Required. \code{Default=NULL}.
+#'@param sedrate_high Highest sedimentation rate tested, in cm/kyr (numeric, > \code{sedrate_low}). Required.
+#'\code{Default=NULL}.
+#'@param spacing Step between the tested sedimentation rates, in cm/kyr (numeric, > 0). Required. \code{Default=NULL}.
+#'@param cycles Periods of the astronomical cycles, in kyr (numeric vector, e.g. \code{c(405, 125, 95, 40, 21)}), whose
+#'expected periods in depth (sedimentation rate x period) are searched for in the scalogram. Required.
+#'\code{Default=c(NULL)}.
+#'@param x_lab Label of the depth axis of the plot (character). \code{Default="depth"}.
+#'@param y_lab Label of the sedimentation rate axis of the plot (character). \code{Default="sedrate"}.
+#'@param run_multicore Run the calculation for the positions along the record in parallel on several cores (logical).
+#'\code{Default=FALSE}.
+#'@param n_cores Number of cores used when \code{run_multicore = TRUE} (integer, or \code{NULL}). \code{NULL} uses an
+#'automatic, safe number: physical cores minus one, at most 4, and limited by the free memory; set
+#'\code{options(waverider.n_cores = ...)} to change it. A value > 1 also switches on parallel computing. Results do
+#'not depend on the number of cores. \code{Default=NULL}.
+#'@param genplot Plot the result (selected with \code{plot_res}) as a depth versus sedimentation rate map with its
+#'average curve (logical). \code{Default=FALSE}.
+#' @param palette_name Name of the colour palette of the power (colour) scale, a character string. Which names are
+#' valid depends on \code{color_brewer}:
+#' \itemize{
+#' \item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+#' or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+#' example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+#' \item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+#' \item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+#' \item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+#' \item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+#' }
+#' Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.
+#' @param color_brewer Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+#' \code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+#' \pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.
+#'@param plot_res Which result to plot when \code{genplot = TRUE} (integer): \code{1} the normalised sum of maximum
+#'spectral power, \code{2} the number of astronomical components found. \code{Default=1}.
+#'@param keep_editable Keep the graphical parameters of the plot after the function returns, so that extra elements
+#'can be added (logical); only used with \code{genplot = TRUE}. \code{Default=FALSE}.
+#' @param verbose Show the progress of the calculation (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author
 #'Based on the \link[astrochron]{asm} and \link[astrochron]{eAsm}
@@ -121,7 +123,8 @@
 #'Subplot 3 is a color scale for subplot 1.
 #'
 #'
-#' @param colour_brewer British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.
+#' @param colour_brewer British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+#' \code{color_brewer}. \code{Default=NULL}.
 #' @export
 #' @importFrom stats qnorm
 #' @importFrom stats quantile
@@ -152,24 +155,26 @@
 
 
 sum_power_sedrate  <- function(red_noise = NULL,
-                               wavelet = NULL,
-                               percentile = NULL,
-                               sedrate_low = NULL,
-                               sedrate_high = NULL,
-                               spacing = NULL,
-                               cycles = c(NULL),
-                               x_lab = "depth",
-                               y_lab = "sedrate",
-                               run_multicore = FALSE,
-                               n_cores = NULL,
-                               genplot = FALSE,
-                               plot_res = 1,
-                               keep_editable = FALSE,
-                               palette_name = "rainbow",
-                               color_brewer="grDevices",
-                               verbose=FALSE,
-  colour_brewer = NULL) {
-  if (!is.null(colour_brewer)) color_brewer <- colour_brewer  # British spelling synonym
+    wavelet = NULL,
+    percentile = NULL,
+    sedrate_low = NULL,
+    sedrate_high = NULL,
+    spacing = NULL,
+    cycles = c(NULL),
+    x_lab = "depth",
+    y_lab = "sedrate",
+    run_multicore = FALSE,
+    n_cores = NULL,
+    genplot = FALSE,
+    plot_res = 1,
+    keep_editable = FALSE,
+    palette_name = "viridis",
+    color_brewer = "viridis",
+    verbose=FALSE,
+    colour_brewer = NULL) {
+  if (!is.null(colour_brewer)) {
+    color_brewer <- colour_brewer
+  }  # British spelling synonym
   my.data <- cbind(wavelet$x, wavelet$y)
   my.w <- wavelet
 
@@ -190,7 +195,7 @@ sum_power_sedrate  <- function(red_noise = NULL,
   if (nper > 6) {
     i <- 3:(nper - 3)
     maxdetect[i, ] <- (Powert[i, , drop = FALSE] - Powert[i + 3, , drop = FALSE] > 0) &
-      (Powert[i, , drop = FALSE] - Powert[i - 2, , drop = FALSE] > 0)
+        (Powert[i, , drop = FALSE] - Powert[i - 2, , drop = FALSE] > 0)
   }
 
   # Red-noise threshold curve (percentile of the red-noise power at every period).
@@ -225,72 +230,72 @@ sum_power_sedrate  <- function(red_noise = NULL,
   tol <- sqrt(.Machine$double.eps)
 
   fit <-
-    wr_lapply(seq_len(simulations), function(ijk) {
-      pk <- periods[maxdetect[, ijk]]
-      fits <- matrix(0, nrow = n_sed, ncol = 2)
-      if (length(pk) == 0L || n_cyc == 0L) {
-        return(fits)
-      }
-      Ps <- pmax(Powert[, ijk], 0) * probabillity
-      rng <- range(Ps)
+      wr_lapply(seq_len(simulations), function(ijk) {
+        pk <- periods[maxdetect[, ijk]]
+        fits <- matrix(0, nrow = n_sed, ncol = 2)
+        if (length(pk) == 0L || n_cyc == 0L) {
+          return(fits)
+        }
+        Ps <- pmax(Powert[, ijk], 0) * probabillity
+        rng <- range(Ps)
 
-      # Sparse table for window maxima of the thresholded power.
-      nlev <- floor(log2(nper)) + 1L
-      st <- vector("list", nlev)
-      st[[1]] <- Ps
-      if (nlev > 1L) {
-        for (lv in 2:nlev) {
-          prev <- st[[lv - 1L]]
-          len <- nper - 2^(lv - 1L) + 1L
-          st[[lv]] <- pmax(prev[1:len], prev[(1:len) + 2^(lv - 2L)])
+        # Sparse table for window maxima of the thresholded power.
+        nlev <- floor(log2(nper)) + 1L
+        st <- vector("list", nlev)
+        st[[1]] <- Ps
+        if (nlev > 1L) {
+          for (lv in 2:nlev) {
+            prev <- st[[lv - 1L]]
+            len <- nper - 2^(lv - 1L) + 1L
+            st[[lv]] <- pmax(prev[1:len], prev[(1:len) + 2^(lv - 2L)])
+          }
         }
-      }
 
-      # Nearest local maximum for every expected cycle (the first one in case of ties).
-      pos <- findInterval(centre, pk)                    # last pk <= centre
-      lower <- pmax(pos, 1L)
-      upper <- pmin(pos + 1L, length(pk))
-      dl <- abs(pk[lower] - centre)
-      du <- abs(pk[upper] - centre)
-      near <- matrix(ifelse(dl <= du + tol, lower, upper), nrow = n_sed)
-      spectra <- matrix(pk[near], nrow = n_sed)
-      diffs <- abs(spectra - centre)
+        # Nearest local maximum for every expected cycle (the first one in case of ties).
+        pos <- findInterval(centre, pk)                    # last pk <= centre
+        lower <- pmax(pos, 1L)
+        upper <- pmin(pos + 1L, length(pk))
+        dl <- abs(pk[lower] - centre)
+        du <- abs(pk[upper] - centre)
+        near <- matrix(ifelse(dl <= du + tol, lower, upper), nrow = n_sed)
+        spectra <- matrix(pk[near], nrow = n_sed)
+        diffs <- abs(spectra - centre)
 
-      for (ij in seq_len(n_sed)) {
-        nr_i <- near[ij, ]
-        d_i <- diffs[ij, ]
-        # Several cycles can share the same peak: keep the closest (the last one in case of ties).
-        keep <- rep(FALSE, n_cyc)
-        for (u in unique(nr_i)) {
-          idx <- which(nr_i == u)
-          dm <- d_i[idx]
-          keep[idx[max(which(dm == min(dm)))]] <- TRUE
+        for (ij in seq_len(n_sed)) {
+          nr_i <- near[ij, ]
+          d_i <- diffs[ij, ]
+          # Several cycles can share the same peak: keep the closest (the last one in case of ties).
+          keep <- rep(FALSE, n_cyc)
+          for (u in unique(nr_i)) {
+            idx <- which(nr_i == u)
+            dm <- d_i[idx]
+            keep[idx[max(which(dm == min(dm)))]] <- TRUE
+          }
+          sp_i <- spectra[ij, ]
+          keep <- keep & sp_i > short_p[ij, ] & sp_i < long_p[ij, ]
+          keep[is.na(keep)] <- FALSE
+          if (!any(keep)) {
+            next
+          }
+          sel <- which(keep)
+          sel <- sel[order(-sp_i[sel])]
+          mx <- numeric(length(sel))
+          for (s in seq_along(sel)) {
+            cc <- sel[s]
+            lv <- win_lev[ij, cc]
+            t1 <- st[[lv + 1L]]
+            mx[s] <- max(t1[lo_idx[ij, cc]], t1[hi_idx[ij, cc] - 2^lv + 1L])
+          }
+          n_comp <- sum(mx > 0)
+          calc <- ((sum(mx) - rng[1]) / (rng[2] - rng[1])) * (n_comp / n_cyc)
+          if (!is.finite(calc)) {
+            calc <- 0
+          }
+          fits[ij, 1] <- calc
+          fits[ij, 2] <- n_comp
         }
-        sp_i <- spectra[ij, ]
-        keep <- keep & sp_i > short_p[ij, ] & sp_i < long_p[ij, ]
-        keep[is.na(keep)] <- FALSE
-        if (!any(keep)) {
-          next
-        }
-        sel <- which(keep)
-        sel <- sel[order(-sp_i[sel])]
-        mx <- numeric(length(sel))
-        for (s in seq_along(sel)) {
-          cc <- sel[s]
-          lv <- win_lev[ij, cc]
-          t1 <- st[[lv + 1L]]
-          mx[s] <- max(t1[lo_idx[ij, cc]], t1[hi_idx[ij, cc] - 2^lv + 1L])
-        }
-        n_comp <- sum(mx > 0)
-        calc <- ((sum(mx) - rng[1]) / (rng[2] - rng[1])) * (n_comp / n_cyc)
-        if (!is.finite(calc)) {
-          calc <- 0
-        }
-        fits[ij, 1] <- calc
-        fits[ij, 2] <- n_comp
-      }
-      fits
-    }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
+        fits
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "list", progress = verbose)
 
   power_max_mat <- matrix(NA_real_, ncol = length(my.w$x), nrow = n_sed)
   nr_compenents_mat <- matrix(NA_real_, ncol = length(my.w$x), nrow = n_sed)
@@ -304,10 +309,10 @@ sum_power_sedrate  <- function(red_noise = NULL,
   y_axis <- unlist(testsedrates)
 
   results <- list(
-    power_max_mat = power_max_mat,
-    nr_compenents_ma = nr_compenents_mat,
-    depth = my.data[, 1],
-    y_axis = as.numeric(unlist(testsedrates))
+      power_max_mat = power_max_mat,
+      nr_compenents_ma = nr_compenents_mat,
+      depth = my.data[, 1],
+      y_axis = as.numeric(unlist(testsedrates))
   )
 
   if (genplot == TRUE) {
@@ -319,10 +324,10 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
     layout.matrix <- matrix(c(1, 2, 3), nrow = 1, ncol = 3)
     layout(
-      mat = layout.matrix,
-      heights = c(1, 1, 1),
-      # Heights of the two rows
-      widths = c(8, 2, 2)
+        mat = layout.matrix,
+        heights = c(1, 1, 1),
+        # Heights of the two rows
+        widths = c(8, 2, 2)
     )
 
     par(mar = c(4, 4, 2, 0))
@@ -332,9 +337,9 @@ sum_power_sedrate  <- function(red_noise = NULL,
 
     n.levels = 100
     power_max_mat.levels = quantile(pmax_avg, probs = seq(
-      from = 0,
-      to = 1,
-      length.out = n.levels + 1
+        from = 0,
+        to = 1,
+        length.out = n.levels + 1
     ))
 
 
@@ -347,14 +352,14 @@ sum_power_sedrate  <- function(red_noise = NULL,
     y_axis <- as.numeric(y_axis)
 
     image(
-      x = depth,
-      y = y_axis,
-      z = (pmax_avg),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      xlab = x_lab,
-      ylab = y_lab,
-      useRaster = TRUE
+        x = depth,
+        y = y_axis,
+        z = (pmax_avg),
+        col = key.cols,
+        breaks = power_max_mat.levels,
+        xlab = x_lab,
+        ylab = y_lab,
+        useRaster = TRUE
     )
 
     r_sum <- colMeans(pmax_avg)
@@ -362,14 +367,14 @@ sum_power_sedrate  <- function(red_noise = NULL,
     par(new=FALSE, mar = c(4, 0, 2, 0.5))
 
     plot(
-      y = y_axis,
-      x = r_sum,
-      type = "l",
-      ylim = c(min(y_axis), max(y_axis)),
-      yaxs = "i",
-      yaxt = "n",
-      xlab = "normalized power",
-      ylab = y_lab
+        y = y_axis,
+        x = r_sum,
+        type = "l",
+        ylim = c(min(y_axis), max(y_axis)),
+        yaxs = "i",
+        yaxt = "n",
+        xlab = "normalized power",
+        ylab = y_lab
     )
 
     par(new=FALSE, mar = c(4, 0.5, 2, 5))
@@ -383,53 +388,52 @@ sum_power_sedrate  <- function(red_noise = NULL,
     lab = NULL
 
     key.marks = round(seq(
-      from = 0,
-      to = 1,
-      length.out = n.ticks
+        from = 0,
+        to = 1,
+        length.out = n.ticks
     ) *
-      n.levels)
+        n.levels)
     key.labels = formatC(as.numeric(power_max_mat.levels),
-                         digits = label.digits,
-                         format = label.format)[key.marks +
-                                                  1]
+        digits = label.digits,
+        format = label.format)[key.marks +
+        1]
 
 
     image(
-      1,
-      seq(from = 0, to = n.levels),
-      matrix(power_max_mat.levels,
-             nrow = 1),
-      col = key.cols,
-      breaks = power_max_mat.levels,
-      useRaster = TRUE,
-      xaxt = "n",
-      yaxt = "n",
-      xlab = "",
-      ylab = ""
+        1,
+        seq(from = 0, to = n.levels),
+        matrix(power_max_mat.levels,
+            nrow = 1),
+        col = key.cols,
+        breaks = power_max_mat.levels,
+        useRaster = TRUE,
+        xaxt = "n",
+        yaxt = "n",
+        xlab = "",
+        ylab = ""
     )
 
 
     axis(
-      4,
-      lwd = lwd.axis,
-      at = key.marks,
-      labels = NA,
-      tck = 0.02,
-      tcl = (par()$usr[2] - par()$usr[1]) *
+        4,
+        lwd = lwd.axis,
+        at = key.marks,
+        labels = NA,
+        tck = 0.02,
+        tcl = (par()$usr[2] - par()$usr[1]) *
         width - 0.04
     )
     mtext(
-      key.labels,
-      side = 4,
-      at = key.marks,
-      line = 0.5,
-      las = 2,
-      font = par()$font.axis,
-      cex = par()$cex.axis
+        key.labels,
+        side = 4,
+        at = key.marks,
+        line = 0.5,
+        las = 2,
+        font = par()$font.axis,
+        cex = par()$cex.axis
     )
 
     box(lwd = lwd.axis)
   }
   return(results)
 }
-

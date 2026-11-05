@@ -35,23 +35,41 @@ analyze_chirplet_sst(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+(further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+error).}
 
-\item{lowerPeriod, upperPeriod, dj}{Period axis.}
+\item{lowerPeriod, upperPeriod, dj}{Period axis: shortest and longest period, in the same unit as the depth/time
+column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+the sampling interval), and the spacing of the periods in octaves (numeric, > 0; \code{1/x} gives x periods per
+doubling of the period). Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}:
+\code{Default=1024}; \code{dj}: \code{Default=1/100}.}
 
-\item{omega_nr}{Morlet omega_0 of the orders \code{Default=c(8, 12, 16)}.}
+\item{omega_nr}{Central angular frequencies omega_0 (number of cycles) of the chirped Morlet wavelets of the
+orders that are combined (numeric vector, values > 0); a single value gives a single-order transform.
+\code{Default=c(8, 12, 16)}.}
 
-\item{chirp}{Dimensionless chirp values that are tried \code{Default=seq(-2, 2, by = 0.25)}.}
+\item{chirp}{Dimensionless chirp values that are tried at every scale and position (numeric vector; 0 is the
+ordinary Morlet wavelet, negative and positive values a decreasing or increasing frequency, see the
+description). The best-matching value (largest modulus) is used; a wider and denser set follows faster changes
+of the period at a higher computation time. \code{Default=seq(-2, 2, by = 0.25)}.}
 
-\item{n_iter}{Iterations of the frequency reassignment (multisynchrosqueezing) \code{Default=4}.}
+\item{n_iter}{Number of iterations of the frequency reassignment (multisynchrosqueezing, integer, >= 1), see
+\code{\link{analyse_wavelet_sst}}. \code{Default=4}.}
 
-\item{threshold}{Noise threshold as in \code{\link{analyse_wavelet_sst}} \code{Default="riskshrink"}.}
+\item{threshold}{Noise threshold of the synchrosqueezing: \code{"riskshrink"}, \code{"none"} or a number (numeric,
+in standard deviations of the standardised record), as in \code{\link{analyse_wavelet_sst}}.
+\code{Default="riskshrink"}.}
 
-\item{smooth}{Gaussian smoothing along the period axis (octaves) \code{Default=0.01}.}
+\item{smooth}{Standard deviation, in octaves, of the Gaussian smoothing along the period axis applied to every
+order before the orders are combined (numeric, >= 0; 0 switches it off). \code{Default=0.01}.}
 
-\item{combine}{How the orders are combined \code{Default="geometric"}.}
+\item{combine}{How the squeezed amplitudes of the orders are combined (character), one of \code{"geometric"}
+(geometric mean), \code{"min"} (minimum: strictest consensus) or \code{"mean"} (arithmetic mean).
+\code{Default="geometric"} (the first element of \code{c("geometric", "min", "mean")}).}
 
-\item{verbose}{Print the progress \code{Default=FALSE}.}
+\item{verbose}{Print a message when each order is done (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with the structure of \code{\link{analyse_wavelet}} (so that \code{\link{plot_wavelet}},

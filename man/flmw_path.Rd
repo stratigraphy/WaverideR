@@ -19,33 +19,39 @@ flmw_path(
 )
 }
 \arguments{
-\item{x}{Result of \code{\link{flmw}} (any \code{method}).}
+\item{x}{Output of \code{\link{flmw}} (any \code{method}), or any list with the elements \code{score_mat} (matrix,
+trial sedimentation rates in rows, depths in columns), \code{depth} and \code{y_axis} (trial sedimentation rates).
+Required (no default).}
 
-\item{jump_sd}{Smoothness: standard deviation of the relative (log) change in sedimentation rate over 1 metre of
-depth, scaled with the square root of the depth step (random walk). Small values give a stiff curve
-\code{Default=0.2}.}
+\item{jump_sd}{Smoothness of the curve: standard deviation of the relative (natural-log) change in sedimentation rate
+over 1 metre of depth, scaled with the square root of the depth step (random walk) (numeric, > 0). Small values give
+a stiff curve, large values let the rate change quickly. \code{Default=0.2}.}
 
-\item{sharpness}{How strongly the score is trusted. The likelihood of a sedimentation rate is
-\code{exp(sharpness * score)} with scores between 0 and 1. Lower values give wider intervals \code{Default=3}.}
+\item{sharpness}{How strongly the score is trusted (numeric, > 0): the likelihood of a sedimentation rate is
+\code{exp(sharpness * score)} with scores between 0 and 1. Lower values give wider credible intervals.
+\code{Default=3}.}
 
-\item{normalize}{Divide the scores by their 99th percentile (and cap at 1) so that \code{sharpness} means the same
-for every method \code{Default=TRUE}.}
+\item{normalize}{Divide the scores by their 99th percentile (and cap them at 1) so that \code{sharpness} means the
+same for every \code{flmw} method (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{sedrate_range}{Optional vector \code{c(min, max)} (cm/kyr): sedimentation rates outside this range are
-excluded.}
+\item{sedrate_range}{Prior bounds \code{c(min, max)} of the sedimentation rate in cm/kyr (numeric vector of
+length 2): trial rates outside this range are excluded. \code{NULL} uses all trial rates. \code{Default=NULL}.}
 
-\item{hiatus}{Optional depths of hiatuses or other known breaks. At these depths the sedimentation rate may change
-freely.}
+\item{hiatus}{Depths of hiatuses or other known breaks, in the depth unit of \code{x} (numeric vector). At these
+depths the sedimentation rate may jump freely. \code{NULL} means no breaks. \code{Default=NULL}.}
 
-\item{probs}{Probabilities for the credible interval limits \code{Default=c(0.025, 0.16, 0.84, 0.975)}.}
+\item{probs}{Cumulative probabilities of the credible interval limits that are returned for every depth (numeric
+vector, values between 0 and 1). \code{Default=c(0.025, 0.16, 0.84, 0.975)} (95 and 68 percent intervals).}
 
-\item{genplot}{Plot the posterior probability with the path \code{Default=FALSE}.}
+\item{genplot}{Plot the posterior probability of the sedimentation rate against depth with the most probable path
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{x_lab}{Label of the x-axis \code{Default="depth"}.}
+\item{x_lab}{Label of the x-axis (depth) of the plot (character). \code{Default="depth"}.}
 
-\item{y_lab}{Label of the y-axis \code{Default="sedrate"}.}
+\item{y_lab}{Label of the y-axis (sedimentation rate) of the plot (character). \code{Default="sedrate"}.}
 
-\item{normalise}{British spelling of \code{normalize}; if given it overrides \code{normalize}.}
+\item{normalise}{British spelling of \code{normalize} (logical, TRUE or FALSE); if given (not \code{NULL}) it
+overrides \code{normalize}. \code{Default=NULL}.}
 }
 \value{
 A list with \code{depth}, \code{y_axis} (trial sedimentation rates), \code{path} (most probable

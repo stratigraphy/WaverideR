@@ -5,14 +5,15 @@ test_that("synchrosqueezing follows a sedimentation rate change more sharply tha
   d <- data.frame(z, sin(cumsum(1 / Pt) * 2 * pi) + rnorm(length(z), 0, 0.3))
   conc <- function(w) {
     j <- which(z > 150 & z < 650)
-    mean(sapply(j, function(i) sum(w$Power[abs(w$Period / 40 - 1) <= 0.1, i]) / sum(w$Power[, i])))
+    band <- abs(w$Period / 40 - 1) <= 0.1
+    mean(colSums(w$Power[band, j, drop = FALSE]) / colSums(w$Power[, j, drop = FALSE]))
   }
   cw <- analyse_wavelet(d, lowerPeriod = 12, upperPeriod = 100, dj = 1 / 40, omega_nr = 12)
   ss <- analyse_wavelet_sst(d, lowerPeriod = 12, upperPeriod = 100, dj = 1 / 40, omega_nr = 12)
   expect_gt(conc(ss), conc(cw))
   # ridge period after the change
   j <- which(z > 1000 & z < 1500)
-  rid <- ss$Period[apply(ss$Power[, j], 2, which.max)]
+  rid <- ss$Period[max.col(t(ss$Power[, j]), ties.method = "first")]
   expect_lt(abs(median(rid) / 20 - 1), 0.05)
 })
 

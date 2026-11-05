@@ -7,11 +7,14 @@
 coco_prepare_regular_data(raw, verbose = TRUE, min_points = 4)
 }
 \arguments{
-\item{raw}{two-column matrix [depth (m), value]}
+\item{raw}{Record to prepare (matrix or data frame; only the first two columns are used): depth in metres in
+column 1 and the proxy in column 2. Required, no default.}
 
-\item{verbose}{print what was changed}
+\item{verbose}{Print a message when the data are interpolated to an even spacing (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
 
-\item{min_points}{minimum number of points required}
+\item{min_points}{Minimum number of unique, finite depth points required (integer); fewer gives an error.
+\code{Default=4}.}
 }
 \description{
 Removes non-finite rows, sorts by depth, averages duplicate depths and

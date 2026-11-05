@@ -7,15 +7,23 @@
 amtm_prewhiten(data = NULL, order = 2, nw = 4, k = 7, nfft_add = 2)
 }
 \arguments{
-\item{data}{Input data set: 2-column matrix [depth/time, value], evenly spaced}
+\item{data}{Series to prewhiten: a matrix or data frame with depth/time in column 1 and the proxy value in
+column 2, evenly spaced (extra columns are ignored, rows with non-finite values are dropped and the rows are
+sorted by depth/time). Required (\code{Default=NULL} gives an error).}
 
-\item{order}{Order of the AR filter \code{Default=2}}
+\item{order}{Order p of the autoregressive (AR) prewhitening filter (integer, >= 1; the series must have more
+than \code{2*order + 2} values). Higher orders remove more of the red-noise background but also more of the
+signal; the first \code{2*order} samples are lost. \code{Default=2}.}
 
-\item{nw}{Time-bandwidth product of the spectrum used for the ACVS \code{Default=4}}
+\item{nw}{Time-bandwidth product of the multitaper spectrum from which the autocovariance sequence (ACVS) is
+computed (numeric, > 0, typically 2 to 4). \code{Default=4}.}
 
-\item{k}{Number of tapers of that spectrum \code{Default=7}}
+\item{k}{Number of DPSS tapers of that spectrum (integer, >= 1, at most about \code{2*nw - 1}).
+\code{Default=7}.}
 
-\item{nfft_add}{Zero-padding exponent increment \code{Default=2}}
+\item{nfft_add}{Zero-padding exponent increment (integer, >= 0): the spectrum is computed on
+\code{2^(ceiling(log2(N)) + nfft_add)} frequencies, N being the number of samples. Larger values give a finer
+frequency grid and a longer, smoother ACVS. \code{Default=2}.}
 }
 \value{
 A list with \code{data} (2-column matrix of the prewhitened series, with

@@ -15,21 +15,38 @@ plot_track(
 )
 }
 \arguments{
-\item{track}{Output of \code{\link{track_ridge_hmm}} or \code{\link{track_astro_hmm}}.}
+\item{track}{The track to draw (data frame of class \code{wr_track}): the output of \code{\link{track_ridge_hmm}},
+\code{\link{track_astro_hmm}} or \code{\link{track_chirp_hmm}} (for \code{\link{track_astro_auto}} pass its element
+\code{track}). Required, no default.}
 
-\item{wavelet}{The scalogram the track was made from (or another one to display).}
+\item{wavelet}{The scalogram the track was made from, or another one on the same depth axis to display (list of
+class \code{analyze.wavelet}, e.g. the element \code{scalogram} of \code{\link{track_astro_auto}}). Required, no
+default.}
 
-\item{show}{Periods of the astronomical cycles to draw (for \code{\link{track_astro_hmm}}) \code{Default=NULL}: all.}
+\item{show}{Periods (in time units, numeric vector, e.g. \code{c(405, 41, 23.7)}) of the astronomical cycles whose
+depth periods are drawn for a sedimentation-rate track; each is matched within 10 percent to the periods stored in
+the track (attribute \code{astro_periods}). For a track without stored periods (e.g. from
+\code{\link{track_chirp_hmm}}) the given periods are drawn as they are. \code{NULL} draws all stored periods (or the
+tracked period of a \code{\link{track_ridge_hmm}} result). \code{Default=NULL}.}
 
-\item{flags}{Optional data frame of intervals (columns \code{from}, \code{to}) to shade, e.g. the \code{flags} of
-\code{\link{track_astro_auto}}.}
+\item{flags}{Optional intervals to shade in all panels: a data frame with the columns \code{from} and \code{to}
+(depths), e.g. the element \code{flags} of \code{\link{track_astro_auto}}, or \code{TRUE} to use the attribute
+\code{flags} of \code{track}; anything else draws no shading. \code{Default=NULL}.}
 
-\item{palette}{Colour palette of \code{\link[grDevices]{hcl.colors}} \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{keep_editable}{Keep the plot settings after plotting \code{Default=FALSE}.}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) and the panel layout after plotting, so that more
+elements can be added to the last panel (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+\code{Default=FALSE}.}
 
-\item{scale}{Colour scale as in all image plots of the package (see \code{\link{plot_wavelet}}) \code{Default="auto"}:
-log for synchrosqueezed maps, quantiles of the power divided by its mean per period otherwise.}
+\item{scale}{Colour scale of the scalogram, as in all image plots of the package (see \code{\link{plot_wavelet}}),
+one of \code{"auto"}, \code{"log"}, \code{"quantile"}, \code{"sqrt"}, \code{"linear"}. \code{"auto"} uses a log scale
+for synchrosqueezed (mostly empty) maps and quantiles otherwise; the power of a non-synchrosqueezed scalogram is
+first divided by its mean per period. \code{Default="auto"}.}
 }
 \value{
 Invisibly the track.

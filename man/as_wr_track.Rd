@@ -13,17 +13,28 @@ as_wr_track(
 )
 }
 \arguments{
-\item{x}{Data frame or matrix: depth in the first column and, in the second, the tracked period (depth units),
-the sedimentation rate (depth units per kyr, times \code{rate_factor}) or the age (kyr, times \code{rate_factor}).}
+\item{x}{Curve to convert (data frame or matrix, two columns; further columns are ignored): depth in column 1
+and, in column 2, the tracked period (in depth units) for \code{type="period"}, the sedimentation rate (depth
+units per kyr after multiplying by \code{rate_factor}) for \code{type="sedrate"}, or the age (kyr after
+multiplying by \code{rate_factor}) for \code{type="age"}. Rows with non-finite values are dropped, duplicated
+depths are averaged, and at least two points are needed. Required, no default.}
 
-\item{type}{\code{"period"} (default), \code{"sedrate"} or \code{"age"}.}
+\item{type}{What column 2 of \code{x} holds (character): \code{"period"} (the period of one astronomical
+cycle in depth units, e.g. from \code{\link{track_period_wavelet}}; the rate is period / \code{cycle}),
+\code{"sedrate"} (a sedimentation rate; must be positive) or \code{"age"} (an age-depth model; must be strictly
+monotonic, and time is counted from the top of the curve). \code{Default=c("period", "sedrate", "age")}, i.e.
+\code{"period"}.}
 
-\item{cycle}{Period (kyr) of the tracked cycle for \code{type = "period"} \code{Default=405}.}
+\item{cycle}{Duration of the tracked astronomical cycle in kyr (numeric, > 0), used to turn the tracked period
+into a sedimentation rate when \code{type="period"}; ignored otherwise. \code{Default=405}.}
 
-\item{rate_factor}{Multiplier that brings the second column to depth units per kyr (rate) or to kyr (age):
-\code{0.01} for a rate in cm/kyr with depth in m, \code{1000} for an age in Ma \code{Default=1}.}
+\item{rate_factor}{Multiplier applied to column 2 of \code{x} to bring it to depth units per kyr
+(\code{type="sedrate"}) or to kyr (\code{type="age"}) (numeric); e.g. \code{0.01} for a rate in cm/kyr with
+depth in metres, \code{1000} for an age in Ma. Ignored when \code{type="period"}. \code{Default=1}.}
 
-\item{step}{Depth step of the output; \code{NULL} keeps the input positions \code{Default=NULL}.}
+\item{step}{Depth step of the output track, in depth units (numeric, > 0); the rate is interpolated
+(log-linearly) onto a regular grid with this step and the time is recalculated. \code{NULL} keeps the depth
+positions of \code{x}. \code{Default=NULL}.}
 }
 \value{
 A \code{wr_track} data frame with \code{depth}, \code{sedrate} and \code{time} (kyr from the top of

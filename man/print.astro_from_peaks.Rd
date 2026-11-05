@@ -7,9 +7,10 @@
 \method{print}{astro_from_peaks}(x, ...)
 }
 \arguments{
-\item{x}{an astro_from_peaks object}
+\item{x}{Result to print: an object of class \code{astro_from_peaks}, as returned by
+\code{\link{astro_from_peaks}} or \code{\link{astro_from_periods}}. Required, no default.}
 
-\item{...}{ignored}
+\item{...}{Not used; present for compatibility with the generic \code{print()}.}
 }
 \value{
 x, invisibly

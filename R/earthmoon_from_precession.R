@@ -4,18 +4,30 @@
 #' The model curve is not strictly monotonic (tidal resonances), so every
 #' crossing is returned.
 #'
-#' @param p_kyr precession period (kyr); or give `p_arcsec`
-#' @param age_range optional c(min, max) Ma to restrict the search
-#' @param p_arcsec Precession constant in arcsec/yr.
-#' @param method Method used: `"astrogeo22"` or `"angular_momentum"`.
-#' @param obliquity_deg Obliquity in degrees.
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param p_kyr Period of the axial precession, in kyr (numeric, scalar or vector, > 0; about 25.7 kyr today), i.e.
+#' \code{360 * 3600 / (p_kyr * 1000)} arcsec/yr. Ignored when \code{p_arcsec} is given; one of the two is
+#' required. \code{Default=NULL}.
+#' @param age_range Age range to which the search along the AstroGeo22 curve is restricted, in Ma (numeric vector
+#' \code{c(min, max)}, or \code{NULL} for the whole curve). Only used with \code{method="astrogeo22"}.
+#' \code{Default=NULL}.
+#' @param p_arcsec Precession constant (rate of axial precession), in arcsec/yr (numeric, scalar or vector, > 0;
+#' about 50.47 today). Takes precedence over \code{p_kyr}. \code{Default=NULL}.
+#' @param method How the Earth-Moon state is found (character): \code{"astrogeo22"} finds every age at which the
+#' AstroGeo22 precession curve crosses the requested value (the curve is not monotonic, so several ages may be
+#' returned) and returns the AstroGeo22 state there; \code{"angular_momentum"} solves for the Earth-Moon distance
+#' (25 to 80 Earth radii) that gives the requested precession with \code{\link{precession_frequency}}, assuming
+#' conservation of the Earth-Moon angular momentum. \code{Default=c("astrogeo22", "angular_momentum")}, i.e.
+#' \code{"astrogeo22"}.
+#' @param obliquity_deg Obliquity of the Earth, in degrees (numeric), used by \code{method="angular_momentum"};
+#' \code{NULL} uses the present-day value 23.2545. \code{Default=NULL}.
+#' @param data_dir Directory that contains the file \code{AstroGeo22.txt} (character, or \code{NULL}); \code{NULL}
+#' uses the data installed with the package (or \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @export
 earthmoon_from_precession <- function(p_kyr = NULL, p_arcsec = NULL,
-                                      method = c("astrogeo22", "angular_momentum"),
-                                      obliquity_deg = NULL, age_range = NULL,
-                                      data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    method = c("astrogeo22", "angular_momentum"),
+    obliquity_deg = NULL, age_range = NULL,
+    data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -44,17 +56,17 @@ earthmoon_from_precession <- function(p_kyr = NULL, p_arcsec = NULL,
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .astrogeo22_table <- function(data_dir = NULL){
@@ -63,12 +75,12 @@ earthmoon_from_precession <- function(p_kyr = NULL, p_arcsec = NULL,
     }
     tab <- utils::read.table(file.path(data_dir, "AstroGeo22.txt"), comment.char = "%")
     names(tab)[1:13] <- c("t_ga", "a", "amin", "amax", "lod", "lodmin", "lodmax",
-                          "obli", "oblimin", "oblimax", "pre", "premin", "premax")
+        "obli", "oblimin", "oblimax", "pre", "premin", "premax")
     tab$age_ma <- tab$t_ga * 1000
     tab
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -85,7 +97,7 @@ earthmoon_from_precession <- function(p_kyr = NULL, p_arcsec = NULL,
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   if (is.null(p_arcsec)){
     if (is.null(p_kyr)){
@@ -108,13 +120,13 @@ earthmoon_from_precession <- function(p_kyr = NULL, p_arcsec = NULL,
 
       if (ff(lo) * ff(hi) > 0){
         out[[j]] <- data.frame(a_RE = NA, a_km = NA, lod_h = NA,
-                               obliquity_deg = obliquity_deg,
-                               p_arcsec = pa, p_kyr = 360 * 3600 / pa / 1000)
+            obliquity_deg = obliquity_deg,
+            p_arcsec = pa, p_kyr = 360 * 3600 / pa / 1000)
       } else {
         a <- stats::uniroot(ff, c(lo, hi), tol = 1e-10)$root
         out[[j]] <- data.frame(a_RE = a, a_km = a * .AC$RE / 1000, lod_h = lod_from_moon_distance(a),
-                               obliquity_deg = obliquity_deg, p_arcsec = pa,
-                               p_kyr = 360 * 3600 / pa / 1000)
+            obliquity_deg = obliquity_deg, p_arcsec = pa,
+            p_kyr = 360 * 3600 / pa / 1000)
       }
     }
     names(out) <- names(p_arcsec)

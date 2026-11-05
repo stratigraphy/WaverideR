@@ -15,26 +15,32 @@ extract_power(
 )
 }
 \arguments{
-\item{tracked_period_curve}{Traced period result from the \code{\link{track_period_wavelet}} or \code{\link{track_period}}
-function completed using the \code{\link{completed_series}}.
-The input can be pre-smoothed using the the \code{\link{loess_auto}} function.}
+\item{tracked_period_curve}{Tracked period of the cycle along the record (matrix or data frame: depth/time in
+column 1, period in column 2, in the depth/time unit of the scalogram), e.g. the output of
+\code{\link{track_period_wavelet}} or \code{\link{track_period}} completed with \code{\link{completed_series}},
+optionally smoothed with \code{\link{loess_auto}}. Rows with \code{NA} are dropped and the curve is linearly
+interpolated (and extrapolated) to the depth/time axis of the scalogram. Required (\code{Default=NULL}).}
 
-\item{scalogram}{Wavelet or superlet object created using the \code{\link{analyse_wavelet}} or
-or \code{\link{track_period}} function.}
+\item{scalogram}{Wavelet or superlet object (list of class \code{analyze.wavelet} or \code{analyze.superlet})
+created with \code{\link{analyse_wavelet}} or \code{\link{analyse_superlet}}, whose power is summed. Required
+(\code{Default=NULL}).}
 
-\item{period_up}{Upper period as a factor of the to be extracted power \code{Default=1.2}.}
+\item{period_up}{Upper boundary of the band whose power is summed, as a factor of the (rescaled) tracked period
+(numeric, > \code{period_down}). \code{Default=1.2}.}
 
-\item{period_down}{Lower period as a factor of the to be extracted power \code{Default=0.8}.}
+\item{period_down}{Lower boundary of the band whose power is summed, as a factor of the (rescaled) tracked period
+(numeric, > 0). \code{Default=0.8}.}
 
-\item{tracked_cycle_period}{Period of the tracked cycle (make sure that
-\code{tracked_cycle_period}) and \code{extract_cycle_power}) are of the same
-unit (either depth or time domain).}
+\item{tracked_cycle_period}{Period of the tracked cycle, e.g. 405 for the 405-kyr eccentricity cycle (numeric,
+> 0), in the same unit as \code{extract_cycle_power}. The tracked curve is multiplied by
+\code{extract_cycle_power / tracked_cycle_period}. Required (\code{Default=NULL}).}
 
-\item{extract_cycle_power}{Period of the cycle for which the power will be
-extracted (make sure that \code{extract_cycle_power}) and
-\code{tracked_cycle_period}) are of the same unit (either depth or time domain).}
+\item{extract_cycle_power}{Period of the cycle whose power is extracted (numeric, > 0), in the same unit as
+\code{tracked_cycle_period} (both in time or both in depth). Use the same value as \code{tracked_cycle_period}
+to extract the tracked cycle itself. Required (\code{Default=NULL}).}
 
-\item{...}{older input previous versions}
+\item{...}{Old argument names of earlier versions: \code{wavelet} (used as \code{scalogram}) and
+\code{completed_series} (used as \code{tracked_period_curve}).}
 }
 \value{
 Returns a matrix with 3 columns.

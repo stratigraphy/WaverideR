@@ -1,37 +1,63 @@
-# ---------------------------------------------------------------------------
 # Adaptive COCO (one record) -- corrcoefslices_rankNew.m adaptive path
-# ---------------------------------------------------------------------------
 
 #' @title Adaptive COCO
 #' @description Modern Acycle adaptive COCO: nine-term orbital target
 #'   synthesised on the finite record at every tested rate, amplitudes fitted to
 #'   the spectrum, AR(1) Monte Carlo null with global (max-over-rate) and local
 #'   p-values. Translated from Acycle corrcoefslices_rankNew.m (Mingsong Li).
-#' @param data two columns depth (m), value. Irregular data are linearly
-#'   interpolated at the median spacing (as in Acycle).
-#' @param orbit9 nine orbital periods (kyr)
-#' @param sr sedimentation-rate grid (cm/kyr)
-#' @param pad zero padding \code{Default=5000}
-#' @param red 0 none, 1 classical AR(1) subtraction, 2 robust AR(1), 3 smoothed-window-average (SWA) background
-#' @param nsim number of AR(1) Monte Carlo simulations
-#' @param slices number of slices whose spectra are averaged \code{Default=1}
-#' @param method "Pearson" or "Spearman"
-#' @param max_frequency highest target frequency \code{Default=NULL}
-#' @param amplitude_mode "four-group-area", "per-orbit" or "fixed"
-#' @param target_model "coherent-nine" or "phase-averaged"
-#' @param seed random seed \code{Default=1}
-#' @param batch Monte Carlo batch size \code{Default=NULL}
-#' @param verbose progress messages \code{Default=TRUE}
+#' @param data Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+#' column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+#' interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required, no default.
+#' @param orbit9 The nine astronomical target periods in kyr (numeric vector of nine distinct values: long
+#' eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+#' \code{\link{orbit9_at_age}} or \code{\link{calculate_orbit9}} for the age of the record. The default uses the
+#' present-day periods (405.7, 130.7, 123.9, 98.9, 94.9, 41.0, 23.7, 22.4 and 19.0 kyr).
+#' \code{Default=orbit9_default()}.
+#' @param sr Sedimentation rates to test, in cm/kyr (numeric vector, > 0); the correlation is computed for every
+#' value. \code{Default=seq(0.5, 20, by = 0.1)}.
+#' @param pad Length (number of points) to which every slice is zero-padded for the periodogram (integer, at least
+#' the number of samples in the longest slice); a larger value gives a finer frequency grid. \code{Default=5000}.
+#' @param red Background (red-noise) removal applied to every spectrum before the correlation (integer): \code{0} no
+#' removal, \code{1} classical AR(1) background subtracted, \code{2} robust AR(1) background (median-smoothed
+#' spectrum, Mann and Lees 1996 style), \code{3} smoothed-window-average (SWA) background (needs at least 33
+#' spectral bins). Negative power after subtraction is set to zero. \code{Default=1}.
+#' @param nsim Number of AR(1) Monte Carlo simulations used for the global and local p-values (integer, >= 0);
+#' \code{0} skips the simulations, so no p-values or pCOCO are returned. \code{Default=1000}.
+#' @param slices Number of equal-depth slices into which the record is cut; each slice is standardised and
+#' detrended and their spectra are averaged (integer, >= 1; every slice needs at least 4 points).
+#' \code{Default=1}.
+#' @param method Correlation coefficient between the data spectrum and the target spectrum (character):
+#' \code{"Pearson"} or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.
+#' @param max_frequency Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+#' (numeric, must be at least the highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses
+#' \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.
+#' @param amplitude_mode How the amplitudes of the nine target sinusoids are set (character):
+#' \code{"four-group-area"} fits one amplitude per group (long eccentricity, short eccentricity, obliquity,
+#' precession) to the band areas of the data spectrum (Acycle default; needs \code{target_model="coherent-nine"}),
+#' \code{"per-orbit"} fits each of the nine amplitudes to the spectral peak at its frequency, \code{"fixed"} uses
+#' fixed weights (1.0 eccentricity, 0.8 obliquity, 0.6 precession; see \code{\link{coco_fixed_target_weights}}).
+#' \code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e. \code{"four-group-area"}.
+#' @param target_model How the target spectrum is synthesised on the finite record (character):
+#' \code{"coherent-nine"} (the spectrum of the sum of the nine sinusoids, including their interference) or
+#' \code{"phase-averaged"} (the sum of the individual spectra, averaged over sine and cosine phase).
+#' \code{Default=c("coherent-nine", "phase-averaged")}, i.e. \code{"coherent-nine"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=1}.
+#' @param batch Number of Monte Carlo simulations processed together in one batch (integer, >= 1); larger batches
+#' are faster but use more memory. \code{NULL} chooses it from \code{pad} (about 4 million spectral values per
+#' batch). \code{Default=NULL}.
+#' @param verbose Print messages about the preprocessing and the progress of the Monte Carlo simulations
+#' (logical, TRUE or FALSE). \code{Default=TRUE}.
 #' @return list with `result` data.frame: sr, rho, p_param, p_global, p_local,
 #'   norbit, pcoco
 #' @export
 coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by = 0.1),
-                          pad = 5000, red = 1, nsim = 1000, slices = 1,
-                          method = c("Pearson", "Spearman"), max_frequency = NULL,
-                          amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
-                          target_model = c("coherent-nine", "phase-averaged"),
-                          seed = 1, batch = NULL, verbose = TRUE){
-  # ---- internal helper functions (local to this function) ----
+    pad = 5000, red = 1, nsim = 1000, slices = 1,
+    method = c("Pearson", "Spearman"), max_frequency = NULL,
+    amplitude_mode = c("four-group-area", "per-orbit", "fixed"),
+    target_model = c("coherent-nine", "phase-averaged"),
+    seed = 1, batch = NULL, verbose = TRUE){
+  # Internal helper functions (local to this function)
 
   detrend_linear <- function(x){
     # Least-squares removal of a straight line from every column (MATLAB detrend(x,1)).
@@ -55,7 +81,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -91,7 +117,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     list(p = p_out, f = f)
   }
 
-  # --- Moving median with shrinking endpoints -----------------------------------
+  # Moving median with shrinking endpoints
   move_median <- function(x, w){
     x <- as.vector(x)
     n <- length(x)
@@ -110,7 +136,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     out
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -147,7 +173,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
         rss <- colSums(base^2)
         ls <- log(s0_g)
         matrix(rss, length(rho_g), length(s0_g)) + 2 * outer(rs, ls) +
-          length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
+            length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
       }
     }
     nn <- 50
@@ -197,7 +223,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     fit$s0 * (1 - fit$rho^2) / (1 - 2 * fit$rho * cos(pi * ft / fn) + fit$rho^2)
   }
 
-  # --- Monte Carlo p-value and pCOCO -------------------------------------------
+  # Monte Carlo p-value and pCOCO
   pcoco_value <- function(rho, p){
     ps <- p
     ps[!is.finite(ps) | ps <= 0] <- NA
@@ -208,14 +234,12 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
   # Present-day periods; falls back to constants if the data files are not found.
   orbit9_default <- function(){
     tryCatch(orbit9_at_age(0),
-             error = function(e){
-               c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)
-             })
+        error = function(e){
+          c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)
+        })
   }
 
-  # ---------------------------------------------------------------------------
   # Batched spectra with background removal (ecocoWindowSpectra.m)
-  # ---------------------------------------------------------------------------
   coco_window_spectra <- function(values, dt, pad, red = 1, already_detrended = FALSE){
     values <- as.matrix(values)
     if (!already_detrended){
@@ -258,7 +282,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
   coco_swa_subtract <- function(P, f, n_data){
     if (nrow(P) < 33){
       stop(paste0("red = 3 (smoothed-window average) requires at least 33 ",
-                  "one-sided spectral bins; increase pad"))
+          "one-sided spectral bins; increase pad"))
     }
     for (j in seq_len(ncol(P))){
       p <- P[, j]
@@ -270,7 +294,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
       }
       fl <- max(2.2250738585072014e-308, sc * .Machine$double.eps)
       bg <- as.numeric(swa_background(f, log10(pmax(p, fl)), n_data,
-                                      verbose = FALSE)$swa)
+          verbose = FALSE)$swa)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The smoothed-window background is nonpositive or nonfinite.")
       }
@@ -281,7 +305,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     list(power = P, f = f)
   }
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   amplitude_mode <- match.arg(amplitude_mode)
   target_model <- match.arg(target_model)
@@ -331,7 +355,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
   }
   ev <- function(Pm, obsp = FALSE){
     coco_adaptive_evaluate(Pm, f, ndata, dt, pad, orbit9, sr, method, max_frequency,
-                           target_model, amplitude_mode, observed_p = obsp)
+        target_model, amplitude_mode, observed_p = obsp)
   }
   obs <- ev(Pobs, TRUE)
   rho <- obs$rho[, 1]
@@ -391,7 +415,7 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     }
   }
   res <- data.frame(sr = sr, rho = rho, p_param = obs$p, p_global = p_global,
-                    p_local = p_local, norbit = norbit)
+      p_local = p_local, norbit = norbit)
   res$pcoco <- pcoco_value(res$rho, res$p_global)
   if (nsim > 0){
     null_max <- nullMax
@@ -399,8 +423,8 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
     null_max <- NULL
   }
   out <- list(result = res, spectrum = cbind(f = f, power = Pobs[, 1]), dt = dt,
-              orbit9 = orbit9, nsim = nsim, amplitude_mode = amplitude_mode,
-              method = method, null_max = null_max)
+      orbit9 = orbit9, nsim = nsim, amplitude_mode = amplitude_mode,
+      method = method, null_max = null_max)
   class(out) <- "coco_adaptive"
   out
 }
@@ -408,19 +432,21 @@ coco_adaptive <- function(data, orbit9 = orbit9_default(), sr = seq(0.5, 20, by 
 #' @title Plot an adaptive COCO result
 #' @description Correlation, global and local p, contributing periods and pCOCO
 #'   against sedimentation rate.
-#' @param x object returned by coco_adaptive()
-#' @param ... unused
+#' @param x Adaptive COCO result to plot: the output of \code{\link{coco_adaptive}} (an object of class
+#' \code{coco_adaptive}). Required, no default.
+#' @param ... Not used; present for compatibility with the generic \code{plot} function.
 #' @return invisible NULL
 #' @export
 plot.coco_adaptive <- function(x, ...){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   .coco_panels <- function(sr, rho, p_list, norbit, pcoco, norb, main = "COCO"){
     np <- 2 + length(p_list) + !is.null(pcoco)
-    op <- graphics::par(mfrow = c(np, 1), mar = c(3.2, 4.2, 1.8, 1), mgp = c(2.1, 0.7, 0))
-    on.exit(graphics::par(op))
+    op <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(op), add = TRUE)
+    graphics::par(mfrow = c(np, 1), mar = c(3.2, 4.2, 1.8, 1), mgp = c(2.1, 0.7, 0))
     graphics::plot(sr, rho, type = "l", col = "red", lwd = 1.2,
-                   xlab = "Sedimentation rate (cm/kyr)", ylab = "Correlation coefficient", main = main)
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "Correlation coefficient", main = main)
     for (nm in names(p_list)){
       p <- p_list[[nm]]
       if (all(!is.finite(p))){
@@ -428,15 +454,15 @@ plot.coco_adaptive <- function(x, ...){
       }
       yl <- c(1, max(1e-4, 0.5 * min(p, na.rm = TRUE)))
       graphics::plot(sr, p, type = "l", col = "red", lwd = 1.2, log = "y", ylim = yl,
-                     xlab = "Sedimentation rate (cm/kyr)", ylab = nm, main = nm)
+          xlab = "Sedimentation rate (cm/kyr)", ylab = nm, main = nm)
       graphics::abline(h = c(0.1, 0.05, 0.01, 0.001), lty = c(3, 3, 2, 3), col = "grey30")
     }
     graphics::plot(sr, norbit, type = "s", col = "blue", lwd = 1.2, ylim = c(0, norb + 0.5),
-                   xlab = "Sedimentation rate (cm/kyr)", ylab = "#",
-                   main = "Number of contributing astronomical parameters")
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "#",
+        main = "Number of contributing astronomical parameters")
     if (!is.null(pcoco) && any(is.finite(pcoco))){
       graphics::plot(sr, pcoco, type = "l", col = "red", lwd = 1.5,
-                     xlab = "Sedimentation rate (cm/kyr)", ylab = "pCOCO", main = "pCOCO")
+          xlab = "Sedimentation rate (cm/kyr)", ylab = "pCOCO", main = "pCOCO")
       b <- which.max(pcoco)
       graphics::points(sr[b], pcoco[b], pch = 19, col = "darkred")
       graphics::text(sr[b], pcoco[b], sprintf("%.3g cm/kyr", sr[b]), pos = 4, cex = 0.9)
@@ -444,7 +470,7 @@ plot.coco_adaptive <- function(x, ...){
     invisible(NULL)
   }
 
-  # ---- main code ----
+  # Main code
   r <- x$result
   if (x$nsim > 0){
     pc <- r$pcoco
@@ -452,7 +478,7 @@ plot.coco_adaptive <- function(x, ...){
     pc <- NULL
   }
   .coco_panels(r$sr, r$rho, list("Global p" = r$p_global, "Local p" = r$p_local),
-               r$norbit, pc, length(x$orbit9), "Adaptive COCO")
+      r$norbit, pc, length(x$orbit9), "Adaptive COCO")
 }
 
 #' @export
@@ -466,6 +492,6 @@ print.coco_adaptive <- function(x, ...){
   }
   cat(sprintf("Adaptive COCO (%s): %d rates, %d MC sims\n", x$amplitude_mode, nrow(r), x$nsim))
   cat(sprintf("Best rate %.4g cm/kyr: rho = %.3f, global p = %.3g, local p = %.3g, %d of 9 periods\n",
-              r$sr[b], r$rho[b], r$p_global[b], r$p_local[b], r$norbit[b]))
+      r$sr[b], r$rho[b], r$p_global[b], r$p_local[b], r$norbit[b]))
   invisible(x)
 }

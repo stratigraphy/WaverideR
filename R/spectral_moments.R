@@ -38,50 +38,54 @@
 #' used as a number of samples, so the smoothing depends on the depth unit.
 #' }
 #'
-#' @param data Input data set, a matrix with 2 columns: first column depth or
-#' time (strictly increasing, uniformly sampled), second column the proxy.
-#' @param window Length of the running window in the unit of the first
-#' column. \code{Default=NULL} which equals 25\% of the record length (the
-#' Acycle GUI default).
-#' @param step Step of the running window in the unit of the first column.
-#' \code{Default=NULL} which equals the sampling interval.
-#' @param pad Zero-padding factor: NFFT is \code{pad} times the number of
-#' samples in a window. \code{Default=5}
-#' @param edge_padding Padding of the record edges by half a window:
-#' \code{"none"}, \code{"zero"} (strict core), or \code{"mirror"},
-#' \code{"mean"} (legacy path, as in the Acycle GUI). \code{Default="none"}
-#' @param sr_mean Mean sedimentation rate (e.g. cm/kyr). When given the
-#' legacy path is used and the bandwidth trend and a sedimentation-rate
-#' curve are returned. \code{Default=NULL}
-#' @param freq_range Frequency band (cycles per depth unit) over which the moments are taken; by default the whole
-#' spectrum up to the Nyquist frequency, as in the paper. The moments of a record with white noise are biased towards
-#' the cutoff frequency (section 2.3.3 of the paper), so a band around the astronomical lines makes them follow the
-#' sedimentation rate rather than the noise. \code{Default=NULL}
-#' @param noise_floor Subtract the median of every window's periodogram (an estimate of the white-noise floor)
-#' before the moments are taken \code{Default=FALSE}. In the synthetic test of the examples (precession, obliquity,
-#' eccentricity, white noise 0.3 times the signal, rate varying 1-3 cm/kyr, Nyquist 25 cycles/m) the anchored bandwidth
-#' trend correlates 0.00 with the true rate over the whole spectrum (the noise plateau up to the Nyquist frequency
-#' dominates the second moment), 0.97 over \code{freq_range = c(0.1, 8)}, and 0.99 with the floor removed as well
-#' (91 \% of the record within 20 \%); the mean frequency is less sensitive (0.98 over the whole spectrum).
-#' @param anchor The sedimentation rate of Sinnesael et al. (2018): the smoothed trend of the bandwidth (or of the mean
-#' frequency, see \code{moment}) is anchored at one depth where an astronomical component is identified, since every
-#' spatial frequency, and so every moment, scales with 1 / sedimentation rate (their equation 12):
-#' \code{c(depth, period_kyr, frequency)} (the component with period \code{period_kyr} sits at \code{frequency} cycles
-#' per depth unit at \code{depth}, so the rate there is \code{1 / (period_kyr * frequency)}), or
-#' \code{list(depth = , rate = )} with the rate in depth units per kyr. The result then holds \code{moment_trend} and
-#' \code{sedrate_anchored}. This is the procedure of the paper (U1437: the 0.45 cycle/m precession line read as 21 kyr;
-#' ODP 982 and the synthetic insolation: the obliquity line at the top of the record), as opposed to the Acycle
-#' \code{sr_mean} path, which rescales by the first raw bandwidth value and re-centres the curve additively on a mean
-#' rate. \code{Default=NULL}
-#' @param moment Which moment carries the sedimentation rate: \code{"bandwidth"} (the paper's choice, less sensitive
-#' to the noise bias than the mean frequency) or \code{"mean_frequency"} \code{Default="bandwidth"}.
-#' @param trend Smoothing of the moment before anchoring: \code{"poly"} (the overlap-add polynomial baseline of
-#' Verhelst 2000 used in the paper) or \code{"lowess"} \code{Default="poly"}.
-#' @param trend_window Length (depth units) of the smoothing window of the trend; by default three analysis
-#' windows. The paper takes a long-term trend: the result is the first-order change of the rate, not its detail.
-#' @param trend_order Polynomial order of the baseline \code{Default=2}.
-#' @param genplot Generate a plot of the result (\code{\link{plot_spectral_moments}}) \code{Default=FALSE}
-#' @param verbose Print a progress bar \code{Default=FALSE}
+#' @param data Uniformly sampled record (required): matrix or data frame with depth or time in column 1 (strictly
+#' increasing, all values finite) and the proxy in column 2; at least three rows. \code{Default=NULL}.
+#' @param window Length of the running window, in the unit of the first column of \code{data} (numeric, > 0). In the
+#' strict core it is rounded to an integer number of sampling intervals. \code{NULL} uses 25\% of the record length
+#' (the Acycle GUI default). \code{Default=NULL}.
+#' @param step Step of the running window, in the unit of the first column (numeric, > 0); rounded to an integer number
+#' of samples in the strict core. \code{NULL} uses the median sampling interval. \code{Default=NULL}.
+#' @param pad Zero-padding factor of the periodogram (numeric, >= 1): NFFT is \code{pad} times the number of samples in
+#' a window (+1 if odd). Larger values give a finer frequency grid. \code{Default=5}.
+#' @param edge_padding Padding of the record edges by half a window (character, case-insensitive): \code{"none"} or
+#' \code{"zero"} (zeros; strict core), \code{"mirror"} (mirrored data) or \code{"mean"} (the mean value) (both use the
+#' legacy path, as in the Acycle GUI). \code{Default="none"}.
+#' @param sr_mean Mean sedimentation rate (numeric, e.g. in cm/kyr). When given the legacy path is used and the
+#' bandwidth trend and an Acycle-style sedimentation rate curve scaled to \code{sr_mean} are returned; \code{NULL}
+#' computes the moments only. \code{Default=NULL}.
+#' @param freq_range Frequency band over which the moments are taken, in cycles per depth unit (numeric vector
+#' \code{c(lower, upper)}); \code{NULL} uses the whole spectrum up to the Nyquist frequency, as in the paper. The
+#' moments of a record with white noise are biased towards the cutoff frequency (section 2.3.3 of the paper), so a band
+#' around the astronomical lines makes them follow the sedimentation rate rather than the noise. \code{Default=NULL}.
+#' @param noise_floor Subtract the median of every window's periodogram (an estimate of the white-noise floor) before
+#' the moments are taken; negative values are set to zero (logical). In the synthetic test of the examples (precession,
+#' obliquity, eccentricity, white noise 0.3 times the signal, rate varying 1-3 cm/kyr, Nyquist 25 cycles/m) the
+#' anchored bandwidth trend correlates 0.00 with the true rate over the whole spectrum (the noise plateau up to the
+#' Nyquist frequency dominates the second moment), 0.97 over \code{freq_range = c(0.1, 8)}, and 0.99 with the floor
+#' removed as well (91 \% of the record within 20 \%); the mean frequency is less sensitive (0.98 over the whole
+#' spectrum). \code{Default=FALSE}.
+#' @param anchor Anchor point that turns the smoothed trend of the moment into a sedimentation rate curve, as in
+#' Sinnesael et al. (2018): every spatial frequency, and so every moment, scales with 1 / sedimentation rate (their
+#' equation 12). Give either a numeric vector \code{c(depth, period_kyr, frequency)} (the component with period
+#' \code{period_kyr} sits at \code{frequency} cycles per depth unit at \code{depth}, so the rate there is
+#' \code{1 / (period_kyr * frequency)}), or \code{list(depth = , rate = )} with the rate in depth units per kyr. The
+#' result then holds \code{moment_trend} and \code{sedrate_anchored}. This is the procedure of the paper (U1437: the 0.45
+#' cycle/m precession line read as 21 kyr; ODP 982 and the synthetic insolation: the obliquity line at the top of the
+#' record), as opposed to the Acycle \code{sr_mean} path, which rescales by the first raw bandwidth value and
+#' re-centres the curve additively on a mean rate. \code{NULL} gives no anchored rate. \code{Default=NULL}.
+#' @param moment Which moment carries the sedimentation rate when \code{anchor} is given (character):
+#' \code{"bandwidth"} (the paper's choice, less sensitive to the noise bias than the mean frequency) or
+#' \code{"mean_frequency"}. \code{Default=c("bandwidth", "mean_frequency")}, i.e. \code{"bandwidth"}.
+#' @param trend Smoothing of the moment before anchoring (character): \code{"poly"} (the overlap-add polynomial
+#' baseline of Verhelst 2000 used in the paper; falls back to lowess when the trend window is not shorter than the
+#' series) or \code{"lowess"} (\code{\link[stats]{lowess}} with span \code{trend_window} / record length).
+#' \code{Default=c("poly", "lowess")}, i.e. \code{"poly"}.
+#' @param trend_window Length of the smoothing window of the trend, in depth units (numeric, > 0); only used with
+#' \code{anchor}. The paper takes a long-term trend: the result is the first-order change of the rate, not its detail.
+#' \code{NULL} uses three analysis windows (\code{3 * window}). \code{Default=NULL}.
+#' @param trend_order Polynomial order of the \code{"poly"} baseline (integer, >= 0). \code{Default=2}.
+#' @param genplot Plot the result with \code{\link{plot_spectral_moments}} (logical). \code{Default=FALSE}.
+#' @param verbose Show a progress bar (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' (Acycle), Matthias Sinnesael (spectral moments and DetrendSignalPP), Milan
@@ -118,11 +122,13 @@
 #' plot_spectral_moments(sm_sr, x_lab = "depth (cm)")
 #' # the sedimentation rate of Sinnesael et al. (2018): the obliquity line is identified at
 #' # 5 m (41 kyr at f_obl cycles/m), the bandwidth trend is anchored there; moments over a band
-#' set.seed(3); t <- seq(0, 3000, 0.5)
+#' set.seed(3)
+#' t <- seq(0, 3000, 0.5)
 #' x <- 0.8 * sin(2 * pi * t / 41) + sin(2 * pi * t / 23.7) + 0.5 * sin(2 * pi * t / 405) +
 #'   0.3 * rnorm(length(t))
 #' rate <- 0.02 + 0.01 * sin(2 * pi * t / 1500)
-#' z <- cumsum(c(0, rate[-1] * diff(t))); zg <- seq(0, max(z), 0.02)
+#' z <- cumsum(c(0, rate[-1] * diff(t)))
+#' zg <- seq(0, max(z), 0.02)
 #' d <- data.frame(zg, approx(z, x, zg)$y)
 #' f_obl <- 1 / (41 * approx(z, rate, 5)$y)     # the obliquity line at 5 m depth
 #' sm <- spectral_moments(d, window = 5, step = 0.1, anchor = c(5, 41, f_obl),
@@ -151,25 +157,23 @@
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
 spectral_moments <- function(data = NULL,
-                             window = NULL,
-                             step = NULL,
-                             pad = 5,
-                             edge_padding = "none",
-                             sr_mean = NULL,
-                             freq_range = NULL,
-                             noise_floor = FALSE,
-                             anchor = NULL,
-                             moment = c("bandwidth", "mean_frequency"),
-                             trend = c("poly", "lowess"),
-                             trend_window = NULL,
-                             trend_order = 2,
-                             genplot = FALSE,
-                             verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    window = NULL,
+    step = NULL,
+    pad = 5,
+    edge_padding = "none",
+    sr_mean = NULL,
+    freq_range = NULL,
+    noise_floor = FALSE,
+    anchor = NULL,
+    moment = c("bandwidth", "mean_frequency"),
+    trend = c("poly", "lowess"),
+    trend_window = NULL,
+    trend_order = 2,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -192,9 +196,7 @@ spectral_moments <- function(data = NULL,
     x - as.numeric(X %*% beta)
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB periodogram / pmtm (one-sided, adaptive weights)
-  # ---------------------------------------------------------------------------
 
   acy_datawrap <- function(x, nfft){
     n <- length(x)
@@ -256,9 +258,7 @@ spectral_moments <- function(data = NULL,
     list(pxx = P, f = acy_freq_vector(nfft, fs))
   }
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -299,8 +299,8 @@ spectral_moments <- function(data = NULL,
     rel_dep <- max(abs(spacing - dt)) / dt
     if (rel_dep > 1e-5){
       stop(sprintf(paste0("Relative spacing departure %.17g exceeds the ",
-                          "near-uniform tolerance 1e-5; interpolate first."),
-                   rel_dep))
+          "near-uniform tolerance 1e-5; interpolate first."),
+          rel_dep))
     }
     nyq <- 1 / (2 * dt)
     x_start <- x[1]
@@ -308,28 +308,28 @@ spectral_moments <- function(data = NULL,
     span <- x_end - x_start
 
     if (!(is.numeric(window) && length(window) == 1 && is.finite(window) &&
-          window > 0)){
+        window > 0)){
       stop("window must be a finite positive numeric scalar.")
     }
     if (!(is.numeric(step) && length(step) == 1 && is.finite(step) &&
-          step > 0)){
+        step > 0)){
       stop("step must be a finite positive numeric scalar.")
     }
     if (!(is.numeric(pad) && length(pad) == 1 && is.finite(pad) && pad >= 1 &&
-          pad == trunc(pad))){
+        pad == trunc(pad))){
       stop("pad must be a finite positive integer scalar.")
     }
 
     # window
     if (window > span){
       stop(sprintf("window %.17g exceeds the input coordinate span %.17g.",
-                   window, span))
+          window, span))
     }
     win_ratio <- window / dt
     win_int <- smom_round(win_ratio)
     if (win_int < 2){
       stop(paste0("window/dt rounds to fewer than two intervals; at least ",
-                  "three samples are required."))
+          "three samples are required."))
     }
     win_samp <- win_int + 1
     if (win_samp > n_rows){
@@ -338,7 +338,7 @@ spectral_moments <- function(data = NULL,
     # step
     if (step > span){
       stop(sprintf("step %.17g exceeds the input coordinate span %.17g.",
-                   step, span))
+          step, span))
     }
     step_ratio <- step / dt
     step_samp <- smom_round(step_ratio)
@@ -381,7 +381,7 @@ spectral_moments <- function(data = NULL,
     cand_ends <- cand_starts + win_samp - 1
     cand_centers <- xp[cand_starts] + (xp[cand_ends] - xp[cand_starts]) / 2
     tol <- max(64 * smom_eps(max(1, max(abs(c(x_start, x_end))))),
-               64 * smom_eps(max(1, abs(dt))))
+        64 * smom_eps(max(1, abs(dt))))
     inside <- cand_centers >= x_start - tol & cand_centers <= x_end + tol
     starts <- cand_starts[inside]
     ends <- cand_ends[inside]
@@ -408,8 +408,8 @@ spectral_moments <- function(data = NULL,
       seg_scale <- max(abs(seg))
       if (!(is.finite(seg_scale) && seg_scale > 0)){
         stop(sprintf(paste0("Window %d is constant after global mean ",
-                            "centring and has no resolvable spectral power."),
-                     w))
+            "centring and has no resolvable spectral power."),
+            w))
       }
       scaled <- seg / seg_scale
       centered <- scaled - mean(scaled)
@@ -419,12 +419,14 @@ spectral_moments <- function(data = NULL,
       resolution <- 16 * .Machine$double.eps * max(1, max(abs(scaled)))
       if (!(is.finite(peak) && peak > resolution)){
         stop(sprintf(paste0("Window %d has zero or numerically unresolvable ",
-                            "residual power after linear detrending."), w))
+            "residual power after linear detrending."), w))
       }
       resid <- resid / peak
       pg <- acy_periodogram(resid, nfft = nfft, fs = fs)
       pw <- pg$pxx
-      if (is.null(spec_mat)) spec_mat <- matrix(NA_real_, length(pw), n_win)
+      if (is.null(spec_mat)) {
+        spec_mat <- matrix(NA_real_, length(pw), n_win)
+      }
       spec_mat[, w] <- pw
       if (is.null(freq)){
         freq <- pg$f
@@ -456,21 +458,21 @@ spectral_moments <- function(data = NULL,
     res <- cbind(depth = centers, mean_frequency = mean_f, bandwidth = bw)
     spectra <- list(frequency = freq, depth = centers, power = spec_mat)
     meta <- list(sample_interval = dt,
-                 physical_nyquist = nyq,
-                 requested_window = window,
-                 window_samples = win_samp,
-                 effective_window = win_int * dt,
-                 requested_step = step,
-                 step_samples = step_samp,
-                 effective_step = step_samp * dt,
-                 pad = pad,
-                 nfft = nfft,
-                 frequency_resolution = freq[2] - freq[1],
-                 edge_padding = edge_padding,
-                 left_padding_samples = left_n,
-                 right_padding_samples = right_n,
-                 window_count = n_win,
-                 window_start_index = starts)
+        physical_nyquist = nyq,
+        requested_window = window,
+        window_samples = win_samp,
+        effective_window = win_int * dt,
+        requested_step = step,
+        step_samples = step_samp,
+        effective_step = step_samp * dt,
+        pad = pad,
+        nfft = nfft,
+        frequency_resolution = freq[2] - freq[1],
+        edge_padding = edge_padding,
+        left_padding_samples = left_n,
+        right_padding_samples = right_n,
+        window_count = n_win,
+        window_start_index = starts)
     list(result = res, method = "strict", meta = meta, spectra = spectra)
   }
 
@@ -577,7 +579,7 @@ spectral_moments <- function(data = NULL,
   # @keywords internal
   # @noRd
   smom_legacy <- function(data, window, step, pad, sr_mean = 0, want_sr = FALSE,
-                          verbose = FALSE){
+      verbose = FALSE){
     # spectralmoments.m with padedge = 0 and smoothmodel = 'poly'
     if (sr_mean < 0){
       stop("Mean sedimentation rate must be > 0")
@@ -618,7 +620,9 @@ spectral_moments <- function(data = NULL,
       pg <- acy_periodogram(cc, nfft = nfft, fs = 1 / dt)
       pxx <- pg$pxx
       f <- pg$f
-      if (j == 1) spec_mat <- matrix(NA_real_, length(pxx), npts_new)
+      if (j == 1) {
+        spec_mat <- matrix(NA_real_, length(pxx), npts_new)
+      }
       spec_mat[, j] <- pxx
       uf[j] <- sum(f * pxx / sum(pxx))
       bw[j] <- sqrt(sum((f - uf[j])^2 * pxx / sum(pxx)))
@@ -632,22 +636,22 @@ spectral_moments <- function(data = NULL,
     depth <- smom_linspace(x[1] + window / 2, x[npts] - window / 2, npts_new)
     res <- cbind(depth = depth, mean_frequency = uf, bandwidth = bw)
     meta <- list(sample_interval = dt,
-                 requested_window = window,
-                 window_samples = n_win,
-                 effective_window = n_win * dt,
-                 requested_step = step,
-                 step_samples = n_step,
-                 effective_step = n_step * dt,
-                 pad = pad,
-                 nfft = nfft,
-                 window_count = npts_new)
+        requested_window = window,
+        window_samples = n_win,
+        effective_window = n_win * dt,
+        requested_step = step,
+        step_samples = n_step,
+        effective_step = n_step * dt,
+        pad = pad,
+        nfft = nfft,
+        window_count = npts_new)
     if (want_sr == TRUE){
       windowsize <- smom_round(window / n_step)
       if (windowsize < 2 || windowsize > length(bw)){
         warning(paste0("The bandwidth-trend window round(window/step_samples) = ",
-                       windowsize, " is not between 2 and the number of ",
-                       "windows (", length(bw), "); the trend and ",
-                       "sedimentation rate are NaN (Acycle behaviour)."))
+            windowsize, " is not between 2 and the number of ",
+            "windows (", length(bw), "); the trend and ",
+            "sedimentation rate are NaN (Acycle behaviour)."))
       }
       bw_trend <- smom_detrend_pp(bw, windowsize, n_step, 2)
       sr <- sr_mean * bw[1] / bw_trend
@@ -661,7 +665,7 @@ spectral_moments <- function(data = NULL,
     list(result = res, method = "legacy", meta = meta, spectra = list(frequency = f, depth = depth, power = spec_mat))
   }
 
-  # ---- main code ----
+  # Main code
   data <- as.matrix(data)
   if (ncol(data) < 2){
     stop("data must be a matrix with two columns: [depth/time, value]")
@@ -689,7 +693,7 @@ spectral_moments <- function(data = NULL,
   use_core <- is.null(sr_mean) && (edge_padding %in% c("none", "zero"))
   if (use_core == TRUE){
     out <- smom_core(data = data, window = window, step = step, pad = pad,
-                     edge_padding = edge_padding, verbose = verbose)
+        edge_padding = edge_padding, verbose = verbose)
   } else {
     if (any(dx <= 0)){
       stop("The depth/time column must be strictly increasing.")
@@ -706,44 +710,65 @@ spectral_moments <- function(data = NULL,
     }
     if (is.null(sr_mean)){
       out <- smom_legacy(data = dat, window = window, step = step, pad = pad,
-                         sr_mean = 0, want_sr = FALSE, verbose = verbose)
+          sr_mean = 0, want_sr = FALSE, verbose = verbose)
     } else {
       out <- smom_legacy(data = dat, window = window, step = step, pad = pad,
-                         sr_mean = sr_mean, want_sr = TRUE,
-                         verbose = verbose)
+          sr_mean = sr_mean, want_sr = TRUE,
+          verbose = verbose)
     }
     out$meta$edge_padding <- edge_padding
   }
 
-  # ---- moments over a frequency band and/or above the white-noise floor (the bias of section 2.3.3 / Appendix B
+  # Moments over a frequency band and/or above the white-noise floor (the bias of section 2.3.3 / Appendix B
   # of the paper: white noise adds a flat spectrum whose moments depend on the cutoff frequency, not on the rate)
   if ((!is.null(freq_range) || isTRUE(noise_floor)) && !is.null(out$spectra)) {
-    f <- out$spectra$frequency; P <- out$spectra$power
-    keep <- rep(TRUE, length(f)); if (!is.null(freq_range)) keep <- f >= freq_range[1] & f <= freq_range[2]
+    f <- out$spectra$frequency
+    P <- out$spectra$power
+    keep <- rep(TRUE, length(f))
+    if (!is.null(freq_range)) {
+      keep <- f >= freq_range[1] & f <= freq_range[2]
+    }
     mf <- bw <- rep(NA_real_, ncol(P))
     for (j in seq_len(ncol(P))) {
-      p <- P[keep, j]; fk <- f[keep]
-      if (isTRUE(noise_floor)) p <- pmax(p - stats::median(p, na.rm = TRUE), 0)
-      tot <- sum(p, na.rm = TRUE); if (!is.finite(tot) || tot <= 0) next
-      w <- p / tot; mf[j] <- sum(fk * w, na.rm = TRUE); bw[j] <- sqrt(max(0, sum((fk - mf[j])^2 * w, na.rm = TRUE)))
+      p <- P[keep, j]
+      fk <- f[keep]
+      if (isTRUE(noise_floor)) {
+        p <- pmax(p - stats::median(p, na.rm = TRUE), 0)
+      }
+      tot <- sum(p, na.rm = TRUE)
+      if (!is.finite(tot) || tot <= 0) {
+        next
+      }
+      w <- p / tot
+      mf[j] <- sum(fk * w, na.rm = TRUE)
+      bw[j] <- sqrt(max(0, sum((fk - mf[j])^2 * w, na.rm = TRUE)))
     }
-    out$result[, "mean_frequency"] <- mf; out$result[, "bandwidth"] <- bw
-    out$meta$freq_range <- freq_range; out$meta$noise_floor <- noise_floor
+    out$result[, "mean_frequency"] <- mf
+    out$result[, "bandwidth"] <- bw
+    out$meta$freq_range <- freq_range
+    out$meta$noise_floor <- noise_floor
   }
-  # ---- sedimentation rate as in Sinnesael et al. (2018): the smoothed trend of a moment, anchored at one depth
-  moment <- match.arg(moment); trend <- match.arg(trend)
+  # Sedimentation rate as in Sinnesael et al. (2018): the smoothed trend of a moment, anchored at one depth
+  moment <- match.arg(moment)
+  trend <- match.arg(trend)
   if (!is.null(anchor)) {
-    res <- out$result; z <- res[, "depth"]; m <- res[, if (moment == "bandwidth") "bandwidth" else "mean_frequency"]
-    if (is.null(trend_window)) trend_window <- 3 * window
-    dz <- stats::median(diff(z)); wsamp <- max(3, smom_round(trend_window / dz))
+    res <- out$result
+    z <- res[, "depth"]
+    m <- res[, if (moment == "bandwidth") { "bandwidth" } else { "mean_frequency" }]
+    if (is.null(trend_window)) {
+      trend_window <- 3 * window
+    }
+    dz <- stats::median(diff(z))
+    wsamp <- max(3, smom_round(trend_window / dz))
     tr <- if (trend == "poly" && wsamp < length(m)) {
       smom_detrend_pp(m, wsamp, 1 / dz, trend_order + 1)
     } else {
       stats::lowess(z, m, f = min(1, trend_window / diff(range(z))))$y
     }
     an <- as.list(anchor)
-    z0 <- as.numeric(an[[1]]); z0 <- min(max(z0, min(z)), max(z))
-    r0 <- if (!is.null(an$rate)) as.numeric(an$rate) else if (length(an) >= 3) 1 / (as.numeric(an[[2]]) * as.numeric(an[[3]])) else as.numeric(an[[2]])
+    z0 <- as.numeric(an[[1]])
+    z0 <- min(max(z0, min(z)), max(z))
+    r0 <- if (!is.null(an$rate)) { as.numeric(an$rate) } else if (length(an) >= 3) { 1 / (as.numeric(an[[2]]) * as.numeric(an[[3]])) } else { as.numeric(an[[2]]) }
     t0 <- stats::approx(z, tr, z0, rule = 2)$y
     sr <- r0 * t0 / tr                       # every spatial frequency scales with 1 / rate (equation 12 of the paper)
     res <- cbind(res, moment_trend = tr, sedrate_anchored = sr)

@@ -7,9 +7,11 @@
 earthmoon_angular_momentum(a_RE, omega)
 }
 \arguments{
-\item{a_RE}{Earth-Moon distance in Earth radii.}
+\item{a_RE}{Earth-Moon distance (semi-major axis of the lunar orbit), in Earth radii (numeric, scalar or vector,
+> 0; present-day value about 60.14). Required (no default).}
 
-\item{omega}{Angular velocity of the Earth (rad/s).}
+\item{omega}{Angular velocity (spin rate) of the Earth, in rad/s (numeric, > 0, same length as \code{a_RE} or
+length 1), e.g. from \code{\link{earth_omega}}. Required (no default).}
 }
 \description{
 Earth-Moon system angular momentum (spin + lunar orbit), kg m^2 s^-1

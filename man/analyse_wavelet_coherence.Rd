@@ -41,24 +41,34 @@ analyze_wavelet_coherence(
 )
 }
 \arguments{
-\item{data_1}{First input dataset as a two-column matrix or data.frame.
-First column must contain time/depth, second column the signal.}
+\item{data_1}{First record: a two-column matrix or data frame with depth/time in column 1 and the proxy value
+in column 2 (no \code{NA} values). Both records are sorted and linearly interpolated to a common, regular grid
+over their overlapping interval, with the coarser of the two median sampling intervals. Required, no default.}
 
-\item{data_2}{Second input dataset as a two-column matrix or data.frame.
-Must have the same structure as \code{data_1}.}
+\item{data_2}{Second record, in the same format and depth/time unit as \code{data_1} (two-column matrix or data
+frame: depth/time, proxy). The phase is the phase of \code{data_1} minus that of \code{data_2}. Required, no
+default.}
 
-\item{dj}{Spacing between discrete scales. Smaller values increase resolution.
-Default is \code{1/100}.}
+\item{dj}{Spacing between successive scales in octaves (numeric, > 0), passed to \code{\link{analyse_wavelet}};
+\code{dj=1/x} gives x periods per doubling of the period, smaller values give a finer period axis.
+\code{Default=1/100}.}
 
-\item{lowerPeriod}{Lower bound of the period range to analyze.}
+\item{lowerPeriod}{Shortest period to analyse, in the same unit as the depth/time column of the records
+(numeric, > 0; at least twice the common sampling interval). \code{Default=2}.}
 
-\item{upperPeriod}{Upper bound of the period range to analyze.}
+\item{upperPeriod}{Longest period to analyse, in the same unit as the depth/time column of the records
+(numeric, > \code{lowerPeriod}). \code{Default=1024}.}
 
-\item{verbose}{Logical; if \code{TRUE}, prints progress messages.}
+\item{verbose}{Print the sampling interval to which the records were interpolated, passed to
+\code{\link{analyse_wavelet}} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{omega_nr}{Number of oscillations in the Morlet/superlet wavelet.}
+\item{omega_nr}{Number of cycles (central angular frequency omega_0) of the Morlet wavelet, passed to
+\code{\link{analyse_wavelet}} (numeric, > 0); controls the trade-off between period and depth/time
+resolution. \code{Default=8}.}
 
-\item{wavelet}{Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
+\item{wavelet}{Mother wavelet (character string or function), passed to \code{\link{analyse_wavelet}}, given as a
+name
+(PyWavelets style names with the order appended, such as
 \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
 \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
@@ -70,41 +80,49 @@ Morlet with bandwidth and centre frequency as in Matlab/PyWavelets), \code{"cgau
 (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+(real
 Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
-well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.}
+well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.
+\code{Default="morlet"}.}
 
-\item{wavelet_order}{Parameter(s) of the wavelet: \code{paul}: order m (default 4); \code{dog}: derivative m
+\item{wavelet_order}{Parameter(s) of the wavelet (numeric scalar or vector; \code{NULL} uses the defaults listed
+here): \code{paul}: order m (default 4); \code{dog}: derivative m
 (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
 \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0
+(default 5);
 \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
 (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.
-Controls time-frequency resolution trade-off.}
+Passed to \code{\link{analyse_wavelet}}. \code{Default=NULL}.}
 
-\item{n_simulations}{Number of simulations (reserved for future significance testing).
-Currently not used internally.}
+\item{n_simulations}{Number of simulations (integer). Not used: reserved for a future significance test.
+\code{Default=10}.}
 
-\item{window.type.t}{Type of smoothingw indow applied in the time direction.
-Options: "none", "bar" (Bartlett), "tri" (triangular), "box" (boxcar),
-"han" (Hanning, default), "ham" (Hamming) or "bla" (Blackman)}
+\item{window.type.t}{Type of the smoothing window applied in the depth/time direction before the coherence is
+computed, given as a number or a character code: \code{0} or \code{"none"} (no smoothing), \code{1} or
+\code{"bar"} (Bartlett), \code{2} or \code{"tri"} (triangular), \code{3} or \code{"box"} (boxcar), \code{4} or
+\code{"han"} (Hanning), \code{5} or \code{"ham"} (Hamming), \code{6} or \code{"bla"} (Blackman).
+\code{Default=4} (Hanning).}
 
-\item{window.type.s}{Type of smoothing window applied in the scale direction.
-Same options as window.type.t.}
+\item{window.type.s}{Type of the smoothing window applied in the period (scale) direction; same options as
+\code{window.type.t}. \code{Default=4} (Hanning).}
 
-\item{abs_window_t}{Absolute smoothing window size in the time direction
-(same units as input data).}
+\item{abs_window_t}{Length of the smoothing window in the depth/time direction, in the same unit as the
+depth/time column of the records (numeric, > 0); converted to an odd number of samples and capped at about a
+quarter of the record length (with a warning). Longer windows give smoother but less local coherence.
+\code{Default=500}.}
 
-\item{abs_window_s}{Absolute smoothing window size in the scale direction
-(in units of dj).}
+\item{abs_window_s}{Length of the smoothing window in the period (scale) direction, in octaves (numeric, > 0;
+converted to an odd number of scale steps of size \code{dj}). \code{Default=0.5}.}
 }
 \value{
 A list of class containing:

@@ -16,106 +16,111 @@
 #' @description Astronomical solutions option are:
 #'\itemize{
 #'     \item La2004 Eccentricity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function
-#'	   \item La2010a Obliquity solution
-#'	   \item La2010a Precession solution
-#'	   \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2010b Obliquity solution
-#'	   \item La2010b Precession solution
-#'	   \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2010c Obliquity solution
-#'	   \item La2010c Precession solution
-#'	   \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item La2010d Obliquity solution
-#'	   \item La2010d Precession solution
-#'	   \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function
-#'	   \item ZB17a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17e Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17e Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17f Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17f Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17h Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17h Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17i Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17i Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17j Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17j Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17k Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17k Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17p Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB17p Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB18a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB18a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item ZB20d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
-#'	   \item 405kyr eccentricity 405 metronome can be generated using the formula:\cr
-#'	     e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
-#'	   \item 173kyr obliquity  metronome can be generated using using the formula:\cr
-#'	    es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
-#'	   \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
-#'	   }
+#'     \item La2004 Obliquity solution available via the \link[astrochron]{getLaskar} function
+#'     \item La2004 Precession solution available via the \link[astrochron]{getLaskar} function
+#'     \item La2010a Eccentricity solution available via the \link[astrochron]{getLaskar}function
+#'     \item La2010a Obliquity solution
+#'     \item La2010a Precession solution
+#'     \item La2010b Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'     \item La2010b Obliquity solution
+#'     \item La2010b Precession solution
+#'     \item La2010c Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'     \item La2010c Obliquity solution
+#'     \item La2010c Precession solution
+#'     \item La2010d Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'     \item La2010d Obliquity solution
+#'     \item La2010d Precession solution
+#'     \item La2011 Eccentricity solution available via the \link[astrochron]{getLaskar} function
+#'     \item ZB17a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17e Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17e Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17f Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17f Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17h Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17h Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17i Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17i Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17j Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17j Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17k Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17k Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17p Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB17p Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB18a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB18a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20a Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20a Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20b Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20b Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20c Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20c Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20d Eccentricity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item ZB20d Obliquity solution downloadable via \url{https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html}
+#'     \item 405kyr eccentricity 405 metronome can be generated using the formula:\cr
+#'       e405=0.027558-0.010739*cos(0.0118+2(pi)*(t/405000)) (laskar et al., 2004 & laskar 2020)
+#'     \item 173kyr obliquity  metronome can be generated using using the formula:\cr
+#'      es3-s6(t) = 0.144*cos(1.961+2(pi)*(t/172800) (laskar et al., 2004 & laskar 2020)
+#'     \item An etp model using the \link[astrochron]{etp} function of the 'astrochron' R package
+#'     }
 #'
-#'@param astro_solution Input is an astronomical solution which the proxy record will be anchored to,
-#' the input should be a matrix or data frame with the first column being
-#' age and the second column should be a insolation/angle/value
-#'@param proxy_signal Input is the proxy data set which will
-#'be anchored to an astronomical solution, the input should be a matrix or
-#' data frame with the first column being  depth/time and the second column should be a proxy value.
-#' For the best results either the astronomical components need to be pre-extracted
-#' before anchoring. This means that a filtering/cycle extracting need to be applied to
-#' the input data or the  extract_proxy_signal option needs to be set to TRUE.
-#'@param proxy_min_or_max Tune proxy maxima or minima to the astronomical solution \code{Default="max"}.
-#'@param clip_astrosolution Clip the astronomical solution \code{Default=FALSE}.
-#'@param astrosolution_min_or_max Tune to maximum or minimum values of
-#'the astronomical solution \code{Default="max"}
-#'@param clip_high Upper value to clip to.
-#'@param clip_low Lower value to clip to.
-#'@param extract_astrosolution Extract a certain astronomical cycle/component from a
-#' astronomical solution prior to anchoring \code{Default=FALSE}.
-#'@param astro_period_up Specifies the upper period of the astronomical cycle which is
-#'extracted from an astronomical solution. The astro_period_up is a
-#'factor with which the astronomical component is multiplied by.  \code{Default=1.2}
-#'@param astro_period_down Specified the lower period of the astronomical cycle which is
-#'extracted from an astronomical solution. The astro_period_down value is a
-#'factor with which the astronomical component is multiplied by. \code{Default=0.8}
-#'@param astro_period_cycle Period (in kyr) of the to be extracted astronomical component
-#'from the astronomical solution.
-#'@param extract_proxy_signal Extract a certain astronomical cycle/component from a
-#'proxy signal  \code{Default=FALSE}.
-#'@param proxy_period_up Specifies the upper period of the astronomical cycle to be extracted
-#' from the proxy record. The upper bound value is a factor with which the
-#' (proxy_period_cycle) value is multiplied by. \code{Default=1.2}.
-#'@param proxy_period_down Specifies the upper period of the astronomical cycle to be
-#'extracted from the proxy record. The lower bound value is a factor with
-#' which the astronomical component (proxy_period_cycle) value is multiplied by. \code{Default=0.8}.
-#'@param proxy_period_cycle Period in kyr of the astronomical cycle/component which is to be extracted
-#' from the proxy record.
-#' @param pts The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-#'a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-#'then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-#'aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-#'picked up by the algorithm \code{Default=3}
-#' @param verbose print text \code{Default=FALSE} set verbose to TRUE to allow for anchoring using text feedback commands
-#'@param time_dir The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-#'(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-#'if time decreases with depth/time values (eg stratigraphic logs where 0m is the bottom of the section)
-#'then time_dir should be set to FALSE \code{time_dir=TRUE}
-#'@param genplot Generate plot \code{Default="FALSE"}
+#'@param astro_solution Astronomical solution to which the proxy record is anchored (matrix or data frame with
+#' two columns: age (e.g. in kyr) in column 1, insolation/angle/value in column 2). Its maxima or minima (see
+#' \code{astrosolution_min_or_max}) are the candidate tie points. Required, no default
+#' (\code{Default=NULL} gives an error).
+#'@param proxy_signal Proxy record to be anchored (matrix or data frame with two columns: depth or time in
+#' column 1, proxy value in column 2). Its maxima or minima (see \code{proxy_min_or_max}) are tied one by one to
+#' the astronomical solution. For the best results the astronomical component should be extracted first, either
+#' beforehand (filtering/cycle extraction) or with \code{extract_proxy_signal = TRUE}. Required, no default
+#' (\code{Default=NULL} gives an error).
+#'@param proxy_min_or_max Tie the maxima or the minima of the proxy record (character): \code{"max"} or
+#' \code{"min"}. \code{Default="max"}.
+#'@param clip_astrosolution Clip the astronomical solution to the age range \code{clip_low} to \code{clip_high}
+#' before anchoring (logical, TRUE or FALSE). \code{Default=FALSE}.
+#'@param astrosolution_min_or_max Tie to the maxima or the minima of the astronomical solution (character):
+#' \code{"max"} or \code{"min"}. \code{Default="max"}.
+#'@param clip_high Upper age limit of the clipped astronomical solution, in the unit of its first column
+#' (numeric); only used when \code{clip_astrosolution = TRUE}. \code{Default=NULL}.
+#'@param clip_low Lower age limit of the clipped astronomical solution, in the unit of its first column
+#' (numeric); only used when \code{clip_astrosolution = TRUE}. \code{Default=NULL}.
+#'@param extract_astrosolution Extract one astronomical cycle from the astronomical solution before anchoring
+#' (logical, TRUE or FALSE): a wavelet transform (\code{\link{analyse_wavelet}}) is computed and the cycle
+#' \code{astro_period_cycle} is extracted with \code{\link{extract_signal_stable}}. \code{Default=FALSE}.
+#'@param astro_period_up Factor by which \code{astro_period_cycle} is multiplied to give the upper (longest)
+#' period of the band extracted from the astronomical solution (numeric, > 1). \code{Default=1.2}.
+#'@param astro_period_down Factor by which \code{astro_period_cycle} is multiplied to give the lower (shortest)
+#' period of the band extracted from the astronomical solution (numeric, between 0 and 1). \code{Default=0.8}.
+#'@param astro_period_cycle Period of the astronomical cycle to extract from the astronomical solution, in the
+#' unit of its first column (e.g. kyr) (numeric, > 0); required when \code{extract_astrosolution = TRUE}.
+#' \code{Default=NULL}.
+#'@param extract_proxy_signal Extract one astronomical cycle from the proxy record before anchoring (logical,
+#' TRUE or FALSE), with \code{\link{analyse_wavelet}} and \code{\link{extract_signal_stable}}.
+#' \code{Default=FALSE}.
+#'@param proxy_period_up Factor by which \code{proxy_period_cycle} is multiplied to give the upper (longest)
+#' period of the band extracted from the proxy record (numeric, > 1). \code{Default=1.2}.
+#'@param proxy_period_down Factor by which \code{proxy_period_cycle} is multiplied to give the lower (shortest)
+#' period of the band extracted from the proxy record (numeric, between 0 and 1). \code{Default=0.8}.
+#'@param proxy_period_cycle Period of the cycle to extract from the proxy record, in the unit of the first
+#' column of the record that is filtered (numeric, > 0); required when \code{extract_proxy_signal = TRUE}.
+#' \code{Default=NULL}.
+#' @param pts Number of points to the left and right of a value that the peak detection
+#' (\code{\link{max_detect}}, \code{\link{min_detect}}) compares it with (integer, >= 1): a value is a peak if it
+#' is higher (or lower) than all of them. Larger values give more certain peaks but may miss minor peaks.
+#' \code{Default=3}.
+#' @param verbose Ask for confirmation in the console after every selected tie point and print feedback
+#' (logical, TRUE or FALSE); with \code{FALSE} every selection is accepted directly. \code{Default=FALSE}.
+#'@param time_dir Direction of time in the proxy record (logical): \code{TRUE} if time increases with increasing
+#' depth/time values (e.g. borehole data that get older with depth), \code{FALSE} if it decreases (e.g.
+#' stratigraphic logs with 0 m at the base of the section); the proxy record is then plotted with a reversed
+#' axis. \code{Default=TRUE}.
+#'@param genplot Plot the proxy record and the astronomical solution with the selected tie points connected
+#' after the anchoring (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #'@references
 #'J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B. Levrard, B., 2004,
@@ -262,74 +267,74 @@
 
 
 astro_anchor <- function(astro_solution = NULL,
-                         proxy_signal = NULL,
-                         proxy_min_or_max = "max",
-                         clip_astrosolution = FALSE,
-                         astrosolution_min_or_max = "max",
-                         clip_high = NULL,
-                         clip_low = NULL,
-                         extract_astrosolution = FALSE,
-                         astro_period_up = 1.2,
-                         astro_period_down = 0.8,
-                         astro_period_cycle = NULL,
-                         extract_proxy_signal = FALSE,
-                         proxy_period_up = 1.2,
-                         proxy_period_down = 0.8,
-                         proxy_period_cycle = NULL,
-                         pts=3,
-                         verbose = FALSE,
-                         time_dir = TRUE,
-                         genplot=FALSE) {
+    proxy_signal = NULL,
+    proxy_min_or_max = "max",
+    clip_astrosolution = FALSE,
+    astrosolution_min_or_max = "max",
+    clip_high = NULL,
+    clip_low = NULL,
+    extract_astrosolution = FALSE,
+    astro_period_up = 1.2,
+    astro_period_down = 0.8,
+    astro_period_cycle = NULL,
+    extract_proxy_signal = FALSE,
+    proxy_period_up = 1.2,
+    proxy_period_down = 0.8,
+    proxy_period_cycle = NULL,
+    pts=3,
+    verbose = FALSE,
+    time_dir = TRUE,
+    genplot=FALSE) {
 
   if (!interactive()) {
     stop("astro_anchor() needs mouse and keyboard input (identify(), readline()) and can only be used in an ",
-         "interactive R session; use astro_anchor_app() or astro_anchor_interactive() in a session with a display.", call. = FALSE)
+        "interactive R session; use astro_anchor_app() or astro_anchor_interactive() in a session with a display.", call. = FALSE)
   }
 
   if (clip_astrosolution == TRUE) {
     astro_solution <- astro_solution[astro_solution[, 1]  >= clip_low,]
     astro_solution <-
-      astro_solution[astro_solution[, 1]  <= clip_high,]
+        astro_solution[astro_solution[, 1]  <= clip_high,]
   }
 
   if (extract_astrosolution == TRUE) {
     extract_astrosolution_wt <- analyse_wavelet(
-      data = astro_solution,
-      dj = 1 / 200,
-      lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
-      upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
-      verbose = FALSE,
-      omega_nr = 6
+        data = astro_solution,
+        dj = 1 / 200,
+        lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
+        upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
+        verbose = FALSE,
+        omega_nr = 6
     )
 
     astro_solution <- extract_signal_stable(
-      wavelet = extract_astrosolution_wt,
-      cycle = astro_period_cycle,
-      period_up = astro_period_up,
-      period_down = astro_period_down,
-      add_mean = TRUE,
-      plot_residual = FALSE
+        wavelet = extract_astrosolution_wt,
+        cycle = astro_period_cycle,
+        period_up = astro_period_up,
+        period_down = astro_period_down,
+        add_mean = TRUE,
+        plot_residual = FALSE
     )
 
   }
 
   if (extract_proxy_signal == TRUE) {
     proxy_signal_wt <- analyse_wavelet(
-      data = astro_solution,
-      dj = 1 / 200,
-      lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
-      upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
-      verbose = FALSE,
-      omega_nr = 6
+        data = astro_solution,
+        dj = 1 / 200,
+        lowerPeriod = (astro_solution[2, 1] - astro_solution[1, 1]),
+        upperPeriod = (astro_solution[nrow(astro_solution), 1] - astro_solution[1, 1]),
+        verbose = FALSE,
+        omega_nr = 6
     )
 
     proxy_signal <- extract_signal_stable(
-      wavelet = proxy_signal_wt,
-      cycle = proxy_period_cycle,
-      period_up = proxy_period_up,
-      period_down = proxy_period_down,
-      add_mean = TRUE,
-      plot_residual = FALSE
+        wavelet = proxy_signal_wt,
+        cycle = proxy_period_cycle,
+        period_up = proxy_period_up,
+        period_down = proxy_period_down,
+        add_mean = TRUE,
+        plot_residual = FALSE
     )
   }
 
@@ -357,114 +362,114 @@ astro_anchor <- function(astro_solution = NULL,
 
   if (time_dir == TRUE) {
     oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    on.exit(par(oldpar), add = TRUE)
     par(mfrow = c(1, 1))
     proxy_signal_max <- proxy_signal_max[, c(1, 2)]
     plot(proxy_signal,
-         type = "l",
-         xlab = "depth/time",
-         ylab = "proxy")
+        type = "l",
+        xlab = "depth/time",
+        ylab = "proxy")
     points(proxy_signal_max,
-           xlab = "depth/time",
-           ylab = "proxy")
+        xlab = "depth/time",
+        ylab = "proxy")
 
 
     tie_points <- matrix(data = NA, ncol = 4)
     colnames(tie_points) <-
-      c("data_x", "data_y", "insolation_x", "insolation_y")
+        c("data_x", "data_y", "insolation_x", "insolation_y")
     tie_points <- tie_points[-c(1), ]
 
     for (i in 1:nrow(proxy_signal_max)) {
       oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
+      on.exit(par(oldpar), add = TRUE)
       next_step <- "NO"
       while (next_step == "NO") {
         next_step <- "NO"
         wr_open_device(width = 20, height = 10, interactive_input = TRUE)
         par(mfrow = c(2, 1))
         plot(
-          all_data_pre_max,
-          type = "l",
-          xlab = "depth/time",
-          ylab = "proxy"
+            all_data_pre_max,
+            type = "l",
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         points(
-          proxy_signal_max,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "1",
-          xlab = "depth/time",
-          ylab = "proxy"
+            proxy_signal_max,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "1",
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         par(new = TRUE)
         plot(
-          x = proxy_signal_max[i, 1],
-          y = proxy_signal_max[i, 2],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "red",
-          lwd = "1",
-          xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
-          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-          xlab = "depth/time",
-          ylab = "proxy"
+            x = proxy_signal_max[i, 1],
+            y = proxy_signal_max[i, 2],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "red",
+            lwd = "1",
+            xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+            ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         par(new = TRUE)
         plot(
-          x = tie_points[, 1],
-          y = tie_points[, 2],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "green",
-          lwd = "1",
-          xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
-          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-          xlab = "depth/time",
-          ylab = "proxy"
+            x = tie_points[, 1],
+            y = tie_points[, 2],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "green",
+            lwd = "1",
+            xlim = c(min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])),
+            ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         plot(
-          astro_solution,
-          type = "l",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
-        )
-        par(new = TRUE)
-        plot(
-          astro_maxdetect_error_corr[, c(1, 2)],
-          type = "p",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
+            astro_solution,
+            type = "l",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
         )
         par(new = TRUE)
         plot(
-          tie_points[, c(3, 4)],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "green",
-          lwd = "1",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
+            astro_maxdetect_error_corr[, c(1, 2)],
+            type = "p",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+            tie_points[, c(3, 4)],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "green",
+            lwd = "1",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
         )
         pts <- tuning_pts(x = astro_maxdetect_error_corr[, 1],
-                          y = astro_maxdetect_error_corr[, 2])
+            y = astro_maxdetect_error_corr[, 2])
 
 
         if (verbose == TRUE) {
           var = readline(prompt <-
-                           "did you select the right point Y/N : ")
-        }
-        else
+              "did you select the right point Y/N : ")
+        } else {
           (var = "Y")
+        }
 
         if (var == "Y" |
             var == "Yes" | var == "YES" | var == "yes" | var == "y")
@@ -477,43 +482,41 @@ astro_anchor <- function(astro_solution = NULL,
               cat("no points selected on to the next point")
             }
             sel_astro_maxdetect_error_corr <-
-              matrix(data = NA, ncol = 2)
+                matrix(data = NA, ncol = 2)
             sel_proxy_signal_max <-
-              (as.data.frame(proxy_signal_max[i,]))
+                (as.data.frame(proxy_signal_max[i,]))
             tie_row <-
-              cbind(sel_proxy_signal_max,
+                cbind(sel_proxy_signal_max,
                     sel_astro_maxdetect_error_corr)
             colnames(tie_row) <-
-              c("data_x",
-                "data_y",
-                "insolation_x",
-                "insolation_y")
+                c("data_x",
+                    "data_y",
+                    "insolation_x",
+                    "insolation_y")
             tie_points <- rbind(tie_points, tie_row)
             graphics.off()
             next_step <- "YES"
-          }
-          else
+          } else
           {
             sel_astro_maxdetect_error_corr <-
-              as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
+                as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
             sel_proxy_signal_max <-
-              (as.data.frame(proxy_signal_max[i,]))
+                (as.data.frame(proxy_signal_max[i,]))
             tie_row <-
-              cbind(sel_proxy_signal_max,
+                cbind(sel_proxy_signal_max,
                     sel_astro_maxdetect_error_corr)
             colnames(tie_row) <-
-              c("data_x",
-                "data_y",
-                "insolation_x",
-                "insolation_y")
+                c("data_x",
+                    "data_y",
+                    "insolation_x",
+                    "insolation_y")
             tie_points <- rbind(tie_points, tie_row)
             graphics.off()
             next_step <- "YES"
           }
-        }
-        else if (var == "N" |
-                 var == "NO" |
-                 var == "No" | var == "no" | var == "n")
+        } else if (var == "N" |
+            var == "NO" |
+            var == "No" | var == "no" | var == "n")
         {
           if (verbose == TRUE) {
             cat("okay selection of point will be redone")
@@ -521,8 +524,7 @@ astro_anchor <- function(astro_solution = NULL,
           graphics.off()
           next_step <- "NO"
 
-        }
-        else
+        } else
         {
           if (verbose == TRUE) {
             cat("You did not type yes or no quiting of selection process")
@@ -534,125 +536,124 @@ astro_anchor <- function(astro_solution = NULL,
 
       }
     }
-  }
-  else{
+  } else{
     oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    on.exit(par(oldpar), add = TRUE)
     par(mfrow = c(1, 1))
     proxy_signal_max <- proxy_signal_max[, c(1, 2)]
     plot(
-      proxy_signal,
-      type = "l",
-      xlab = "depth/time",
-      ylab = "proxy",
-      xlim = rev(c(
-        min(proxy_signal[, 1]), max(proxy_signal[, 1])
-      ))
+        proxy_signal,
+        type = "l",
+        xlab = "depth/time",
+        ylab = "proxy",
+        xlim = rev(c(
+            min(proxy_signal[, 1]), max(proxy_signal[, 1])
+        ))
     )
     points(proxy_signal_max,
-           xlab = "depth/time",
-           ylab = "proxy")
+        xlab = "depth/time",
+        ylab = "proxy")
 
     tie_points <- matrix(data = NA, ncol = 4)
     colnames(tie_points) <-
-      c("data_x", "data_y", "insolation_x", "insolation_y")
+        c("data_x", "data_y", "insolation_x", "insolation_y")
     tie_points <- tie_points[-c(1), ]
 
     for (i in 1:nrow(proxy_signal_max)) {
       oldpar <- par(no.readonly = TRUE)
-      on.exit(par(oldpar))
+      on.exit(par(oldpar), add = TRUE)
       next_step <- "NO"
       while (next_step == "NO") {
         next_step <- "NO"
         wr_open_device(width = 20, height = 10, interactive_input = TRUE)
         par(mfrow = c(2, 1))
         plot(
-          all_data_pre_max,
-          type = "l",
-          xlab = "depth/time",
-          ylab = "proxy",
-          xlim = rev(c(
-            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
-          ))
+            all_data_pre_max,
+            type = "l",
+            xlab = "depth/time",
+            ylab = "proxy",
+            xlim = rev(c(
+                min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+            ))
         )
         points(
-          proxy_signal_max,
-          type = "p",
-          pch = 1,
-          col = "black",
-          lwd = "1",
-          xlab = "depth/time",
-          ylab = "proxy"
+            proxy_signal_max,
+            type = "p",
+            pch = 1,
+            col = "black",
+            lwd = "1",
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         par(new = TRUE)
         plot(
-          x = proxy_signal_max[i, 1],
-          y = proxy_signal_max[i, 2],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "red",
-          lwd = "1",
-          xlim = rev(c(
-            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
-          )),
-          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-          xlab = "depth/time",
-          ylab = "proxy"
+            x = proxy_signal_max[i, 1],
+            y = proxy_signal_max[i, 2],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "red",
+            lwd = "1",
+            xlim = rev(c(
+                min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+            )),
+            ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         par(new = TRUE)
         plot(
-          x = tie_points[, 1],
-          y = tie_points[, 2],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "green",
-          lwd = "1",
-          xlim = rev(c(
-            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
-          )),
-          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
-          xlab = "depth/time",
-          ylab = "proxy"
+            x = tie_points[, 1],
+            y = tie_points[, 2],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "green",
+            lwd = "1",
+            xlim = rev(c(
+                min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+            )),
+            ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2])),
+            xlab = "depth/time",
+            ylab = "proxy"
         )
         plot(
-          astro_solution,
-          type = "l",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
-        )
-        par(new = TRUE)
-        plot(
-          astro_maxdetect_error_corr[, c(1, 2)],
-          type = "p",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
+            astro_solution,
+            type = "l",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
         )
         par(new = TRUE)
         plot(
-          tie_points[, c(3, 4)],
-          type = "p",
-          pch = 19,
-          cex = 1.5,
-          col = "green",
-          lwd = "1",
-          xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
-          ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
-          xlab = "depth/time",
-          ylab = "tie_point value"
+            astro_maxdetect_error_corr[, c(1, 2)],
+            type = "p",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
+        )
+        par(new = TRUE)
+        plot(
+            tie_points[, c(3, 4)],
+            type = "p",
+            pch = 19,
+            cex = 1.5,
+            col = "green",
+            lwd = "1",
+            xlim = c(min(astro_solution[, 1]), max(astro_solution[, 1])),
+            ylim = c(min(astro_solution[, 2]), max(astro_solution[, 2])),
+            xlab = "depth/time",
+            ylab = "tie_point value"
         )
 
 
         x = astro_maxdetect_error_corr[, 1]
         y = astro_maxdetect_error_corr[, 2]
 
-        defaultW <- getOption("warn")
-        options(warn = -1)
+        oldop <- options(warn = -1)
+        on.exit(options(oldop), add = TRUE)
         xy <- xy.coords(x, y)
         x <- xy$x
         y <- xy$y
@@ -661,26 +662,26 @@ astro_anchor <- function(astro_solution = NULL,
         ans <- identify(x[!sel], y[!sel], n = 1, plot = F)
         ans <- which(!sel)[ans]
         points(
-          x[ans],
-          y[ans],
-          pch = 19,
-          col = "red",
-          xlim = rev(c(
-            min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
-          )),
-          ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2]))
+            x[ans],
+            y[ans],
+            pch = 19,
+            col = "red",
+            xlim = rev(c(
+                min(all_data_pre_max[, 1]), max(all_data_pre_max[, 1])
+            )),
+            ylim = c(min(all_data_pre_max[, 2]), max(all_data_pre_max[, 2]))
         )
         sel[ans] <- TRUE
         res <- c(res, ans)
         pts <- res
-        options(warn = defaultW)
+        options(oldop)
 
         if (verbose == TRUE) {
           var = readline(prompt <-
-                           "did you select the right point Y/N : ")
-        }
-        else
+              "did you select the right point Y/N : ")
+        } else {
           (var = "Y")
+        }
 
         if (var == "Y" |
             var == "Yes" | var == "YES" | var == "yes" | var == "y")
@@ -693,43 +694,41 @@ astro_anchor <- function(astro_solution = NULL,
               cat("no points selected on to the next point")
             }
             sel_astro_maxdetect_error_corr <-
-              matrix(data = NA, ncol = 2)
+                matrix(data = NA, ncol = 2)
             sel_proxy_signal_max <-
-              (as.data.frame(proxy_signal_max[i,]))
+                (as.data.frame(proxy_signal_max[i,]))
             tie_row <-
-              cbind(sel_proxy_signal_max,
+                cbind(sel_proxy_signal_max,
                     sel_astro_maxdetect_error_corr)
             colnames(tie_row) <-
-              c("data_x",
-                "data_y",
-                "insolation_x",
-                "insolation_y")
+                c("data_x",
+                    "data_y",
+                    "insolation_x",
+                    "insolation_y")
             tie_points <- rbind(tie_points, tie_row)
             graphics.off()
             next_step <- "YES"
-          }
-          else
+          } else
           {
             sel_astro_maxdetect_error_corr <-
-              as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
+                as.data.frame(astro_maxdetect_error_corr[pts, c(1, 2)])
             sel_proxy_signal_max <-
-              (as.data.frame(proxy_signal_max[i,]))
+                (as.data.frame(proxy_signal_max[i,]))
             tie_row <-
-              cbind(sel_proxy_signal_max,
+                cbind(sel_proxy_signal_max,
                     sel_astro_maxdetect_error_corr)
             colnames(tie_row) <-
-              c("data_x",
-                "data_y",
-                "insolation_x",
-                "insolation_y")
+                c("data_x",
+                    "data_y",
+                    "insolation_x",
+                    "insolation_y")
             tie_points <- rbind(tie_points, tie_row)
             graphics.off()
             next_step <- "YES"
           }
-        }
-        else if (var == "N" |
-                 var == "NO" |
-                 var == "No" | var == "no" | var == "n")
+        } else if (var == "N" |
+            var == "NO" |
+            var == "No" | var == "no" | var == "n")
         {
           if (verbose == TRUE) {
             cat("okay selection of point will be redone")
@@ -737,8 +736,7 @@ astro_anchor <- function(astro_solution = NULL,
           graphics.off()
           next_step <- "NO"
 
-        }
-        else
+        } else
         {
           if (verbose == TRUE) {
             cat("You did not type yes or no quiting of selection process")
@@ -758,7 +756,7 @@ astro_anchor <- function(astro_solution = NULL,
   if(genplot==TRUE){
 
     oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    on.exit(par(oldpar), add = TRUE)
     proxy_signal <- all_data_pre_max
     anchor_pts <-  tie_points
 
@@ -767,33 +765,33 @@ astro_anchor <- function(astro_solution = NULL,
       wr_open_device(width = 20, height = 10, interactive_input = TRUE)
       par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
       plot(x=proxy_signal[,1],
-           y=proxy_signal[,2],
-           type = "l",
-           xlab = "",
-           ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
-           ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-           xlim = (c(
-             min(proxy_signal[, 1]), max(proxy_signal[, 1])
-           )))
+          y=proxy_signal[,2],
+          type = "l",
+          xlab = "",
+          ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = (c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )))
       mtext(text = "Depth (metres)",
-            side = 3, #side 2 = left
-            line = 2)
+          side = 3, #side 2 = left
+          line = 2)
       box(lwd=2)
       axis(3)
       segments(x0=anchor_pts[,1],
-               y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
-               x1 = anchor_pts[,1],
-               y1 =anchor_pts[,3],
-               ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-               xlim = (c(
-                 min(proxy_signal[, 1]), max(proxy_signal[, 1])
-               )),col = "black", lwd = 2)
+          y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
+          x1 = anchor_pts[,1],
+          y1 =anchor_pts[,3],
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = (c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )),col = "black", lwd = 2)
 
       points(x=anchor_pts[,1],y=anchor_pts[,3],col="green",pch=19,
-             ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-             xlim = (c(
-               min(proxy_signal[, 1]), max(proxy_signal[, 1])
-             )),cex=2)
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = (c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )),cex=2)
 
 
 
@@ -802,16 +800,16 @@ astro_anchor <- function(astro_solution = NULL,
 
 
       plot(
-        astro_solution,
-        type = "l",
-        xlab = "Time",
-        ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
+          astro_solution,
+          type = "l",
+          xlab = "Time",
+          ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
       )
       box(lwd=2)
 
       segments(x0=anchor_pts[,2], y0=anchor_pts[,4], x1 = anchor_pts[,2],
-               y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
-               col = "black", lwd = 2)
+          y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
+          col = "black", lwd = 2)
       points(x=anchor_pts[,2],y=anchor_pts[,4],col="red",pch=19,cex=2)
 
 
@@ -821,56 +819,56 @@ astro_anchor <- function(astro_solution = NULL,
       settings_dev <- dev.size("in")
 
       plot.window(xlim = c(min(astro_solution[,1]) , max(astro_solution[,1])),
-                  ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
+          ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
 
       y0_val <- ((settings_dev[2]-((5)/2.54))/2)+1.5/2.54
       y1_val <-  ((settings_dev[2]-((5)/2.54))/2)+(2.5)/2.54
 
 
       fact <- (anchor_pts[,1]-min(proxy_signal[, 1]))/
-        (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
+          (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
       x1_vals <- ((max(astro_solution[, 1])-min(astro_solution[, 1]))*(fact))+min(astro_solution[, 1])
 
 
       segments(x0=anchor_pts[,2],
-               y0=rep(y0_val,times=(nrow(anchor_pts)))
-               ,x1 = x1_vals,
-               y1 = rep(y1_val,times=(nrow(anchor_pts))),
-               col = "black", lwd = 2,lend=1)
+          y0=rep(y0_val,times=(nrow(anchor_pts)))
+          ,x1 = x1_vals,
+          y1 = rep(y1_val,times=(nrow(anchor_pts))),
+          col = "black", lwd = 2,lend=1)
 
     }else{
       wr_open_device(width = 20, height = 10, interactive_input = TRUE)
       par(mfrow = c(2, 1),mai = c(0.5/2.54, 2/2.54, 2/2.54, 1/2.54),mgp=c(2,1,0))
       plot(x=proxy_signal[,1],
-           y=proxy_signal[,2],
-           type = "l",
-           xlab = "",
-           ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
-           ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-           xlim = rev(c(
-             min(proxy_signal[, 1]), max(proxy_signal[, 1])
-           )))
+          y=proxy_signal[,2],
+          type = "l",
+          xlab = "",
+          ylab = "Proxy value",xaxt = "n", xaxs = "i",lwd=2,
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = rev(c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )))
       mtext(text = "Depth (metres)",
-            side = 3, #side 2 = left
-            line = 2)
+          side = 3, #side 2 = left
+          line = 2)
       box(lwd=2)
       axis(3)
 
 
       segments(x0=anchor_pts[,1],
-               y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
-               x1 = anchor_pts[,1],
-               y1 =anchor_pts[,3],
-               ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-               xlim = rev(c(
-                 min(proxy_signal[, 1]), max(proxy_signal[, 1])
-               )),col = "black", lwd = 2)
+          y0=rep(min(proxy_signal[,2])*0.2,times=(nrow(anchor_pts))),
+          x1 = anchor_pts[,1],
+          y1 =anchor_pts[,3],
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = rev(c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )),col = "black", lwd = 2)
 
       points(x=anchor_pts[,1],y=anchor_pts[,3],col="green",pch=19,
-             ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
-             xlim = rev(c(
-               min(proxy_signal[, 1]), max(proxy_signal[, 1])
-             )),cex=2)
+          ylim= c(min(proxy_signal[,2]),max(proxy_signal[,2])),
+          xlim = rev(c(
+              min(proxy_signal[, 1]), max(proxy_signal[, 1])
+          )),cex=2)
 
 
 
@@ -879,16 +877,16 @@ astro_anchor <- function(astro_solution = NULL,
 
 
       plot(
-        astro_solution,
-        type = "l",
-        xlab = "Time",
-        ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
+          astro_solution,
+          type = "l",
+          xlab = "Time",
+          ylab = "tie point value",xaxs = "i",yaxs = "i",lwd=2
       )
       box(lwd=2)
 
       segments(x0=anchor_pts[,2], y0=anchor_pts[,4], x1 = anchor_pts[,2],
-               y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
-               col = "black", lwd = 2)
+          y1 = rep(max(astro_solution[,2])*1.2,times=(nrow(anchor_pts))),
+          col = "black", lwd = 2)
       points(x=anchor_pts[,2],y=anchor_pts[,4],col="red",pch=19,cex=2)
 
       par(new = TRUE,mfrow = c(1, 1),mai = c(2/2.54, 2/2.54, 2/2.54, 1/2.54))
@@ -896,26 +894,26 @@ astro_anchor <- function(astro_solution = NULL,
       settings_dev <- dev.size("in")
 
       plot.window(xlim = c(min(astro_solution[,1]) , max(astro_solution[,1])),
-                  ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
+          ylim = c(2/2.54, settings_dev[2]-(3/2.54)), yaxs = "i", xaxs = "i")
 
       y0_val <- ((settings_dev[2]-((5)/2.54))/2)+1.5/2.54
       y1_val <-  ((settings_dev[2]-((5)/2.54))/2)+(2.5)/2.54
 
 
       fact <- (anchor_pts[,1]-min(proxy_signal[, 1]))/
-        (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
+          (max(proxy_signal[, 1])-min(proxy_signal[, 1]))
       x1_vals <- ((max(astro_solution[, 1])-min(astro_solution[, 1]))*(1-fact))+min(astro_solution[, 1])
 
 
       segments(x0=anchor_pts[,2],
-               y0=rep(y0_val,times=(nrow(anchor_pts)))
-               ,x1 = x1_vals,
-               y1 = rep(y1_val,times=(nrow(anchor_pts))),
-               col = "black", lwd = 2,lend=1)
+          y0=rep(y0_val,times=(nrow(anchor_pts)))
+          ,x1 = x1_vals,
+          y1 = rep(y1_val,times=(nrow(anchor_pts))),
+          col = "black", lwd = 2,lend=1)
     }
 
 
-    }
+  }
 
 
 
@@ -924,4 +922,3 @@ astro_anchor <- function(astro_solution = NULL,
 
 
 }
-

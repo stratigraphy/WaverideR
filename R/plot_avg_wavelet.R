@@ -3,10 +3,12 @@
 #' @description Plot the average spectral power of a wavelet spectra using the results of
 #' the \code{\link{analyse_wavelet}} function.
 #'
-#' @param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#' @param y_lab Label for the y-axis \code{Default="Power"}.
-#' @param x_lab Label for the x-axis \code{Default="depth (metres)"}.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param wavelet Wavelet result whose time-averaged power (\code{Power.avg}) is plotted against period (log-scaled
+#' period axis): the list returned by \code{\link{analyse_wavelet}}. Required (\code{Default=NULL} gives an error).
+#' @param y_lab Label of the y-axis (power axis) (character). \code{Default="Power"}.
+#' @param x_lab Label of the x-axis (period axis) (character). \code{Default="period (metres)"}.
+#' @param keep_editable Keep the graphical parameters (\code{par}) after plotting, so that extra elements can be added
+#' (logical). With \code{FALSE} the previous \code{par} settings are restored on exit. \code{Default=FALSE}.
 #'
 #'@examples
 #'\donttest{
@@ -71,22 +73,22 @@
 
 
 plot_avg_wavelet <- function(wavelet = NULL,
-                             y_lab = "Power",
-                             x_lab = "period (metres)",
-                             keep_editable = FALSE) {
+    y_lab = "Power",
+    x_lab = "period (metres)",
+    keep_editable = FALSE) {
   if (keep_editable == FALSE) {
     oldpar <- par(no.readonly = TRUE)
     on.exit(par(oldpar))
   }
 
   plot(
-    wavelet$Period,
-    wavelet$Power.avg,
-    log = "x",
-    type = "l",
-    ylab = y_lab,
-    xlab = x_lab,
-    xaxs ="i"
+      wavelet$Period,
+      wavelet$Power.avg,
+      log = "x",
+      type = "l",
+      ylab = y_lab,
+      xlab = x_lab,
+      xaxs ="i"
   )
 }
 

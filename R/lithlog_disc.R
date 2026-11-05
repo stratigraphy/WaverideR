@@ -16,15 +16,23 @@
 #' The R Journal. <doi:10.32614/RJ-2021-039>
 #'
 #'
-#' @param litholog litholog input matrix with 3 columns column 1 is bottom of the bed,
-#'  column 2 is top of bed, column is depth rank/proxy value
-#' @param subset_fact subset factor which is x times the greatest common divider \code{Default=10}.
-#' @param lin_interp Linear interpolation of the data set \code{Default=FALSE}
-#' @param dt step size  \code{Default=NULL}.
-#' @param genplot generate plot  \code{Default=FALSE}
-#' @param x_lab label for the y-axis \code{Default="rank"}
-#'@param y_lab label for the y-axis \code{Default="depth (m)"}
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param litholog Litholog as a three-column matrix or data frame (the bed format of 'StratigrapheR'), one row per
+#' bed ordered from the base of the section upwards: column 1 the base (bottom) depth of the bed, column 2 the top
+#' depth of the bed (larger than column 1, e.g. in metres) and column 3 the depth rank or proxy value of the bed.
+#' Required (\code{Default=NULL}).
+#' @param subset_fact Divisor of the greatest common divisor of the bed thicknesses (numeric, > 0): the litholog is
+#' discretised with a step of (greatest common divisor) / \code{subset_fact}, so larger values give a finer, larger
+#' series. \code{Default=10}.
+#' @param lin_interp Linearly interpolate the discretised series to the regular step \code{dt}, e.g. to reduce a very
+#' finely sampled series (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param dt Sampling interval of the interpolated series, in the depth unit of \code{litholog} (numeric, > 0);
+#' required when \code{lin_interp = TRUE}, otherwise ignored. \code{Default=NULL}.
+#' @param genplot Plot the discretised series, value against depth (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param x_lab Label of the x-axis (rank or proxy value) of the plot (character). \code{Default="rank"}.
+#' @param y_lab Label of the y-axis (depth) of the plot (character). \code{Default="depth (m)"}.
+#' @param keep_editable Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+#' features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+#' \code{Default=FALSE}.
 #'
 #' @examples
 #'# Convert depth rank record to a discrete proxy record to allow for further
@@ -44,13 +52,13 @@
 
 
 lithlog_disc <- function(litholog = NULL,
-                         subset_fact = 10,
-                         lin_interp = FALSE,
-                         dt = NULL,
-                         genplot = FALSE,
-                         x_lab = "rank",
-                         y_lab = "depth (m)",
-                         keep_editable = FALSE) {
+    subset_fact = 10,
+    lin_interp = FALSE,
+    dt = NULL,
+    genplot = FALSE,
+    x_lab = "rank",
+    y_lab = "depth (m)",
+    keep_editable = FALSE) {
   a <- -1
   m <- 0.999
 
@@ -68,8 +76,8 @@ lithlog_disc <- function(litholog = NULL,
   subsetsample_nr <- m / subset_fact
   bed.example <- litholog
   col_interp <- matrix(data = NA,
-                       nrow = 0,
-                       ncol = 2)
+      nrow = 0,
+      ncol = 2)
   colnames(col_interp) <- c("new_nrs", "val")
   col_interp <- na.omit(col_interp)
 
@@ -78,10 +86,10 @@ lithlog_disc <- function(litholog = NULL,
       bottom <- bed.example[i, 1]
       top <- bed.example[i, 2]
       new_nrs <-
-        seq(bottom, top, subsetsample_nr)
+          seq(bottom, top, subsetsample_nr)
       val <-
-        c(rep(bed.example[i, 3], times = length(new_nrs) - 1), ((bed.example[i, 3] +
-                                                                   bed.example[i + 1, 3]) / 2))
+          c(rep(bed.example[i, 3], times = length(new_nrs) - 1), ((bed.example[i, 3] +
+              bed.example[i + 1, 3]) / 2))
       col_interp <- rbind(col_interp, cbind(new_nrs, val))
     }
 
@@ -90,12 +98,12 @@ lithlog_disc <- function(litholog = NULL,
       top <- bed.example[i, 2]
 
       new_nrs <-
-        seq(bottom + subsetsample_nr,
-            top,
-            subsetsample_nr)
+          seq(bottom + subsetsample_nr,
+              top,
+              subsetsample_nr)
       val <-
-        c(rep(bed.example[i, 3], times = length(new_nrs) - 1), ((bed.example[i, 3] +
-                                                                   bed.example[i + 1, 3]) / 2))
+          c(rep(bed.example[i, 3], times = length(new_nrs) - 1), ((bed.example[i, 3] +
+              bed.example[i + 1, 3]) / 2))
       col_interp <- rbind(col_interp, cbind(new_nrs, val))
     }
 
@@ -103,7 +111,7 @@ lithlog_disc <- function(litholog = NULL,
       bottom <- bed.example[i, 1]
       top <- bed.example[i, 2]
       new_nrs <- seq(bottom + subsetsample_nr,
-                     top, subsetsample_nr)
+          top, subsetsample_nr)
       val <- c(rep(bed.example[i, 3], times = length(new_nrs)))
       col_interp <- rbind(col_interp, cbind(new_nrs, val))
     }
@@ -115,18 +123,18 @@ lithlog_disc <- function(litholog = NULL,
     yleft_out <- col_interp[1, 2]
     yright_out <- col_interp[nrow(col_interp), 2]
     seq <-
-      seq(
-        from = min(col_interp[, 1]),
-        to = max(col_interp[, 1]),
-        by = dt
-      )
+        seq(
+            from = min(col_interp[, 1]),
+            to = max(col_interp[, 1]),
+            by = dt
+        )
     app <- approx(
-      x = col_interp[, 1],
-      y = col_interp[, 2],
-      xout = seq,
-      method = "linear",
-      yleft = yleft_out,
-      yright = yright_out
+        x = col_interp[, 1],
+        y = col_interp[, 2],
+        xout = seq,
+        method = "linear",
+        yleft = yleft_out,
+        yright = yright_out
     )
     col_interp <- as.data.frame(cbind(app$x, app$y))
   }
@@ -139,13 +147,13 @@ lithlog_disc <- function(litholog = NULL,
       on.exit(par(oldpar))
     }
     plot(
-      col_interp[, 2],
-      col_interp[, 1],
-      type = "l",
-      col = "black",
-      xlab = x_lab,
-      ylab = y_lab
+        col_interp[, 2],
+        col_interp[, 1],
+        type = "l",
+        col = "black",
+        xlab = x_lab,
+        ylab = y_lab
     )
   }
-return(col_interp)
+  return(col_interp)
 }

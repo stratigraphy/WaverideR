@@ -20,28 +20,50 @@ k_from_bundling(
 )
 }
 \arguments{
-\item{n}{counted precession cycles per bundle (may be fractional)}
+\item{n}{Number of precession (or obliquity) cycles counted per eccentricity bundle, or the measured ratio of the
+two periods (numeric, > 1, may be fractional). Required (no default).}
 
-\item{bundle_term}{the eccentricity term forming the bundle ("e405" by
-default; also "e125"/"e130", "e124", "e99", "e95", or any gi-gj)}
+\item{bundle_term}{Eccentricity term that forms the bundle (character): a named term such as \code{"e405"}
+(g2-g5), \code{"e125"} or \code{"e130"} (g3-g2), \code{"e124"} (g4-g2), \code{"e99"} (g3-g5), \code{"e95"}
+(g4-g5), any other name listed by \code{\link{astro_terms}}, or an expression of secular frequencies such as
+\code{"g2-g5"}. \code{Default="e405"}.}
 
-\item{prec_term}{which precession (or obliquity) term is being bundled}
+\item{prec_term}{Precession or obliquity term that is bundled (character; it must contain k), e.g.
+\code{"k+g5"} (main precession), \code{"k+g2"}, \code{"k+g4"}, \code{"k+s3"} (obliquity), or the aliases
+\code{"prec"}/\code{"precession"} and \code{"obl"}/\code{"obliquity"}. \code{Default="k+g5"}.}
 
-\item{age_ma}{approximate age, for the secular frequencies and the obliquity}
+\item{age_ma}{Age of the record in Ma (numeric): one value, or \code{c(min, max)} to draw the age uniformly
+from that range in the Monte Carlo simulation. It sets the uncertainty of the secular frequencies (growing with
+the square root of age) and the obliquity used by \code{\link{ctest_earthmoon}}. Required (no default).}
 
-\item{n_sd}{1-sigma counting uncertainty on n (default 0.5 cycles);
-`nsim = 0` returns the plain point estimate}
+\item{n_sd}{One-sigma counting uncertainty of \code{n}, in cycles (numeric, >= 0); \code{n} is drawn from a
+normal distribution with this standard deviation. \code{Default=0.5}.}
 
-\item{nsim}{number of Monte Carlo draws}
+\item{nsim}{Number of Monte Carlo draws (integer, >= 0); \code{0} returns the plain point estimate without
+uncertainty. \code{Default=20000}.}
 
-\item{method}{"angular_momentum" or "astrogeo22"}
+\item{method}{How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+(character, passed to \code{\link{ctest_earthmoon}}): \code{"angular_momentum"} (conservation of Earth-Moon
+angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat et al., 2022).
+\code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{sampleorb, g4g3_range_kyr, s4s3_range_kyr}{passed to the
-secular-frequency sampler}
+\item{sampleorb}{Shape of the distribution from which the uncertain secular frequencies g2, g3, g4, g5 and s3
+are drawn (character): \code{"U"} uniform or \code{"N"} normal. \code{Default="U"}.}
 
-\item{seed}{optional RNG seed}
+\item{g4g3_range_kyr}{Range \code{c(min, max)} of the period of the g4-g3 term in kyr (numeric vector of
+length 2), drawn uniformly to allow for a chaotic resonance transition (g3 and g4 are moved symmetrically);
+\code{NULL} keeps g4-g3 at its La2004 value. \code{Default=NULL}.}
 
-\item{data_dir}{folder with the data tables}
+\item{s4s3_range_kyr}{Range \code{c(min, max)} of the period of the s4-s3 term in kyr (numeric vector of
+length 2), drawn uniformly as for \code{g4g3_range_kyr}; \code{NULL} keeps s4-s3 at its La2004 value.
+\code{Default=NULL}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
+
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 list with the Earth-Moon `summary`, `k_kyr`, `k_sd_kyr`,

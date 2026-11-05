@@ -7,14 +7,14 @@
 min_detect(data = NULL, pts = 3)
 }
 \arguments{
-\item{data}{Matrix or data frame with first column being depth or time and
-the second column being a proxy}
+\item{data}{Signal in which the local extremes are detected: a two-column matrix or data frame with depth or
+time in column 1 (in increasing order) and the proxy value in column 2. Required (\code{Default=NULL}).}
 
-\item{pts}{the pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-picked up by the algorithm \code{Default=3}}
+\item{pts}{Number of points to each side that a point is compared with (integer, >= 2): a point is a local minimum
+when it is above (maximum) or below (minimum) the value \code{pts} points further on and the value
+\code{pts - 1} points back. Of consecutive extremes of the same type only the most extreme one is kept. Larger
+values give more robust extremes but may miss minor ones.
+\code{Default=3}.}
 }
 \value{
 #Returns a matrix with 2 columns

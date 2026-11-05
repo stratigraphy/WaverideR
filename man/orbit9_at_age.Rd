@@ -7,9 +7,12 @@
 orbit9_at_age(age_ma, data_dir = NULL)
 }
 \arguments{
-\item{age_ma}{age in Ma.}
+\item{age_ma}{Age at which the nine periods are calculated, in Ma (single finite numeric value, 0 to 4429); it is
+rounded to the nearest whole Ma (see \code{\link{calculate_orbit9}}). Required (no default).}
 
-\item{data_dir}{data folder \code{Default=NULL}.}
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 numeric vector of nine periods (kyr).

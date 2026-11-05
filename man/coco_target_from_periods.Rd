@@ -17,22 +17,32 @@ coco_target_from_periods(
 )
 }
 \arguments{
-\item{orbit}{periods in kyr, longest first (e.g. c(405,125,95,41,23,22,19))
-\code{Default=NULL}}
+\item{orbit}{Astronomical periods of the target sinusoids, in kyr (numeric vector, > 0; sorted longest first
+internally), e.g. \code{c(405, 125, 95, 41, 23, 22, 19)}. \code{NULL} uses the nine periods at \code{age_ma}.
+\code{Default=NULL}.}
 
-\item{age_ma}{alternative to `orbit`: use the nine periods at this age
-(calculate_orbit9(); La2004 g/s + AstroGeo22 precession constant)
-\code{Default=NULL}}
+\item{age_ma}{Age in Ma (single numeric value, 0 to 4429) at which the nine periods are taken from
+\code{\link{orbit9_at_age}} (La2004 g and s frequencies with the AstroGeo22 precession constant); only used
+when \code{orbit} is \code{NULL}, and one of the two must be given. \code{Default=NULL}.}
 
-\item{t1, t2, step}{time axis of the synthetic series (kyr)}
+\item{t1, t2}{Start and end of the time axis on which the synthetic sum of sinusoids is sampled, in kyr
+(numeric, \code{t2 > t1}); the length \code{t2 - t1} sets the width of the target peaks.
+\code{Default=300000} and \code{Default=308000}.}
 
-\item{f1, f2}{frequency interval kept (cycles/kyr); f2 defaults to 1.2 x the
-highest orbital frequency (Acycle GUI)}
+\item{step}{Time step of the synthetic series, in kyr (numeric, > 0). \code{Default=1}.}
 
-\item{pad}{zero padding of the periodogram \code{Default=10000}}
+\item{f1}{Lowest frequency of the target that is returned, in cycles/kyr (numeric, >= 0). \code{Default=0}.}
 
-\item{weights}{sinusoid amplitudes; default 1.0 eccentricity, 0.8 obliquity,
-0.6 precession (as in period2spectrum.m)}
+\item{f2}{Highest frequency of the target that is returned, in cycles/kyr (numeric, > \code{f1}); \code{NULL} uses
+1.2 times the highest orbital frequency, as in the Acycle GUI. \code{Default=NULL}.}
+
+\item{pad}{Length (number of points) to which the synthetic series is zero-padded for the periodogram (integer;
+at least the series length is used); a larger value gives a finer frequency grid. \code{Default=10000}.}
+
+\item{weights}{Amplitudes of the sinusoids, one per period in \code{orbit} after sorting longest first (numeric
+vector). \code{NULL} uses 1.0 for eccentricity, 0.8 for obliquity and 0.6 for precession (for nine periods via
+\code{\link{coco_fixed_target_weights}}; otherwise the three longest get 1.0, the fourth 0.8 and the rest 0.6, as
+in Acycle period2spectrum.m). \code{Default=NULL}.}
 }
 \value{
 two-column matrix: frequency (cycles/kyr), power

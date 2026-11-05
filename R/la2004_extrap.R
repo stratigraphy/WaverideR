@@ -1,11 +1,12 @@
-# --- Older published models for comparison -----------------------------------
+# Older published models for comparison
 
 #' La2004 polynomial extrapolation (Laskar et al. 2004, eqs. 39-40)
 #' Strictly valid only over a few hundred Myr; shown for comparison.
-#' @param age_ma Age(s) in Ma.
+#' @param age_ma Age or ages in Ma (numeric vector, >= 0; positive into the past); one output row per age. The
+#' polynomials are only reliable over the last few hundred Myr. Required (no default).
 #' @export
 la2004_extrap <- function(age_ma){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   astro_constants <- function(){
     AU <- 1.495978707e11            # m
@@ -19,27 +20,27 @@ la2004_extrap <- function(age_ma){
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   # In La2004 time is negative into the past, so T = -age.
   Tg <- -age_ma / 1000                     # Gyr (negative = past)
   a <- 60.142611 + 6.100887 * Tg - 2.709407 * Tg^2 + 1.366779 * Tg^3 - 1.484062 * Tg^4
   p <- 50.475838 - 26.368583 * Tg + 21.890862 * Tg^2
   data.frame(age_ma = age_ma, a_RE = a, a_km = a * .AC$RE / 1000,
-             p_arcsec = p, p_kyr = 360 * 3600 / p / 1000,
-             lod_h = lod_from_moon_distance(a))
+      p_arcsec = p, p_kyr = 360 * 3600 / p / 1000,
+      lod_h = lod_from_moon_distance(a))
 }

@@ -66,7 +66,7 @@ test_that("the app server reacts to clicks, typed positions and the cycle mode",
   shiny::testServer(app, {
     n0 <- nrow(rv$ties)
     session$setInputs(live = FALSE, flow = 0.002, fhigh = 0.003, roll = 3, show_astro = TRUE, show_sed = TRUE, tune = 0,
-                      tie_on = "raw", snap = FALSE, pflow = 1, pfhigh = 2, proll = 3)
+        tie_on = "raw", snap = FALSE, pflow = 1, pfhigh = 2, proll = 3)
     b <- WaverideR:::.aaa_boxes()
     px <- WaverideR:::.aaa_to_ndc(b$proxy, rv$view_p, FALSE, 156.37)
     ax <- WaverideR:::.aaa_to_ndc(b$astro, rv$view_a, FALSE, 5123.4)
@@ -115,8 +115,8 @@ test_that("the app can switch target and moves the windows with the sliders", {
   app <- WaverideR:::.aaa_app(S, TRUE, 1, "raw", NULL, NULL)
   shiny::testServer(app, {
     session$setInputs(a_from = min(S$astro$x), a_to = max(S$astro$x), pk_a_type = "max", pk_p_type = "max", snap = FALSE,
-                      tie_on = "raw", flow = 0.0381, fhigh = 0.0635, roll = 3, show_astro = TRUE, show_sed = TRUE, tune = 0,
-                      a_period = 405, a_phase = 0, a_preset = 405, a_src = "prov:first")
+        tie_on = "raw", flow = 0.0381, fhigh = 0.0635, roll = 3, show_astro = TRUE, show_sed = TRUE, tune = 0,
+        a_period = 405, a_phase = 0, a_preset = 405, a_src = "prov:first")
     n0 <- nrow(rv$ties)
     session$setInputs(a_src = "metro", a_from = 5000, a_to = 6000)
     expect_equal(nrow(raw_a()), nrow(WaverideR:::.aaa_metronome(405, 0, 5000, 6000)))
@@ -133,7 +133,9 @@ test_that("the app can switch target and moves the windows with the sliders", {
     session$setInputs(fit = 1)
     expect_equal(rv$view_a, range(raw_a()$x))
     session$setInputs(time_dir = FALSE, flip_p = TRUE, flip_a = TRUE)     # other reference frame
-    expect_false(td()); expect_true(flip_p()); expect_true(flip_a())
+    expect_false(td())
+    expect_true(flip_p())
+    expect_true(flip_a())
     session$setInputs(pk_a_type = "min")
     expect_true(nrow(pka()) > 1)
   })

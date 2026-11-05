@@ -15,19 +15,27 @@ extract_signal_stable(
 )
 }
 \arguments{
-\item{wavelet}{Wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+its coefficients. Required (\code{Default=NULL}).}
 
-\item{cycle}{Period of the cycle which needs to be extracted.}
+\item{cycle}{Constant period of the cycle to extract, in the depth/time unit of the wavelet (numeric, > 0).
+Required (\code{Default=NULL}).}
 
-\item{period_up}{Specifies the upper period as a factor of the to be extracted cycle \code{Default=1.2}.}
+\item{period_up}{Upper boundary of the band that is reconstructed, as a factor of \code{cycle} (numeric,
+> \code{period_down}). \code{Default=1.2}.}
 
-\item{period_down}{Specifies the lower period as a factor of the to be extracted cycle \code{Default=0.8}.}
+\item{period_down}{Lower boundary of the band that is reconstructed, as a factor of \code{cycle} (numeric, > 0).
+\code{Default=0.8}.}
 
-\item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
+\item{add_mean}{Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+\code{FALSE} returns it centred on zero. \code{Default=TRUE}.}
 
-\item{plot_residual}{plot the residual signal after extraction of set cycle \code{Default=FALSE}.}
+\item{plot_residual}{Plot the residual (extracted cycle minus data) against depth/time and its histogram
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the plot layout active after the call so that extra features can be added to the
+residual plot (logical, TRUE or FALSE); \code{FALSE} restores the previous graphical parameters. Only used when
+\code{plot_residual=TRUE}. \code{Default=FALSE}.}
 }
 \value{
 #'Returns a matrix with 2 columns.

@@ -17,29 +17,44 @@ plot_astro_evidence(
 )
 }
 \arguments{
-\item{wavelet}{A scalogram (\code{\link{analyse_wavelet}} with a high \code{omega_nr} works best for noisy
-records; \code{\link{analyse_superlet_sst}}, \code{\link{analyse_chirplet_sst}} etc. for clean ones).}
+\item{wavelet}{Scalogram from which the evidence is computed (list of class \code{analyze.wavelet};
+\code{\link{analyse_wavelet}} with a high \code{omega_nr} works best for noisy records,
+\code{\link{analyse_superlet_sst}}, \code{\link{analyse_chirplet_sst}} etc. for clean ones). \code{NULL} shows the
+evidence stored in \code{track} instead. \code{Default=NULL}.}
 
-\item{sedrate}{Range of the sedimentation rate to show (depth units per kyr); wide by default.}
+\item{sedrate}{Range of the sedimentation rate to show (numeric vector \code{c(lower, upper)}, > 0, in depth units
+per kyr); \code{NULL} uses a wide range from the period range of the scalogram and the astronomical periods. Not
+used when the map is taken from \code{track}. \code{Default=NULL}.}
 
-\item{track}{Optional result of \code{\link{track_astro_hmm}} or \code{\link{track_astro_auto}} to draw on the map.}
+\item{track}{Optional track to draw on the map (white line) and the source of the map for
+\code{type = "posterior"}: the output of \code{\link{track_astro_hmm}} or \code{\link{track_astro_auto}} (its
+element \code{track} is used). \code{Default=NULL}.}
 
-\item{reference}{Optional data frame (depth, sedimentation rate) to draw, e.g. a known or published rate.}
+\item{reference}{Optional sedimentation rate curve to draw as a red dashed line (two-column data frame or matrix:
+depth, sedimentation rate in depth units per kyr), e.g. a known or published rate. \code{Default=NULL}.}
 
-\item{rate_unit}{Factor and label of the rate axis, e.g. \code{c(100, "cm/kyr")} for a record in metres
+\item{rate_unit}{Conversion factor and label of the rate axis (vector of length 2: the factor by which the rates
+are multiplied for the axis labels, and the unit text), e.g. \code{c(100, "cm/kyr")} for a record in metres.
 \code{Default=c(1, "depth units / kyr")}.}
 
-\item{palette}{Colour palette name for \code{hcl.colors} \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{main}{Title.}
+\item{main}{Title of the plot (character); \code{NULL} gives a title that describes the map shown.
+\code{Default=NULL}.}
 
-\item{type}{\code{"evidence"} (default) or \code{"posterior"}: the posterior of the sedimentation rate of
-\code{track} (the attribute \code{posterior} of a \code{\link{track_astro_hmm}} result; its square root is shown).
-The posterior combines the evidence with the continuity of the rate and is the cleaner picture of a weak ridge.}
+\item{type}{What is shown (character, one of \code{"evidence"}, \code{"posterior"}): \code{"evidence"} the weighted
+log evidence of all cycles (computed from \code{wavelet}, or the one stored in \code{track} when \code{wavelet} is
+\code{NULL}); \code{"posterior"} the posterior of the sedimentation rate of \code{track} (the attribute
+\code{posterior} of a \code{\link{track_astro_hmm}} result; its square root is shown). The posterior combines the
+evidence with the continuity of the rate and is the cleaner picture of a weak ridge. \code{Default="evidence"}.}
 
-\item{...}{Arguments of \code{\link{track_astro_hmm}} that shape the evidence (\code{astro_periods},
+\item{...}{Arguments passed to \code{\link{track_astro_hmm}} that shape the evidence (\code{astro_periods},
 \code{weights}, \code{age_ma}, \code{k_yr}, \code{smooth_depth}, \code{normalise}, \code{consistent_cycles},
-...).}
+...); only used when the evidence is computed from \code{wavelet}.}
 }
 \value{
 Invisibly, a list with \code{depth}, \code{sedrate} and the matrix shown (rates in rows).

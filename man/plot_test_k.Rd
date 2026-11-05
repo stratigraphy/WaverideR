@@ -7,11 +7,13 @@
 plot_test_k(res, constraints = NULL, age_ma = res$spec$age_ma)
 }
 \arguments{
-\item{res}{output of \code{\link{test_tuned}}.}
+\item{res}{Result to plot (required, no default): the list returned by \code{\link{test_tuned}}.}
 
-\item{constraints}{optional path to a CSV of published constraints, see \code{\link{test_tuned}}.}
+\item{constraints}{Path to a CSV file of published constraints drawn in panels E-G (character, or \code{NULL} for
+none); see \code{constraints} in \code{\link{test_tuned}} for the columns. \code{Default=NULL}.}
 
-\item{age_ma}{age of the record (Ma).}
+\item{age_ma}{Age of the record in Ma (numeric), where the estimate is drawn in panels E-G and at which AstroGeo22 is
+evaluated. \code{Default=res$spec$age_ma}, the age used in \code{\link{test_tuned}}.}
 }
 \value{
 Called for its plot.

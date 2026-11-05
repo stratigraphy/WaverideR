@@ -14,18 +14,28 @@ astro_invert(
 )
 }
 \arguments{
-\item{windows}{named list: term -> c(low, high) measured period range in kyr.
-Names must be terms of K_TERMS(), e.g. list("k+s3" = c(29.0, 30.4)).}
+\item{windows}{Measured period ranges of the k-bearing (obliquity/precession) terms, in kyr (named list;
+each element a numeric vector \code{c(low, high)}). Allowed names: \code{"k+s3"} (obliquity), \code{"k+g5"},
+\code{"k+g2"}, \code{"k+g4"} and \code{"k+g3"} (precession), e.g. \code{list("k+s3" = c(29.0, 30.4))}.
+In each draw one period is sampled uniformly in every window, converted into a precession frequency, and
+the frequencies of all windows are averaged. Required, no default.}
 
-\item{nsim}{number of Monte Carlo draws}
+\item{nsim}{Number of Monte Carlo draws (integer, > 0); draws whose k falls outside \code{k_range} are
+discarded afterwards. \code{Default=5000}.}
 
-\item{obl_deg}{obliquity used in the precession relation}
+\item{obl_deg}{Obliquity in degrees used in the precession relation when k is converted into the Earth-Moon
+state (numeric); see \code{\link{astro_obliquity}} to obtain it for a given age.
+\code{Default=AC$obl0_deg}, i.e. today's obliquity, 23.2545 degrees.}
 
-\item{k_range}{prior range for k, kyr (draws outside it are rejected)}
+\item{k_range}{Accepted range of the precession constant k in kyr (numeric vector \code{c(min, max)}); draws
+outside it are rejected. \code{Default=c(10, 34)}.}
 
-\item{seed}{Random seed for reproducibility.}
+\item{seed}{Seed of the random number generator (integer), passed to \code{set.seed()} so that the
+Monte Carlo results can be reproduced. \code{Default=1}.}
 
-\item{gs}{Vector of fundamental g frequencies (`NULL` = LA2004 values).}
+\item{gs}{Fundamental secular frequencies in arcsec/yr (list with numeric vectors \code{g} and \code{s} of
+length 9, as in Laskar et al. 2004); g2-g5 and s3 are perturbed with the Laskar et al. (2011)
+uncertainties in each draw. \code{Default=LA2004}, the La2004 values stored inside the function.}
 }
 \value{
 list(k = summary of k, state = summary of the Earth-Moon state,

@@ -7,7 +7,10 @@
 geo_loc(name = NULL)
 }
 \arguments{
-\item{name}{Name of the geologchronological subdivision}
+\item{name}{Name of the geochronological subdivision (character, exact and case-sensitive), e.g. an eon, era,
+period, epoch or stage such as \code{"Silurian"} or \code{"Rhuddanian"}, as listed in column 1 of
+\code{\link{GTS_info}} (Geologic Time Scale 2020).
+The top and bottom ages (Ma) of that unit are returned. Required (\code{Default=NULL}).}
 }
 \value{
 Returns the ages of the boundary of a geochronological subdivision

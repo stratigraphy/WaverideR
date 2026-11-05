@@ -14,19 +14,30 @@ chaos_scenario(
 )
 }
 \arguments{
-\item{g4_g3_kyr}{the period of the "2.4 Myr" term under the scenario
-(NULL keeps La2004); `hold` says how g3 and g4 are moved to achieve it}
+\item{g4_g3_kyr}{Period of the g4-g3 ("2.4 Myr") eccentricity term in the scenario, in kyr (single numeric
+value > 0, e.g. 1200 for a 2:1 resonance state); g3 and g4 are moved (as set by \code{hold}) so that g4-g3 has
+this period, and every term containing g3 or g4 changes with them. \code{NULL} keeps the La2004 values.
+\code{Default=NULL}.}
 
-\item{s4_s3_kyr}{the period of the "1.2 Myr" term under the scenario}
+\item{s4_s3_kyr}{Period of the s4-s3 ("1.2 Myr") obliquity modulation term in the scenario, in kyr (single
+numeric value > 0); s3 and s4 are moved symmetrically about their mean to reach it. \code{NULL} keeps the
+La2004 values. \code{Default=NULL}.}
 
-\item{hold}{"mean" moves g3 and g4 symmetrically about their mean (default),
-"g3" holds g3 and moves g4 only, "g4" holds g4 and moves g3 only}
+\item{hold}{How g3 and g4 are moved to reach \code{g4_g3_kyr} (character): \code{"mean"} moves both
+symmetrically about their mean, \code{"g3"} keeps g3 fixed and moves g4 only, \code{"g4"} keeps g4 fixed and
+moves g3 only. \code{Default=c("mean", "g3", "g4")}, i.e. \code{"mean"}.}
 
-\item{age_ma}{age, for the precession constant used in the k-bearing terms}
+\item{age_ma}{Age in Ma (single numeric value, 0 to 4429) at which the precession constant for the
+precession and obliquity (k-bearing) terms is taken from AstroGeo22 (\code{\link{astrogeo22}}). Ignored for
+that purpose when \code{k_yr} is given. \code{Default=0}.}
 
-\item{k_yr}{Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).}
+\item{k_yr}{Your own value of the precession constant, given as its period in years (numeric, e.g. about
+25700 for today), used instead of the AstroGeo22 value; \code{NULL} uses the model value at \code{age_ma}.
+\code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+\code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \value{
 the astro_terms() table with the scenario period, the La2004 period,

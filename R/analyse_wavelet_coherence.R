@@ -7,17 +7,27 @@
 #' individual wavelet transforms, and derives cross-wavelet power, phase,
 #' and coherence with configurable smoothing.
 #'
-#' @param data_1 First input dataset as a two-column matrix or data.frame.
-#' First column must contain time/depth, second column the signal.
-#' @param data_2 Second input dataset as a two-column matrix or data.frame.
-#' Must have the same structure as \code{data_1}.
-#' @param dj Spacing between discrete scales. Smaller values increase resolution.
-#' Default is \code{1/100}.
-#' @param lowerPeriod Lower bound of the period range to analyze.
-#' @param upperPeriod Upper bound of the period range to analyze.
-#' @param verbose Logical; if \code{TRUE}, prints progress messages.
-#' @param omega_nr Number of oscillations in the Morlet/superlet wavelet.
-#' @param wavelet Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
+#' @param data_1 First record: a two-column matrix or data frame with depth/time in column 1 and the proxy value
+#' in column 2 (no \code{NA} values). Both records are sorted and linearly interpolated to a common, regular grid
+#' over their overlapping interval, with the coarser of the two median sampling intervals. Required, no default.
+#' @param data_2 Second record, in the same format and depth/time unit as \code{data_1} (two-column matrix or data
+#' frame: depth/time, proxy). The phase is the phase of \code{data_1} minus that of \code{data_2}. Required, no
+#' default.
+#' @param dj Spacing between successive scales in octaves (numeric, > 0), passed to \code{\link{analyse_wavelet}};
+#' \code{dj=1/x} gives x periods per doubling of the period, smaller values give a finer period axis.
+#' \code{Default=1/100}.
+#' @param lowerPeriod Shortest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > 0; at least twice the common sampling interval). \code{Default=2}.
+#' @param upperPeriod Longest period to analyse, in the same unit as the depth/time column of the records
+#' (numeric, > \code{lowerPeriod}). \code{Default=1024}.
+#' @param verbose Print the sampling interval to which the records were interpolated, passed to
+#' \code{\link{analyse_wavelet}} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param omega_nr Number of cycles (central angular frequency omega_0) of the Morlet wavelet, passed to
+#' \code{\link{analyse_wavelet}} (numeric, > 0); controls the trade-off between period and depth/time
+#' resolution. \code{Default=8}.
+#' @param wavelet Mother wavelet (character string or function), passed to \code{\link{analyse_wavelet}}, given as a
+#' name
+#' (PyWavelets style names with the order appended, such as
 #' \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
 #' \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 #' Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
@@ -29,35 +39,43 @@
 #' (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 #' time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 #' Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+#' \code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+#' (real
 #' Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 #' (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 #' frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 #' spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
 #' well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.
-#' @param wavelet_order Parameter(s) of the wavelet: \code{paul}: order m (default 4); \code{dog}: derivative m
+#' \code{Default="morlet"}.
+#' @param wavelet_order Parameter(s) of the wavelet (numeric scalar or vector; \code{NULL} uses the defaults listed
+#' here): \code{paul}: order m (default 4); \code{dog}: derivative m
 #' (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
 #' \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 #' (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 #' frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 #' \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+#' \code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0
+#' (default 5);
 #' \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 #' \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 #' \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
 #' (default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.
-#' Controls time-frequency resolution trade-off.
-#' @param n_simulations Number of simulations (reserved for future significance testing).
-#' Currently not used internally.
-#' @param window.type.t Type of smoothingw indow applied in the time direction.
-#' Options: "none", "bar" (Bartlett), "tri" (triangular), "box" (boxcar),
-#' "han" (Hanning, default), "ham" (Hamming) or "bla" (Blackman)
-#' @param window.type.s Type of smoothing window applied in the scale direction.
-#' Same options as window.type.t.
-#' @param abs_window_t Absolute smoothing window size in the time direction
-#' (same units as input data).
-#' @param abs_window_s Absolute smoothing window size in the scale direction
-#' (in units of dj).
+#' Passed to \code{\link{analyse_wavelet}}. \code{Default=NULL}.
+#' @param n_simulations Number of simulations (integer). Not used: reserved for a future significance test.
+#' \code{Default=10}.
+#' @param window.type.t Type of the smoothing window applied in the depth/time direction before the coherence is
+#' computed, given as a number or a character code: \code{0} or \code{"none"} (no smoothing), \code{1} or
+#' \code{"bar"} (Bartlett), \code{2} or \code{"tri"} (triangular), \code{3} or \code{"box"} (boxcar), \code{4} or
+#' \code{"han"} (Hanning), \code{5} or \code{"ham"} (Hamming), \code{6} or \code{"bla"} (Blackman).
+#' \code{Default=4} (Hanning).
+#' @param window.type.s Type of the smoothing window applied in the period (scale) direction; same options as
+#' \code{window.type.t}. \code{Default=4} (Hanning).
+#' @param abs_window_t Length of the smoothing window in the depth/time direction, in the same unit as the
+#' depth/time column of the records (numeric, > 0); converted to an odd number of samples and capped at about a
+#' quarter of the record length (with a warning). Longer windows give smoother but less local coherence.
+#' \code{Default=500}.
+#' @param abs_window_s Length of the smoothing window in the period (scale) direction, in octaves (numeric, > 0;
+#' converted to an odd number of scale steps of size \code{dj}). \code{Default=0.5}.
 #'
 #' @return
 #' A list of class containing:
@@ -106,7 +124,6 @@
 #' @export
 #' @importFrom stats approx
 
-
 analyse_wavelet_coherence <- function(
     data_1,
     data_2,
@@ -124,7 +141,7 @@ analyse_wavelet_coherence <- function(
     abs_window_s = 0.5
 ) {
 
-  # --- PREPROCESSING ---
+  # PREPROCESSING
   data_1 <- data_1[order(data_1[,1]), ]
   data_2 <- data_2[order(data_2[,1]), ]
 
@@ -135,37 +152,37 @@ analyse_wavelet_coherence <- function(
   grid <- seq(xmin, xmax, by = dx)
 
   d1 <- data.frame(
-    x = grid,
-    y = approx(data_1[,1], data_1[,2], grid, rule = 1)$y
+      x = grid,
+      y = approx(data_1[,1], data_1[,2], grid, rule = 1)$y
   )
   d2 <- data.frame(
-    x = grid,
-    y = approx(data_2[,1], data_2[,2], grid, rule = 1)$y
+      x = grid,
+      y = approx(data_2[,1], data_2[,2], grid, rule = 1)$y
   )
 
   wt1 <- analyse_wavelet(
-    d1,
-    dj=dj,
-    lowerPeriod = lowerPeriod,
-    upperPeriod = upperPeriod,
-    omega_nr = omega_nr,
-    wavelet = wavelet,
-    wavelet_order = wavelet_order,
-    verbose = verbose,
-    run_multicore = FALSE,
-    pval = FALSE)
+      d1,
+      dj=dj,
+      lowerPeriod = lowerPeriod,
+      upperPeriod = upperPeriod,
+      omega_nr = omega_nr,
+      wavelet = wavelet,
+      wavelet_order = wavelet_order,
+      verbose = verbose,
+      run_multicore = FALSE,
+      pval = FALSE)
 
   wt2 <- analyse_wavelet(
-    d2,
-    dj=dj,
-    lowerPeriod = lowerPeriod,
-    upperPeriod = upperPeriod,
-    omega_nr = omega_nr,
-    wavelet = wavelet,
-    wavelet_order = wavelet_order,
-    verbose = verbose,
-    run_multicore = FALSE,
-    pval = FALSE)
+      d2,
+      dj=dj,
+      lowerPeriod = lowerPeriod,
+      upperPeriod = upperPeriod,
+      omega_nr = omega_nr,
+      wavelet = wavelet,
+      wavelet_order = wavelet_order,
+      verbose = verbose,
+      run_multicore = FALSE,
+      pval = FALSE)
 
   dt <- wt1$dt
   dj <- wt1$dj
@@ -173,61 +190,58 @@ analyse_wavelet_coherence <- function(
   nc <- wt1$nc
   Scale <- wt1$Scale
 
-  # --- CROSS-WAVELET ---
+  # CROSS-WAVELET
   Wave.xy  = (wt1$Wave * Conj(wt2$Wave)) / matrix(rep(Scale, nc), nrow = nr)
   Power.xy = Mod(Wave.xy)
   Phase.xy = Arg(Wave.xy)
 
-
-  # ============================================================
-  # --- WINDOWING & SMOOTHING FUNCTIONS (FULL SET) ---
-  # ============================================================
+  # WINDOWING & SMOOTHING FUNCTIONS (FULL SET)
 
   window.func <- function(type = 0, n = 0) {
 
     n <- max(1, floor(n))
 
-    # --- 0. NONE ---
+    # NONE
     if (is.element(type, c(0, "none"))) {
       window <- 1
     }
 
-    # --- 1. BARTLETT ---
+    # BARTLETT
     if (is.element(type, c(1, "bar"))) {
       n <- max(n, 3)
       window <- 1 - abs((0:(n - 1)) - (n - 1)/2)/((n - 1)/2)
     }
 
-    # --- 2. TRIANGULAR ---
+    # TRIANGULAR
     if (is.element(type, c(2, "tri"))) {
       n <- max(n, 2)
       window <- 1 - abs((0:(n - 1)) - (n - 1)/2)/(n/2)
     }
 
-    # --- 3. BOXCAR ---
+    # BOXCAR
     if (is.element(type, c(3, "box"))) {
       window <- rep(1, n)
     }
 
-    # --- 4. HANNING ---
+    # HANNING
     if (is.element(type, c(4, "han"))) {
       n <- max(n, 3)
       window <- 0.5 - 0.5 * cos(2 * pi * (0:(n - 1))/(n - 1))
     }
 
-    # --- 5. HAMMING ---
+    # HAMMING
     if (is.element(type, c(5, "ham"))) {
       n <- max(n, 2)
       window <- 0.53836 -
-        (1 - 0.53836) * cos(2 * pi * (0:(n - 1))/(n - 1))
+          (1 - 0.53836) * cos(2 * pi * (0:(n - 1))/(n - 1))
     }
 
-    # --- 6. BLACKMAN ---
+    # BLACKMAN
     if (is.element(type, c(6, "bla"))) {
       n <- max(n, 2)
       window <- 7938/18608 -
-        (9240/18608) * cos(2 * pi * (0:(n - 1))/(n - 1)) +
-        (1430/18608) * cos(4 * pi * (0:(n - 1))/(n - 1))
+          (9240/18608) * cos(2 * pi * (0:(n - 1))/(n - 1)) +
+          (1430/18608) * cos(4 * pi * (0:(n - 1))/(n - 1))
     }
 
     window/sum(window)
@@ -238,9 +252,9 @@ analyse_wavelet_coherence <- function(
   smooth2D <- function(mat, window2D) {
 
     mat.pad <- matrix(
-      0,
-      nrow(mat) + nrow(window2D) - 1,
-      ncol(mat) + ncol(window2D) - 1
+        0,
+        nrow(mat) + nrow(window2D) - 1,
+        ncol(mat) + ncol(window2D) - 1
     )
 
     window2D.pad <- mat.pad
@@ -249,17 +263,17 @@ analyse_wavelet_coherence <- function(
     window2D.pad[1:nrow(window2D), 1:ncol(window2D)] <- window2D
 
     smooth.mat <- fft(
-      fft(mat.pad) * fft(window2D.pad),
-      inverse = TRUE
+        fft(mat.pad) * fft(window2D.pad),
+        inverse = TRUE
     ) / length(mat.pad)
 
     smooth.mat[
-      floor(nrow(window2D)/2) + (1:nrow(mat)),
-      floor(ncol(window2D)/2) + (1:ncol(mat))
+        floor(nrow(window2D)/2) + (1:nrow(mat)),
+        floor(ncol(window2D)/2) + (1:ncol(mat))
     ]
   }
 
-  # --- WINDOW SIZES ---
+  # WINDOW SIZES
   window.size.t <- 2 * floor(abs_window_t / (2 * dt)) + 1
   window.size.s <- 2 * floor(abs_window_s / (2 * dj)) + 1
 
@@ -269,37 +283,37 @@ analyse_wavelet_coherence <- function(
   }
 
   window2D <- window.func(window.type.s, window.size.s) %*%
-    t(window.func(window.type.t, window.size.t))
+      t(window.func(window.type.t, window.size.t))
 
-  # --- SMOOTHED SPECTRA ---
+  # SMOOTHED SPECTRA
   sPower.x <- Re(smooth2D(wt1$Power, window2D))
   sPower.y <- Re(smooth2D(wt2$Power, window2D))
   sWave.xy <- smooth2D(Wave.xy, window2D)
 
-  # --- COHERENCE ---
+  # COHERENCE
   Coherence <- Mod(sWave.xy)^2 / (sPower.x * sPower.y)
   Coherence[sPower.x * sPower.y == 0] <- 0
 
   output <- list(
-    Wave = t(sWave.xy),
-    Coherence = t(Coherence),
-    Phase = t(Arg(Wave.xy)),
-    dt = dt,
-    dj = dj,
-    Coh.avg = colMeans(t(Coherence), na.rm = TRUE),
-    Scale = Scale,
-    Period = wt1$Period,
-    nc = nc,
-    nr = nr,
-    axis.1 = wt1$axis.1,
-    axis.2 = wt1$axis.2,
-    omega_nr = omega_nr,
-    wavelet = wt1$wavelet,
-    wavelet_order = wt1$wavelet_order,
-    x1 = wt1$x,
-    y1 = wt1$y,
-    x2 = wt2$x,
-    y2 = wt2$y
+      Wave = t(sWave.xy),
+      Coherence = t(Coherence),
+      Phase = t(Arg(Wave.xy)),
+      dt = dt,
+      dj = dj,
+      Coh.avg = colMeans(t(Coherence), na.rm = TRUE),
+      Scale = Scale,
+      Period = wt1$Period,
+      nc = nc,
+      nr = nr,
+      axis.1 = wt1$axis.1,
+      axis.2 = wt1$axis.2,
+      omega_nr = omega_nr,
+      wavelet = wt1$wavelet,
+      wavelet_order = wt1$wavelet_order,
+      x1 = wt1$x,
+      y1 = wt1$y,
+      x2 = wt2$x,
+      y2 = wt2$y
   )
   class(output) <- "analyze.waveletcoherence"
   return(output)

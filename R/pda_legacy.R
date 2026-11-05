@@ -18,23 +18,31 @@
 #' Translated from Acycle v3.1 pdan.m, zeropad2.m, interpolate.m,
 #' findduplicate.m and AC.m (menu_pda_Callback) (Mingsong Li).
 #'
-#' @param data Matrix with two columns: depth/time and proxy value.
-#' \code{Default=NULL}
-#' @param target_bands Vector of paired frequency limits (any order within a
-#' pair) or a B x 2 matrix. \code{Default=c(1/45, 1/25)}
-#' @param window Window length in depth/time units. \code{Default=500}
-#' @param nw Time-bandwidth product. \code{Default=2}
-#' @param f_min Lower cutoff frequency of the total band. \code{Default=0}
-#' @param f_max Upper cutoff frequency of the total band; values above the
-#' Nyquist frequency are clipped. If NULL the Nyquist frequency is used.
-#' \code{Default=NULL}
-#' @param step Step between windows in number of samples. \code{Default=1}
-#' @param pad FFT length passed to the MTM (zero-padding number).
-#' \code{Default=5000}
-#' @param pad_type Padding of the series by half a window before analysis:
-#' 0 = none, 1 = zero, 2 = mirror, 3 = mean, 4 = random. \code{Default=1}
-#' @param genplot Plot the data and the power ratio. \code{Default=FALSE}
-#' @param verbose Show a progress bar. \code{Default=FALSE}
+#' @param data Two-column numeric matrix or data frame: depth/time in column 1 and the proxy value in column 2 (further
+#' columns are ignored). Rows with \code{NA} are removed, the data are sorted, duplicated depths are averaged and
+#' unevenly sampled data are interpolated at the median sampling interval. Required (\code{Default=NULL}).
+#' @param target_bands Target frequency bands whose summed power is divided by the power of the total band, in cycles
+#' per unit of the depth/time column: a numeric vector of paired limits \code{c(lower1, upper1, lower2, upper2, ...)}
+#' (any order within a pair) or a B x 2 matrix with one band per row; overlapping bands are counted once.
+#' \code{Default=c(1/45, 1/25)}.
+#' @param window Length of the moving window in the unit of the depth/time column (numeric, > 0); each window holds
+#' \code{trunc(window / dt)} samples. \code{Default=500}.
+#' @param nw Time-bandwidth product of the DPSS (Slepian) tapers of the multitaper spectrum (numeric, > 0); larger
+#' values smooth the spectrum more. \code{Default=2}.
+#' @param f_min Lower cutoff frequency of the total band, in cycles per unit of the depth/time column (numeric, >= 0).
+#' \code{Default=0}.
+#' @param f_max Upper cutoff frequency of the total band, in cycles per unit of the depth/time column (numeric, >
+#' \code{f_min}); values above the Nyquist frequency are clipped. \code{NULL} uses the Nyquist frequency.
+#' \code{Default=NULL}.
+#' @param step Step between successive windows, in number of samples (positive integer). \code{Default=1}.
+#' @param pad Length of the FFT used by the multitaper spectrum, i.e. the zero-padding number of \code{pmtm} (positive
+#' integer); larger values give a finer frequency grid. \code{Default=5000}.
+#' @param pad_type Padding of both ends of the (demeaned) series by half a window before the analysis, so that the
+#' windows cover the whole record (integer): \code{0} none, \code{1} zeros, \code{2} mirror image of the record,
+#' \code{3} mean of the first/last half window, \code{4} random values with the mean and standard deviation of the
+#' first/last half window. \code{Default=1}.
+#' @param genplot Plot the power ratio against depth/time (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param verbose Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' and Linda Hinnov (Acycle); zeropad2 padding options by Nicolas Thibault
@@ -73,21 +81,19 @@
 #' @importFrom graphics plot
 
 pda_legacy <- function(data = NULL,
-                       target_bands = c(1/45, 1/25),
-                       window = 500,
-                       nw = 2,
-                       f_min = 0,
-                       f_max = NULL,
-                       step = 1,
-                       pad = 5000,
-                       pad_type = 1,
-                       genplot = FALSE,
-                       verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    target_bands = c(1/45, 1/25),
+    window = 500,
+    nw = 2,
+    f_min = 0,
+    f_max = NULL,
+    step = 1,
+    pad = 5000,
+    pad_type = 1,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # small utilities
-  # ---------------------------------------------------------------------------
 
   acy_nextpow2 <- function(n){
     if (n <= 1){
@@ -236,9 +242,7 @@ pda_legacy <- function(data = NULL,
     x
   }
 
-  # ---------------------------------------------------------------------------
   # MATLAB periodogram / pmtm (one-sided, adaptive weights)
-  # ---------------------------------------------------------------------------
 
   acy_datawrap <- function(x, nfft){
     n <- length(x)
@@ -284,7 +288,7 @@ pda_legacy <- function(data = NULL,
   }
 
   acy_pmtm <- function(x, nw = 4, nfft = NULL, fs = NULL, drop_last = TRUE,
-                       method = "adapt"){
+      method = "adapt"){
     x <- as.numeric(x)
     n <- length(x)
     if (is.null(nfft)){
@@ -422,7 +426,7 @@ pda_legacy <- function(data = NULL,
     n <- nrow(data)
     xe <- pda_colon(data[1, 1], data[n, 1], rate)
     ye <- stats::approx(data[, 1], data[, 2], xout = xe, method = "linear",
-                        rule = 1, ties = "ordered")$y
+        rule = 1, ties = "ordered")$y
     cbind(xe, ye)
   }
 
@@ -500,7 +504,7 @@ pda_legacy <- function(data = NULL,
   # @keywords internal
   # @noRd
   pda_pdan <- function(data, f3, window, nw = 2, ftmin = 0, fterm = NULL,
-                       step = 1, pad = 1000, verbose = FALSE){
+      step = 1, pad = 1000, verbose = FALSE){
     # pdan.m
     data <- as.matrix(data)
     if (ncol(data) != 2 || nrow(data) < 2 || any(!is.finite(data))){
@@ -584,19 +588,17 @@ pda_legacy <- function(data = NULL,
     }
     ratio <- target_power / total_power
     centers <- pda_linspace(coordinate[1] + window / 2,
-                            coordinate[n_rows] - window / 2, n_win)
+        coordinate[n_rows] - window / 2, n_win)
     pow <- cbind(centers, ratio, target_power, total_power)
     colnames(pow) <- c("center", "ratio", "target_power", "total_power")
     pow
   }
 
-  # ---------------------------------------------------------------------------
   # Slepian (DPSS) tapers, MATLAB dpss() conventions (unit energy)
-  # ---------------------------------------------------------------------------
 
   acy_dpss_cache <- new.env(parent = emptyenv())
 
-  # ---- main code ----
+  # Main code
 
   data <- as.matrix(data)
   if (!is.numeric(data) || ncol(data) < 2){
@@ -623,13 +625,13 @@ pda_legacy <- function(data = NULL,
     f_max <- 1 / (2 * (data[2, 1] - data[1, 1]))
   }
   pow <- pda_pdan(data, target_bands, window, nw, f_min, f_max, step, pad,
-                  verbose = verbose)
+      verbose = verbose)
 
   if (genplot == TRUE){
     oldpar <- graphics::par(no.readonly = TRUE)
     on.exit(graphics::par(oldpar), add = TRUE)
     graphics::plot(pow[, 1], pow[, 2], type = "l", xlab = "depth/time",
-                   ylab = "Power ratio")
+        ylab = "Power ratio")
   }
   pow
 }

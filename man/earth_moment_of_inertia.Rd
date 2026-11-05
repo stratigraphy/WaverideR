@@ -7,7 +7,8 @@
 earth_moment_of_inertia(omega)
 }
 \arguments{
-\item{omega}{Angular velocity of the Earth (rad/s).}
+\item{omega}{Angular velocity (spin rate) of the Earth, in rad/s (numeric, scalar or vector, > 0), e.g. from
+\code{\link{earth_omega}}. Present-day value is about 7.292e-5 rad/s. Required (no default).}
 }
 \description{
 Earth's polar moment of inertia at spin rate omega (Farhat et al. 2022, A.3)

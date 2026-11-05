@@ -29,79 +29,85 @@ dur_gaps(
 )
 }
 \arguments{
-\item{proxies}{list of proxies which were used to create a astrochronological
-age model and which are used to calculate the duration of the gap}
+\item{proxies}{Proxy records that were used to build the astrochronological age model and from which the gap
+duration is estimated (list of two-column matrices or data frames: depth/height in column 1, proxy value in
+column 2). In each simulation one proxy of the list is drawn at random. Required (\code{Default=NULL}).}
 
-\item{retracked_period_1}{A matrix of 3 columns in which the first column
-is depth/height.The second column is the period of the tracked cycle.
-The thirds column is uncertainty given as 1 standard deviation for the
-period of the tracked cycle. The gap to be modeled should be located
-in between retracked_period_1 and retracked_period_2}
+\item{retracked_period_1}{Tracked cycle curve of the interval below/before the gap (three-column matrix or data
+frame: depth/height in column 1, period of the tracked cycle in column 2, its 1 standard deviation uncertainty
+in column 3, e.g. the output of \code{\link{retrack_wt_MC}}). In each simulation a curve is drawn from this
+normal uncertainty envelope and used to tune the proxy with \code{\link{curve2tune}}. The gap must lie between
+\code{retracked_period_1} and \code{retracked_period_2}. Required (\code{Default=NULL}).}
 
-\item{retracked_period_2}{A matrix of 3 columns in which the first column
-is depth/height.The second column is the period of the tracked cycle.
-The thirds column is uncertainty given as 1 standard deviation for the
-period of the tracked cycle. The gap to be modeled should be located
-in between retracked_period_1 and retracked_period_2}
+\item{retracked_period_2}{Tracked cycle curve of the interval above/after the gap, in the same format as
+\code{retracked_period_1}. Required (\code{Default=NULL}).}
 
-\item{min_max}{list of "min" or "max" indicating whether time should be
-estimated between minima or maxima for each proxy}
+\item{min_max}{For each proxy in \code{proxies}, whether the gap duration is measured between minima
+(\code{"min"}, peaks found with \code{\link{min_detect}}) or maxima (\code{"max"}, \code{\link{max_detect}}) of
+the extracted cycle (list or character vector of the same length as \code{proxies}). Required
+(\code{Default=NULL}).}
 
-\item{n_simulations}{number of gap duration to calculate}
+\item{n_simulations}{Number of Monte Carlo simulations, i.e. number of gap durations calculated (integer, > 0).
+\code{Default=10}.}
 
-\item{tracked_cycle_period}{period in time of the tracked cycle}
+\item{tracked_cycle_period}{Duration in time of the tracked cycle (numeric, e.g. in kyr; e.g. 405 for the long
+eccentricity cycle). The tuned records and the gap duration are in this time unit. Required
+(\code{Default=NULL}).}
 
-\item{tracked_cycle_period_unc}{uncertainty in the period of the tracked cycle}
+\item{tracked_cycle_period_unc}{Uncertainty of \code{tracked_cycle_period}, in the same unit (numeric, >= 0):
+half-width of the range for \code{"u"}, standard deviation for \code{"n"} (see
+\code{tracked_cycle_period_unc_dist}). Required (\code{Default=NULL}).}
 
-\item{tracked_cycle_period_unc_dist}{distribution of the uncertainty of the
-tracked cycle value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="u"}}
+\item{tracked_cycle_period_unc_dist}{Distribution from which the tracked cycle period is drawn in each
+simulation (character): \code{"u"} uniform between \code{tracked_cycle_period -/+ tracked_cycle_period_unc}
+or \code{"n"} normal with mean \code{tracked_cycle_period} and standard deviation
+\code{tracked_cycle_period_unc}. \code{Default="u"}.}
 
-\item{pts}{the pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-picked up by the algorithm \code{Default=5}#'}
+\item{pts}{Number of points on each side that a point must exceed (maximum) or be below (minimum) to be
+detected as a peak in the extracted cycle; passed to \code{\link{max_detect}}/\code{\link{min_detect}}
+(integer, >= 1). Larger values give more certain peaks but may miss minor ones. \code{Default=5}.}
 
-\item{dj}{Spacing between successive scales. The CWT analyses analyses the signal using successive periods
-which increase by the power of 2 (e.g.2^0=1,2^1=2,2^2=4,2^3=8,2^4=16). To have more resolution
-in-between these steps the dj parameter exists, the dj parameter specifies how many extra steps/spacing in-between
-the power of 2 scaled CWT is added. The amount of steps is 1/x with a higher x indicating a smaller spacing.
-Increasing the increases the computational time of the CWT \code{Default=1/200}.}
+\item{dj}{Spacing between successive scales of the wavelet transform of the tuned records, in octaves
+(numeric, > 0), passed to \code{\link{analyse_wavelet}}. Smaller values give a finer period resolution but a
+longer computation time. \code{Default=1/200}.}
 
-\item{lowerPeriod}{Lowest period to be analysed \code{Default=2}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
-scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{lowerPeriod}{Shortest period of the wavelet transform of the tuned records, in the time unit of
+\code{tracked_cycle_period} (numeric, > 0), passed to \code{\link{analyse_wavelet}}. \code{Default=1}.}
 
-\item{upperPeriod}{Upper period to be analysed \code{Default=1024}.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
- scaling is done using power 2 so for the best plotting results select a value to the power or 2.}
+\item{upperPeriod}{Longest period of the wavelet transform of the tuned records, in the time unit of
+\code{tracked_cycle_period} (numeric, > \code{lowerPeriod}), passed to \code{\link{analyse_wavelet}}.
+\code{Default=3200}.}
 
-\item{period_max}{Maximum period (upper boundary) to be used to extract a cycle.}
+\item{period_max}{Upper period boundary (time unit) of the cycle extracted from the tuned records with
+\code{\link{extract_signal_stable_V2}} (numeric, > \code{period_min}). Required (\code{Default=NULL}).}
 
-\item{period_min}{Minimum period (lower boundary) to be used to extract a cycle.}
+\item{period_min}{Lower period boundary (time unit) of the cycle extracted from the tuned records with
+\code{\link{extract_signal_stable_V2}} (numeric, > 0). Required (\code{Default=NULL}).}
 
-\item{missing_cycle_dur}{duration of the missing cycles}
+\item{missing_cycle_dur}{Duration of one missing cycle in the gap, in the time unit (numeric). If it equals
+\code{tracked_cycle_period}, the value drawn for the tracked cycle is also used for the missing cycle.
+Required (\code{Default=NULL}).}
 
-\item{n_cycles_missing}{number of missing cycles \code{Default=1}}
+\item{n_cycles_missing}{Number of cycles of duration \code{missing_cycle_dur} that are missing in the gap
+(numeric, >= 0). \code{Default=1}.}
 
-\item{missing_cycle_unc}{duration uncertainty of the missing cycle}
+\item{missing_cycle_unc}{Uncertainty of \code{missing_cycle_dur} in the time unit (numeric, >= 0): half-width
+for \code{"u"}, standard deviation for \code{"n"}. Only used when \code{missing_cycle_dur} differs from
+\code{tracked_cycle_period}. Required in that case (\code{Default=NULL}).}
 
-\item{missing_cycle_unc_dist}{distribution of the uncertainty of the
-tracked cycle value need to be either "u" for uniform distribution or
-"n" for normal distribution  \code{Default="u"}}
+\item{missing_cycle_unc_dist}{Distribution from which the missing cycle duration is drawn (character):
+\code{"u"} uniform or \code{"n"} normal (see \code{missing_cycle_unc}). \code{Default="u"}.}
 
-\item{seed_nr}{The seed number of the Monte-Carlo simulations.
-\code{Default=1337}}
+\item{seed_nr}{Seed of the random number generator (integer), set with \code{set.seed()} so that the Monte
+Carlo results can be reproduced. \code{Default=1337}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default="FALSE"}}
+\item{run_multicore}{Run the simulations in parallel on several cores (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. Only used when
-`run_multicore = TRUE`. Results do not depend on the number of cores.}
+\item{n_cores}{Number of cores used when \code{run_multicore=TRUE} (integer or \code{NULL}). \code{NULL} picks
+an automatic, safe number: physical cores minus one, at most 4, and limited by the free memory; set
+\code{options(waverider.n_cores = ...)} to change that default. Results do not depend on the number of cores.
+\code{Default=NULL}.}
 }
 \value{
 a vector with all the calculated gap durations

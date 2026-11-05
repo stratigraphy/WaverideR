@@ -7,11 +7,16 @@
 ctest_combine(results, what = "k", n = 1000)
 }
 \arguments{
-\item{results}{list of ctest objects (or numeric vectors of samples)}
+\item{results}{CTest results to combine (list, ideally named): each element is a \code{ctest} object from
+\code{\link{ctest}} or a numeric vector of samples (e.g. precession constants in years). The kernel densities
+of all elements are multiplied. Required, no default.}
 
-\item{what}{column of `samples` to combine (default the precession constant)}
+\item{what}{Column of the \code{samples} data frame of the \code{ctest} objects that is combined (character),
+e.g. \code{"k"} (precession constant, yr), \code{"SR"} (sedimentation rate, m/kyr), \code{"obl_ks3"} or
+\code{"g2"}; ignored for numeric vectors. \code{Default="k"}.}
 
-\item{n}{grid size}
+\item{n}{Number of points of the grid on which the densities are evaluated and multiplied (integer, > 1).
+\code{Default=1000}.}
 }
 \value{
 list: grid `x`, combined density, mean (median of the combined

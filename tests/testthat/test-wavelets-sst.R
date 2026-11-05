@@ -1,6 +1,7 @@
 test_that("all mother wavelets find the cycle and Morlet is unchanged", {
   d <- .wr_wavelet("morlet", omega_nr = 8)
-  N <- 256; dt <- 2
+  N <- 256
+  dt <- 2
   ok <- 1:floor(N / 2) * 2 * pi / (N * dt)
   om <- c(0, ok, -ok[floor((N - 1) / 2):1])
   s <- 3.7
@@ -33,7 +34,11 @@ test_that("synchrosqueezing sharpens ridges and keeps the reconstruction", {
   rec <- function(o) colSums(Re(o$Wave) / sqrt(o$Scale)) * o$dj * sqrt(o$dt) / o$psi0
   expect_gt(cor(rec(cwt), rec(sst)), 0.99)
   # the two cycles are separated by a deeper valley than in the scalogram
-  valley <- function(o) { v <- rowMeans(o$Power[, 100:400]); i <- which.min(abs(o$Period - 52)); max(v) / v[i] }
+  valley <- function(o) {
+    v <- rowMeans(o$Power[, 100:400])
+    i <- which.min(abs(o$Period - 52))
+    max(v) / v[i]
+  }
   expect_gt(valley(sst), valley(cwt))
   expect_error(analyse_wavelet_sst(data.frame(t, x), wavelet = "dog"))
   expect_identical(analyze_wavelet_sst, analyse_wavelet_sst)

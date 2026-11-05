@@ -15,17 +15,29 @@ earthmoon_from_precession(
 )
 }
 \arguments{
-\item{p_kyr}{precession period (kyr); or give `p_arcsec`}
+\item{p_kyr}{Period of the axial precession, in kyr (numeric, scalar or vector, > 0; about 25.7 kyr today), i.e.
+\code{360 * 3600 / (p_kyr * 1000)} arcsec/yr. Ignored when \code{p_arcsec} is given; one of the two is
+required. \code{Default=NULL}.}
 
-\item{p_arcsec}{Precession constant in arcsec/yr.}
+\item{p_arcsec}{Precession constant (rate of axial precession), in arcsec/yr (numeric, scalar or vector, > 0;
+about 50.47 today). Takes precedence over \code{p_kyr}. \code{Default=NULL}.}
 
-\item{method}{Method used: `"astrogeo22"` or `"angular_momentum"`.}
+\item{method}{How the Earth-Moon state is found (character): \code{"astrogeo22"} finds every age at which the
+AstroGeo22 precession curve crosses the requested value (the curve is not monotonic, so several ages may be
+returned) and returns the AstroGeo22 state there; \code{"angular_momentum"} solves for the Earth-Moon distance
+(25 to 80 Earth radii) that gives the requested precession with \code{\link{precession_frequency}}, assuming
+conservation of the Earth-Moon angular momentum. \code{Default=c("astrogeo22", "angular_momentum")}, i.e.
+\code{"astrogeo22"}.}
 
-\item{obliquity_deg}{Obliquity in degrees.}
+\item{obliquity_deg}{Obliquity of the Earth, in degrees (numeric), used by \code{method="angular_momentum"};
+\code{NULL} uses the present-day value 23.2545. \code{Default=NULL}.}
 
-\item{age_range}{optional c(min, max) Ma to restrict the search}
+\item{age_range}{Age range to which the search along the AstroGeo22 curve is restricted, in Ma (numeric vector
+\code{c(min, max)}, or \code{NULL} for the whole curve). Only used with \code{method="astrogeo22"}.
+\code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Directory that contains the file \code{AstroGeo22.txt} (character, or \code{NULL}); \code{NULL}
+uses the data installed with the package (or \code{options(cocoR.data = ...)}). \code{Default=NULL}.}
 }
 \description{
 The model curve is not strictly monotonic (tidal resonances), so every

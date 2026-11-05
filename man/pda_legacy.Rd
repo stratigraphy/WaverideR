@@ -19,33 +19,41 @@ pda_legacy(
 )
 }
 \arguments{
-\item{data}{Matrix with two columns: depth/time and proxy value.
-\code{Default=NULL}}
+\item{data}{Two-column numeric matrix or data frame: depth/time in column 1 and the proxy value in column 2 (further
+columns are ignored). Rows with \code{NA} are removed, the data are sorted, duplicated depths are averaged and
+unevenly sampled data are interpolated at the median sampling interval. Required (\code{Default=NULL}).}
 
-\item{target_bands}{Vector of paired frequency limits (any order within a
-pair) or a B x 2 matrix. \code{Default=c(1/45, 1/25)}}
+\item{target_bands}{Target frequency bands whose summed power is divided by the power of the total band, in cycles
+per unit of the depth/time column: a numeric vector of paired limits \code{c(lower1, upper1, lower2, upper2, ...)}
+(any order within a pair) or a B x 2 matrix with one band per row; overlapping bands are counted once.
+\code{Default=c(1/45, 1/25)}.}
 
-\item{window}{Window length in depth/time units. \code{Default=500}}
+\item{window}{Length of the moving window in the unit of the depth/time column (numeric, > 0); each window holds
+\code{trunc(window / dt)} samples. \code{Default=500}.}
 
-\item{nw}{Time-bandwidth product. \code{Default=2}}
+\item{nw}{Time-bandwidth product of the DPSS (Slepian) tapers of the multitaper spectrum (numeric, > 0); larger
+values smooth the spectrum more. \code{Default=2}.}
 
-\item{f_min}{Lower cutoff frequency of the total band. \code{Default=0}}
+\item{f_min}{Lower cutoff frequency of the total band, in cycles per unit of the depth/time column (numeric, >= 0).
+\code{Default=0}.}
 
-\item{f_max}{Upper cutoff frequency of the total band; values above the
-Nyquist frequency are clipped. If NULL the Nyquist frequency is used.
-\code{Default=NULL}}
+\item{f_max}{Upper cutoff frequency of the total band, in cycles per unit of the depth/time column (numeric, >
+\code{f_min}); values above the Nyquist frequency are clipped. \code{NULL} uses the Nyquist frequency.
+\code{Default=NULL}.}
 
-\item{step}{Step between windows in number of samples. \code{Default=1}}
+\item{step}{Step between successive windows, in number of samples (positive integer). \code{Default=1}.}
 
-\item{pad}{FFT length passed to the MTM (zero-padding number).
-\code{Default=5000}}
+\item{pad}{Length of the FFT used by the multitaper spectrum, i.e. the zero-padding number of \code{pmtm} (positive
+integer); larger values give a finer frequency grid. \code{Default=5000}.}
 
-\item{pad_type}{Padding of the series by half a window before analysis:
-0 = none, 1 = zero, 2 = mirror, 3 = mean, 4 = random. \code{Default=1}}
+\item{pad_type}{Padding of both ends of the (demeaned) series by half a window before the analysis, so that the
+windows cover the whole record (integer): \code{0} none, \code{1} zeros, \code{2} mirror image of the record,
+\code{3} mean of the first/last half window, \code{4} random values with the mean and standard deviation of the
+first/last half window. \code{Default=1}.}
 
-\item{genplot}{Plot the data and the power ratio. \code{Default=FALSE}}
+\item{genplot}{Plot the power ratio against depth/time (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{verbose}{Show a progress bar. \code{Default=FALSE}}
+\item{verbose}{Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A matrix with columns window center, ratio (target / total),

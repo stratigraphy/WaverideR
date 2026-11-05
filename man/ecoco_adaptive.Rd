@@ -25,23 +25,71 @@ ecoco_adaptive(
 )
 }
 \arguments{
-\item{data}{two columns depth (m), value}
+\item{data}{Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required, no default.}
 
-\item{orbit9}{nine orbital periods (kyr)}
+\item{orbit9}{The nine astronomical target periods in kyr (numeric vector of nine distinct values: long
+eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+\code{\link{orbit9_at_age}} or \code{\link{calculate_orbit9}} for the age of the record. The default uses the
+present-day periods (405.7, 130.7, 123.9, 98.9, 94.9, 41.0, 23.7, 22.4 and 19.0 kyr).
+\code{Default=orbit9_default()}.}
 
-\item{window}{sliding-window length (m)}
+\item{window}{Length of each sliding window, in metres (numeric, > 0, shorter than the record; every window must
+contain at least 4 data points). Each window is resampled to an odd number of points around its centre and
+analysed with Adaptive COCO. Required, no default.}
 
-\item{sr}{sedimentation-rate grid (cm/kyr)}
+\item{sr}{Sedimentation rates to test in every window, in cm/kyr (numeric vector, > 0).
+\code{Default=seq(0.5, 20, by = 0.1)}.}
 
-\item{step}{sliding step in samples (used when step_depth is NULL: step_depth = step*dt)}
+\item{step}{Step between successive window centres, in samples of the (regularised) record (numeric, > 0); only
+used when \code{step_depth=NULL}, giving \code{step_depth = step * sample interval}. \code{Default=1}.}
 
-\item{step_depth}{exact spacing (m) of window centres}
+\item{step_depth}{Exact spacing of the window centres, in metres (numeric, > 0, or \code{NULL}); overrides
+\code{step}. At most 10000 windows are allowed. \code{Default=NULL}.}
 
-\item{pad, red, nsim, method, max_frequency, amplitude_mode, seed, batch, verbose}{see coco_adaptive()}
+\item{pad}{Length (number of points) to which every window is zero-padded for the periodogram (integer, at least
+the number of points per window); a larger value gives a finer frequency grid. \code{Default=5000}.}
 
-\item{center_limits}{optional c(first, last) window-centre limits}
+\item{red}{Background (red-noise) removal applied to every window spectrum before the correlation (integer):
+\code{0} no removal, \code{1} classical AR(1) background subtracted, \code{2} robust AR(1) background
+(median-smoothed spectrum, Mann and Lees 1996 style), \code{3} smoothed-window-average (SWA) background (needs at
+least 33 spectral bins). Negative power after subtraction is set to zero. \code{Default=1}.}
 
-\item{centre_limits}{British spelling of \code{center_limits}; if given it overrides \code{center_limits}.}
+\item{nsim}{Number of AR(1) Monte Carlo simulations per window used for the global and local p-values (integer,
+>= 0); the AR(1) coefficient and standard deviation are estimated in each window. \code{0} skips the
+simulations, so the p-values are \code{NA}. \code{Default=500}.}
+
+\item{method}{Correlation coefficient between the window spectrum and the target spectrum (character):
+\code{"Pearson"} or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.}
+
+\item{max_frequency}{Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+(numeric, must be at least the highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses
+\code{1.2 * max(1/orbit9)}. Passed to \code{\link{coco_adaptive_evaluate}}. \code{Default=NULL}.}
+
+\item{amplitude_mode}{How the amplitudes of the nine target sinusoids are set (character):
+\code{"four-group-area"} fits one amplitude per group (long eccentricity, short eccentricity, obliquity,
+precession) to the band areas of the data spectrum (Acycle default), \code{"per-orbit"} fits each of the nine
+amplitudes to the spectral peak at its frequency, \code{"fixed"} uses fixed weights (1.0 eccentricity, 0.8
+obliquity, 0.6 precession; see \code{\link{coco_fixed_target_weights}}). The target is always synthesised as
+\code{"coherent-nine"}. \code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e. \code{"four-group-area"}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=1}.}
+
+\item{center_limits}{Depths of the first and last window centre, in metres (numeric vector \code{c(first, last)},
+or \code{NULL}); the windows must still fit inside the record. \code{NULL} uses
+\code{c(first depth + window/2, last depth - window/2)}. \code{Default=NULL}.}
+
+\item{batch}{Number of Monte Carlo simulations processed together in one batch (integer, >= 1); larger batches are
+faster but use more memory. \code{NULL} chooses \code{min(50, nsim, 3e6 / (frequencies * windows))}.
+\code{Default=NULL}.}
+
+\item{verbose}{Print messages about the windows and the progress of the Monte Carlo simulations (logical, TRUE or
+FALSE). \code{Default=TRUE}.}
+
+\item{centre_limits}{British spelling of \code{center_limits}; if given (not \code{NULL}) it overrides
+\code{center_limits}. \code{Default=NULL}.}
 }
 \value{
 list with matrices (rate-by-window): rho, p_global, p_local, norbit,

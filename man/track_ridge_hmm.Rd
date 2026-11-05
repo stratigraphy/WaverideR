@@ -27,64 +27,84 @@ track_ridge_hmm(
 )
 }
 \arguments{
-\item{wavelet}{Scalogram object (class \code{analyze.wavelet}).}
+\item{wavelet}{Scalogram to track (list of class \code{analyze.wavelet}), the output of
+\code{\link{analyse_wavelet}}, \code{\link{analyse_wavelet_sst}}, \code{\link{analyse_superlet_sst}},
+\code{\link{analyse_conceft}} or a similar function; its elements \code{Power}, \code{Period}, \code{axis.1},
+\code{dt}, \code{dj}, \code{x} and \code{y} are used. Required, no default.}
 
-\item{period}{Band \code{c(lower, upper)} in which the cycle is searched (in depth units). Alternatively give
-\code{guide}.}
+\item{period}{Period band in which the cycle is searched (numeric vector \code{c(lower, upper)}, in the depth/time
+unit of the record; must hold at least three periods of the scalogram). Either \code{period} or \code{guide} must
+be given; with a guide the band is taken from the guide instead. \code{Default=NULL}.}
 
-\item{guide}{Optional rough track (data frame: depth, period), e.g. from \code{\link{track_period_wavelet}} or a
-previous run; the search is restricted to \code{guide * (1 +- guide_tolerance)}.}
+\item{guide}{Optional rough track of the cycle (two-column data frame or matrix: depth in column 1, period in
+column 2, in depth units), e.g. from \code{\link{track_period_wavelet}} or a previous run. It is interpolated to all
+positions (constant beyond its ends) and the search is restricted to \code{guide * (1 +- guide_tolerance)};
+\code{NULL} uses \code{period} only. \code{Default=NULL}.}
 
-\item{guide_tolerance}{Relative width of the search band around the guide \code{Default=0.25}.}
+\item{guide_tolerance}{Relative half width of the search band around \code{guide} (numeric, > 0; e.g. 0.25 allows
+periods from 0.8 to 1.25 times the guide). \code{Default=0.25}.}
 
-\item{sd_change}{Standard deviation of the change of log2(period) over a distance of one period
-\code{Default=0.1} (about 7 percent per cycle). Larger values follow faster changes of the sedimentation rate.}
+\item{sd_change}{Standard deviation of the change of log2(period) over a distance of one period (numeric, > 0); it
+sets how smoothly the track may wander. 0.1 is about 7 percent per cycle; larger values follow faster changes of the
+sedimentation rate, smaller values give a smoother track. \code{Default=0.1}.}
 
-\item{jump_prob}{Probability of an abrupt change of the period between neighbouring positions
-\code{Default=1e-3}.}
+\item{jump_prob}{Probability of an abrupt change of the period (a jump to any period of the band) between
+neighbouring positions of the track (numeric, between 0 and 1). \code{Default=1e-3}.}
 
-\item{smooth_period}{Smoothing of the scalogram along the period axis before tracking (sd in octaves)
-\code{Default=0.02}.}
+\item{smooth_period}{Gaussian smoothing of the scalogram along the period axis before tracking (numeric, >= 0; the
+standard deviation in octaves; 0 switches it off). \code{Default=0.02}.}
 
-\item{smooth_depth}{Moving average of the scalogram along the record before tracking (in depth units)
-\code{Default=NULL}: the lower limit of the band (one shortest period).}
+\item{smooth_depth}{Width of the moving average of the scalogram along the record before tracking (numeric, in depth
+units, >= 0); \code{NULL} uses the lower limit of the band (one shortest period). \code{Default=NULL}.}
 
-\item{fallback}{\code{"cwt"} (default) to mix in the normalised Morlet wavelet power (from the object or computed),
-another scalogram object, or \code{"none"}.}
+\item{fallback}{Second source of evidence that is mixed in where the scalogram is empty (sharp synchrosqueezed maps):
+\code{"cwt"} the normalised Morlet wavelet power (the element \code{Power_cwt} of \code{wavelet} if present,
+otherwise computed with \code{\link{analyse_wavelet}}, \code{omega_nr = 8}), another scalogram object (list with a
+\code{Power} matrix on the same grid as \code{wavelet}), or \code{"none"} (no fallback). \code{Default="cwt"}.}
 
-\item{fallback_weight}{Weight of the fallback evidence \code{Default=0.2}.}
+\item{fallback_weight}{Weight of the fallback evidence in the mix (numeric, between 0 and 1; the scalogram gets
+\code{1 - fallback_weight}); 0 switches the fallback off. \code{Default=0.2}.}
 
-\item{sharpness}{Weight of the evidence \code{Default=0.5}. Because neighbouring positions of a scalogram are not
-independent, the log evidence is scaled so that one period of the cycle counts as one observation; larger values
-trust the scalogram more relative to the smoothness of the track and give narrower credible bands; with 0.5 the 95
-percent bands of the age model contained the true age 95 to 100 percent of the time in synthetic tests.}
+\item{sharpness}{Weight of the evidence relative to the smoothness of the track (numeric, > 0). Because neighbouring
+positions of a scalogram are not independent, the log evidence is scaled so that one period of the cycle counts as
+one observation; larger values trust the scalogram more and give narrower credible bands; with 0.5 the 95 percent
+bands of the age model contained the true age 95 to 100 percent of the time in synthetic tests. \code{Default=0.5}.}
 
-\item{n_positions}{Number of positions at which the track is computed (it is interpolated to all positions)
-\code{Default=1500}; fewer are used when the positions would be closer than a quarter of the (reference) period.}
+\item{n_positions}{Maximum number of positions along the record at which the track is computed (integer, > 1); the
+result is interpolated to all positions of the scalogram. Fewer positions are used when they would be closer than a
+quarter of the (geometric mean) period of the band. \code{Default=1500}.}
 
-\item{period_of_tracked_cycle}{Optional duration of the tracked cycle (e.g. 405 kyr): adds the sedimentation rate
-and an age model with uncertainty.}
+\item{period_of_tracked_cycle}{Optional duration of the tracked cycle in time units (numeric, e.g. 405 for the
+405-kyr eccentricity cycle). If given, the sedimentation rate (period / \code{period_of_tracked_cycle}) and an age
+model with uncertainty from posterior paths are added; it is required for \code{constraints}; \code{NULL} returns
+only the period track. \code{Default=NULL}.}
 
-\item{n_samples}{Number of posterior paths used for the uncertainty of the age model \code{Default=200}.}
+\item{n_samples}{Number of paths drawn from the posterior to compute the uncertainty of the sedimentation rate and of
+the age model (integer, >= 1); only used with \code{period_of_tracked_cycle}. \code{Default=200}.}
 
-\item{level}{Width of the credible bands \code{Default=0.95}.}
+\item{level}{Probability content of the credible bands (numeric, between 0 and 1, e.g. 0.95 for the 2.5 to 97.5
+percent quantiles). \code{Default=0.95}.}
 
-\item{jump_depths}{Optional depths where an abrupt change of the sedimentation rate is plausible (a hiatus,
-erosion surface, abrupt facies change or tectonic contact known from the field or from a change-point analysis such
-as \code{\link{bayes_changepoint}}). Near these depths the jump probability is raised to \code{jump_prob_at}.
-Abrupt changes are hard to detect from the scalogram alone in noisy records, so giving them helps the track to
-follow the jump instead of smoothing it.}
+\item{jump_depths}{Optional depths where an abrupt change of the sedimentation rate is plausible (numeric vector, in
+depth units): a hiatus, erosion surface, abrupt facies change or tectonic contact known from the field or from a
+change-point analysis such as \code{\link{bayes_changepoint}}. Within 1.5 track steps of these depths the jump
+probability is raised to \code{jump_prob_at}. Abrupt changes are hard to detect from the scalogram alone in noisy
+records, so giving them helps the track to follow the jump instead of smoothing it. \code{Default=NULL} (none).}
 
-\item{constraints}{Optional geological constraints: a data frame with the columns \code{from}, \code{to} (depths) and
-\code{duration} (time, in the units of the astronomical periods, e.g. kyr), for instance a biostratigraphic bracket,
-the time between two dated ash beds or the duration of a stage known from another section. The track is then the most
-probable one that satisfies them: the evidence is tilted by a Lagrange multiplier times the time spent in each
-interval, with the multiplier found by bisection so that the interval has the required duration. The achieved
-durations and multipliers are returned in the attribute \code{constraints}.}
+\item{constraints}{Optional geological duration constraints (data frame, one row per constraint; the first three
+columns are read as \code{from}, \code{to} (depths) and \code{duration} (time, in the unit of
+\code{period_of_tracked_cycle}, e.g. kyr); an optional column \code{tolerance} gives the allowed relative deviation,
+default 0.025), for instance a biostratigraphic bracket, the time between two dated ash beds or the duration of a
+stage known from another section. Intervals must not overlap. Needs \code{period_of_tracked_cycle}. The track is then
+the most probable one that satisfies them: the evidence is tilted by a Lagrange multiplier times the time spent in
+each interval, with the multiplier found by bisection so that the interval has the required duration. The achieved
+durations and multipliers are returned in the attribute \code{constraints}. \code{Default=NULL} (none).}
 
-\item{jump_prob_at}{Jump probability near \code{jump_depths} \code{Default=0.05}.}
+\item{jump_prob_at}{Jump probability between neighbouring positions near \code{jump_depths} (numeric, between 0 and
+1; replaces \code{jump_prob} there if larger). \code{Default=0.05}.}
 
-\item{seed}{Seed of the posterior sampling \code{Default=1}.}
+\item{seed}{Seed of the random number generator for the posterior sampling (integer), so that the credible bands of
+the age model can be reproduced; the random state of the session is restored afterwards. \code{Default=1}.}
 }
 \value{
 A data frame of class \code{wr_track} with the columns \code{depth}, \code{period} (Viterbi path),

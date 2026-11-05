@@ -15,19 +15,28 @@ plot_astro(
 )
 }
 \arguments{
-\item{fit}{result of astro_invert()}
+\item{fit}{Inversion result to plot: the list returned by \code{\link{astro_invert}} (with elements \code{k},
+\code{state}, \code{draws} and \code{windows}). Required, no default.}
 
-\item{peaks}{optional measured spectral peaks (kyr) for the k scan}
+\item{peaks}{Measured spectral peak periods in kyr (numeric vector). If given, panel (b) shows the
+\code{\link{k_scan}} of these peaks (number of terms matched by each precession constant k); \code{NULL} leaves
+panel (b) empty. \code{Default=NULL}.}
 
-\item{age_ma}{age of the record, for the AstroGeo22 comparison}
+\item{age_ma}{Age of the record in Ma (numeric, single value). If given, the AstroGeo22 (Farhat et al. 2022) value
+of k at that age is added to panel (c) and the fitted Earth-Moon distance and length of day are plotted at that age
+in panels (d) and (e); \code{NULL} skips these comparisons. \code{Default=NULL}.}
 
-\item{file}{optional output file; PNG if it ends in .png, else PDF}
+\item{file}{Path of an output file (character). A name ending in \code{".png"} writes a PNG file, any other name a
+PDF file; \code{NULL} draws on the current device. \code{Default=NULL}.}
 
-\item{width}{Width of the output file.}
+\item{width}{Width of the output file in inches (numeric, > 0); only used when \code{file} is given.
+\code{Default=11}.}
 
-\item{height}{Height of the output file.}
+\item{height}{Height of the output file in inches (numeric, > 0); only used when \code{file} is given.
+\code{Default=7}.}
 
-\item{res}{Resolution (dpi) of png output.}
+\item{res}{Resolution of the PNG output in dpi (numeric, > 0); only used when \code{file} ends in \code{".png"}.
+\code{Default=300}.}
 }
 \description{
 Six-panel summary of an inversion

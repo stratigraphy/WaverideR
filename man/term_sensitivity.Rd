@@ -13,15 +13,23 @@ term_sensitivity(
 )
 }
 \arguments{
-\item{age_ma}{Age(s) in Ma.}
+\item{age_ma}{Age in Ma (numeric, single value, 0 to 4429) at which the term periods are computed; the precession
+constant is taken from \code{\link{astrogeo22}} at this age unless \code{k_yr} is given. \code{Default=0}.}
 
-\item{delta}{fractional change applied to each fundamental (0.01 = +1\%)}
+\item{delta}{Fractional change applied to each fundamental frequency in turn (numeric, e.g. \code{0.01} = +1\%; may
+be negative). \code{Default=0.01}.}
 
-\item{k_yr}{Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).}
+\item{k_yr}{Your own precession constant k, as a period in years (numeric, > 0), used instead of the AstroGeo22
+value at \code{age_ma}; \code{NULL} uses the AstroGeo22 value (\code{astrogeo22(age_ma)$p_arcsec}).
+\code{Default=NULL}.}
 
-\item{fundamentals}{Fundamental frequencies to vary.}
+\item{fundamentals}{Fundamental frequencies to vary, one column of the result each (character vector): any of
+\code{"g1"} to \code{"g9"}, \code{"s1"} to \code{"s9"} (La2004 secular frequencies) and \code{"k"} (precession
+constant). Names of a named vector are used as column names.
+\code{Default=c("g1", "g2", "g3", "g4", "g5", "s1", "s3", "s4", "s6", "k")}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.}
 }
 \value{
 matrix of percent change in each term's period (rows) per `delta`

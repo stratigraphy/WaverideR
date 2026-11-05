@@ -5,36 +5,63 @@
 #' Monte Carlo over the cycle's own uncertainty (frequency resolution or `tol`)
 #' and over the secular frequencies at that age.
 #'
-#' @param cycles named vector of cycle periods in kyr, names are terms
-#'   ("k+s3", "k+g5", "k+g2", "k+g4", "k+g3"), e.g. c("k+s3" = 30.8, "k+g5" = 19.9)
-#' @param age_ma approximate age (Ma); single value or c(min, max)
-#' @param record_length_kyr length of the analysed record in kyr, for the
-#'   frequency resolution; or give `tol` (relative half-width)
-#' @param tol,mult see cycle_band()
-#' @param nsim number of Monte Carlo draws; 0 gives the plain point estimate
-#' @param method "angular_momentum" or "astrogeo22"
-#' @param combine "multiply" (product of the individual densities, as in
-#'   Zeeden et al. 2023) or "pool" (all samples together)
-#' @param seed optional RNG seed
-#' @param tuned_to if the record was tuned, the period you assumed for the
-#'   tuning target in kyr (e.g. 405). The true duration of that target at this
-#'   age is uncertain, so every measured period is stretched by
-#'   (true target period)/(tuned_to); set this to propagate that error.
-#'   NULL (default) treats the input periods as true durations.
-#' @param anchor_term the tuning target term
-#' @param sampleorb,g4g3_range_kyr,s4s3_range_kyr,s3_uncertainty passed to the
-#'   secular-frequency sampler
-#' @param data_dir folder with the data tables
+#' @param cycles Measured cycle periods in kyr (named numeric vector); every name is the astronomical term the cycle
+#' is read as, e.g. \code{c("k+s3" = 30.8, "k+g5" = 19.9)}. Terms with k (\code{"k+s3"}, \code{"k+g5"},
+#' \code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"}, ...) give the precession constant; terms without k (e.g.
+#' \code{"e405"}, \code{"g2-g5"}) only constrain the secular frequencies (element \code{secular} of the output).
+#' \code{\link{astro_terms}} lists the names that can be used. Required (no default).
+#' @param age_ma Age of the record in Ma (numeric): one value, or \code{c(min, max)} to draw the age uniformly
+#' from that range in the Monte Carlo simulation. Required (no default).
+#' @param record_length_kyr Length of the analysed record in kyr (numeric, > 0); with it the uncertainty band of
+#' each cycle is set by the frequency resolution \code{mult / record_length_kyr} (see \code{\link{cycle_band}}).
+#' \code{NULL} uses the relative half-width \code{tol} instead. \code{Default=NULL}.
+#' @param tol Relative half-width of the uncertainty band of each cycle, used only when \code{record_length_kyr}
+#' is \code{NULL} (numeric, > 0; 0.05 is plus or minus 5\%). \code{NULL} gives 0.05 (see \code{\link{cycle_band}}).
+#' \code{Default=NULL}.
+#' @param mult Multiple of the frequency resolution \code{1 / record_length_kyr} used as half-width of the band
+#' (numeric, > 0; 1 is plus or minus one bandwidth). \code{Default=1}.
+#' @param nsim Number of Monte Carlo draws (integer, >= 0); within its band each cycle is drawn uniformly.
+#' \code{0} gives the plain point estimate without uncertainty. \code{Default=20000}.
+#' @param method How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+#' (character, passed to \code{\link{ctest_earthmoon}} and \code{\link{earthmoon_state}}): \code{"angular_momentum"}
+#' (conservation of Earth-Moon angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat
+#' et al., 2022). \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.
+#' @param combine How the estimates of several k terms are combined (character): \code{"multiply"} (product of the
+#' individual densities, as in Zeeden et al., 2023, via \code{\link{ctest_combine}}) or \code{"pool"} (all
+#' samples together). \code{Default=c("multiply", "pool")}, i.e. \code{"multiply"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param tuned_to If the record was tuned, the period in kyr that was assumed for the tuning target (numeric, e.g.
+#' 405). The true duration of that target at this age is uncertain, so every measured period is stretched by
+#' (true target period)/\code{tuned_to} to propagate that error. \code{NULL} treats the input periods as true
+#' durations. \code{Default=NULL}.
+#' @param anchor_term Astronomical term of the tuning target (character; a secular difference without k, e.g.
+#' \code{"e405"} or \code{"g2-g5"}); only used when \code{tuned_to} is given. \code{Default="e405"}.
+#' @param sampleorb Shape of the distribution from which the uncertain secular frequencies g2, g3, g4, g5 and s3
+#' are drawn (character): \code{"U"} uniform or \code{"N"} normal. \code{Default="U"}.
+#' @param g4g3_range_kyr Range \code{c(min, max)} of the period of the g4-g3 term in kyr (numeric vector of
+#' length 2), drawn uniformly to allow for a chaotic resonance transition (g3 and g4 are moved symmetrically);
+#' \code{NULL} keeps g4-g3 at its La2004 value. \code{Default=NULL}.
+#' @param s4s3_range_kyr Range \code{c(min, max)} of the period of the s4-s3 term in kyr (numeric vector of
+#' length 2), drawn uniformly as for \code{g4g3_range_kyr}; \code{NULL} keeps s4-s3 at its La2004 value.
+#' \code{Default=NULL}.
+#' @param s3_uncertainty How the uncertainty of s3 is applied (character): \code{"published"} uses the relative
+#' uncertainty directly as standard deviation of the s3 period in years, as in the published code;
+#' \code{"scaled"} multiplies it by the s3 period (a much wider spread).
+#' \code{Default=c("published", "scaled")}, i.e. \code{"published"}.
+#' @param data_dir Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#' path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+#' \code{Default=NULL}.
 #' @return list: `per_term` (one row per cycle), `combined` (k and Earth-Moon
 #'   state), `samples`, and `consistent` (do the per-term 95\% intervals overlap)
 #' @export
 k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
-                          mult = 1, nsim = 20000, method = c("angular_momentum", "astrogeo22"),
-                          combine = c("multiply", "pool"), seed = NULL,
-                          tuned_to = NULL, anchor_term = "e405",
-                          sampleorb = "U", g4g3_range_kyr = NULL, s4s3_range_kyr = NULL,
-                          s3_uncertainty = c("published", "scaled"), data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    mult = 1, nsim = 20000, method = c("angular_momentum", "astrogeo22"),
+    combine = c("multiply", "pool"), seed = NULL,
+    tuned_to = NULL, anchor_term = "e405",
+    sampleorb = "U", g4g3_range_kyr = NULL, s4s3_range_kyr = NULL,
+    s3_uncertainty = c("published", "scaled"), data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -83,8 +110,8 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -127,7 +154,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -177,8 +204,8 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -230,9 +257,9 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
       freq <- k_mult * p + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult, offset = offset,
-         parts = first_parts, canonical = .canonical_term(term),
-         simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
+        has_k = k_mult != 0, k_mult = k_mult, offset = offset,
+        parts = first_parts, canonical = .canonical_term(term),
+        simple = nrow(parts) == 1 && abs(parts$coef[1]) == 1)
   }
 
   # Build n-by-9 sampled secular-frequency matrices (arcsec/yr).
@@ -243,8 +270,8 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
   #   resonance transition (g3 and g4 move symmetrically about their mean)
   # @param s4s3_range_kyr the same for the s4-s3 term
   .sample_secular <- function(n, age_yr, sampleorb = "U", s3_uncertainty = "published",
-                              point = FALSE, data_dir = NULL,
-                              g4g3_range_kyr = NULL, s4s3_range_kyr = NULL){
+      point = FALSE, data_dir = NULL,
+      g4g3_range_kyr = NULL, s4s3_range_kyr = NULL){
     gs <- .la04_gisi(data_dir)
     G <- matrix(gs$g, n, 9, byrow = TRUE)
     S <- matrix(gs$s, n, 9, byrow = TRUE)
@@ -253,7 +280,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     }
     sc <- sqrt(age_yr / 1e8)
     rel <- c(g2 = 0.019 / 7.453, g3 = 0.2 / 17.368, g4 = 0.2 / 17.916,
-             g5 = 0.000030 / 4.257482, s3 = 0.066 / 18.848)
+        g5 = 0.000030 / 4.257482, s3 = 0.066 / 18.848)
     draw <- function(mu, r){
       if (sampleorb == "N"){
         stats::rnorm(n, mu, abs(mu) * r * sc)
@@ -288,7 +315,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     list(G = G, S = S)
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -303,7 +330,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -312,26 +339,26 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   combine <- match.arg(combine)
   s3_uncertainty <- match.arg(s3_uncertainty)
@@ -344,11 +371,11 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
   terms <- names(cycles)
   if (is.null(terms) || any(!nzchar(terms))){
     stop('Name every cycle with its term, e.g. c("k+s3" = 30.8, "k+g5" = 19.9). ',
-         'astro_terms() lists what you can use.')
+        'astro_terms() lists what you can use.')
   }
   if (any(terms == "e125")){
     message('"e125" read as the g3-g2 term (130.7 kyr today); a single unresolved ',
-            '~125 kyr peak mixes g3-g2 and g4-g2. Use "e130" or "e124" to be explicit.')
+        '~125 kyr peak mixes g3-g2 and g4-g2. Use "e130" or "e124" to be explicit.')
   }
   info <- vector("list", length(terms))
   has_k <- logical(length(terms))
@@ -358,7 +385,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
   }
   if (!any(has_k)){
     message("None of these terms contains the precession constant, so k is not ",
-            "estimated - see $secular for what they do constrain.")
+        "estimated - see $secular for what they do constrain.")
   }
 
   point <- isTRUE(nsim == 0)
@@ -370,7 +397,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     t <- stats::runif(n, age_ma[1] * 1e6, age_ma[2] * 1e6)
   }
   sec <- .sample_secular(n, t, sampleorb, s3_uncertainty, point, data_dir,
-                         g4g3_range_kyr, s4s3_range_kyr)
+      g4g3_range_kyr, s4s3_range_kyr)
   nom <- .sample_secular(1, 0, point = TRUE, data_dir = data_dir)
 
   # tuning stretch: assumed target period vs its true duration at this age
@@ -395,7 +422,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     stats::runif(n, band[1], band[2])
   }
 
-  # --- terms without k: they pin the secular frequencies, not the precession ---
+  # Terms without k: they pin the secular frequencies, not the precession
   sec_rows <- NULL
   if (any(!has_k)){
     idx_nok <- which(!has_k)
@@ -435,20 +462,20 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
         implied_sd <- stats::sd(implied)
       }
       sec_list[[m]] <- data.frame(term = tf$canonical,
-                                  given = given,
-                                  cycle = cycles[[i]], band_lo = band[1], band_hi = band[2],
-                                  difference_arcsec_yr = mean(f_obs),
-                                  difference_sd = difference_sd,
-                                  solves = solves, implied_arcsec_yr = mean(implied),
-                                  implied_sd = implied_sd,
-                                  la2004_arcsec_yr = ref, offset_arcsec_yr = mean(implied) - ref,
-                                  reference_period_kyr = 360 * 3600 / abs(mean(tf$freq)) / 1000,
-                                  row.names = NULL)
+          given = given,
+          cycle = cycles[[i]], band_lo = band[1], band_hi = band[2],
+          difference_arcsec_yr = mean(f_obs),
+          difference_sd = difference_sd,
+          solves = solves, implied_arcsec_yr = mean(implied),
+          implied_sd = implied_sd,
+          la2004_arcsec_yr = ref, offset_arcsec_yr = mean(implied) - ref,
+          reference_period_kyr = 360 * 3600 / abs(mean(tf$freq)) / 1000,
+          row.names = NULL)
     }
     sec_rows <- do.call(rbind, sec_list)
   }
 
-  # --- terms with k ---
+  # Terms with k
   idx_k <- which(has_k)
   per <- vector("list", length(idx_k))
   for (m in seq_along(idx_k)){
@@ -460,7 +487,7 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
     p <- (f_obs - tf$offset) / tf$k_mult
     p[p <= 0] <- NA
     per[[m]] <- list(term = tf$canonical, cycle = cycles[[i]], band = band, p = p,
-                     k = 360 * 3600 / p)
+        k = 360 * 3600 / p)
   }
 
   ci <- function(v){
@@ -470,27 +497,27 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
       sd_v <- stats::sd(v, na.rm = TRUE)
     }
     c(mean = mean(v, na.rm = TRUE),
-      sd = sd_v,
-      stats::quantile(v, c(0.025, 0.975), na.rm = TRUE))
+        sd = sd_v,
+        stats::quantile(v, c(0.025, 0.975), na.rm = TRUE))
   }
   if (!length(per)){
     return(list(per_term = NULL, secular = sec_rows, combined = NULL,
-                samples = numeric(0), consistent = NA, method = method,
-                age_ma = age_ma, point = point,
-                reference = astrogeo22(mean(age_ma), data_dir = data_dir)))
+        samples = numeric(0), consistent = NA, method = method,
+        age_ma = age_ma, point = point,
+        reference = astrogeo22(mean(age_ma), data_dir = data_dir)))
   }
   per_rows <- vector("list", length(per))
   for (m in seq_along(per)){
     x <- per[[m]]
     st <- ci(x$k / 1000)
     em1 <- earthmoon_state(k_yr = st[["mean"]] * 1000, age_ma = mean(age_ma),
-                           method = method, data_dir = data_dir)
+        method = method, data_dir = data_dir)
     per_rows[[m]] <- data.frame(term = x$term, cycle_kyr = x$cycle,
-                                band_lo_kyr = x$band[1], band_hi_kyr = x$band[2],
-                                k_kyr = st[["mean"]], k_sd_kyr = st[["sd"]],
-                                k_lo95 = st[[3]], k_hi95 = st[[4]],
-                                a_RE = em1$a_RE, lod_solar_h = em1$lod_solar_h,
-                                row.names = NULL)
+        band_lo_kyr = x$band[1], band_hi_kyr = x$band[2],
+        k_kyr = st[["mean"]], k_sd_kyr = st[["sd"]],
+        k_lo95 = st[[3]], k_hi95 = st[[4]],
+        a_RE = em1$a_RE, lod_solar_h = em1$lod_solar_h,
+        row.names = NULL)
   }
   per_term <- do.call(rbind, per_rows)
 
@@ -514,6 +541,6 @@ k_from_cycles <- function(cycles, age_ma, record_length_kyr = NULL, tol = NULL,
   }
 
   list(per_term = per_term, secular = sec_rows, combined = em$summary,
-       samples = kcomb, consistent = overlap, method = method, age_ma = age_ma,
-       point = point, reference = astrogeo22(mean(age_ma), data_dir = data_dir))
+      samples = kcomb, consistent = overlap, method = method, age_ma = age_ma,
+      point = point, reference = astrogeo22(mean(age_ma), data_dir = data_dir))
 }

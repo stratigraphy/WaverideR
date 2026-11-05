@@ -1,10 +1,14 @@
 #' Earth-Moon distance implied by a length of day (angular momentum conserved)
-#' @param lod_h Length of day in hours.
-#' @param kind Type of day, `"solar"` or `"sidereal"`.
-#' @param L_total Total angular momentum (`NULL` = present-day Earth-Moon value).
+#' @param lod_h Length of day in hours (numeric vector, > 0; 24 today), of the type set by
+#' \code{kind}. Required (no default).
+#' @param kind Type of day given in \code{lod_h} (character, passed to \code{\link{earth_omega}}): \code{"solar"}
+#' (mean solar day) or \code{"sidereal"} (one rotation relative to the stars). \code{Default="solar"}.
+#' @param L_total Total angular momentum of the Earth-Moon system in kg m^2/s (numeric, > 0), assumed to be
+#' conserved. \code{NULL} uses the present-day value (computed from today's Earth-Moon distance and length of day).
+#' \code{Default=NULL}.
 #' @export
 moon_distance_from_lod <- function(lod_h, kind = "solar", L_total = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   astro_constants <- function(){
     AU <- 1.495978707e11            # m
@@ -18,17 +22,17 @@ moon_distance_from_lod <- function(lod_h, kind = "solar", L_total = NULL){
     GME <- GMEM - GMM
     RE <- 6378.1366e3               # m
     list(AU = AU, day = day, G = G, yr = yr,
-         GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
-         ME = GME / G, MM = GMM / G, massratio = massratio,
-         RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
-         k2f = 0.93,                                      # fluid Love number
-         Ed0 = 0.003243,                                  # dynamical ellipticity today
-         a0_RE = 60.142611,                               # Moon, present, R_E
-         lod0_sid_h = 23.934468,                          # sidereal day, h
-         obliquity0_deg = 23.2545,
-         p0_arcsec = 50.467718,
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMS = GMS, GMEM = GMEM, GMM = GMM, GME = GME,
+        ME = GME / G, MM = GMM / G, massratio = massratio,
+        RE = RE, aE = 1.495978707e11,          # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,       # C0 / (M_E R_E^2)
+        k2f = 0.93,                                      # fluid Love number
+        Ed0 = 0.003243,                                  # dynamical ellipticity today
+        a0_RE = 60.142611,                               # Moon, present, R_E
+        lod0_sid_h = 23.934468,                          # sidereal day, h
+        obliquity0_deg = 23.2545,
+        p0_arcsec = 50.467718,
+        arcsec_per_rad = 180 * 3600 / pi)
   }
 
   omega0 <- function(){
@@ -37,7 +41,7 @@ moon_distance_from_lod <- function(lod_h, kind = "solar", L_total = NULL){
 
   .AC <- astro_constants()
 
-  # ---- main code ----
+  # Main code
   if (is.null(L_total)){
     L_total <- earthmoon_angular_momentum(.AC$a0_RE, omega0())
   }

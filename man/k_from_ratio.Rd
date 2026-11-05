@@ -20,26 +20,46 @@ k_from_ratio(
 )
 }
 \arguments{
-\item{long, short}{the two cycles, same units (kyr or m), long one first}
+\item{long}{Period of the longer of the two cycles (numeric, > \code{short}), in kyr for a tuned record or in
+metres for a depth series; only the ratio \code{long / short} is used. Required (no default).}
 
-\item{term_long, term_short}{which terms they are}
+\item{short}{Period of the shorter cycle, in the same unit as \code{long} (numeric, > 0). Required (no default).}
 
-\item{age_ma}{approximate age (Ma), for the secular frequencies and obliquity}
+\item{term_long}{Astronomical term of the longer cycle (character), e.g. \code{"k+s3"} (obliquity),
+\code{"k+g5"} (precession) or an eccentricity term such as \code{"e405"}, \code{"e125"}, \code{"e95"} (see
+\code{\link{astro_terms}}). At least one of the two terms must contain k. \code{Default="k+s3"}.}
 
-\item{rel_sd}{relative 1-sigma uncertainty on each measured cycle (default
-0.03); or give `record_length` in the same units as the cycles to use the
-frequency resolution instead. `nsim = 0` skips the uncertainty entirely
-and returns the plain point estimate.}
+\item{term_short}{Astronomical term of the shorter cycle (character), with the same options as
+\code{term_long}. \code{Default="k+g5"}.}
 
-\item{record_length, mult}{see cycle_band()}
+\item{age_ma}{Age of the record in Ma (numeric, one value or \code{c(min, max)}, of which the mean is used);
+sets the obliquity used by \code{\link{ctest_earthmoon}} and the AstroGeo22 reference values. Required (no
+default).}
 
-\item{nsim}{number of Monte Carlo draws}
+\item{rel_sd}{Relative one-sigma uncertainty of each measured cycle (numeric, >= 0; 0.03 is 3\%); the cycles are
+drawn from normal distributions. Ignored when \code{record_length} is given. \code{Default=0.03}.}
 
-\item{method}{"angular_momentum" or "astrogeo22"}
+\item{record_length}{Length of the analysed record in the same unit as the cycles (numeric, > 0). If given, each
+cycle is drawn uniformly from the band set by the frequency resolution \code{mult / record_length} (see
+\code{\link{cycle_band}}) instead of using \code{rel_sd}. \code{Default=NULL}.}
 
-\item{seed}{optional RNG seed}
+\item{mult}{Multiple of the frequency resolution used as half-width of the band when \code{record_length} is given
+(numeric, > 0). \code{Default=1}.}
 
-\item{data_dir}{folder with the data tables}
+\item{nsim}{Number of Monte Carlo draws (integer, >= 0); \code{0} skips the uncertainty and returns the plain point
+estimate. \code{Default=20000}.}
+
+\item{method}{How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+(character, passed to \code{\link{ctest_earthmoon}}): \code{"angular_momentum"} (conservation of Earth-Moon
+angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat et al., 2022).
+\code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
+
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 list with the Earth-Moon `summary`, `k_kyr`, `k_sd_kyr`,

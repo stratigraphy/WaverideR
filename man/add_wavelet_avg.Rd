@@ -14,17 +14,28 @@ add_wavelet_avg(
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (list) created with \code{\link{analyse_wavelet}}; its elements \code{Period} and
+\code{Power.avg} (time-averaged power) are plotted. Required (\code{Default=NULL} gives an error).}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the plot (logical, TRUE or FALSE): \code{TRUE} puts period on the x axis
+and average power on the y axis (to sit above a horizontal scalogram); \code{FALSE} puts period on the y axis
+and average power on the x axis (to sit beside a vertical scalogram). The period axis labels are suppressed
+in both cases. \code{Default=TRUE}.}
 
-\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_h}{Positions of horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5, 6)}): average
+power values when \code{plot_horizontal=TRUE}, periods when \code{plot_horizontal=FALSE}. \code{NULL} draws
+none. \code{Default=NULL}.}
 
-\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_v}{Positions of vertical reference lines (numeric vector, e.g. \code{c(2, 3, 5, 6)}): periods
+when \code{plot_horizontal=TRUE}, average power values when \code{plot_horizontal=FALSE}. \code{NULL} draws
+none. \code{Default=NULL}.}
 
-\item{lowerPeriod}{Lowest period value which will be plotted}
+\item{lowerPeriod}{Shortest period shown on the (logarithmic) period axis, in the same unit as the
+depth/time axis of the wavelet (numeric, > 0). Give it together with \code{upperPeriod}; if both are
+\code{NULL} the full period range is shown. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value which will be plotted}
+\item{upperPeriod}{Longest period shown on the period axis (numeric, > \code{lowerPeriod}); see
+\code{lowerPeriod}. \code{Default=NULL}.}
 }
 \value{
 returns a plot of a the average spectral power of a continuous wavelet transform
@@ -37,6 +48,7 @@ which can be added to a larger composite plot
 \donttest{
 #generate a plot for the magnetic susceptibility data set of Pas et al., (2018)
 
+oldpar <- par(no.readonly = TRUE)
 plot.new()
 layout.matrix <- matrix(c(rep(0, 2), 1, 0,0,seq(2, 6, by = 1)),
                        nrow = 2,
@@ -180,6 +192,7 @@ plot(mag_110[,2],mag_110[,1],type="l",
 
 lines(mag_110_mean + mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
 lines(mag_110_mean - mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
+par(oldpar)
 }
 }
 \references{

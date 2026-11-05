@@ -38,44 +38,55 @@ analyze_Awavelet(
 )
 }
 \arguments{
-\item{data}{Input data, should be a matrix or data frame in which
-the first column is depth or time and the second column is the proxy record.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2.
+Rows with \code{NA} are removed, the rows are sorted by depth/time and the record is linearly interpolated to
+an even spacing equal to the median sampling interval. Required (\code{Default=NULL} gives an error).}
 
-\item{dj}{Spacing between successive scales. Scales increase by powers
-of two as \code{2^(j * dj)}. Smaller values of \code{dj} increase
-frequency resolution at the expense of computational time.
-Default is \code{1/100}.}
+\item{dj}{Spacing between successive scales in octaves (numeric, > 0): scales increase as \code{2^(j * dj)}, so
+\code{1/100} gives 100 scales per doubling of the period. Smaller values give a finer period axis at the cost
+of computation time. \code{Default=1/100}.}
 
-\item{lowerPeriod}{Lowest period to be analysed. Defines the smallest
-scale of the transform.}
+\item{lowerPeriod}{Shortest period to analyse, in the same unit as the depth/time column of \code{data}
+(numeric, > 0; at least twice the sampling interval). \code{Default=2}.}
 
-\item{upperPeriod}{Highest period to be analysed. Defines the largest
-scale of the transform.}
+\item{upperPeriod}{Longest period to analyse, in the same unit as the depth/time column of \code{data}
+(numeric, > \code{lowerPeriod}; normally not more than the length of the record). \code{Default=1024}.}
 
-\item{verbose}{Logical. If TRUE, print interpolation diagnostics.}
+\item{verbose}{Print the sampling interval to which the record was interpolated (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{omega_min}{Minimum number of oscillatory cycles of the Morlet
-wavelet.}
+\item{omega_min}{Number of oscillatory cycles of the Morlet wavelet (omega_0) at the shortest period (numeric,
+> 0, typically 5 to 6). Fewer cycles give a better depth/time resolution, more cycles a better period
+resolution. \code{Default=6}.}
 
-\item{omega_max}{Maximum number of oscillatory cycles of the Morlet
-wavelet.}
+\item{omega_max}{Number of oscillatory cycles of the Morlet wavelet at the longest period (numeric, > 0). The
+number of cycles changes from \code{omega_min} to \code{omega_max} along the period axis as set by
+\code{scaling}. \code{Default=12}.}
 
-\item{scaling}{Character string defining how the number of wavelet
-cycles varies with scale. One of
-\code{"log2"}, \code{"linear"}, \code{"sqrt"}, \code{"quadratic"},
-or \code{"power"}.}
+\item{scaling}{How the number of wavelet cycles changes from \code{omega_min} (shortest period) to
+\code{omega_max} (longest period) (character), one of:
+\itemize{
+\item \code{"none"}: linear in the scale index, which is equivalent to linear in log2(period);
+\item \code{"log2"}: linear in log2(period);
+\item \code{"linear"}: linear in period;
+\item \code{"sqrt"}: with the square root of the normalised log2(period) (fast change at short periods);
+\item \code{"quadratic"}: with the square of the normalised log2(period) (fast change at long periods);
+\item \code{"power"}: with the normalised log2(period) to the power \code{alpha}.
+}
+\code{Default="none"} (the first element of \code{c("none", "log2", "linear", "sqrt", "quadratic", "power")}).}
 
-\item{alpha}{Numeric. Exponent used when \code{scaling = "power"}.
-Values greater than one emphasize high frequency sharpening, whereas
-values smaller than one emphasize low frequency sharpening.}
+\item{alpha}{Exponent of the \code{"power"} scaling (numeric, > 0); only used when \code{scaling="power"}. Values
+greater than 1 keep the number of cycles close to \code{omega_min} over most of the period range and increase
+it mainly at the longest periods; values smaller than 1 do the opposite. \code{Default=1}.}
 
-\item{n_simulations}{Number of Monte Carlo simulations. Currently
-included for interface compatibility.}
+\item{n_simulations}{Number of Monte Carlo simulations (integer). Not used: kept only for compatibility with
+the interface of the other wavelet functions (no significance test is made). \code{Default=10}.}
 
-\item{run_multicore}{Logical. Currently included for interface
-compatibility.}
+\item{run_multicore}{Run in parallel on several cores (logical, TRUE or FALSE). Not used: kept only for
+compatibility with the interface of the other wavelet functions. \code{Default=FALSE}.}
 
-\item{wavelet}{Mother wavelet, given as a name (PyWavelets style names with the order appended, such as
+\item{wavelet}{Mother wavelet (character string or function), given as a name (PyWavelets style names with the
+order appended, such as
 \code{"db4"}, \code{"sym8"}, \code{"cgau3"}, \code{"gaus2"} or \code{"cmor1.5-1"}, also work) or as a function
 \code{psi_hat(omega)} that returns the Fourier transform of a user defined mother wavelet.
 Analytic (complex) wavelets, which give phase and amplitude and can be synchrosqueezed: \code{"morlet"}
@@ -87,24 +98,33 @@ Morlet with bandwidth and centre frequency as in Matlab/PyWavelets), \code{"cgau
 (frequency B-spline), \code{"meyer"}, \code{"loggabor"} (alias \code{"lognormal"}), \code{"gammatone"} (asymmetric in
 time: sharp onset, slow decay) and \code{"hann"} (raised cosine band).
 Real wavelets, which give a real transform (no phase or envelope): \code{"dog"} (derivative of Gaussian;
-\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"} (real
+\code{"mexh"}, \code{"ricker"}, \code{"marr"} and \code{"sombrero"} are the Mexican hat, order 2), \code{"morl"}
+(real
 Morlet), \code{"hhat"} (Hermitian hat), \code{"poisson"}, and the orthogonal wavelets \code{"haar"}, \code{"db"}
 (Daubechies), \code{"sym"} (Symlets) and \code{"battle"} (Battle-Lemarie spline wavelets), which are computed in the
 frequency domain from their filters. The period axis of the orthogonal wavelets is approximate because their
 spectra are broad and not symmetric. A narrow wavelet (Paul, low-order DOG, Shannon, Haar) resolves position
-well, a wide one (Morse with a large beta, Morlet with a high omega_nr, bump) resolves period well.}
+well, a wide one (Morse with a large beta, Morlet with a high number of cycles, bump) resolves period well.
+For wavelets other than the Morlet, the wavelet at each scale is given the relative bandwidth of a Morlet
+wavelet with the local number of cycles (between \code{omega_min} and \code{omega_max}).
+\code{Default="morlet"}.}
 
-\item{wavelet_order}{Parameter(s) of the wavelet (see \code{\link{analyse_wavelet}}); when it is NULL the wavelet whose relative bandwidth equals that of a Morlet wavelet with \code{omega_min} to \code{omega_max} cycles is used at every scale. Parameters of the wavelet: \code{paul}: order m (default 4); \code{dog}: derivative m
-(default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with gamma = 3 (default \code{c(3, 20)});
+\item{wavelet_order}{Parameter(s) of the wavelet (numeric scalar or vector, see \code{\link{analyse_wavelet}});
+when it is \code{NULL} the wavelet whose relative bandwidth equals that of a Morlet wavelet with
+\code{omega_min} to \code{omega_max} cycles is used at every scale. Parameters of the wavelet: \code{paul}:
+order m (default 4); \code{dog}: derivative m (default 2); \code{morse}: \code{c(gamma, beta)} or beta alone with
+gamma = 3 (default \code{c(3, 20)});
 \code{bump}: \code{c(mu, sigma)} (default \code{c(5, 0.6)}); \code{cmor}: \code{c(bandwidth, centre frequency)}
 (default \code{c(1.5, 1)}); \code{cgau}: derivative m (default 4); \code{shannon}: \code{c(bandwidth, centre
 frequency)} (default \code{c(2, 1.5)}); \code{fbsp}: \code{c(m, bandwidth, centre frequency)} (default
 \code{c(2, 2, 1.5)}); \code{loggabor}: \code{c(centre angular frequency, log-width)} (default \code{c(6, 0.25)});
-\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default omega_nr); \code{morl}: omega_0 (default 5);
+\code{meyer} and \code{hhat} have no parameter; \code{morlet0}: omega_0 (default: the local number of cycles);
+\code{morl}: omega_0 (default 5);
 \code{poisson}: order n (default 2); \code{gammatone}: \code{c(n, centre angular frequency, bandwidth)} (default
 \code{c(4, 6, 1.5)}); \code{hann}: \code{c(centre angular frequency, half width)} (default \code{c(6, 3)});
 \code{db}: number of vanishing moments 1 to 20 (default 4, \code{"haar"} = \code{"db1"}); \code{sym}: 2 to 20
-(default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_nr}.}
+(default 8); \code{battle}: spline order 1, 3, 5 or 7 (default 3). For the Morlet wavelet use \code{omega_min} and
+\code{omega_max}; a non-NULL \code{wavelet_order} uses one fixed wavelet at all scales. \code{Default=NULL}.}
 }
 \value{
 A list with class \code{"analyze.Awavelet"} containing:

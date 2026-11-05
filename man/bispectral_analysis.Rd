@@ -39,99 +39,109 @@ bispectral_analysis(
 )
 }
 \arguments{
-\item{data}{Input data set: a matrix or data frame with 2 columns, the first
-being depth/time and the second the proxy value.}
+\item{data}{Series to analyse (numeric matrix or data frame with at least two columns: depth or time in
+column 1, proxy value in column 2; further columns are ignored). At least 32 finite observations with distinct
+coordinates are needed; even or uneven sampling (see \code{interpolate}). Required, no default
+(\code{Default=NULL} gives an error).}
 
-\item{estimator}{Estimator: "wosa" (segment averaged) or
-"frequency-smoothed". \code{NULL} chooses as Acycle does: "wosa", unless
-three 32-point segments do not fit, then "frequency-smoothed".
-\code{Default=NULL}}
+\item{estimator}{Bispectrum estimator (character): \code{"wosa"} (direct FFT bispectrum averaged over tapered,
+overlapping segments; also \code{"welch"}) or \code{"frequency-smoothed"} (direct estimate on the native DFT
+grid smoothed with a hexagonal kernel). \code{NULL} chooses as Acycle does: \code{"wosa"}, unless three
+32-point segments do not fit, then \code{"frequency-smoothed"}. \code{Default=NULL}.}
 
-\item{n_segments}{Number of WOSA segments (>= 3). \code{NULL} uses
-min(8, maximum number of 32-point segments) as in Acycle. \code{Default=NULL}}
+\item{n_segments}{Number of WOSA segments (integer, >= 3); more segments give a more stable estimate with a
+coarser frequency resolution. \code{NULL} uses min(8, maximum number of 32-point segments) as in Acycle.
+\code{Default=NULL}.}
 
-\item{overlap}{Segment overlap in percent, in [0,90). \code{Default=50}}
+\item{overlap}{Overlap of adjacent WOSA segments in percent (numeric, 0 <= overlap < 90). \code{Default=50}.}
 
-\item{window}{Taper: "hann", "hamming", "blackman" or "rectangular".
-\code{Default="hann"}}
+\item{window}{Taper applied to every segment (character): \code{"hann"}, \code{"hamming"}, \code{"blackman"}
+or \code{"rectangular"} (no taper). \code{Default="hann"}.}
 
-\item{segment_detrend}{Detrending applied to each segment (or the whole
-record for the frequency-smoothed estimator): "none", "mean" or "linear".
-\code{Default="mean"}}
+\item{segment_detrend}{Detrending applied to each segment (or to the whole record for the frequency-smoothed
+estimator) before the FFT (character): \code{"none"}, \code{"mean"} or \code{"linear"}. \code{Default="mean"}.}
 
-\item{smoothing_span}{Odd span (>= 3) of the hexagonal frequency-smoothing
-kernel (3 gives 7 triads). \code{Default=3}}
+\item{smoothing_span}{Span of the hexagonal frequency-smoothing kernel of the frequency-smoothed estimator
+(odd integer, >= 3; 3 averages 7 triads); larger spans give a smoother, lower-resolution estimate.
+\code{Default=3}.}
 
-\item{smoothing_kernel}{"daniell" (uniform) or "cosine" weights.
-\code{Default="daniell"}}
+\item{smoothing_kernel}{Weights of the hexagonal smoothing kernel (character): \code{"daniell"} (uniform) or
+\code{"cosine"} (raised cosine). \code{Default="daniell"}.}
 
-\item{detrend}{Whole-record detrending: "none", "mean", "linear" or
-"polynomial". \code{Default="linear"}}
+\item{detrend}{Detrending of the whole record before the estimation (character): \code{"none"}, \code{"mean"},
+\code{"linear"} or \code{"polynomial"} (order \code{poly_order}). \code{Default="linear"}.}
 
-\item{poly_order}{Polynomial order (1-10) for \code{detrend="polynomial"}.
-\code{Default=2}}
+\item{poly_order}{Order of the polynomial removed when \code{detrend = "polynomial"} (integer, 1 to 10 and
+below N - 1). \code{Default=2}.}
 
-\item{standardize}{Standardise the series to zero mean and unit standard
-deviation after detrending. \code{Default=TRUE}}
+\item{standardize}{Standardise the series to zero mean and unit standard deviation after detrending (logical,
+TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{interpolate}{"auto" (interpolate only irregular series), "always" or
-"never". \code{Default="auto"}}
+\item{interpolate}{When the series is interpolated onto a regular grid (character): \code{"auto"} only when the
+sampling is irregular (see \code{irregular_tol}), \code{"always"}, or \code{"never"} (an irregular series then
+gives an error). \code{Default="auto"}.}
 
-\item{interp_method}{Interpolation method: "linear", "pchip" or "makima".
-\code{Default="linear"}}
+\item{interp_method}{Interpolation method for the regular grid (character): \code{"linear"}, \code{"pchip"}
+(shape-preserving piecewise cubic) or \code{"makima"} (modified Akima). \code{Default="linear"}.}
 
-\item{sample_interval}{Sample interval of the regular grid; \code{NULL} uses
-the median original spacing. May not be coarser than the median spacing.
-\code{Default=NULL}}
+\item{sample_interval}{Sample interval of the regular grid, in the unit of the first column of \code{data}
+(numeric, > 0, not coarser than the median original spacing); \code{NULL} uses the median original spacing.
+\code{Default=NULL}.}
 
-\item{irregular_tol}{Maximum relative spacing departure treated as regular
-(input_policy "prepare"). \code{Default=0.01}}
+\item{irregular_tol}{Largest relative departure of the sample spacing from the grid interval that is still
+treated as regular sampling, used with \code{input_policy = "prepare"} (numeric, >= 0). \code{Default=0.01}.}
 
-\item{gap_warning_factor}{Largest gap (in sample intervals) above which a
-warning is stored. \code{Default=5}}
+\item{gap_warning_factor}{Largest original gap, in sample intervals, above which a warning about interpolation
+across gaps is stored in the result (numeric, > 0). \code{Default=5}.}
 
-\item{input_policy}{"prepare" (clean the input) or "strict" (refuse
-non-finite, unsorted or duplicated rows). \code{Default="prepare"}}
+\item{input_policy}{How irregular input is handled (character): \code{"prepare"} cleans the input (removes
+non-finite rows, sorts, averages duplicate coordinates) or \code{"strict"} refuses non-finite, unsorted or
+duplicated rows with an error. \code{Default="prepare"}.}
 
-\item{nfft}{FFT length for the WOSA estimator; \code{NULL} uses
-round(segment length x zero_pad). Ignored by the frequency-smoothed
-estimator. \code{Default=NULL}}
+\item{nfft}{FFT length of every WOSA segment (positive integer); \code{NULL} uses round(segment length x
+\code{zero_pad}). Ignored by the frequency-smoothed estimator. \code{Default=NULL}.}
 
-\item{zero_pad}{Zero-padding factor for the WOSA estimator. \code{Default=1}}
+\item{zero_pad}{Zero-padding factor of the WOSA segments, used when \code{nfft = NULL} (numeric, > 0).
+\code{Default=1}.}
 
-\item{max_freq_bins}{Maximum number of computed frequency-axis bins (>= 16);
-larger grids are decimated with a constant stride. \code{Default=512}}
+\item{max_freq_bins}{Maximum number of frequency bins computed along each frequency axis (integer, >= 16);
+larger grids are decimated with a constant stride to limit computing time and memory. \code{Default=512}.}
 
-\item{significance}{Inference: "none", "analytical", "pointwise"
-(pointwise surrogate thresholds) or "global" (maximum-statistic surrogate
-test). \code{Default="none"}}
+\item{significance}{Type of inference on the bicoherence (character): \code{"none"}, \code{"analytical"}
+(Beta(1, R - 1) pointwise reference), \code{"pointwise"} (pointwise surrogate thresholds) or \code{"global"}
+(maximum-statistic surrogate test with family-wise error control over the computed principal domain).
+\code{Default="none"}.}
 
-\item{conf_level}{Confidence level in (0.5,1). \code{Default=0.95}}
+\item{conf_level}{Confidence level of the significance threshold (numeric, strictly between 0.5 and 1).
+\code{Default=0.95}.}
 
-\item{n_sim}{Number of accepted surrogates (19-99999). \code{Default=999}}
+\item{n_sim}{Number of accepted surrogates for \code{significance = "pointwise"} or \code{"global"}
+(integer, 19 to 99999, and large enough to reach 1 - \code{conf_level}). \code{Default=999}.}
 
-\item{surrogate_type}{"iaaft" or "ft" (phase randomisation).
-\code{Default="iaaft"}}
+\item{surrogate_type}{Type of surrogate (character): \code{"iaaft"} (iterative amplitude-adjusted Fourier
+transform, keeps both spectrum and amplitude distribution) or \code{"ft"} (Fourier phase randomisation).
+\code{Default="iaaft"}.}
 
-\item{iaaft_iter}{Maximum number of IAAFT iterations. \code{Default=200}}
+\item{iaaft_iter}{Maximum number of IAAFT iterations per surrogate (positive integer). \code{Default=200}.}
 
-\item{iaaft_tol}{Maximum accepted relative Fourier-amplitude error of an
-IAAFT surrogate (non-DC, non-Nyquist bins); worse surrogates are rejected
-and replaced. \code{Default=0.02}}
+\item{iaaft_tol}{Largest accepted relative Fourier-amplitude error of an IAAFT surrogate (non-DC,
+non-Nyquist bins); worse surrogates are rejected and replaced (numeric, 0 < iaaft_tol <= 1).
+\code{Default=0.02}.}
 
-\item{max_attempts}{Maximum number of surrogate attempts; \code{NULL} allows
-n_sim + max(10, ceiling(0.1 n_sim)). \code{Default=NULL}}
+\item{max_attempts}{Maximum number of surrogate attempts, including rejected ones (integer, >= \code{n_sim});
+\code{NULL} allows \code{n_sim} + max(10, ceiling(0.1 \code{n_sim})). \code{Default=NULL}.}
 
-\item{seed}{Seed for the random number generator (\code{NULL} leaves the
-generator untouched). \code{Default=NULL}}
+\item{seed}{Seed of the random number generator (integer), so that the surrogates can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{genplot}{Plot the result with \code{\link{plot_bispectral}}.
-\code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_bispectral}} (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{verbose}{Print progress (progress bar for the surrogates).
-\code{Default=FALSE}}
+\item{verbose}{Print progress messages and a progress bar for the surrogates (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
 
-\item{standardise}{British spelling of \code{standardize}; if given it overrides \code{standardize}.}
+\item{standardise}{British spelling of \code{standardize}; if given it overrides \code{standardize}.
+\code{Default=NULL}.}
 }
 \value{
 A list with elements

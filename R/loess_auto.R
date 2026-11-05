@@ -5,12 +5,16 @@
 #' optimisation using the 'aicc' bias-corrected 'AIC' criterion and the 'gcv' generalized cross-validation criterion.
 #'
 #'
-#'@param time_series Input is a time series with the first column being depth or time and the second column being a proxy
-#'@param genplot Option to generate plot \code{Default=TRUE}. \cr
-#'The plot will consist of the original signal in blue, the smoothed plot is displayed
-#'in black and the + and - 1 sd bounds of the smoothing are displayed in red.
-#'@param print_span Print span length as a fraction of the total length of the record.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param time_series Series to smooth: a two-column matrix or data frame with depth or time in column 1 and the
+#' proxy value (e.g. the period of a tracked cycle, as from \code{\link{completed_series}}) in column 2; rows with
+#' \code{NA} are dropped for the span selection. Required (\code{Default=NULL}).
+#' @param genplot Plot the original series (blue), the smoothed curve (black) and the smoothed curve plus and minus
+#' the absolute residual (red, dashed) (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param print_span Print the selected loess span, a fraction (0-1) of the number of data points that is used in each
+#' local fit (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param keep_editable Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+#' features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+#' \code{Default=FALSE}.
 #'
 #'@author
 #'Based on the the loess.as function of the 'fANCOVA' R package.
@@ -71,82 +75,82 @@
 
 
 loess_auto <-
-  function(time_series = NULL,
-           genplot = FALSE,
-           print_span = FALSE,
-           keep_editable = FALSE) {
-    completed_series_test <- na.omit(time_series)
-    parameters_to_use <-
-      wr_loess_as(
-        y = completed_series_test[, 2],
-        x = completed_series_test[, 1],
-        degree = 2,
-        criterion = c("aicc", "gcv")[2],
-        family = c("symmetric"),
-        plot = FALSE
+    function(time_series = NULL,
+        genplot = FALSE,
+        print_span = FALSE,
+        keep_editable = FALSE) {
+      completed_series_test <- na.omit(time_series)
+      parameters_to_use <-
+          wr_loess_as(
+              y = completed_series_test[, 2],
+              x = completed_series_test[, 1],
+              degree = 2,
+              criterion = c("aicc", "gcv")[2],
+              family = c("symmetric"),
+              plot = FALSE
+          )
+      span <- parameters_to_use$pars$span
+      time_series <- as.data.frame(time_series)
+
+      colnames(time_series) <- c("V1", "V2")
+      loessMod <- loess(
+          V2 ~ V1,
+          data = time_series,
+          span = span,
+          model = TRUE,
+          degree = 1,
+          family = c("gaussian", "symmetric")
       )
-    span <- parameters_to_use$pars$span
-    time_series <- as.data.frame(time_series)
-
-    colnames(time_series) <- c("V1", "V2")
-    loessMod <- loess(
-      V2 ~ V1,
-      data = time_series,
-      span = span,
-      model = TRUE,
-      degree = 1,
-      family = c("gaussian", "symmetric")
-    )
 
 
-    smoothed <- as.data.frame(predict(
-      loessMod,
-      time_series,
-      se = FALSE,
-      interval = "predict",
-      level = 0.68
-    ))
+      smoothed <- as.data.frame(predict(
+          loessMod,
+          time_series,
+          se = FALSE,
+          interval = "predict",
+          level = 0.68
+      ))
 
-    smoothed <- cbind(time_series[, 1], smoothed)
-    colnames(smoothed) <- c("depth", "fit")
-    smoothed$SD <- (abs(smoothed$fit - time_series[, 2]))
-    smoothed <- na.omit(smoothed)
+      smoothed <- cbind(time_series[, 1], smoothed)
+      colnames(smoothed) <- c("depth", "fit")
+      smoothed$SD <- (abs(smoothed$fit - time_series[, 2]))
+      smoothed <- na.omit(smoothed)
 
 
-    if (genplot == TRUE) {
-      if (keep_editable == FALSE) {
-        oldpar <- par(no.readonly = TRUE)
-        on.exit(par(oldpar))
-      }
-      max_y <-  (max(smoothed[, 2] + smoothed[, 3]))
-      min_y <-  (min(smoothed[, 2] - smoothed[, 3]))
-      plot(
-        smoothed[, 1],
-        smoothed[, 2],
-        type = "l",
-        lwd = 2,
-        col = "black",
-        ylim = c(min_y, max_y)
-      )
-      lines(completed_series_test[, 1],
+      if (genplot == TRUE) {
+        if (keep_editable == FALSE) {
+          oldpar <- par(no.readonly = TRUE)
+          on.exit(par(oldpar))
+        }
+        max_y <-  (max(smoothed[, 2] + smoothed[, 3]))
+        min_y <-  (min(smoothed[, 2] - smoothed[, 3]))
+        plot(
+            smoothed[, 1],
+            smoothed[, 2],
+            type = "l",
+            lwd = 2,
+            col = "black",
+            ylim = c(min_y, max_y)
+        )
+        lines(completed_series_test[, 1],
             completed_series_test[, 2],
             col = "blue")
-      lines(
-        x = smoothed[, 1],
-        y = (smoothed[, 2] + smoothed[, 3]),
-        col = "red",
-        lty = 2
-      )
-      lines(
-        x = smoothed[, 1],
-        y = (smoothed[, 2] - smoothed[, 3]),
-        col = "red",
-        lty = 2
-      )
-    }
+        lines(
+            x = smoothed[, 1],
+            y = (smoothed[, 2] + smoothed[, 3]),
+            col = "red",
+            lty = 2
+        )
+        lines(
+            x = smoothed[, 1],
+            y = (smoothed[, 2] - smoothed[, 3]),
+            col = "red",
+            lty = 2
+        )
+      }
 
-    if (print_span == TRUE) {
-      cat("span is: ", parameters_to_use$pars$span)
+      if (print_span == TRUE) {
+        cat("span is: ", parameters_to_use$pars$span)
+      }
+      return(smoothed)
     }
-    return(smoothed)
-  }

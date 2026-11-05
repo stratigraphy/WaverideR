@@ -30,60 +30,74 @@ dynot(
 )
 }
 \arguments{
-\item{data}{Matrix with two columns: time (kyr) and proxy value. Data are
-sorted, duplicated times are averaged and non-finite rows removed.
-\code{Default=NULL}}
+\item{data}{Tuned time series (matrix or data frame, numeric: time in column 1, e.g. in kyr, proxy value in
+column 2; further columns are ignored; at least 10 rows; may be unevenly sampled). Rows are sorted, duplicated
+times are averaged and non-finite rows removed. Required (\code{Default=NULL}).}
 
-\item{target_periods}{Target orbital periods (same unit as time). Default
-are the nine Acycle default periods (405.6912, 130.6979, 123.8532,
-98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519 kyr).}
+\item{target_periods}{Periods of the target orbital cycles, in the time unit of \code{data} (numeric vector,
+> 0). The power within a band around each target frequency \code{1 / period} is summed into the target power.
+\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)} (the nine
+Acycle default periods in kyr).}
 
-\item{window_min}{Minimum window length. \code{Default=300}}
+\item{window_min, window_max}{Range of the sliding window length, in the time unit of \code{data} (numeric, > 0,
+\code{window_min <= window_max}); each Monte Carlo realisation draws its window length uniformly from this
+range. \code{Default=300} and \code{Default=500}.}
 
-\item{window_max}{Maximum window length. \code{Default=500}}
+\item{nw_min}{Smallest time-bandwidth product of the multitaper spectra (numeric, >= 0.5). Each realisation uses
+\code{nw_min + k/2}, with \code{k} drawn from \code{1:(2*(nw_max-nw_min))}, or \code{nw_min} itself when
+\code{nw_max=nw_min}.
+\code{Default=2}.}
 
-\item{nw_min}{Minimum time-bandwidth product. \code{Default=2}}
+\item{nw_max}{Largest time-bandwidth product (numeric, >= \code{nw_min}); \code{2*(nw_max-nw_min)} must be an
+integer. If equal to \code{nw_min}, all realisations use \code{nw_min}. \code{Default=2}.}
 
-\item{nw_max}{Maximum time-bandwidth product; 2*(nw_max-nw_min) must be an
-integer. \code{Default=2}}
+\item{pad}{Number of points (zero-padded FFT length) of each multitaper spectrum (integer, > 0); larger values
+give a finer frequency grid. \code{Default=1000}.}
 
-\item{pad}{FFT length of the MTM (zero-padding number). \code{Default=1000}}
+\item{step}{Step between successive windows of the power decomposition, in samples of the interpolated series
+(integer, >= 1). \code{Default=5}.}
 
-\item{step}{Step between PDA windows in samples. \code{Default=5}}
+\item{n_out}{Number of points of the regular output time grid onto which the noise curves are interpolated
+(integer, >= 1). \code{Default=1000}.}
 
-\item{n_out}{Number of regular output grid points. \code{Default=1000}}
+\item{pad_type}{How the series is extended by half a window at both ends before the analysis (numeric code):
+\code{0} no padding, \code{1} zeros, \code{2} mirrored data, \code{3} the mean of the end segment, \code{4}
+random normal values with the mean and standard deviation of the end segment. \code{Default=1}.}
 
-\item{pad_type}{Half-window padding: 0 = none, 1 = zero, 2 = mirror,
-3 = mean, 4 = random. \code{Default=1}}
+\item{fz_min, fz_max}{Range of the bandwidth multiplier (numeric, > 0, \code{fz_min <= fz_max}): the lower and
+upper limits of each target band are \code{f -/+ fz * nw / window}, with \code{fz} drawn uniformly from this
+range for each limit and realisation. \code{Default=0.9} and \code{Default=1.2}.}
 
-\item{fz_min}{Minimum bandwidth multiplier. \code{Default=0.9}}
+\item{f_min}{Lower frequency limit, in cycles per time unit (numeric, >= 0): target band limits below it are
+clipped to it and it is the lower edge of the total band used as denominator of the power ratio.
+\code{Default=0.001}.}
 
-\item{fz_max}{Maximum bandwidth multiplier. \code{Default=1.2}}
+\item{f_max}{Upper frequency limit, in cycles per time unit (numeric, > \code{f_min}): target band limits above
+it are clipped and it is the upper edge of the total band (itself clipped to the Nyquist frequency).
+\code{Default=1}.}
 
-\item{f_min}{Lower cutoff frequency (clips target limits and total band).
-\code{Default=0.001}}
+\item{sample_min}{Smallest simulated sampling interval, in the time unit (numeric, > 0, or \code{NULL}). Each
+realisation interpolates the series to a sampling interval drawn from a Weibull distribution fitted to the
+sampling intervals of \code{data}; draws below \code{sample_min} are replaced by one shared uniform draw from
+[\code{sample_min}, \code{sample_max}]. \code{NULL} uses the 5th percentile of the data sampling intervals.
+\code{Default=NULL}.}
 
-\item{f_max}{Upper cutoff frequency. \code{Default=1}}
+\item{sample_max}{Largest simulated sampling interval (numeric, >= \code{sample_min}, or \code{NULL}); draws
+above it are replaced in the same way. \code{NULL} uses the 95th percentile of the data sampling intervals.
+\code{Default=NULL}.}
 
-\item{sample_min}{Lower limit of simulated sampling intervals. If NULL the
-5th percentile of the data sampling intervals. \code{Default=NULL}}
+\item{intervals}{Confidence intervals of the noise to report, in percent (numeric vector, any subset of
+\code{50}, \code{68}, \code{80}, \code{90}, \code{95}); the median is always reported.
+\code{Default=c(50, 68, 80, 90, 95)}.}
 
-\item{sample_max}{Upper limit of simulated sampling intervals. If NULL the
-95th percentile of the data sampling intervals. \code{Default=NULL}}
+\item{n_sim}{Number of Monte Carlo realisations (integer, >= 1). \code{Default=1000}.}
 
-\item{intervals}{Confidence intervals (in percent) to report, any of
-50, 68, 80, 90, 95; the median is always reported.
-\code{Default=c(50, 68, 80, 90, 95)}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{n_sim}{Number of Monte Carlo simulations. \code{Default=1000}}
+\item{verbose}{Show a progress bar over the realisations (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{seed}{Seed for the random number generator (NULL = not set).
-\code{Default=NULL}}
-
-\item{verbose}{Show a progress bar. \code{Default=FALSE}}
-
-\item{genplot}{Plot the result with \code{\link{plot_dynot}}.
-\code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_dynot}} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

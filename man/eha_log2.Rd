@@ -17,36 +17,42 @@ eha_log2(
 )
 }
 \arguments{
-\item{data}{Input data, should be a matrix or data frame in which
-the first column is depth or time and the second column is proxy record.}
+\item{data}{Input series (matrix or data frame with two columns: depth/time in column 1, proxy value in column
+2), preferably evenly sampled (the padded series is linearly interpolated with \code{astrochron::linterp}).
+Required (\code{Default=NULL}).}
 
-\item{win}{Window size for EHA, in units of space or time.}
+\item{win}{Length of the moving EHA window, in the depth/time unit of \code{data} (numeric, > 0, shorter than
+the record). The series is also padded by half a window at both ends (see \code{padding}). Required
+(\code{Default=NULL}).}
 
-\item{tbw}{MTM time-bandwidth product (<=10)}
+\item{tbw}{Time-bandwidth product of the multitaper (MTM) spectra, passed to \code{\link[astrochron]{eha}}
+(numeric, <= 10, e.g. 2, 3 or 4); larger values give smoother spectra with a lower frequency resolution.
+Required (\code{Default=NULL}).}
 
-\item{demean}{Remove mean from data series? (T or F)}
+\item{demean}{Remove the mean of each window (logical). Currently not used: the windows are always demeaned
+(\code{demean=TRUE} is passed to \code{\link[astrochron]{eha}}). \code{Default=NULL}.}
 
-\item{detrend}{Remove linear trend from data series? (T or F)}
+\item{detrend}{Remove a linear trend from each window (logical). Currently not used: the windows are always
+detrended (\code{detrend=TRUE} is passed to \code{\link[astrochron]{eha}}). \code{Default=NULL}.}
 
-\item{upperPeriod}{Upper period to be analyzed.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
-so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
- scaling is done using power 2 so for the best plotting results select a
- value to the power or 2.}
+\item{upperPeriod}{Longest period to analyse, in the depth/time unit of \code{data} (numeric, > \code{lowerPeriod},
+at most about \code{win}); sets \code{fmin = 1 / upperPeriod} of the EHA and the top of the log2 period grid.
+Required (\code{Default=NULL}).}
 
-\item{lowerPeriod}{Lowest period to be analyzed.
-The CWT analyses the signal starting from the lowerPeriod to the upperPeriod
-so the proper selection these
-parameters allows to analyse the signal for a specific range of cycles.
-scaling is done using power 2 so for the best plotting results select a value
-to the power or 2.}
+\item{lowerPeriod}{Shortest period to analyse, in the depth/time unit of \code{data} (numeric, > 0, at least twice
+the sampling interval); sets \code{fmax = 1 / lowerPeriod} and the bottom of the log2 period grid. Required
+(\code{Default=NULL}).}
 
-\item{pad}{with zeros to how many points? Must not factor into a prime number
->23. Maximum number of points is 200,000.}
+\item{pad}{Number of points to which each window is zero-padded (integer or \code{NULL}); odd values are increased
+by one, values below the number of points per window are raised to it, and \code{5 * pad} is passed to
+\code{\link[astrochron]{eha}} to obtain a fine low-frequency spacing. \code{NULL} uses
+\code{2 * 2^ceiling(log2(points per window))}. \code{Default=NULL}.}
 
-\item{padding}{pad the edges of the data set with half a
-window length with the following, the  "Mean", "noise" or "zero"}
+\item{padding}{Values used to extend the series by half a window at both ends, so that the EHA covers the whole
+record (character): \code{"noise"} (AR(1) red noise with the mean, standard deviation and lag-1 autocorrelation
+of the end segments; note that this calls \code{set.seed()}), \code{"mean"} (also \code{"average"} or
+\code{"avg"}; the mean of the series) or \code{"zero"} (zeros). Any other value is treated as \code{"mean"}.
+\code{Default="noise"}.}
 }
 \value{
 The output is a list (analyze.eha object) which contain

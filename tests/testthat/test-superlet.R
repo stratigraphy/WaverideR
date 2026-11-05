@@ -15,17 +15,24 @@ test_that("superlet finds the period of a record with a large mean", {
 test_that("superlet amplitude equals the direct geometric mean of Morlet responses", {
   d <- sine()
   s <- analyse_superlet(d, 40, 0.5, 40, c1 = 3, o = c(3, 3), detrend = "none", standardize = FALSE)
-  i <- 20; j <- which(s$x > 40)[1]
-  Pper <- s$Period[i]; Fc <- (1 / Pper) * s$dt
+  i <- 20
+  j <- which(s$x > 40)[1]
+  Pper <- s$Period[i]
+  Fc <- (1 / Pper) * s$dt
   cx <- function(Nc) {
-    sd <- (Nc / 2) / Fc / 2.5; wl <- 2 * floor(6 * sd / 2) + 1; off <- floor(wl / 2)
-    t <- seq_len(wl) - 1 - off; g <- exp(-t^2 / (2 * sd^2)) / (sd * sqrt(2 * pi))
+    sd <- (Nc / 2) / Fc / 2.5
+    wl <- 2 * floor(6 * sd / 2) + 1
+    off <- floor(wl / 2)
+    t <- seq_len(wl) - 1 - off
+    g <- exp(-t^2 / (2 * sd^2)) / (sd * sqrt(2 * pi))
     g * exp(2i * pi * Fc * t) / sum(g)
   }
-  amps <- vapply(1:3, function(k) {
-    w <- cx(3 * k); h <- (length(w) - 1) / 2
-    Mod(sum(s$y[(j - h):(j + h)] * Conj(w)))
-  }, 1)
+  amps <- numeric(3)
+  for (k in 1:3) {
+    w <- cx(3 * k)
+    h <- (length(w) - 1) / 2
+    amps[k] <- Mod(sum(s$y[(j - h):(j + h)] * Conj(w)))
+  }
   expect_equal(Mod(s$Wave[i, j]), exp(mean(log(amps))), tolerance = 1e-6)
 })
 
@@ -48,7 +55,8 @@ test_that("order scaling options give increasing orders", {
 })
 
 test_that("flmw accepts a superlet object", {
-  d <- sine(per = 1.2); d$y <- d$y + sin(2 * pi * d$z / 0.5)
+  d <- sine(per = 1.2)
+  d$y <- d$y + sin(2 * pi * d$z / 0.5)
   s <- analyse_superlet(d, 8, 0.2, 40, c1 = 3, o = c(1, 3))
   r <- flmw(s, 1, 5, 1, c(100, 41), method = "template")
   expect_equal(dim(r$score_mat), c(5, length(s$x)))
@@ -59,7 +67,8 @@ test_that("superlet objects carry a cone of influence that the plots can draw", 
   s <- analyse_superlet(d, 40, 0.5, 30, c1 = 3, o = c(1, 4))
   expect_equal(length(s$coi.1), length(s$coi.2))
   expect_equal(sum(is.na(s$coi.1)), 0)                  # one polygon
-  grDevices::pdf(NULL); on.exit(grDevices::dev.off())
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
   expect_error(plot_superlet(s, dev_new = FALSE), NA)
   expect_error(plot_superlet(s, dev_new = FALSE, plot_horizontal = FALSE), NA)
   xs <- analyse_Xsuperlet(d, d, upperPeriod = 40, lowerPeriod = 0.5, Nf = 30, c1 = 3, o = c(1, 4))

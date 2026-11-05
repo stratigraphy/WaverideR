@@ -17,29 +17,39 @@ track_mesa(
 )
 }
 \arguments{
-\item{x}{output of \code{\link{mesa_evolutive}}.}
+\item{x}{Evolutive MESA to track in: the output of \code{\link{mesa_evolutive}} (list with the elements
+\code{windows}, \code{frequency} and \code{position}). Required, no default.}
 
-\item{window}{number or length of the window to track in.}
+\item{window}{Which window length of \code{x} to track in (numeric): either the window length itself (in the units
+of the first column of the record, matched exactly) or the index of the window in \code{x$windows} (integer, 1 is
+the first window length given to \code{\link{mesa_evolutive}}). A length is matched first. \code{Default=1}.}
 
-\item{period}{Period (wavelength) band \code{c(lower, upper)} in which the ridge is searched,
-in the units of the first column of the record. Give \code{period} or \code{frequency}.}
+\item{period}{Period (wavelength) band in which the ridge is searched (numeric vector \code{c(lower, upper)}, in the
+units of the first column of the record; the band must hold at least three frequencies of \code{x}). Give
+\code{period} or \code{frequency}; \code{frequency} takes precedence when both are given. \code{Default=NULL}.}
 
-\item{frequency}{Frequency band \code{c(lower, upper)}, alternative to \code{period}.}
+\item{frequency}{Frequency band in which the ridge is searched (numeric vector \code{c(lower, upper)}, in cycles per
+unit of the first column of the record), alternative to \code{period}. \code{Default=NULL}.}
 
-\item{max_jump}{Largest relative change of the frequency between neighbouring window positions
-(default 0.1, i.e. 10 percent).}
+\item{max_jump}{Largest relative change of the frequency between neighbouring window positions (numeric, > 0;
+0.1 allows 10 percent); larger values let the track follow faster changes but make hopping between neighbouring
+peaks easier. \code{Default=0.1}.}
 
-\item{penalty}{Penalty (in units of log10 relative power) for a change of the frequency by
-\code{max_jump}; smaller changes cost proportionally less. Default 0.3.}
+\item{penalty}{Penalty for a change of the frequency by \code{max_jump}, in units of log10 relative power
+(numeric, >= 0); smaller changes cost proportionally less (linear in the log of the frequency ratio), 0 means no
+penalty within \code{max_jump}. \code{Default=0.3}.}
 
-\item{start}{Optional period at the first position (or last, if \code{start_at = "end"})
-that fixes where the track begins; the search then starts at the peak nearest to it.}
+\item{start}{Optional period (numeric, same units as \code{period}) at the first position (or at the last, if
+\code{start_at = "end"}) that fixes where the track begins: only frequencies within \code{max_jump} of it are allowed
+there. \code{NULL} lets the search start anywhere in the band. \code{Default=NULL}.}
 
-\item{start_at}{\code{"top"} (first position, default) or \code{"end"}.}
+\item{start_at}{Direction of the search (character, one of \code{"top"}, \code{"end"}): \code{"top"} starts at the
+first window position, \code{"end"} at the last; this also decides where \code{start} applies.
+\code{Default="top"}.}
 
-\item{snap}{If TRUE (default) every position of the track is moved to the nearest local maximum
-of the spectrum within one frequency step, so that the track follows the spectral peak and not
-the shoulder of a broad one.}
+\item{snap}{Move every position of the track to the largest value of the spectrum within two frequency steps of the
+path (logical, TRUE or FALSE), so that the track follows the spectral peak and not the shoulder of a broad one.
+\code{Default=TRUE}.}
 }
 \value{
 A data frame of class \code{mesa_track} with \code{position}, \code{frequency},

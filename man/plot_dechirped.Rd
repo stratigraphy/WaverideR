@@ -18,27 +18,45 @@ plot_dechirped(
 )
 }
 \arguments{
-\item{x}{Result of \code{\link{analyse_dechirped}}.}
+\item{x}{Result of \code{\link{analyse_dechirped}} (list of class \code{wr_dechirped}). Required, no default.}
 
-\item{style}{\code{"outline"} (de-chirped map with the significant cells outlined, when surrogates were run),
-\code{"significance"} (ratio to the 95th percentile of the warped surrogates), \code{"plain"} (the de-chirped map)
-or \code{"tuned"} (the transform in time, periods in kyr).}
+\item{style}{What to draw (character), one of:
+\itemize{
+\item \code{"outline"}: the de-chirped depth map with the cells that are significant against the warped
+surrogates outlined in white (needs \code{n_sim > 0} in \code{\link{analyse_dechirped}});
+\item \code{"significance"}: the ratio to the 95th percentile of the warped surrogates (log10, diverging colour
+scale; needs \code{n_sim > 0});
+\item \code{"plain"}: the de-chirped depth map;
+\item \code{"tuned"}: the transform in the time of the track (periods in kyr).
+}
+Without surrogates \code{"outline"} and \code{"significance"} fall back to \code{"plain"} with a message.
+\code{Default="outline"} (the first element of \code{c("outline", "significance", "plain", "tuned")}).}
 
-\item{show}{Astronomical periods (kyr) to draw at the tracked rate.}
+\item{show}{Astronomical periods in kyr to draw as dotted lines (numeric vector, e.g. \code{c(405, 100, 41)}):
+in the depth styles at the period they have at the tracked rate (period x local rate), in the \code{"tuned"}
+style as horizontal lines. \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{level}{Significance level of the outline \code{Default=0.95}.}
+\item{level}{Significance level of the outline (numeric, between 0 and 1): cells with a p-value of at most
+\code{1 - level} are outlined. Only used when \code{style="outline"}. \code{Default=0.95}.}
 
-\item{palette}{\code{hcl.colors} palette \code{Default="viridis"}.}
+\item{palette}{Name of a \code{\link[grDevices]{hcl.colors}} palette for the colour scale, a character string, for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}; run \code{grDevices::hcl.pals()} to list all
+115 names. Low values get the first colour of the palette. Names of the viridis family (\code{"viridis"},
+\code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}) give the colours of the
+viridis package, as in the wavelet plots. \code{Default="viridis"}.}
 
-\item{main}{Title.}
+\item{main}{Title of the plot (character string); \code{NULL} gives an automatic title that names the transform
+and the style. \code{Default=NULL}.}
 
-\item{xlab, ylab}{Axis labels.}
+\item{xlab, ylab}{Labels of the depth and period axes (character strings) of the depth styles; the
+\code{"tuned"} style always uses "Time of the track (kyr)" and "Period (kyr)". Defaults: \code{xlab}:
+\code{Default="Depth"}; \code{ylab}: \code{Default="Period"}.}
 
-\item{scale}{Colour scale as in all image plots of the package (\code{"auto"}, \code{"log"}, \code{"quantile"},
-\code{"sqrt"}, \code{"linear"}; see \code{\link{plot_wavelet}}) \code{Default="auto"}. The significance style
-always uses a fixed diverging scale centred on the 95th percentile of the surrogates.}
+\item{scale}{Colour scale as in all image plots of the package (character): \code{"auto"}, \code{"log"},
+\code{"quantile"}, \code{"sqrt"} or \code{"linear"} (see \code{\link{plot_wavelet}}). The significance style
+always uses a fixed diverging scale centred on the 95th percentile of the surrogates. \code{Default="auto"}.}
 
-\item{outline_lwd}{Line width of the significance outline \code{Default=0.6}.}
+\item{outline_lwd}{Line width of the significance outline (numeric, > 0). \code{Default=0.6}.}
 }
 \value{
 Invisibly, the matrix shown.

@@ -30,53 +30,83 @@ test_tuned(
 )
 }
 \arguments{
-\item{URAN_time}{data.frame, time in kyr and value; e.g. the output of a tuning function.}
+\item{URAN_time}{Tuned record to test (required, no default): data frame or matrix with time in kyr in column 1 and
+the proxy value in column 2, e.g. the output of a tuning function. It is sorted, linearly interpolated to 1 kyr,
+detrended and standardised before the analysis.}
 
-\item{others}{optional list of other tuned proxies on the same time scale; their peaks are pooled
-with those of \code{URAN_time} (a term found in several proxies adds support).}
+\item{others}{Other tuned proxies on the same time scale (list of data frames/matrices with the same two-column
+layout as \code{URAN_time}, or \code{NULL}); they are cut to the time range of \code{URAN_time} and their peaks are
+pooled with those of \code{URAN_time} (a term found in several proxies adds support). \code{Default=NULL}.}
 
-\item{tbw, pad}{MTM settings of \code{astrochron::mtm}: time-bandwidth product and zero-padding factor.
-\code{tbw} sets the resolution: the precession terms k+g5 and k+g2 only separate when
-\code{tbw <= (record length in kyr) / 1600} (about 3 for 5.5 Myr). A larger \code{tbw} merges them
-into one broad peak and k cannot be measured (a warning is printed).}
+\item{tbw}{Time-bandwidth product of the MTM spectrum (numeric, > 0; \code{tbw} of \code{astrochron::mtm}). It sets
+the resolution: the precession terms k+g5 and k+g2 only separate when \code{tbw <= (record length in kyr) / 1600}
+(about 3 for 5.5 Myr). A larger \code{tbw} merges them into one broad peak and k cannot be measured (a warning is
+printed). \code{Default=2}.}
 
-\item{siglevel}{significance level for peaks (AR1 confidence level at the peak).}
+\item{pad}{Zero-padding factor of the MTM spectrum (numeric, >= 1; \code{padfac} of \code{astrochron::mtm}).
+\code{Default=5}.}
 
-\item{ftest}{if TRUE also require the harmonic F-test confidence level to reach \code{siglevel}.
-The default FALSE uses the AR1 level only, because the F-test tests for a pure sinusoid and
-rejects broad, strong peaks of a tuned record.}
+\item{siglevel}{Confidence level a spectral peak must reach to be used (numeric, between 0 and 1): the AR1
+confidence level at the peak (and, with \code{ftest = TRUE}, the harmonic F-test level). Only peaks with periods
+between 12 and 40 kyr are considered. \code{Default=0.9}.}
 
-\item{tol}{half-width of the search window around each predicted period (fraction of the period).}
+\item{ftest}{Also require the harmonic F-test confidence level to reach \code{siglevel} (logical). The default
+\code{FALSE} uses the AR1 level only, because the F-test tests for a pure sinusoid and rejects broad, strong peaks
+of a tuned record. \code{Default=FALSE}.}
 
-\item{scan}{if TRUE intervals with little precession imprint are removed (set to zero) before the
-spectrum is built. \code{scan_band} precession band (kyr), \code{scan_win} running window (kyr),
-\code{scan_thr} an interval is weak when its precession-band variance is below \code{scan_thr} times
-its median, \code{scan_min} shortest kept or removed piece (kyr).}
+\item{tol}{Half-width of the search window around each predicted term period, as a fraction of the period
+(numeric, e.g. \code{0.04} = +/- 4\%). \code{Default=0.04}.}
 
-\item{scan_band, scan_win, scan_thr, scan_min}{see \code{scan}.}
+\item{scan}{Remove intervals with little precession imprint (set them to zero, with a 10-kyr cosine taper at the
+edges) before the spectrum is built (logical); the pre-scan is controlled by \code{scan_band}, \code{scan_win},
+\code{scan_thr} and \code{scan_min}. \code{Default=TRUE}.}
 
-\item{n_surr}{number of phase-randomised surrogates for the amplitude-modulation test.}
+\item{scan_band}{Precession band of the pre-scan, in kyr (numeric vector \code{c(shortest, longest)} period); the
+record is band-passed (\code{astrochron::taner}) in this band and its Hilbert envelope gives the band variance.
+\code{Default=c(15, 23)}.}
 
-\item{seed}{random seed.}
+\item{scan_win}{Length of the running window over which the precession-band variance is averaged, in kyr (numeric,
+> 0; at most a third of the record is used). \code{Default=200}.}
 
-\item{plot}{draw the comparison figure with \code{\link{plot_test_k}}.}
+\item{scan_thr}{An interval is weak when its averaged precession-band variance is below \code{scan_thr} times its
+median (numeric, >= 0). \code{Default=0.5}.}
 
-\item{verbose}{also print the peak tables and all peak assignments.}
+\item{scan_min}{Shortest piece kept or removed by the pre-scan, in kyr (numeric, >= 0): weak pieces shorter than
+this are kept and kept pieces shorter than this are removed. \code{Default=100}.}
 
-\item{age_ma}{age of the record (Ma); the AstroGeo22 reference k and its envelope are taken at this age
-unless \code{k_ref} and \code{k_ref_range} are given.}
+\item{n_surr}{Number of phase-randomised surrogates for the amplitude-modulation test (integer, > 0).
+\code{Default=200}.}
 
-\item{k_ref, k_ref_range}{reference precession constant and its range (kyr); default AstroGeo22 at \code{age_ma}.}
+\item{seed}{Seed of the random number generator (integer), so that the surrogates can be reproduced.
+\code{Default=42}.}
 
-\item{k_dev}{plausible range of k (kyr) for the test verdict (default: the Devonian range).}
+\item{plot}{Draw the comparison figure with \code{\link{plot_test_k}} (logical). \code{Default=TRUE}.}
 
-\item{k_search}{range of k (kyr) in which peaks are searched, independent of AstroGeo22. The search
-window of each term runs from its period at \code{k_search[1]} to its period at \code{k_search[2]}
-(plus or minus \code{tol}). NULL gives the old windows around the AstroGeo22 period, which can only
-return k within about 1 kyr of AstroGeo22 and so cannot test it.}
+\item{verbose}{Also print the peak tables and all peak assignments of the precession-constant test (logical, TRUE
+or FALSE); the compact report is always printed. \code{Default=FALSE}.}
 
-\item{constraints}{optional path to a CSV of published constraints (columns set, observable, age_ma,
-a_RE, a_sd, lod_h, lod_sd, k_arcsec, k_sd) drawn in panels E-G of the figure.}
+\item{age_ma}{Age of the record in Ma (numeric); the AstroGeo22 reference k and its envelope are taken at this age
+(\code{\link{astrogeo22}}) unless \code{k_ref} and \code{k_ref_range} are given. \code{Default=386}.}
+
+\item{k_ref}{Reference precession constant, as a period in kyr (numeric); used for the resolution check of
+\code{tbw}, the old search windows (\code{k_search = NULL}) and the plot. \code{NULL} uses AstroGeo22 at
+\code{age_ma}. \code{Default=NULL}.}
+
+\item{k_ref_range}{Range of the reference precession constant in kyr (numeric vector \code{c(lower, upper)}); the test
+passes when the 1-sigma interval of the estimate overlaps it (or the 20.70 kyr composite of Zeeden et al., 2023).
+\code{NULL} uses the AstroGeo22 envelope at \code{age_ma}. \code{Default=NULL}.}
+
+\item{k_dev}{Plausible range of k for the test verdict, in kyr (numeric vector \code{c(lower, upper)}); the default is
+the Devonian range. \code{Default=c(20.4, 21.6)}.}
+
+\item{k_search}{Range of k in which peaks are searched, in kyr (numeric vector \code{c(lower, upper)}), independent of
+AstroGeo22. The search window of each term runs from its period at \code{k_search[1]} to its period at
+\code{k_search[2]} (plus or minus \code{tol}). \code{NULL} gives the old windows around the AstroGeo22 period, which
+can only return k within about 1 kyr of AstroGeo22 and so cannot test it. \code{Default=c(19.5, 23.5)}.}
+
+\item{constraints}{Path to a CSV file of published constraints (character, or \code{NULL} for none), with columns
+\code{set}, \code{observable}, \code{age_ma}, \code{a_RE}, \code{a_sd}, \code{lod_h}, \code{lod_sd}, \code{k_arcsec}
+and \code{k_sd}, drawn in panels E-G of the figure. \code{Default=NULL}.}
 }
 \value{
 Invisibly a list with the combined k (\code{k}, \code{k_obliquity}, \code{k_precession},

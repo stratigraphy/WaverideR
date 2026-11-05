@@ -7,11 +7,24 @@
 ecoco_best_per_window(sr, depth, rho, p, norbit, score)
 }
 \arguments{
-\item{sr}{sedimentation-rate grid (cm/kyr)}
+\item{sr}{Sedimentation-rate grid of the score map, in cm/kyr (numeric vector, one value per row of the
+matrices). Required, no default.}
 
-\item{depth}{window centres (m)}
+\item{depth}{Depths of the window centres, in metres (numeric vector, one value per column of the matrices).
+Required, no default.}
 
-\item{rho, p, norbit, score}{rate-by-window matrices}
+\item{rho}{Correlation coefficients (numeric matrix, rates in rows, windows in columns), e.g. element \code{rho}
+of the output of \code{\link{ecoco_adaptive}}; the value at the best rate is returned. Required, no default.}
+
+\item{p}{Global Monte Carlo p-values (numeric matrix of the same size as \code{rho}), e.g. element
+\code{p_global}; the value at the best rate is returned. Required, no default.}
+
+\item{norbit}{Number of contributing orbital periods (numeric matrix of the same size as \code{rho}). Required,
+no default.}
+
+\item{score}{Score used to choose the best rate in each window, the rate with the highest finite score (numeric
+matrix of the same size as \code{rho}), e.g. element \code{score} (pCOCO times the fraction of contributing
+periods). Windows without a finite score give \code{NA}. Required, no default.}
 }
 \value{
 data.frame with depth, sr, rho, p_global, norbit, score, sr_low, sr_high

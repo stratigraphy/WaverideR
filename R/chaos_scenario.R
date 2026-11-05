@@ -1,20 +1,31 @@
 #' Shift the fundamental frequencies and see what every cycle does
 #'
-#' @param g4_g3_kyr the period of the "2.4 Myr" term under the scenario
-#'   (NULL keeps La2004); `hold` says how g3 and g4 are moved to achieve it
-#' @param s4_s3_kyr the period of the "1.2 Myr" term under the scenario
-#' @param hold "mean" moves g3 and g4 symmetrically about their mean (default),
-#'   "g3" holds g3 and moves g4 only, "g4" holds g4 and moves g3 only
-#' @param age_ma age, for the precession constant used in the k-bearing terms
-#' @param k_yr Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param g4_g3_kyr Period of the g4-g3 ("2.4 Myr") eccentricity term in the scenario, in kyr (single numeric
+#' value > 0, e.g. 1200 for a 2:1 resonance state); g3 and g4 are moved (as set by \code{hold}) so that g4-g3 has
+#' this period, and every term containing g3 or g4 changes with them. \code{NULL} keeps the La2004 values.
+#' \code{Default=NULL}.
+#' @param s4_s3_kyr Period of the s4-s3 ("1.2 Myr") obliquity modulation term in the scenario, in kyr (single
+#' numeric value > 0); s3 and s4 are moved symmetrically about their mean to reach it. \code{NULL} keeps the
+#' La2004 values. \code{Default=NULL}.
+#' @param hold How g3 and g4 are moved to reach \code{g4_g3_kyr} (character): \code{"mean"} moves both
+#' symmetrically about their mean, \code{"g3"} keeps g3 fixed and moves g4 only, \code{"g4"} keeps g4 fixed and
+#' moves g3 only. \code{Default=c("mean", "g3", "g4")}, i.e. \code{"mean"}.
+#' @param age_ma Age in Ma (single numeric value, 0 to 4429) at which the precession constant for the
+#' precession and obliquity (k-bearing) terms is taken from AstroGeo22 (\code{\link{astrogeo22}}). Ignored for
+#' that purpose when \code{k_yr} is given. \code{Default=0}.
+#' @param k_yr Your own value of the precession constant, given as its period in years (numeric, e.g. about
+#' 25700 for today), used instead of the AstroGeo22 value; \code{NULL} uses the model value at \code{age_ma}.
+#' \code{Default=NULL}.
+#' @param data_dir Folder that contains the astronomical data tables \code{AstroGeo22.txt} and
+#' \code{La04gisi.csv} (character path); \code{NULL} uses the tables installed with the package (or the folder
+#' set with \code{options(cocoR.data = ...)}). \code{Default=NULL}.
 #' @return the astro_terms() table with the scenario period, the La2004 period,
 #'   and the change, so it is obvious which cycles move and which do not
 #' @export
 chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
-                           hold = c("mean", "g3", "g4"), age_ma = 0, k_yr = NULL,
-                           data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    hold = c("mean", "g3", "g4"), age_ma = 0, k_yr = NULL,
+    data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -63,8 +74,8 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -107,7 +118,7 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -157,8 +168,8 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -170,7 +181,7 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -185,7 +196,7 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -194,26 +205,26 @@ chaos_scenario <- function(g4_g3_kyr = NULL, s4_s3_kyr = NULL,
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   hold <- match.arg(hold)
   gs <- .la04_gisi(data_dir)
   g <- gs$g

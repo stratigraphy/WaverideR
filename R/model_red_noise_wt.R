@@ -4,15 +4,20 @@
 #' @description The \code{\link{model_red_noise_wt}} function is used to generate
 #' average spectral power curves based on and input signal and set wavelet settings.
 #'
-#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#'@param n_simulations Number of red noise simulations.
-#'@param run_multicore run simulation using multiple cores \code{Default=FALSE}
-#'the simulation is run at x-2 cores to allow the 2 remaining processes to run background processes.
-#' @param n_cores Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-#'   automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-#'   Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-#'   parallel computing. Results do not depend on the number of cores.
-#'@param verbose Print text \code{Default=FALSE}.
+#' @param wavelet Wavelet object, the output of \code{\link{analyse_wavelet}}. Its record (\code{x}, \code{y}), period
+#' range, \code{dj} and \code{omega_nr} are used: every simulation is red (AR1) noise with the mean, standard
+#' deviation, length and (randomly perturbed) lag-1 autocorrelation of the record, analysed with the same wavelet
+#' settings. Required (\code{Default=NULL}).
+#' @param n_simulations Number of red-noise simulations (integer, > 0; e.g. 1000 for stable percentiles); one output
+#' column per simulation. Required (\code{Default=NULL}).
+#' @param run_multicore Run the simulations in parallel on several cores (logical, TRUE or FALSE). Results do not
+#' depend on it. \code{Default=FALSE}.
+#' @param n_cores Number of cores used when \code{run_multicore = TRUE} (integer or \code{NULL}). \code{NULL} gives an
+#' automatic, safe number (physical cores minus one, at most 4, limited by the free memory); change this default with
+#' \code{options(waverider.n_cores = ...)}. A value > 1 also switches on parallel computing. Results do not depend
+#' on the number of cores. \code{Default=NULL}.
+#' @param verbose Print the interpolation interval of the record and show a progress bar of the simulations
+#' (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author
 #' Code based on the "analyze.wavelet" function of the 'WaveletComp' R package
@@ -72,10 +77,10 @@
 
 
 model_red_noise_wt <- function(wavelet = NULL,
-                               n_simulations = NULL,
-                               run_multicore = FALSE,
-                               n_cores = NULL,
-                               verbose = FALSE) {
+    n_simulations = NULL,
+    run_multicore = FALSE,
+    n_cores = NULL,
+    verbose = FALSE) {
   data <- cbind(wavelet$x, wavelet$y)
   phi_data <-  wr_autocorrelation(data[, 2])
   lowerPeriod <- min(wavelet$Period)
@@ -96,7 +101,7 @@ model_red_noise_wt <- function(wavelet = NULL,
   xout <- seq(start, end, by = dt)
   npts <- length(xout)
   interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                   n = npts)
+      n = npts)
   data <- as.data.frame(interp)
 
   if (verbose == TRUE) {
@@ -145,29 +150,29 @@ model_red_noise_wt <- function(wavelet = NULL,
   for (ind.scale in seq_len(scales.length)) {
     my.scale <- scales[ind.scale]
     daughter[, ind.scale] <- pi^(1 / 4) * sqrt(2 * my.scale / dt) *
-      exp(-((my.scale * omega.k - omega0)^2 / 2)) * pos_k
+        exp(-((my.scale * omega.k - omega0)^2 / 2)) * pos_k
   }
   inv_scales <- 1 / scales
   keep_t <- seq_len(series.length)
 
   red_noise <-
-    wr_lapply(seq_len(n_simulations), function(j) {
-      phi_data_2 <- wr_rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5)
-      x <-
-        wr_coloured_noise(
-          timesteps = timesteps_data,
-          mean = mean_data,
-          sd = sd_data,
-          phi_data_2
-        )
+      wr_lapply(seq_len(n_simulations), function(j) {
+        phi_data_2 <- wr_rtruncnorm(n=1,a=1/100000,b=1-(1/100000),mean=phi_data,sd=0.5)
+        x <-
+            wr_coloured_noise(
+                timesteps = timesteps_data,
+                mean = mean_data,
+                sd = sd_data,
+                phi_data_2
+            )
 
-      # Standardise, zero-pad and transform; all scales are inverse-transformed at once (mvfft).
-      x_standard <- (x - mean(x)) / sd(x)
-      fft.xpad <- fft(c(x_standard, rep(0, pad.length)))
-      wave <- mvfft(daughter * fft.xpad, inverse = TRUE) / N
-      # Average wavelet power (|W|^2 / scale) over the record for every scale.
-      colMeans(Mod(wave[keep_t, , drop = FALSE])^2) * inv_scales
-    }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
+        # Standardise, zero-pad and transform; all scales are inverse-transformed at once (mvfft).
+        x_standard <- (x - mean(x)) / sd(x)
+        fft.xpad <- fft(c(x_standard, rep(0, pad.length)))
+        wave <- mvfft(daughter * fft.xpad, inverse = TRUE) / N
+        # Average wavelet power (|W|^2 / scale) over the record for every scale.
+        colMeans(Mod(wave[keep_t, , drop = FALSE])^2) * inv_scales
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = verbose)
 
   return(red_noise)
 }

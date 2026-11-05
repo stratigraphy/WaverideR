@@ -2,10 +2,13 @@
 ## from measured obliquity/precession periods). Released under the MIT licence.
 
 #' Obliquity at a given age, from AstroGeo22 if available, else today's value
-#' @param age_ma Age(s) in Ma.
+#' @param age_ma Age in Ma at which the obliquity is wanted (numeric, single value; if a vector is given, only its
+#'   first value is used). The nearest row of the AstroGeo22 table is taken; the table is downloaded to
+#'   \code{tempdir()} on first use, and if it is not available today's obliquity (23.2545 degrees) is returned.
+#'   Required, no default.
 #' @export
 astro_obliquity <- function(age_ma){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   period_kyr  <- function(freq_arcsec){
     ARCSEC_PER_CYCLE / abs(freq_arcsec) / 1000
@@ -20,12 +23,12 @@ astro_obliquity <- function(age_ma){
     }
     if (!file.exists(file)){
       message("AstroGeo22.txt not available (no local copy and no network); ",
-              "comparisons with the tidal model are skipped.")
+          "comparisons with the tidal model are skipped.")
       return(NULL)
     }
     A <- utils::read.table(file, comment.char = "%")
     out <- data.frame(age_ma = A[[1]] * 1000, a_RE = A[[2]], lod_solar_h = A[[5]],
-                      obliquity_deg = A[[8]], p_arcsec = A[[11]])
+        obliquity_deg = A[[8]], p_arcsec = A[[11]])
     out$k_kyr <- period_kyr(out$p_arcsec)
     out$days_per_year <- days_per_year(out$lod_solar_h)
     if (is.null(age_ma)){
@@ -50,31 +53,31 @@ astro_obliquity <- function(age_ma){
     GMM <- GMEM / (1 + massratio)
     GME <- GMEM - GMM
     list(AU = AU, day = day, G = G, yr = yr, GMS = GMS, GMEM = GMEM,
-         GMM = GMM, GME = GME, ME = GME / G, MM = GMM / G,
-         RE = 6378.1366e3,                       # Earth radius, m
-         aE = AU,                                # Earth semi-major axis, m
-         inertia_factor = 0.3306947357075918999972,  # C0 / (M_E R_E^2)
-         k2f = 0.93,                             # fluid Love number
-         Ed0 = 0.003243,                         # dynamical ellipticity, today
-         a0_RE = 60.142611,                      # Earth-Moon distance today, R_E
-         lod0_sid_h = 23.934468,                 # sidereal day today, h
-         obl0_deg = 23.2545,                     # obliquity today, degrees
-         p0_arcsec = 50.467718,                  # precession frequency today
-         arcsec_per_rad = 180 * 3600 / pi)
+        GMM = GMM, GME = GME, ME = GME / G, MM = GMM / G,
+        RE = 6378.1366e3,                       # Earth radius, m
+        aE = AU,                                # Earth semi-major axis, m
+        inertia_factor = 0.3306947357075918999972,  # C0 / (M_E R_E^2)
+        k2f = 0.93,                             # fluid Love number
+        Ed0 = 0.003243,                         # dynamical ellipticity, today
+        a0_RE = 60.142611,                      # Earth-Moon distance today, R_E
+        lod0_sid_h = 23.934468,                 # sidereal day today, h
+        obl0_deg = 23.2545,                     # obliquity today, degrees
+        p0_arcsec = 50.467718,                  # precession frequency today
+        arcsec_per_rad = 180 * 3600 / pi)
   })
 
   ARCSEC_PER_CYCLE <- 360 * 3600                 # 1 296 000
 
-  ## ---- 6. reference models ---------------------------------------------------
+  # Reference models
 
   ## AstroGeo22 (Farhat et al. 2022).  Supply a local copy of AstroGeo22.txt, or
   ## let the function fetch it from the Acycle repository.  Columns used:
   ## 1 time (Ga), 2 a (R_E), 5 length of day (h), 8 obliquity (deg),
   ## 11 precession frequency (arcsec/yr).
   ASTROGEO22_URL <- paste0("https://raw.githubusercontent.com/mingsongli/acycle/",
-                           "master/code/package/secular_periods/AstroGeo22.txt")
+      "master/code/package/secular_periods/AstroGeo22.txt")
 
-  # ---- main code ----
+  # Main code
   ag <- astrogeo22_nearest(age_ma)
   if (is.null(ag)){
     AC$obl0_deg

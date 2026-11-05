@@ -3,10 +3,12 @@
 #' @description Apply a exponentially increasing increasing sedimentation rate model
 #'  to convert time to stratigraphy.
 #'
-#'@param data Input data set  should consist of a matrix with 2 columns with the first being time
-#'and the second being the proxy
-#'@param sr_start Initial sedimentation rate (in cm/kyr).
-#'@param sr_end Final sedimentation rate (in cm/kyr).
+#' @param data Time series to convert to stratigraphy (matrix or data frame with two columns: time in kyr in column 1,
+#' increasing and preferably evenly sampled, proxy value in column 2). Required, no default.
+#' @param sr_start Sedimentation rate at the start (minimum time) of the series, in cm/kyr (numeric, > 0). Required,
+#' no default.
+#' @param sr_end Sedimentation rate at the end (maximum time) of the series, in cm/kyr (numeric, > 0). The rate
+#' changes exponentially (linearly in log2) from \code{sr_start} to \code{sr_end}. Required, no default.
 #'
 #' @author
 #'Based on the \link[astrochron]{sedRamp}
@@ -62,6 +64,6 @@ expSedRamp <- function(data, sr_start, sr_end) {
   sr_depth <- approx(depth, sr_t, xout = depth)$y
   # output: depth–proxy and depth–SR
   out <- list(depth_proxy = cbind(depth, x),
-              sr_depth = cbind(depth, sr_depth * 100))
+      sr_depth = cbind(depth, sr_depth * 100))
   return(out)
 }

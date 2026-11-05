@@ -14,17 +14,23 @@ astro_term_search(
 )
 }
 \arguments{
-\item{period_kyr}{the measured period}
+\item{period_kyr}{The measured period of the unidentified peak, in kyr (numeric, single value > 0).
+Required, no default.}
 
-\item{age_ma}{age, for the precession constant used in the k-bearing terms}
+\item{age_ma}{Age in Ma (numeric, single value, 0 to 4429) used to take the precession constant of the
+k-bearing terms from \code{\link{astrogeo22}} (ignored when \code{k_yr} is given). \code{Default=0}.}
 
-\item{tol}{relative tolerance (0.03 = 3\%)}
+\item{tol}{Relative tolerance for a match (numeric, > 0): a term is returned when
+|period - \code{period_kyr}| / \code{period_kyr} <= \code{tol}, e.g. 0.03 = 3\%. \code{Default=0.03}.}
 
-\item{max_order}{1 = single terms only, 2 = also sums/differences of two}
+\item{max_order}{Highest order of the candidate terms (numeric): \code{1} tests single terms only, \code{2}
+(or more) also their harmonics 2(term) and the sums and differences of two terms. \code{Default=2}.}
 
-\item{k_yr}{Precession constant in arcsec/yr (`NULL` = taken from `astrogeo22(age_ma)$p_arcsec`).}
+\item{k_yr}{Your own precession constant k, as a period in years (numeric, > 0), used instead of the
+AstroGeo22 value; \code{NULL} takes it from \code{astrogeo22(age_ma)$p_arcsec}. \code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.}
 }
 \value{
 data.frame of candidate terms sorted by |offset from the measurement|

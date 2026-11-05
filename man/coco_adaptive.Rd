@@ -22,34 +22,62 @@ coco_adaptive(
 )
 }
 \arguments{
-\item{data}{two columns depth (m), value. Irregular data are linearly
-interpolated at the median spacing (as in Acycle).}
+\item{data}{Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required, no default.}
 
-\item{orbit9}{nine orbital periods (kyr)}
+\item{orbit9}{The nine astronomical target periods in kyr (numeric vector of nine distinct values: long
+eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+\code{\link{orbit9_at_age}} or \code{\link{calculate_orbit9}} for the age of the record. The default uses the
+present-day periods (405.7, 130.7, 123.9, 98.9, 94.9, 41.0, 23.7, 22.4 and 19.0 kyr).
+\code{Default=orbit9_default()}.}
 
-\item{sr}{sedimentation-rate grid (cm/kyr)}
+\item{sr}{Sedimentation rates to test, in cm/kyr (numeric vector, > 0); the correlation is computed for every
+value. \code{Default=seq(0.5, 20, by = 0.1)}.}
 
-\item{pad}{zero padding \code{Default=5000}}
+\item{pad}{Length (number of points) to which every slice is zero-padded for the periodogram (integer, at least
+the number of samples in the longest slice); a larger value gives a finer frequency grid. \code{Default=5000}.}
 
-\item{red}{0 none, 1 classical AR(1) subtraction, 2 robust AR(1), 3 smoothed-window-average (SWA) background}
+\item{red}{Background (red-noise) removal applied to every spectrum before the correlation (integer): \code{0} no
+removal, \code{1} classical AR(1) background subtracted, \code{2} robust AR(1) background (median-smoothed
+spectrum, Mann and Lees 1996 style), \code{3} smoothed-window-average (SWA) background (needs at least 33
+spectral bins). Negative power after subtraction is set to zero. \code{Default=1}.}
 
-\item{nsim}{number of AR(1) Monte Carlo simulations}
+\item{nsim}{Number of AR(1) Monte Carlo simulations used for the global and local p-values (integer, >= 0);
+\code{0} skips the simulations, so no p-values or pCOCO are returned. \code{Default=1000}.}
 
-\item{slices}{number of slices whose spectra are averaged \code{Default=1}}
+\item{slices}{Number of equal-depth slices into which the record is cut; each slice is standardised and
+detrended and their spectra are averaged (integer, >= 1; every slice needs at least 4 points).
+\code{Default=1}.}
 
-\item{method}{"Pearson" or "Spearman"}
+\item{method}{Correlation coefficient between the data spectrum and the target spectrum (character):
+\code{"Pearson"} or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.}
 
-\item{max_frequency}{highest target frequency \code{Default=NULL}}
+\item{max_frequency}{Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+(numeric, must be at least the highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses
+\code{1.2 * max(1/orbit9)}. \code{Default=NULL}.}
 
-\item{amplitude_mode}{"four-group-area", "per-orbit" or "fixed"}
+\item{amplitude_mode}{How the amplitudes of the nine target sinusoids are set (character):
+\code{"four-group-area"} fits one amplitude per group (long eccentricity, short eccentricity, obliquity,
+precession) to the band areas of the data spectrum (Acycle default; needs \code{target_model="coherent-nine"}),
+\code{"per-orbit"} fits each of the nine amplitudes to the spectral peak at its frequency, \code{"fixed"} uses
+fixed weights (1.0 eccentricity, 0.8 obliquity, 0.6 precession; see \code{\link{coco_fixed_target_weights}}).
+\code{Default=c("four-group-area", "per-orbit", "fixed")}, i.e. \code{"four-group-area"}.}
 
-\item{target_model}{"coherent-nine" or "phase-averaged"}
+\item{target_model}{How the target spectrum is synthesised on the finite record (character):
+\code{"coherent-nine"} (the spectrum of the sum of the nine sinusoids, including their interference) or
+\code{"phase-averaged"} (the sum of the individual spectra, averaged over sine and cosine phase).
+\code{Default=c("coherent-nine", "phase-averaged")}, i.e. \code{"coherent-nine"}.}
 
-\item{seed}{random seed \code{Default=1}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=1}.}
 
-\item{batch}{Monte Carlo batch size \code{Default=NULL}}
+\item{batch}{Number of Monte Carlo simulations processed together in one batch (integer, >= 1); larger batches
+are faster but use more memory. \code{NULL} chooses it from \code{pad} (about 4 million spectral values per
+batch). \code{Default=NULL}.}
 
-\item{verbose}{progress messages \code{Default=TRUE}}
+\item{verbose}{Print messages about the preprocessing and the progress of the Monte Carlo simulations
+(logical, TRUE or FALSE). \code{Default=TRUE}.}
 }
 \value{
 list with `result` data.frame: sr, rho, p_param, p_global, p_local,

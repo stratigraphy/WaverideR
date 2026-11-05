@@ -7,13 +7,16 @@
 \method{plot}{ecoco_classic}(x, ridge = TRUE, reverse_depth = FALSE, ...)
 }
 \arguments{
-\item{x}{object returned by ecoco_classic()}
+\item{x}{eCOCO result to plot: the output of \code{\link{ecoco_classic}} (an object of class
+\code{ecoco_classic}). Required, no default.}
 
-\item{ridge}{draw the tracked ridge \code{Default=TRUE}}
+\item{ridge}{Draw the tracked sedimentation-rate ridge (red line) on the last map, the window-normalised score
+(logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{reverse_depth}{depth increasing downwards \code{Default=FALSE}}
+\item{reverse_depth}{Draw depth increasing downwards, i.e. reverse the depth (y) axis of the maps (logical, TRUE or
+FALSE). \code{Default=FALSE}.}
 
-\item{...}{unused}
+\item{...}{Not used; present for compatibility with the generic \code{plot} function.}
 }
 \value{
 invisible NULL

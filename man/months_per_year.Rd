@@ -8,9 +8,12 @@
 months_per_year(a_RE, kind = c("sidereal", "synodic"))
 }
 \arguments{
-\item{a_RE}{Earth-Moon distance in Earth radii.}
+\item{a_RE}{Earth-Moon distance (semi-major axis of the lunar orbit) in Earth radii (numeric vector, > 0; the
+present-day value is about 60.14). Required (no default).}
 
-\item{kind}{Type of month, `"sidereal"` or `"synodic"`.}
+\item{kind}{Type of lunar month that is counted per year (character): \code{"sidereal"} (relative to the stars)
+or \code{"synodic"} (new moon to new moon, one fewer per year). \code{Default=c("sidereal", "synodic")},
+i.e. \code{"sidereal"}.}
 }
 \description{
 Lunar mean motion and months per year from the Earth-Moon distance

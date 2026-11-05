@@ -3,7 +3,10 @@
 #' @description Generates the mean age of a
 #'  geological subdivision which is based on the Geological Time Scale
 #'
-#' @param name Name of the geologchronological subdivision
+#' @param name Name of the geochronological subdivision (character, exact and case-sensitive), e.g. an eon, era,
+#' period, epoch or stage such as \code{"Silurian"} or \code{"Rhuddanian"}, as listed in column 1 of
+#' \code{\link{GTS_info}} (Geologic Time Scale 2020).
+#' The mean of the top and bottom age (Ma) of that unit is returned. Required (\code{Default=NULL}).
 #'
 #'
 #'@references

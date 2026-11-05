@@ -3,5 +3,13 @@
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
 ^revdep$
-^\.github$^README\.md$
+^\.github$
+^README\.md$
 ^Rplots\.pdf$
+^R_blocked_updates$
+^NEWS_.*_pending\.md$
+^.*\.tar\.gz$
+^_backup.*$
+^_to_delete$
+^\.RData$
+^\.Rhistory$

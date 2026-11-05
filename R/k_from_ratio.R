@@ -6,18 +6,35 @@
 #' T1/T2 = (p + f2)/(p + f1) for the precession frequency p gives
 #'     p = (f2 - R f1) / (R - 1),  R = T1/T2,  T1 > T2.
 #'
-#' @param long,short the two cycles, same units (kyr or m), long one first
-#' @param term_long,term_short which terms they are
-#' @param age_ma approximate age (Ma), for the secular frequencies and obliquity
-#' @param rel_sd relative 1-sigma uncertainty on each measured cycle (default
-#'   0.03); or give `record_length` in the same units as the cycles to use the
-#'   frequency resolution instead. `nsim = 0` skips the uncertainty entirely
-#'   and returns the plain point estimate.
-#' @param record_length,mult see cycle_band()
-#' @param nsim number of Monte Carlo draws
-#' @param method "angular_momentum" or "astrogeo22"
-#' @param seed optional RNG seed
-#' @param data_dir folder with the data tables
+#' @param long Period of the longer of the two cycles (numeric, > \code{short}), in kyr for a tuned record or in
+#' metres for a depth series; only the ratio \code{long / short} is used. Required (no default).
+#' @param short Period of the shorter cycle, in the same unit as \code{long} (numeric, > 0). Required (no default).
+#' @param term_long Astronomical term of the longer cycle (character), e.g. \code{"k+s3"} (obliquity),
+#' \code{"k+g5"} (precession) or an eccentricity term such as \code{"e405"}, \code{"e125"}, \code{"e95"} (see
+#' \code{\link{astro_terms}}). At least one of the two terms must contain k. \code{Default="k+s3"}.
+#' @param term_short Astronomical term of the shorter cycle (character), with the same options as
+#' \code{term_long}. \code{Default="k+g5"}.
+#' @param age_ma Age of the record in Ma (numeric, one value or \code{c(min, max)}, of which the mean is used);
+#' sets the obliquity used by \code{\link{ctest_earthmoon}} and the AstroGeo22 reference values. Required (no
+#' default).
+#' @param rel_sd Relative one-sigma uncertainty of each measured cycle (numeric, >= 0; 0.03 is 3\%); the cycles are
+#' drawn from normal distributions. Ignored when \code{record_length} is given. \code{Default=0.03}.
+#' @param record_length Length of the analysed record in the same unit as the cycles (numeric, > 0). If given, each
+#' cycle is drawn uniformly from the band set by the frequency resolution \code{mult / record_length} (see
+#' \code{\link{cycle_band}}) instead of using \code{rel_sd}. \code{Default=NULL}.
+#' @param mult Multiple of the frequency resolution used as half-width of the band when \code{record_length} is given
+#' (numeric, > 0). \code{Default=1}.
+#' @param nsim Number of Monte Carlo draws (integer, >= 0); \code{0} skips the uncertainty and returns the plain point
+#' estimate. \code{Default=20000}.
+#' @param method How the precession constant is converted to Earth-Moon distance, length of day and obliquity
+#' (character, passed to \code{\link{ctest_earthmoon}}): \code{"angular_momentum"} (conservation of Earth-Moon
+#' angular momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat et al., 2022).
+#' \code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.
+#' @param seed Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+#' \code{NULL} leaves the current random state unchanged. \code{Default=NULL}.
+#' @param data_dir Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+#' path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+#' \code{Default=NULL}.
 #' @details Either cycle may be an eccentricity term ("e405", "e125", "e95",
 #'   ...). Pairing an eccentricity cycle with a precession or obliquity cycle
 #'   is often the most robust option in an untuned section, because the
@@ -26,10 +43,10 @@
 #'   `k_ci95_kyr`, `ratio`, `samples`, `terms`, `reference` and `method`
 #' @export
 k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
-                         age_ma, rel_sd = 0.03, record_length = NULL, mult = 1,
-                         nsim = 20000, method = c("angular_momentum", "astrogeo22"),
-                         seed = NULL, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+    age_ma, rel_sd = 0.03, record_length = NULL, mult = 1,
+    nsim = 20000, method = c("angular_momentum", "astrogeo22"),
+    seed = NULL, data_dir = NULL){
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -78,8 +95,8 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
       } else if (ch == ")"){
         depth <- depth - 1L
       } else if (ch %in% c("+", "-") && depth == 0L && i > 1 &&
-                 !(chars[i - 1] %in% c("(", "+", "-")) &&
-                 !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
+          !(chars[i - 1] %in% c("(", "+", "-")) &&
+          !grepl("^k$", paste(chars[max(1, i - 1)], collapse = ""))){
         cuts <- c(cuts, i)
       }
     }
@@ -122,7 +139,7 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
       }
       if (!grepl("^[gs][1-9]-[gs][1-9]$", base) && !grepl("^k\\+[gs][1-9]$", base)){
         stop("Cannot read the term '", term, "': the piece '", base, "' is not ",
-             "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
+            "gi-gj, si-sj or k+gi. astro_terms() lists the named ones.")
       }
       out[[j]] <- data.frame(coef = sgn * cf, base = base, stringsAsFactors = FALSE)
     }
@@ -172,8 +189,8 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
       freq <- k_mult * p_arcsec + offset
     }
     list(freq = freq,
-         has_k = k_mult != 0, k_mult = k_mult,
-         offset = offset, canonical = .canonical_term(term))
+        has_k = k_mult != 0, k_mult = k_mult,
+        offset = offset, canonical = .canonical_term(term))
   }
 
   .canonical_term <- function(term){
@@ -185,7 +202,7 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
     }
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -200,7 +217,7 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
     NULL
   })
 
-  # --- Which terms can be named, and what they are -----------------------------
+  # Which terms can be named, and what they are
 
   # Alias table: friendly name -> canonical expression
   # Second-order terms (a single difference of two secular frequencies) plus the
@@ -209,26 +226,26 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
   # Paleoclimate records reveal elusive ~200-kyr eccentricity cycle for the
   # first time. Glob. Planet. Change 194, 103296 (their Table 2).
   .TERM_ALIASES <- c(
-    # main eccentricity (2nd order)
-    "e2400" = "g4-g3", "m2400" = "g4-g3",
-    "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
-    "e99" = "g3-g5", "e95" = "g4-g5",
-    # minor eccentricity with g1 (Mercury)
-    "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
-    # the ~200 kyr family (Hilgen et al. 2020, Table 2)
-    "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
-    "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
-    "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
-    # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
-    "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
-    "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
-    "e54" = "(g4-g2)+(g4-g5)",
-    # obliquity / precession
-    "m1200" = "s4-s3", "m173" = "s3-s6",
-    "obl" = "k+s3", "obliquity" = "k+s3",
-    "prec" = "k+g5", "precession" = "k+g5")
+      # main eccentricity (2nd order)
+      "e2400" = "g4-g3", "m2400" = "g4-g3",
+      "e405" = "g2-g5", "e130" = "g3-g2", "e125" = "g3-g2", "e124" = "g4-g2",
+      "e99" = "g3-g5", "e95" = "g4-g5",
+      # minor eccentricity with g1 (Mercury)
+      "e973" = "g1-g5", "e696" = "g2-g1", "e110" = "g3-g1", "e105" = "g4-g1",
+      # the ~200 kyr family (Hilgen et al. 2020, Table 2)
+      "e203" = "2(g2-g5)", "e200" = "2(g2-g5)",
+      "e193" = "(g3-g2)-(g2-g5)", "e178" = "(g4-g2)-(g2-g5)",
+      "e222" = "2(g2-g5)-(g4-g3)", "e187" = "2(g2-g5)+(g4-g3)",
+      # ~77 and ~56 kyr combination tones (405 or 130/124 plus a ~100 kyr term)
+      "e79" = "(g2-g5)+(g3-g5)", "e77" = "(g2-g5)+(g4-g5)",
+      "e56" = "(g3-g2)+(g3-g5)", "e55" = "(g3-g2)+(g4-g5)",
+      "e54" = "(g4-g2)+(g4-g5)",
+      # obliquity / precession
+      "m1200" = "s4-s3", "m173" = "s3-s6",
+      "obl" = "k+s3", "obliquity" = "k+s3",
+      "prec" = "k+g5", "precession" = "k+g5")
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method)
   if (!is.null(seed)){
     set.seed(seed)
@@ -266,13 +283,13 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
   den <- R * t1$k_mult - t2$k_mult
   if (all(abs(den) < 1e-12)){
     stop("Neither ratio member constrains k (both are secular differences); ",
-         "pair one with an obliquity or precession term.")
+        "pair one with an obliquity or precession term.")
   }
   p <- (t2$offset - R * t1$offset) / den
   p[!is.finite(p) | p <= 0] <- NA
   k <- 360 * 3600 / p
   em <- ctest_earthmoon(k[is.finite(k)], age_ma = mean(age_ma), method = method,
-                        data_dir = data_dir)
+      data_dir = data_dir)
   if (point){
     k_sd_kyr <- NA_real_
     k_ci95_kyr <- c(NA_real_, NA_real_)
@@ -281,8 +298,8 @@ k_from_ratio <- function(long, short, term_long = "k+s3", term_short = "k+g5",
     k_ci95_kyr <- stats::quantile(k / 1000, c(0.025, 0.975), na.rm = TRUE)
   }
   list(summary = em$summary, k_kyr = mean(k / 1000, na.rm = TRUE),
-       k_sd_kyr = k_sd_kyr,
-       k_ci95_kyr = k_ci95_kyr,
-       ratio = mean(R), samples = k, terms = c(term_long, term_short),
-       reference = astrogeo22(mean(age_ma), data_dir = data_dir), method = method)
+      k_sd_kyr = k_sd_kyr,
+      k_ci95_kyr = k_ci95_kyr,
+      ratio = mean(R), samples = k, terms = c(term_long, term_short),
+      reference = astrogeo22(mean(age_ma), data_dir = data_dir), method = method)
 }

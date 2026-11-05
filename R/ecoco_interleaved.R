@@ -16,37 +16,49 @@
 #' interleavedcvcoco.m and cvcoco.m (Mingsong Li). Requires the cocoR helpers
 #' (part of this package).
 #'
-#' @param data Two-column matrix: depth (m) and proxy value. Raw
-#' (possibly irregular) data; do not interpolate beforehand.
-#' @param orbit9 Nine orbital periods (kyr).
-#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}
-#' @param window Sliding-window length (m). \code{Default=NULL}: 25\% of the
-#' record length.
-#' @param sr Sedimentation-rate grid (cm/kyr) with a constant step.
-#' \code{Default=NULL}: the Acycle GUI default range.
-#' @param step_depth Spacing of the window centres (m) in physical-depth
-#' mode. \code{Default=NULL}: the Acycle GUI default.
-#' @param step Integer sample step for \code{window_mode = "legacy-count"}.
-#' \code{Default=1}
-#' @param pad Periodogram length; each fold uses max(pad, fold length).
-#' \code{Default=NULL}: Acycle's defaultPad.
-#' @param red Background removal: 0 none, 1 classical AR(1), 2 robust AR(1),
-#' 3 smoothed-window average (SWA). \code{Default=0}
-#' @param n_sim Number of Monte Carlo simulations per window.
-#' \code{Default=2000}
-#' @param method Correlation, "Pearson" or "Spearman". \code{Default="Pearson"}
-#' @param max_frequency Maximum temporal frequency (cycles/kyr).
-#' \code{Default=NULL}: 1.2/min(orbit9).
-#' @param seed Parent random seed. Each window uses a derived seed
-#' (Acycle deriveWindowSeed) passed to \code{set.seed}; NULL leaves the RNG
-#' state. \code{Default=1}
-#' @param window_mode "physical-depth" or "legacy-count".
-#' \code{Default="physical-depth"}
-#' @param dt Nominal sampling interval used by legacy-count mode and for the
-#' default step. \code{Default=NULL}: median spacing of the cleaned data.
-#' @param batch_size Monte Carlo simulations per batch. \code{Default=20}
-#' @param genplot Plot the result with \code{plot_ecoco_cv}. \code{Default=FALSE}
-#' @param verbose Print progress. \code{Default=FALSE}
+#' @param data Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+#' column 2 (at least 16 unique depths). Give the raw, possibly irregular data; do not interpolate beforehand,
+#' because the odd and even observations are split before each fold is regularised. Non-finite rows are dropped,
+#' rows sorted and duplicated depths averaged. Required (\code{Default=NULL}).
+#' @param orbit9 The nine astronomical target periods in kyr (numeric vector of nine distinct positive values: long
+#' eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+#' \code{\link{orbit9_at_age}} for the age of the record.
+#' \code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.
+#' @param window Length of the sliding window, in metres (numeric, > 0, at most the record span; windows with fewer
+#' than 16 observations are left empty). \code{NULL} uses 25\% of the record length. \code{Default=NULL}.
+#' @param sr Sedimentation rates to test, in cm/kyr (numeric vector, > 0, strictly increasing with a constant step).
+#' \code{NULL} uses the Acycle GUI default: from \code{2 * dt * 0.065 * 100} up to 100 cm/kyr (reduced so that the
+#' longest period fits in the record), in steps of 0.1 cm/kyr or at most 300 steps. \code{Default=NULL}.
+#' @param step_depth Spacing of the window centres, in metres (numeric, > 0); only used with
+#' \code{window_mode="physical-depth"}. \code{NULL} uses \code{dt}, or \code{dt * ceiling(n / 300)} for more than
+#' 300 samples. \code{Default=NULL}.
+#' @param step Step between successive windows, in samples (integer, >= 1); only used with
+#' \code{window_mode="legacy-count"}. \code{Default=1}.
+#' @param pad Length (number of points) to which the periodogram of each fold is zero-padded; each fold uses
+#' \code{max(pad, fold length)} (integer, > 0). \code{NULL} uses the Acycle default: 5000 for up to 2500 samples,
+#' 10000 for up to 5000 samples, and \code{floor(n / 5000) * 5000 + 5000} above that. \code{Default=NULL}.
+#' @param red Background (red-noise) removal applied to every spectrum (integer): \code{0} none, \code{1} classical
+#' AR(1) background, \code{2} robust AR(1) background, \code{3} smoothed-window-average (SWA) background.
+#' \code{Default=0}.
+#' @param n_sim Number of AR(1) Monte Carlo simulations per window used for the global and local p-values (integer,
+#' >= 0). \code{Default=2000}.
+#' @param method Correlation coefficient between the data and target spectra (character): \code{"Pearson"} or
+#' \code{"Spearman"}. \code{Default="Pearson"}.
+#' @param max_frequency Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+#' (numeric, at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.
+#' @param seed Parent seed of the random number generator (integer). Each window uses a seed derived from it and
+#' from the window position (Acycle deriveWindowSeed), so results are reproducible and independent of the other
+#' windows; \code{NULL} leaves the current random state unchanged. \code{Default=1}.
+#' @param window_mode How the windows are defined (character): \code{"physical-depth"} (windows of fixed length in
+#' metres centred every \code{step_depth}) or \code{"legacy-count"} (windows of a fixed, even number of points,
+#' \code{window / dt + 1} rounded, at least 16, moved by \code{step} samples). \code{Default="physical-depth"}.
+#' @param dt Nominal sampling interval, in metres (numeric, > 0), used for the number of points per window in
+#' \code{"legacy-count"} mode and for the defaults of \code{step_depth} and \code{sr}. \code{NULL} uses the median
+#' spacing of the cleaned data. \code{Default=NULL}.
+#' @param batch_size Number of Monte Carlo simulations processed together (integer, >= 1); larger batches are faster
+#' but use more memory. \code{Default=20}.
+#' @param genplot Plot the result with \code{\link{plot_ecoco_cv}} (logical, TRUE or FALSE). \code{Default=FALSE}.
+#' @param verbose Print messages and a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' @references Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking
@@ -82,20 +94,18 @@
 #' @importFrom stats rnorm median
 #' @importFrom utils txtProgressBar setTxtProgressBar
 ecoco_interleaved <- function(data = NULL,
-                              orbit9 = c(405.6912, 130.6979, 123.8532,
-                                         98.8517, 94.8856, 40.9897, 23.6820,
-                                         22.3758, 18.9519),
-                              window = NULL, sr = NULL, step_depth = NULL,
-                              step = 1, pad = NULL, red = 0, n_sim = 2000,
-                              method = "Pearson", max_frequency = NULL,
-                              seed = 1, window_mode = "physical-depth",
-                              dt = NULL, batch_size = 20, genplot = FALSE,
-                              verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    orbit9 = c(405.6912, 130.6979, 123.8532,
+        98.8517, 94.8856, 40.9897, 23.6820,
+        22.3758, 18.9519),
+    window = NULL, sr = NULL, step_depth = NULL,
+    step = 1, pad = NULL, red = 0, n_sim = 2000,
+    method = "Pearson", max_frequency = NULL,
+    seed = 1, window_mode = "physical-depth",
+    dt = NULL, batch_size = 20, genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # MATLAB-compatible scalar helpers
-  # ---------------------------------------------------------------------------
 
   ecocox_round <- function(x){
     # MATLAB round: halves away from zero (R round() rounds half to even)
@@ -187,9 +197,7 @@ ecoco_interleaved <- function(data = NULL,
     seq(sedmin, sedmax, by = sedstep)
   }
 
-  # ---------------------------------------------------------------------------
   # Variance / AR(1) helpers
-  # ---------------------------------------------------------------------------
 
   ecocox_resolved_variance <- function(original, detrended){
     # cocoResolvedDetrendedVariance.m
@@ -211,7 +219,7 @@ ecoco_interleaved <- function(data = NULL,
     s <- rs * sqrt(energy / (n - 1))
     out$sd <- s
     out$resolved <- is.finite(rel) && rel > 256 * .Machine$double.eps &&
-      is.finite(s) && s > 0
+        is.finite(s) && s > 0
     out
   }
 
@@ -234,9 +242,7 @@ ecoco_interleaved <- function(data = NULL,
     min(max(r, -0.999), 0.999)
   }
 
-  # ---------------------------------------------------------------------------
   # Spectra with background removal (ecocoWindowSpectra.m, spectrumBatch)
-  # ---------------------------------------------------------------------------
 
   ecocox_window_spectra <- function(values, dt, nfft, red = 0){
     values <- as.matrix(values)
@@ -270,7 +276,7 @@ ecoco_interleaved <- function(data = NULL,
       }
       fl <- max(2.2250738585072014e-308, max(pos) * .Machine$double.eps)
       bg <- swa_background(f, log10(pmax(p, fl)), nrow(values),
-                           verbose = FALSE)$swa
+          verbose = FALSE)$swa
       bg <- as.numeric(bg)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The selected background model returned invalid values.")
@@ -282,9 +288,7 @@ ecoco_interleaved <- function(data = NULL,
     list(power = P, f = f)
   }
 
-  # ---------------------------------------------------------------------------
   # Exact four-variable nonnegative least squares (cocoNonnegativeLeakageSolve.m)
-  # ---------------------------------------------------------------------------
 
   ecocox_nnls4 <- function(M, E){
     E <- as.matrix(E)
@@ -331,10 +335,8 @@ ecoco_interleaved <- function(data = NULL,
     G * matrix(cs, 4, ns, byrow = TRUE)
   }
 
-  # ---------------------------------------------------------------------------
   # Shared four-group coherent-nine geometry
   # (prepareGeometry in ecocoCrossfitCore.m and in cvcoco.m, four-group branch)
-  # ---------------------------------------------------------------------------
 
   ecocox_group_overlap <- function(center, rayleigh, upper, resolved, gindex){
     active <- which(resolved)
@@ -360,7 +362,7 @@ ecoco_interleaved <- function(data = NULL,
   }
 
   ecocox_geometry <- function(n, dz, periods, sr_grid, nfft, max_frequency,
-                              engine = c("blocked", "cvcoco")){
+      engine = c("blocked", "cvcoco")){
     engine <- match.arg(engine)
     gindex <- coco_orbit_groups(periods)
     fs <- 1 / dz
@@ -376,28 +378,28 @@ ecoco_interleaved <- function(data = NULL,
       w1[nf] <- 1
     }
     geom <- list(n = n, dz = dz, fs = fs, nfft = nfft, frequency = frequency,
-                 rayleigh = rayleigh, nyquist = nyquist, sr_grid = sr_grid,
-                 group_index = gindex, engine = engine,
-                 one_sided = w1, spectrum_scale = 1 / (fs * n),
-                 basis = vector("list", n_rate),
-                 group_basis = vector("list", n_rate),
-                 band_index = vector("list", n_rate),
-                 solve_matrix = vector("list", n_rate),
-                 leakage = vector("list", n_rate),
-                 corr_index = vector("list", n_rate),
-                 group_unit_energy = matrix(NaN, n_rate, 4),
-                 full_rcond = rep(NaN, n_rate),
-                 active_rcond = rep(NaN, n_rate),
-                 valid_rate = rep(FALSE, n_rate),
-                 strict_training = rep(FALSE, n_rate),
-                 partial_training = rep(FALSE, n_rate),
-                 active_group = matrix(FALSE, n_rate, 4),
-                 active_orbit = matrix(FALSE, n_rate, n_orbit),
-                 resolved = matrix(FALSE, n_rate, n_orbit),
-                 orbit_count = rep(0, n_rate),
-                 resolved_group_count = matrix(0, n_rate, 4),
-                 overlap = rep(FALSE, n_rate),
-                 all_nine_range = ecocox_all_period_rate_range(periods, dz, n))
+        rayleigh = rayleigh, nyquist = nyquist, sr_grid = sr_grid,
+        group_index = gindex, engine = engine,
+        one_sided = w1, spectrum_scale = 1 / (fs * n),
+        basis = vector("list", n_rate),
+        group_basis = vector("list", n_rate),
+        band_index = vector("list", n_rate),
+        solve_matrix = vector("list", n_rate),
+        leakage = vector("list", n_rate),
+        corr_index = vector("list", n_rate),
+        group_unit_energy = matrix(NaN, n_rate, 4),
+        full_rcond = rep(NaN, n_rate),
+        active_rcond = rep(NaN, n_rate),
+        valid_rate = rep(FALSE, n_rate),
+        strict_training = rep(FALSE, n_rate),
+        partial_training = rep(FALSE, n_rate),
+        active_group = matrix(FALSE, n_rate, 4),
+        active_orbit = matrix(FALSE, n_rate, n_orbit),
+        resolved = matrix(FALSE, n_rate, n_orbit),
+        orbit_count = rep(0, n_rate),
+        resolved_group_count = matrix(0, n_rate, 4),
+        overlap = rep(FALSE, n_rate),
+        all_nine_range = ecocox_all_period_rate_range(periods, dz, n))
     pad_rows <- nfft - n
     for (m in seq_len(n_rate)){
       sr <- sr_grid[m]
@@ -426,7 +428,7 @@ ecoco_interleaved <- function(data = NULL,
       }
       tt <- (0:(n - 1)) * (100 * dz / sr)
       ph <- matrix(2 * pi * tt, n, n_orbit) /
-        matrix(periods, n, n_orbit, byrow = TRUE)
+          matrix(periods, n, n_orbit, byrow = TRUE)
       us <- detrend_linear(sin(ph))
       uc <- detrend_linear(cos(ph))
       if (pad_rows > 0){
@@ -462,7 +464,7 @@ ecoco_interleaved <- function(data = NULL,
       }
       geom$band_index[[m]] <- bands
       geom$overlap[m] <- ecocox_group_overlap(spatial, rayleigh, upper, res,
-                                              gindex)
+          gindex)
       L <- matrix(0, 4, 4)
       for (g in 1:4){
         if (length(bands[[g]]) > 0){
@@ -487,7 +489,7 @@ ecoco_interleaved <- function(data = NULL,
       }
       geom$valid_rate[m] <- any(gt > 0)
       ag <- geom$resolved_group_count[m, ] > 0 &
-        is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
+          is.finite(geom$group_unit_energy[m, ]) & geom$group_unit_energy[m, ] > 0
       ag[is.na(ag)] <- FALSE
       geom$active_group[m, ] <- ag
       geom$active_orbit[m, ] <- res & ag[gindex]
@@ -505,12 +507,12 @@ ecoco_interleaved <- function(data = NULL,
         }
       }
       geom$partial_training[m] <- geom$valid_rate[m] && any(ag) &&
-        is.finite(geom$active_rcond[m]) && geom$active_rcond[m] >= 1e-10 &&
-        !geom$overlap[m]
+          is.finite(geom$active_rcond[m]) && geom$active_rcond[m] >= 1e-10 &&
+          !geom$overlap[m]
       ue <- geom$group_unit_energy[m, ]
       geom$strict_training[m] <- all(res) && all(is.finite(ue) & ue > 0) &&
-        is.finite(geom$full_rcond[m]) && geom$full_rcond[m] >= 1e-10 &&
-        !geom$overlap[m]
+          is.finite(geom$full_rcond[m]) && geom$full_rcond[m] >= 1e-10 &&
+          !geom$overlap[m]
     }
     geom$training_rate <- geom$strict_training
     geom
@@ -523,7 +525,7 @@ ecoco_interleaved <- function(data = NULL,
       tf <- geom$group_basis[[m]] %*% amp
     } else {
       ex <- amp[geom$group_index, , drop = FALSE] *
-        as.numeric(geom$resolved[m, ])
+          as.numeric(geom$resolved[m, ])
       tf <- geom$basis[[m]] %*% ex
     }
     Mod(tf)^2 * geom$one_sided * geom$spectrum_scale
@@ -574,7 +576,7 @@ ecoco_interleaved <- function(data = NULL,
       tp <- ecocox_target_power(geom, m, GA)
       idx <- geom$corr_index[[m]]
       r <- .column_correlation(power[idx, , drop = FALSE],
-                               tp[idx, , drop = FALSE], method)
+          tp[idx, , drop = FALSE], method)
       if (keep_curve){
         curve[m, ] <- r
       }
@@ -587,7 +589,7 @@ ecoco_interleaved <- function(data = NULL,
     }
     best_score[!is.finite(best_rate)] <- NaN
     list(curve = curve, best_rate = best_rate, best_score = best_score,
-         amplitude = amp_best)
+        amplitude = amp_best)
   }
 
   ecocox_normalize <- function(amp){
@@ -625,7 +627,7 @@ ecoco_interleaved <- function(data = NULL,
       tp <- ecocox_target_power(geom, m, weights)
       idx <- geom$corr_index[[m]]
       curve[m, ] <- .column_correlation(power[idx, , drop = FALSE],
-                                        tp[idx, , drop = FALSE], method)
+          tp[idx, , drop = FALSE], method)
     }
     curve
   }
@@ -690,7 +692,7 @@ ecoco_interleaved <- function(data = NULL,
     k <- findInterval(xin, x, rightmost.closed = TRUE, all.inside = TRUE)
     s <- (xin - x[k]) / (x[k + 1] - x[k])
     val <- Y[k, , drop = FALSE] + (Y[k + 1, , drop = FALSE] -
-                                     Y[k, , drop = FALSE]) * s
+        Y[k, , drop = FALSE]) * s
     exact <- xin == x[k + 1]
     if (any(exact)){
       val[exact, ] <- Y[k[exact] + 1, , drop = FALSE]
@@ -714,13 +716,11 @@ ecoco_interleaved <- function(data = NULL,
       data <- cbind(ud, as.numeric(s / cnt))
     }
     list(data = data, n_input = n_in, n_finite = n_fin,
-         n_duplicate = n_fin - nrow(data))
+        n_duplicate = n_fin - nrow(data))
   }
 
-  # ---------------------------------------------------------------------------
   # One held-out interleaved window (cvcoco.m, SplitMode 'interleaved',
   # TargetModel 'four-group-coherent-nine')
-  # ---------------------------------------------------------------------------
 
   ecocox_regularize_fold <- function(raw){
     sp <- diff(raw[, 1])
@@ -745,7 +745,7 @@ ecoco_interleaved <- function(data = NULL,
     }
     grid <- raw[1, 1] + (0:ni) * dz
     etol <- 16 * ecocox_eps(max(1, max(abs(raw[c(1, nrow(raw)), 1])))) *
-      max(1, length(grid))
+        max(1, length(grid))
     if (abs(grid[length(grid)] - raw[nrow(raw), 1]) <= etol){
       grid[length(grid)] <- raw[nrow(raw), 1]
     }
@@ -760,12 +760,12 @@ ecoco_interleaved <- function(data = NULL,
 
   ecocox_unresolvable <- function(msg){
     structure(class = c("ecocox_unresolvable", "error", "condition"),
-              list(message = msg, call = NULL))
+        list(message = msg, call = NULL))
   }
 
   ecocox_interleaved_window <- function(data, orbit9, pad, sr_grid, red, n_sim,
-                                        method, max_frequency, phase,
-                                        batch_size = 20){
+      method, max_frequency, phase,
+      batch_size = 20){
     clean <- data
     nc <- nrow(clean)
     if (nc < 8){
@@ -807,12 +807,12 @@ ecoco_interleaved <- function(data = NULL,
     rho_m <- ecocox_estimate_rho_m(det_full)
 
     ga <- ecocox_geometry(nrow(A), dza, orbit9, sr_grid, max(pad, nrow(A)),
-                          max_frequency, "cvcoco")
+        max_frequency, "cvcoco")
     gb <- ecocox_geometry(nrow(B), dzb, orbit9, sr_grid, max(pad, nrow(B)),
-                          max_frequency, "cvcoco")
+        max_frequency, "cvcoco")
     if (!any(ga$valid_rate) || !any(gb$valid_rate)){
       stop(ecocox_unresolvable(
-        "No tested sedimentation rate has usable geometry in both folds."))
+          "No tested sedimentation rate has usable geometry in both folds."))
     }
     degraded <- FALSE
     comp_a <- "complete-nine"
@@ -830,7 +830,7 @@ ecoco_interleaved <- function(data = NULL,
         }
       } else {
         stop(ecocox_unresolvable(
-          "No tested rate supports four-group training in both folds."))
+            "No tested rate supports four-group training in both folds."))
       }
     }
     spa <- ecocox_window_spectra(A[, 2], dza, ga$nfft, red)$power
@@ -887,11 +887,11 @@ ecoco_interleaved <- function(data = NULL,
         pb <- ecocox_window_spectra(sb, dzb, gb$nfft, red)$power
         ta <- ecocox_train(pa, ga, method, FALSE)
         wa <- ecocox_normalize(ecocox_group_rms(
-          ta$amplitude[ga$group_index, , drop = FALSE], ga$group_index))
+            ta$amplitude[ga$group_index, , drop = FALSE], ga$group_index))
         sab <- ecocox_validate(pb, gb, wa, method)
         tb <- ecocox_train(pb, gb, method, FALSE)
         wb <- ecocox_normalize(ecocox_group_rms(
-          tb$amplitude[gb$group_index, , drop = FALSE], gb$group_index))
+            tb$amplitude[gb$group_index, , drop = FALSE], gb$group_index))
         sba <- ecocox_validate(pa, ga, wb, method)
         scons <- ecocox_min_finite_pair(sab, sba)
         obs_ab <- matrix(cab, n_rate, nb)
@@ -930,31 +930,31 @@ ecoco_interleaved <- function(data = NULL,
     pl_ba <- ecocox_point_p_curve(lex_ba, lva_ba, cba)
     pl_c <- ecocox_point_p_curve(lex_c, lva_c, ccons)
     ma <- gb$resolved & matrix(ecocox_active_flags(gb, fa), n_rate, 9,
-                               byrow = TRUE)
+        byrow = TRUE)
     mb <- ga$resolved & matrix(ecocox_active_flags(ga, fb), n_rate, 9,
-                               byrow = TRUE)
+        byrow = TRUE)
     shared <- c(max(ga$all_nine_range[1], gb$all_nine_range[1]),
-                min(ga$all_nine_range[2], gb$all_nine_range[2]))
+        min(ga$all_nine_range[2], gb$all_nine_range[2]))
     list(rho_forward = cab, rho_backward = cba, rho_consensus = ccons,
-         p_global_forward = pc_ab, p_global_backward = pc_ba,
-         p_global_consensus = pc_c,
-         p_local_forward = pl_ab, p_local_backward = pl_ba,
-         p_local_consensus = pl_c,
-         p_directional_max = ecocox_max_finite_pair(pc_ab, pc_ba),
-         norbit_forward = rowSums(ma), norbit_backward = rowSums(mb),
-         norbit_consensus = rowSums(ma & mb),
-         best_forward = bab, best_backward = bba, best_consensus = bcons,
-         p_forward = p_ab, p_backward = p_ba, p_sym = p_sym,
-         p_consensus = p_cons, p_robust = ecocox_max_finite_pair(p_ab, p_ba),
-         spacing_odd = dza, spacing_even = dzb,
-         raw_count_odd = nrow(raw_a), raw_count_even = nrow(raw_b),
-         regular_count_odd = nrow(A), regular_count_even = nrow(B),
-         all_nine_odd = ga$all_nine_range, all_nine_even = gb$all_nine_range,
-         all_nine_shared = shared, rho_m = rho_m, rho_m_odd = rho_ma,
-         rho_m_even = rho_mb, degraded = degraded, completeness_odd = comp_a,
-         completeness_even = comp_b, weights_odd = fa[, 1],
-         weights_even = fb[, 1], best_rate_train_odd = tra$best_rate,
-         best_rate_train_even = trb$best_rate)
+        p_global_forward = pc_ab, p_global_backward = pc_ba,
+        p_global_consensus = pc_c,
+        p_local_forward = pl_ab, p_local_backward = pl_ba,
+        p_local_consensus = pl_c,
+        p_directional_max = ecocox_max_finite_pair(pc_ab, pc_ba),
+        norbit_forward = rowSums(ma), norbit_backward = rowSums(mb),
+        norbit_consensus = rowSums(ma & mb),
+        best_forward = bab, best_backward = bba, best_consensus = bcons,
+        p_forward = p_ab, p_backward = p_ba, p_sym = p_sym,
+        p_consensus = p_cons, p_robust = ecocox_max_finite_pair(p_ab, p_ba),
+        spacing_odd = dza, spacing_even = dzb,
+        raw_count_odd = nrow(raw_a), raw_count_even = nrow(raw_b),
+        regular_count_odd = nrow(A), regular_count_even = nrow(B),
+        all_nine_odd = ga$all_nine_range, all_nine_even = gb$all_nine_range,
+        all_nine_shared = shared, rho_m = rho_m, rho_m_odd = rho_ma,
+        rho_m_even = rho_mb, degraded = degraded, completeness_odd = comp_a,
+        completeness_even = comp_b, weights_odd = fa[, 1],
+        weights_even = fb[, 1], best_rate_train_odd = tra$best_rate,
+        best_rate_train_even = trb$best_rate)
   }
 
   ecocox_group_rms <- function(amp9, gindex){
@@ -1043,12 +1043,10 @@ ecoco_interleaved <- function(data = NULL,
       }
     }
     list(starts = starts, ends = ends, centers = centers, lower = lower,
-         upper = upper, count = count, observed_center = oc, observed_span = os)
+        upper = upper, count = count, observed_center = oc, observed_span = os)
   }
 
-  # ---------------------------------------------------------------------------
   # Result helpers shared by Blocked and Interleaved eCOCO
-  # ---------------------------------------------------------------------------
 
   ecocox_values_at <- function(M, index){
     out <- rep(NaN, length(index))
@@ -1075,18 +1073,18 @@ ecoco_interleaved <- function(data = NULL,
     }
     pc <- ecocox_pcoco(rho, p_global)
     list(rho = rho, p_global = p_global, p_local = p_local, norbit = norbit,
-         pcoco = pc, score = pc, best_rate = best_rate,
-         best_index = best_index, best_rho = best_rho,
-         best_p_global = ecocox_values_at(p_global, best_index),
-         supported = supported)
+        pcoco = pc, score = pc, best_rate = best_rate,
+        best_index = best_index, best_rho = best_rho,
+        best_p_global = ecocox_values_at(p_global, best_index),
+        supported = supported)
   }
 
   ecocox_finish <- function(out, sr, depth, verbose){
     # bestPerWindowSummary + trackEcocoRidge (ecoco.m) via ecoco_track_ridge()
     best <- ecoco_best_per_window(sr, depth, out$rho, out$p_global, out$norbit,
-                                  out$score)
+        out$score)
     track <- ecoco_track_ridge(out$score, sr, depth, out$rho, out$p_global,
-                               out$norbit, best)
+        out$norbit, best)
     out$best <- best
     out$track <- track
     if (verbose){
@@ -1096,7 +1094,7 @@ ecoco_interleaved <- function(data = NULL,
         med <- stats::median(track$sr[ok])
       }
       message(sprintf("%s: %d windows, %d with a tracked rate (median %.4g cm/kyr)",
-                      out$method, length(depth), sum(ok), med))
+          out$method, length(depth), sum(ok), med))
     }
     out
   }
@@ -1123,7 +1121,7 @@ ecoco_interleaved <- function(data = NULL,
     }
   }
 
-  # --- MATLAB periodogram (rectangular window, one-sided PSD) -------------------
+  # MATLAB periodogram (rectangular window, one-sided PSD)
   ml_periodogram <- function(x, nfft, fs){
     # x: vector or samples-by-series matrix. Every column is zero padded to nfft.
     xm <- as.matrix(x)
@@ -1159,7 +1157,7 @@ ecoco_interleaved <- function(data = NULL,
     list(p = p_out, f = f)
   }
 
-  # --- Interpolation ------------------------------------------------------------
+  # Interpolation
   interp1_na <- function(x, y, xi){
     # Linear interpolation, NA outside range (MATLAB interp1 default).
     o <- order(x)
@@ -1167,10 +1165,10 @@ ecoco_interleaved <- function(data = NULL,
     y <- y[o]
     keep <- !duplicated(x)
     stats::approx(x[keep], y[keep], xout = xi, method = "linear", rule = 1,
-                  ties = "ordered")$y
+        ties = "ordered")$y
   }
 
-  # --- Moving median with shrinking endpoints -----------------------------------
+  # Moving median with shrinking endpoints
   move_median <- function(x, w){
     x <- as.vector(x)
     n <- length(x)
@@ -1189,7 +1187,7 @@ ecoco_interleaved <- function(data = NULL,
     out
   }
 
-  # --- AR(1) red-noise backgrounds ---------------------------------------------
+  # AR(1) red-noise backgrounds
   rho_ar1_ml <- function(x){
     # Mudelsee (2002) lag-1 estimator on demeaned data (Husson 2012 / Li 2017).
     x <- as.vector(x) - mean(x)
@@ -1226,7 +1224,7 @@ ecoco_interleaved <- function(data = NULL,
         rss <- colSums(base^2)
         ls <- log(s0_g)
         matrix(rss, length(rho_g), length(s0_g)) + 2 * outer(rs, ls) +
-          length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
+            length(power) * matrix(ls^2, length(rho_g), length(s0_g), byrow = TRUE)
       }
     }
     nn <- 50
@@ -1290,9 +1288,7 @@ ecoco_interleaved <- function(data = NULL,
     idx
   }
 
-  # ---------------------------------------------------------------------------
   # Batched spectra with background removal (ecocoWindowSpectra.m)
-  # ---------------------------------------------------------------------------
   coco_window_spectra <- function(values, dt, pad, red = 1, already_detrended = FALSE){
     values <- as.matrix(values)
     if (!already_detrended){
@@ -1335,7 +1331,7 @@ ecoco_interleaved <- function(data = NULL,
   coco_swa_subtract <- function(P, f, n_data){
     if (nrow(P) < 33){
       stop(paste0("red = 3 (smoothed-window average) requires at least 33 ",
-                  "one-sided spectral bins; increase pad"))
+          "one-sided spectral bins; increase pad"))
     }
     for (j in seq_len(ncol(P))){
       p <- P[, j]
@@ -1347,7 +1343,7 @@ ecoco_interleaved <- function(data = NULL,
       }
       fl <- max(2.2250738585072014e-308, sc * .Machine$double.eps)
       bg <- as.numeric(swa_background(f, log10(pmax(p, fl)), n_data,
-                                      verbose = FALSE)$swa)
+          verbose = FALSE)$swa)
       if (length(bg) != length(p) || any(!is.finite(bg) | bg <= 0)){
         stop("The smoothed-window background is nonpositive or nonfinite.")
       }
@@ -1394,12 +1390,10 @@ ecoco_interleaved <- function(data = NULL,
     r
   }
 
-  # ---------------------------------------------------------------------------
   # Small helpers
-  # ---------------------------------------------------------------------------
   .eps <- .Machine$double.eps
 
-  # ---- main code ----
+  # Main code
   method <- match.arg(method, c("Pearson", "Spearman"))
   window_mode <- match.arg(window_mode, c("physical-depth", "legacy-count"))
   orbit9 <- as.numeric(orbit9)
@@ -1496,29 +1490,29 @@ ecoco_interleaved <- function(data = NULL,
   }
   M <- list()
   keys <- c("rho_forward", "rho_backward", "rho_consensus",
-            "p_global_forward", "p_global_backward", "p_global_consensus",
-            "p_local_forward", "p_local_backward", "p_local_consensus",
-            "p_directional_max", "norbit_forward", "norbit_backward",
-            "norbit_consensus")
+      "p_global_forward", "p_global_backward", "p_global_consensus",
+      "p_local_forward", "p_local_backward", "p_local_consensus",
+      "p_directional_max", "norbit_forward", "norbit_backward",
+      "norbit_consensus")
   for (k in keys){
     M[[k]] <- matrix(NaN, n_rate, n_w)
   }
   wtab <- data.frame(center = centers, lower = lower, upper = upper,
-                     start_index = starts, end_index = ends,
-                     point_count = count, phase = phase, seed = wseed,
-                     success = FALSE, failure = "",
-                     best_rate_forward = NaN, best_rate_backward = NaN,
-                     best_rate_consensus = NaN, best_rho_forward = NaN,
-                     best_rho_backward = NaN, best_rho_consensus = NaN,
-                     best_index_consensus = NA_integer_,
-                     p_odd_to_even = NaN, p_even_to_odd = NaN,
-                     p_robust = NaN, p_sym = NaN, p_consensus = NaN,
-                     spacing_odd = NaN, spacing_even = NaN,
-                     raw_count_odd = NaN, raw_count_even = NaN,
-                     regular_count_odd = NaN, regular_count_even = NaN,
-                     all_nine_low = NaN, all_nine_high = NaN,
-                     rho_m = NaN, partial_orbit = FALSE,
-                     stringsAsFactors = FALSE)
+      start_index = starts, end_index = ends,
+      point_count = count, phase = phase, seed = wseed,
+      success = FALSE, failure = "",
+      best_rate_forward = NaN, best_rate_backward = NaN,
+      best_rate_consensus = NaN, best_rho_forward = NaN,
+      best_rho_backward = NaN, best_rho_consensus = NaN,
+      best_index_consensus = NA_integer_,
+      p_odd_to_even = NaN, p_even_to_odd = NaN,
+      p_robust = NaN, p_sym = NaN, p_consensus = NaN,
+      spacing_odd = NaN, spacing_even = NaN,
+      raw_count_odd = NaN, raw_count_even = NaN,
+      regular_count_odd = NaN, regular_count_even = NaN,
+      all_nine_low = NaN, all_nine_high = NaN,
+      rho_m = NaN, partial_orbit = FALSE,
+      stringsAsFactors = FALSE)
   pb <- NULL
   if (verbose){
     message(sprintf("Interleaved eCOCO: %d windows, %d rates", n_w, n_rate))
@@ -1533,12 +1527,12 @@ ecoco_interleaved <- function(data = NULL,
       set.seed(ecocox_seed(wseed[w]))
     }
     wr <- tryCatch(
-      ecocox_interleaved_window(dat[starts[w]:ends[w], , drop = FALSE],
-                                orbit9, pad, sr, red, n_sim, method,
-                                max_frequency, phase[w], batch_size),
-      ecocox_unresolvable = function(e){
-        e
-      })
+        ecocox_interleaved_window(dat[starts[w]:ends[w], , drop = FALSE],
+            orbit9, pad, sr, red, n_sim, method,
+            max_frequency, phase[w], batch_size),
+        ecocox_unresolvable = function(e){
+          e
+        })
     if (inherits(wr, "ecocox_unresolvable")){
       wtab$failure[w] <- conditionMessage(wr)
       next
@@ -1591,26 +1585,26 @@ ecoco_interleaved <- function(data = NULL,
   }
   if (any(wtab$partial_orbit)){
     warning(sprintf(paste0("Interleaved eCOCO used partial-orbit training in ",
-                           "%d of %d successful windows (exploratory)."),
-                    sum(wtab$partial_orbit), sum(wtab$success)))
+        "%d of %d successful windows (exploratory)."),
+        sum(wtab$partial_orbit), sum(wtab$success)))
   }
   wtab$best_rate_all_nine_resolved <- wtab$success &
-    is.finite(wtab$best_rate_consensus) &
-    wtab$best_rate_consensus > wtab$all_nine_low &
-    wtab$best_rate_consensus <= wtab$all_nine_high
+      is.finite(wtab$best_rate_consensus) &
+      wtab$best_rate_consensus > wtab$all_nine_low &
+      wtab$best_rate_consensus <= wtab$all_nine_high
   succ <- wtab$success
   forward <- ecocox_direction(M$rho_forward, M$p_global_forward,
-                              M$p_local_forward, M$norbit_forward, sr, succ)
+      M$p_local_forward, M$norbit_forward, sr, succ)
   backward <- ecocox_direction(M$rho_backward, M$p_global_backward,
-                               M$p_local_backward, M$norbit_backward, sr, succ)
+      M$p_local_backward, M$norbit_backward, sr, succ)
   consensus <- ecocox_direction(M$rho_consensus, M$p_global_consensus,
-                                M$p_local_consensus, M$norbit_consensus, sr,
-                                succ)
+      M$p_local_consensus, M$norbit_consensus, sr,
+      succ)
   consensus$best_rate <- wtab$best_rate_consensus
   consensus$best_index <- wtab$best_index_consensus
   consensus$best_rho <- wtab$best_rho_consensus
   consensus$best_p_global <- ecocox_values_at(M$p_global_consensus,
-                                              wtab$best_index_consensus)
+      wtab$best_index_consensus)
   forward$best_rate <- wtab$best_rate_forward
   forward$best_rho <- wtab$best_rho_forward
   backward$best_rate <- wtab$best_rate_backward
@@ -1618,26 +1612,26 @@ ecoco_interleaved <- function(data = NULL,
   consensus$p_directional_max <- M$p_directional_max
   pl_strict <- ecocox_max_finite_pair(M$p_local_forward, M$p_local_backward)
   strict <- ecocox_direction(M$rho_consensus, M$p_directional_max, pl_strict,
-                             M$norbit_consensus, sr, succ)
+      M$norbit_consensus, sr, succ)
   strict$best_rate <- consensus$best_rate
   strict$best_index <- consensus$best_index
   strict$best_rho <- consensus$best_rho
   strict$best_p_global <- ecocox_values_at(M$p_directional_max,
-                                           consensus$best_index)
+      consensus$best_index)
   res <- list(method = "Interleaved eCOCO", sr = sr, depth = centers,
-              rho = M$rho_consensus, p_global = M$p_global_consensus,
-              p_local = M$p_local_consensus, norbit = M$norbit_consensus,
-              pcoco = consensus$pcoco, score = consensus$score,
-              forward = forward, backward = backward, consensus = consensus,
-              strict = strict, windows = wtab, rho_m = wtab$rho_m,
-              window = window, step_depth = step_depth, step = step,
-              window_mode = window_mode, sampling_dt = med_dt,
-              n_input = cl$n_input, n_finite = cl$n_finite,
-              n_duplicate = cl$n_duplicate, degraded = any(wtab$partial_orbit),
-              n_sim = n_sim, p_floor = ecocox_p_floor(n_sim),
-              seed = seed, red = red, pad = pad,
-              max_frequency = max_frequency, orbit9 = orbit9,
-              correlation = method)
+      rho = M$rho_consensus, p_global = M$p_global_consensus,
+      p_local = M$p_local_consensus, norbit = M$norbit_consensus,
+      pcoco = consensus$pcoco, score = consensus$score,
+      forward = forward, backward = backward, consensus = consensus,
+      strict = strict, windows = wtab, rho_m = wtab$rho_m,
+      window = window, step_depth = step_depth, step = step,
+      window_mode = window_mode, sampling_dt = med_dt,
+      n_input = cl$n_input, n_finite = cl$n_finite,
+      n_duplicate = cl$n_duplicate, degraded = any(wtab$partial_orbit),
+      n_sim = n_sim, p_floor = ecocox_p_floor(n_sim),
+      seed = seed, red = red, pad = pad,
+      max_frequency = max_frequency, orbit9 = orbit9,
+      correlation = method)
   res <- ecocox_finish(res, sr, centers, verbose)
   class(res) <- "ecoco_cv"
   if (genplot){

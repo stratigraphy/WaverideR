@@ -15,27 +15,33 @@ minimal_tuning(
 )
 }
 \arguments{
-\item{data}{Input is an cycle extracted filtered in the depth domain}
+\item{data}{Cycle extracted or filtered in the depth domain (e.g. the output of \code{\link{extract_signal}} or
+columns 1-2 of the element \code{filtered} of \code{\link{gaussian_bandpass}}): a two-column matrix or data
+frame with depth in metres in column 1 (in increasing order) and the filtered signal in column 2. Required
+(\code{Default=NULL}).}
 
-\item{pts}{The pts parameter specifies how many points to the left/right up/down the peak detect algorithm goes in detecting
-a peak. The peak detecting algorithm works by comparing the values left/right up/down of it, if the values are both higher or lower
-then the value a peak. To deal with error produced by this algorithm the pts parameter can be changed which can
-aid in peak detection. Usually increasing the pts parameter means more peak certainty, however it also means that minor peaks might not be
-picked up by the algorithm \code{Default=5}}
+\item{pts}{Number of points to each side that a point is compared with when the maxima and minima of the
+filtered cycle are detected (integer, >= 2): a point is a maximum (minimum) when it is above (below) the value
+\code{pts} points further on and the value \code{pts - 1} points back. Larger values give more robust extremes but
+may miss minor ones (see \code{\link{max_detect}}). \code{Default=5}.}
 
-\item{cycle}{duration in kyr of the filtered/extracted cycle}
+\item{cycle}{Duration of the filtered/extracted cycle in kyr (numeric, > 0, e.g. 405 for the long eccentricity
+cycle); the distance between successive extremes divided by this duration gives the sedimentation rate.
+\code{Default=405}.}
 
-\item{tune_opt}{tuning options "min", "max" and "minmax" use minima, maxima or both
-of the cyclic signal to create the age model \code{Default="max"}}
+\item{tune_opt}{Which extremes of the cycle are used as tie points of the age model (character): \code{"min"}
+(minima, one cycle apart), \code{"max"} (maxima, one cycle apart) or \code{"minmax"} (both, half a cycle apart).
+\code{Default="max"}.}
 
-\item{output}{#'The output depends on the output setting
-If output = 0 output is a matrix of with 4 columns being; depth,proxy,sedimentation rate and time
-If output = 1 output is a matrix of with 2 columns being; depth and sedimentation rate
-#'If output = 2 output is a matrix of with 2 columns being; depth and time}
+\item{output}{Content of the returned matrix (integer): \code{0} four columns (depth, proxy, sedimentation rate in
+cm/kyr, time in kyr); \code{1} two columns (depth, sedimentation rate); \code{2} two columns (depth, time).
+\code{Default=0}.}
 
-\item{genplot}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{genplot}{Plot the result belonging to \code{output} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}) of the plot after the function returns, so that
+features can be added to it (logical, TRUE or FALSE); \code{FALSE} restores the previous settings.
+\code{Default=FALSE}.}
 }
 \value{
 The output depends on the output setting

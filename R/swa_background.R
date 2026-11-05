@@ -14,11 +14,14 @@
 #' Translated from Acycle v3.1 specswa.m (Mingsong Li, after the FORTRAN
 #' code of Graham Weedon).
 #'
-#' @param freq Strictly increasing frequency vector (at least 33 values).
-#' @param log_power log10 power values belonging to \code{freq}.
-#' @param n_data Number of data points of the analysed series. Retained for
-#' compatibility with Acycle; it does not influence the fitted background.
-#' @param verbose Print fit diagnostics. \code{Default=FALSE}
+#' @param freq Frequencies of the power spectrum (required): numeric vector, finite, strictly increasing, with at
+#' least 33 values (three initial windows of 11 ordinates), in cycles per depth/time unit. \code{Default=NULL}.
+#' @param log_power log10 power belonging to \code{freq} (required): numeric vector of the same length as
+#' \code{freq}. \code{Default=NULL}.
+#' @param n_data Number of data points of the analysed series (required, a positive integer). Retained for
+#' compatibility with Acycle and returned in the result; it does not influence the fitted background.
+#' \code{Default=NULL}.
+#' @param verbose Print fit diagnostics (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li,
 #' after the SWA FORTRAN program of Graham Weedon.
@@ -57,8 +60,8 @@
 #' @export
 #' @importFrom stats sd
 swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
-                           verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
   # @title Quadratic least-squares fit, MATLAB polyfit(x, y, 2) with [p,S,mu]
   # @keywords internal
@@ -73,7 +76,7 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
     as.numeric(V %*% p)
   }
 
-  # ---- main code ----
+  # Main code
   freq <- as.numeric(freq)
   xlogp <- as.numeric(log_power)
   if (length(freq) < 1 || any(!is.finite(freq))){
@@ -92,7 +95,7 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
   nout <- length(xlogp)
   if (length(freq) != nout || nout < 33){
     stop(paste0("SWA requires matching frequency/log-power vectors with at ",
-                "least 33 ordinates (three initial 11-bin windows)"))
+        "least 33 ordinates (three initial 11-bin windows)"))
   }
 
   winwidth <- 9
@@ -115,7 +118,7 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
     ncycle <- floor(nout / winwidth)
     # window log-power averages
     midw <- colSums(matrix(xlogp[seq_len(ncycle * winwidth)],
-                           nrow = winwidth)) / winwidth
+        nrow = winwidth)) / winwidth
 
     # low frequencies: project slope(s) back towards zero frequency
     diff1 <- (midw[2] - midw[1]) / winwidth
@@ -203,12 +206,12 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
     tail_model <- "constant"
     if (verbose == TRUE){
       cat(sprintf("  Using fixed final power in end window, rmse = %f\n",
-                  rmsel1))
+          rmsel1))
     }
   } else {
     if (verbose == TRUE){
       cat(sprintf("  White noise end of log spectrum: RMSE = %f (not better)\n",
-                  rmse))
+          rmse))
     }
   }
 
@@ -230,12 +233,12 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
     tail_model <- "quadratic"
     if (verbose == TRUE){
       cat(sprintf("  Switching to quadratic fit for end window, rmse = %f\n",
-                  rmsel1))
+          rmsel1))
     }
   } else {
     if (verbose == TRUE){
       cat(sprintf("  Quadratic fit for end window: RMSE = %f (not better)\n",
-                  rmse))
+          rmse))
     }
   }
 
@@ -248,7 +251,7 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
     candidate[nout] <- 0.5 * fitsp[nout - 1] + 0.5 * fitsp[nout]
     mid <- 2:(nout - 1)
     candidate[mid] <- 0.25 * fitsp[mid - 1] + 0.5 * fitsp[mid] +
-      0.25 * fitsp[mid + 1]
+        0.25 * fitsp[mid + 1]
     candidate_rmse <- sqrt(sum((xlogp - candidate)^2) / (nout - 1))
     if (candidate_rmse < rmsel1 * 1.01){
       fitsp <- candidate
@@ -263,13 +266,13 @@ swa_background <- function(freq = NULL, log_power = NULL, n_data = NULL,
   }
 
   diagnostics <- list(initial_variant = selected_variant,
-                      initial_nondecreasing_count = selected_rev,
-                      initial_rmse = selected_rmse,
-                      selected_window = winfinal,
-                      tail_model = tail_model,
-                      n_smoothing = nsmth,
-                      final_rmse = rmset,
-                      n_data = n_data,
-                      n_frequency = nout)
+      initial_nondecreasing_count = selected_rev,
+      initial_rmse = selected_rmse,
+      selected_window = winfinal,
+      tail_model = tail_model,
+      n_smoothing = nsmth,
+      final_rmse = rmset,
+      n_data = n_data,
+      n_frequency = nout)
   list(swa = 10^fitsp, n_windows = winfinal, diagnostics = diagnostics)
 }

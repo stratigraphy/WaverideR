@@ -13,15 +13,20 @@ plot_amtm_spectrum(
 )
 }
 \arguments{
-\item{amtm}{Output list of \code{\link{amtm_spectrum}}}
+\item{amtm}{Adaptive multitaper result to plot: the list returned by \code{\link{amtm_spectrum}}. Required
+(\code{Default=NULL} gives an error).}
 
-\item{xlim}{Frequency limits \code{Default=NULL} (full range)}
+\item{xlim}{Frequency range shown in all three panels, in cycles per unit of the input depth/time column (numeric
+vector of length 2, \code{c(min, max)}). \code{NULL} shows all positive frequencies. \code{Default=NULL}.}
 
-\item{log_freq}{Use a logarithmic frequency axis \code{Default=FALSE}}
+\item{log_freq}{Use a logarithmic frequency axis in all panels (logical, TRUE or FALSE); the PSD axis of the top
+panel is always logarithmic. \code{Default=FALSE}.}
 
-\item{freq_lab}{Label of the frequency axis \code{Default="Frequency (cycles/unit)"}}
+\item{freq_lab}{Label of the frequency axis (character). \code{Default="Frequency (cycles/unit)"}.}
 
-\item{show_all_models}{Draw all fitted background models \code{Default=TRUE}}
+\item{show_all_models}{Draw every fitted background model (white noise \code{WHT}, power law \code{PL},
+\code{AR1}, bending power law \code{BPL}) in the top panel in addition to the selected model (logical); with
+\code{FALSE} only the selected model and its gamma-test threshold are drawn. \code{Default=TRUE}.}
 }
 \value{
 No return value; a plot is drawn.

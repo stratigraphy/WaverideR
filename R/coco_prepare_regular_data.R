@@ -1,14 +1,17 @@
 #' @title Prepare a depth series for COCO (cocoPrepareRegularData.m)
 #' @description Removes non-finite rows, sorts by depth, averages duplicate depths and
 #' linearly interpolates to the median step when the spacing is uneven.
-#' @param raw two-column matrix [depth (m), value]
-#' @param verbose print what was changed
-#' @param min_points minimum number of points required
+#' @param raw Record to prepare (matrix or data frame; only the first two columns are used): depth in metres in
+#' column 1 and the proxy in column 2. Required, no default.
+#' @param verbose Print a message when the data are interpolated to an even spacing (logical, TRUE or FALSE).
+#' \code{Default=TRUE}.
+#' @param min_points Minimum number of unique, finite depth points required (integer); fewer gives an error.
+#' \code{Default=4}.
 #' @export
 coco_prepare_regular_data <- function(raw, verbose = TRUE, min_points = 4){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
-  # --- Interpolation ------------------------------------------------------------
+  # Interpolation
   interp1_na <- function(x, y, xi){
     # Linear interpolation, NA outside range (MATLAB interp1 default).
     o <- order(x)
@@ -16,10 +19,10 @@ coco_prepare_regular_data <- function(raw, verbose = TRUE, min_points = 4){
     y <- y[o]
     keep <- !duplicated(x)
     stats::approx(x[keep], y[keep], xout = xi, method = "linear", rule = 1,
-                  ties = "ordered")$y
+        ties = "ordered")$y
   }
 
-  # ---- main code ----
+  # Main code
   raw <- as.matrix(raw)[, 1:2, drop = FALSE]
   raw <- raw[is.finite(raw[, 1]) & is.finite(raw[, 2]), , drop = FALSE]
   raw <- raw[order(raw[, 1]), , drop = FALSE]
@@ -51,8 +54,8 @@ coco_prepare_regular_data <- function(raw, verbose = TRUE, min_points = 4){
     data <- cbind(grid[ok], vals[ok])
     if (verbose){
       message(sprintf(
-        "COCO preprocessing: interpolated %d unique points to %d points at %.6g m (largest gap = %.3g x median)",
-        nrow(clean), nrow(data), med, max(sp) / med))
+          "COCO preprocessing: interpolated %d unique points to %d points at %.6g m (largest gap = %.3g x median)",
+          nrow(clean), nrow(data), med, max(sp) / med))
     }
   } else {
     data <- clean

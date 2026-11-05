@@ -38,37 +38,51 @@
 #' \code{\link{plot_astro_anchor}} and \code{\link{anchor2time}}. \code{data_y} and \code{insolation_y} are the values of
 #' the records at the tie positions.
 #'
-#' @param astro_solution Astronomical solution (matrix or data frame, first column time/age, second column value), or a
-#'   named list of such solutions to choose from in the app. In the app the target can also be switched to a metronome
-#'   (a cosine with a period, phase and time interval you set), or to a Laskar solution (eccentricity, obliquity, climatic
-#'   precession or ETP of La2004, La2010a-d, La2011 eccentricity, or 65 N insolation) that is downloaded on request with
-#'   \code{\link[astrochron]{getLaskar}} when you press the download button.
-#' @param proxy_signal Proxy record (first column depth/time, second column value).
-#' @param proxy_min_or_max Peaks to offer when snapping on the proxy record: maxima (\code{"max"}) or minima
-#'   (\code{"min"}) \code{Default="max"}.
-#' @param astrosolution_min_or_max Peaks to offer on the astronomical solution: maxima or minima \code{Default="max"}.
-#' @param pts Number of points to the left and right that a point has to exceed to count as a peak
-#'   (see \code{\link{max_detect}}) \code{Default=3}.
-#' @param ties Optional existing tie points to start from: a data frame with the columns \code{data_x} and
-#'   \code{insolation_x} (or the output of \code{\link{astro_anchor}}). The astronomical positions are moved to the nearest maximum/minimum, the proxy positions are used as given.
-#' @param time_dir \code{TRUE} if time increases with increasing depth/time values of the proxy record, \code{FALSE}
-#'   if it decreases \code{Default=TRUE}.
-#' @param peaks_in_view Approximate number of peaks shown in a window at the start \code{Default=12}.
-#' @param tie_on Start with the tie points on the raw proxy record (\code{"raw"}) or on a cycle extracted from it
-#'   (\code{"cycle"}) \code{Default="raw"}. Can be changed in the app.
-#' @param proxy_flow,proxy_fhigh Low and high cut-off frequencies (cycles per unit of the proxy record) of the Taner filter
-#'   that extracts the proxy cycle \code{Default=NULL}: the strongest period of the wavelet spectrum -/+ 25 percent. They can
-#'   be changed in the app.
-#' @param proxy_roll Roll-off of that filter as the exponent \code{x} of \code{roll = 10^x} (see
-#'   \code{\link[astrochron]{taner}}) \code{Default=3}.
-#' @param inspect_flow,inspect_fhigh Low and high cut-off frequencies (cycles per time unit of the astronomical solution)
-#'   of the Taner filter that extracts the cycle from the tuned record \code{Default=NULL}: the median spacing of the
-#'   peaks of the astronomical solution -/+ 25 percent.
-#' @param inspect_roll Roll-off exponent of that filter \code{Default=3}.
-#' @param sedrate_factor Factor applied to the sedimentation rate (depth units per time unit) that is shown, for
-#'   example 100 to go from metres/kyr to cm/kyr \code{Default=1}.
-#' @param launch_browser Open the app in the default web browser \code{Default=TRUE}; \code{FALSE} prints the local address
-#'   (or uses the RStudio viewer when R is run there).
+#' @param astro_solution Astronomical solution to tie to (matrix or data frame with two columns: time/age (e.g. kyr)
+#'   in column 1, value in column 2), or a named list of such solutions to choose from in the app (the first one is
+#'   shown at the start). In the app the target can also be switched to a metronome (a cosine with a period, phase
+#'   and time interval you set), or to a Laskar solution (eccentricity, obliquity, climatic precession or ETP of
+#'   La2004, La2010a-d, La2011 eccentricity, or 65 N insolation) that is downloaded on request with
+#'   \code{\link[astrochron]{getLaskar}} when you press the download button. Required, no default
+#'   (\code{Default=NULL} gives an error).
+#' @param proxy_signal Proxy record to be tied (matrix or data frame with two columns: depth/time in column 1, proxy
+#'   value in column 2; rows with \code{NA} are removed). Required, no default (\code{Default=NULL} gives an error).
+#' @param proxy_min_or_max Peaks offered when snapping on the proxy record (character): \code{"max"} (maxima) or
+#'   \code{"min"} (minima). \code{Default="max"}.
+#' @param astrosolution_min_or_max Peaks on which the tie points of the astronomical solution are placed
+#'   (character): \code{"max"} (maxima) or \code{"min"} (minima). \code{Default="max"}.
+#' @param pts Number of points to the left and right of a value that the peak detection (\code{\link{max_detect}},
+#'   \code{\link{min_detect}}) compares it with (integer, >= 1); larger values give fewer, more certain peaks.
+#'   \code{Default=3}.
+#' @param ties Existing tie points to start from (data frame with the columns \code{data_x} (proxy depth/time) and
+#'   \code{insolation_x} (astronomical age), otherwise the first two columns are used; e.g. the output of
+#'   \code{\link{astro_anchor}}). The astronomical positions are moved to the nearest maximum/minimum, the proxy
+#'   positions are used as given. \code{NULL} starts without tie points. \code{Default=NULL}.
+#' @param time_dir Direction of time in the proxy record (logical): \code{TRUE} if time increases with increasing
+#'   depth/time values, \code{FALSE} if it decreases. \code{Default=TRUE}.
+#' @param peaks_in_view Approximate number of peaks shown in each window at the start (numeric, > 0).
+#'   \code{Default=12}.
+#' @param tie_on Proxy record on which the tie points are placed at the start (character): \code{"raw"} (the raw
+#'   record) or \code{"cycle"} (a cycle extracted from it with the Taner filter set by \code{proxy_flow},
+#'   \code{proxy_fhigh} and \code{proxy_roll}). Can be changed in the app. \code{Default=c("raw", "cycle")}, i.e.
+#'   \code{"raw"}.
+#' @param proxy_flow,proxy_fhigh Low and high cut-off frequencies of the Taner filter that extracts the proxy cycle,
+#'   in cycles per depth/time unit of the proxy record (numeric, 0 < \code{proxy_flow} < \code{proxy_fhigh}; give both).
+#'   \code{NULL} uses the strongest period of the wavelet spectrum of the proxy -/+ 25 percent. They can be changed in
+#'   the app. \code{Default=NULL}.
+#' @param proxy_roll Roll-off of the proxy Taner filter as the exponent \code{x} of \code{roll = 10^x} (numeric; see
+#'   \code{\link[astrochron]{taner}}). \code{Default=3}.
+#' @param inspect_flow,inspect_fhigh Low and high cut-off frequencies of the Taner filter that extracts the cycle from
+#'   the tuned record, in cycles per time unit of the astronomical solution (numeric, 0 < \code{inspect_flow} <
+#'   \code{inspect_fhigh}; give both). \code{NULL} uses the median spacing of the peaks of the astronomical solution
+#'   -/+ 25 percent. \code{Default=NULL}.
+#' @param inspect_roll Roll-off of the Taner filter of the tuned record as the exponent \code{x} of
+#'   \code{roll = 10^x} (numeric). \code{Default=3}.
+#' @param sedrate_factor Factor applied to the sedimentation rate (depth units per time unit) that is shown (numeric,
+#'   > 0), for example 100 to go from m/kyr to cm/kyr. \code{Default=1}.
+#' @param launch_browser Open the app in the default web browser (logical, TRUE or FALSE); \code{FALSE} prints the
+#'   local address (or uses the RStudio viewer when R is run there). Passed to \code{shiny::runApp} as
+#'   \code{launch.browser}. \code{Default=TRUE}.
 #' @return A data frame with the tie points sorted by depth/time: \code{data_x}, \code{data_y} (proxy),
 #'   \code{insolation_x}, \code{insolation_y} (astronomical solution). Without an interactive session and with
 #'   \code{ties} the starting tie points are returned without starting the app (those on the astronomical solution
@@ -86,22 +100,22 @@
 #'   \code{\link{anchor2time}}
 #' @export
 astro_anchor_app <- function(astro_solution = NULL,
-                             proxy_signal = NULL,
-                             proxy_min_or_max = "max",
-                             astrosolution_min_or_max = "max",
-                             pts = 3,
-                             ties = NULL,
-                             time_dir = TRUE,
-                             peaks_in_view = 12,
-                             tie_on = c("raw", "cycle"),
-                             proxy_flow = NULL,
-                             proxy_fhigh = NULL,
-                             proxy_roll = 3,
-                             inspect_flow = NULL,
-                             inspect_fhigh = NULL,
-                             inspect_roll = 3,
-                             sedrate_factor = 1,
-                             launch_browser = TRUE) {
+    proxy_signal = NULL,
+    proxy_min_or_max = "max",
+    astrosolution_min_or_max = "max",
+    pts = 3,
+    ties = NULL,
+    time_dir = TRUE,
+    peaks_in_view = 12,
+    tie_on = c("raw", "cycle"),
+    proxy_flow = NULL,
+    proxy_fhigh = NULL,
+    proxy_roll = 3,
+    inspect_flow = NULL,
+    inspect_fhigh = NULL,
+    inspect_roll = 3,
+    sedrate_factor = 1,
+    launch_browser = TRUE) {
   tie_on <- match.arg(tie_on)
   S <- .aaa_setup(astro_solution, proxy_signal, proxy_min_or_max, astrosolution_min_or_max, pts, ties, peaks_in_view)
   if (!interactive()) {
@@ -112,46 +126,58 @@ astro_anchor_app <- function(astro_solution = NULL,
   }
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("package 'shiny' is needed for astro_anchor_app(); install it with install.packages(\"shiny\") ",
-         "or use astro_anchor_interactive().", call. = FALSE)
+        "or use astro_anchor_interactive().", call. = FALSE)
   }
   app <- .aaa_app(S, time_dir, sedrate_factor, tie_on, c(proxy_flow, proxy_fhigh, proxy_roll), c(inspect_flow, inspect_fhigh, inspect_roll))
   shiny::runApp(app, launch.browser = launch_browser, quiet = TRUE)
 }
 
-# ---- set up --------------------------------------------------------------------------------------------------------
+# Set up
 
 .aaa_peaks <- function(dat, min_or_max, pts) {
-  pk <- if (min_or_max == "max") max_detect(dat, pts = pts) else min_detect(dat, pts = pts)
+  pk <- if (min_or_max == "max") { max_detect(dat, pts = pts) } else { min_detect(dat, pts = pts) }
   pk <- as.data.frame(pk[, 1:2])
   names(pk) <- c("x", "y")
   pk
 }
 
 .aaa_setup <- function(astro_solution, proxy_signal, proxy_min_or_max, astrosolution_min_or_max, pts, ties, peaks_in_view) {
-  alist <- if (is.data.frame(astro_solution) || is.matrix(astro_solution)) list(`Provided solution` = astro_solution) else astro_solution
-  if (is.null(names(alist))) names(alist) <- paste("Provided solution", seq_along(alist))
-  alist <- lapply(alist, function(a) {
-    a <- as.data.frame(na.omit(as.data.frame(a)))[, 1:2]
+  alist <- if (is.data.frame(astro_solution) || is.matrix(astro_solution)) { list(`Provided solution` = astro_solution) } else { astro_solution }
+  if (is.null(names(alist))) {
+    names(alist) <- paste("Provided solution", seq_along(alist))
+  }
+  alist_in <- alist
+  alist <- vector("list", length(alist_in))
+  names(alist) <- names(alist_in)
+  for (i in seq_along(alist_in)) {
+    a <- as.data.frame(na.omit(as.data.frame(alist_in[[i]])))[, 1:2]
     a <- a[order(a[, 1]), ]
     names(a) <- c("x", "y")
-    a
-  })
+    alist[[i]] <- a
+  }
   astro <- alist[[1]]
   proxy <- as.data.frame(na.omit(as.data.frame(proxy_signal)))[, 1:2]
   proxy <- proxy[order(proxy[, 1]), ]
   names(proxy) <- c("x", "y")
   pk_a <- .aaa_peaks(astro, astrosolution_min_or_max, pts)
   pk_p <- .aaa_peaks(proxy, proxy_min_or_max, pts)
-  if (nrow(pk_a) < 2 || nrow(pk_p) < 2) stop("fewer than two peaks found; change 'pts' or the min/max setting")
+  if (nrow(pk_a) < 2 || nrow(pk_p) < 2) {
+    stop("fewer than two peaks found; change 'pts' or the min/max setting")
+  }
   st <- list(ties = data.frame(p = numeric(0), a = numeric(0)), pending = NULL, sel = NULL,
-             view_p = .aai_first_view(pk_p$x, proxy$x, peaks_in_view),
-             view_a = .aai_first_view(pk_a$x, astro$x, peaks_in_view))
+      view_p = .aai_first_view(pk_p$x, proxy$x, peaks_in_view),
+      view_a = .aai_first_view(pk_a$x, astro$x, peaks_in_view))
   if (!is.null(ties)) {
     ties <- as.data.frame(ties)
-    tx <- if ("data_x" %in% names(ties)) ties$data_x else ties[, 1]
-    ta <- if ("insolation_x" %in% names(ties)) ties$insolation_x else ties[, 2]
+    tx <- if ("data_x" %in% names(ties)) { ties$data_x } else { ties[, 1] }
+    ta <- if ("insolation_x" %in% names(ties)) { ties$insolation_x } else { ties[, 2] }
     ok <- !is.na(tx) & !is.na(ta)
-    st$ties <- data.frame(p = as.numeric(tx[ok]), a = vapply(as.numeric(ta[ok]), function(v) pk_a$x[which.min(abs(pk_a$x - v))], 1))
+    ta_ok <- as.numeric(ta[ok])
+    ta_snap <- numeric(length(ta_ok))
+    for (i in seq_along(ta_ok)) {
+      ta_snap[i] <- pk_a$x[which.min(abs(pk_a$x - ta_ok[i]))]
+    }
+    st$ties <- data.frame(p = as.numeric(tx[ok]), a = ta_snap)
     if (nrow(st$ties) > 0) {
       wide <- function(v, lim, w0) {
         r <- range(v)
@@ -163,7 +189,7 @@ astro_anchor_app <- function(astro_solution = NULL,
     }
   }
   list(astro = astro, astro_list = alist, proxy = proxy, pk_a = pk_a, pk_p = pk_p, st = st, pts = pts,
-       min_or_max_p = proxy_min_or_max, min_or_max_a = astrosolution_min_or_max)
+      min_or_max_p = proxy_min_or_max, min_or_max_a = astrosolution_min_or_max)
 }
 
 # tie points -> output data frame (values of the records at the tie positions)
@@ -172,7 +198,7 @@ astro_anchor_app <- function(astro_solution = NULL,
     return(data.frame(data_x = numeric(0), data_y = numeric(0), insolation_x = numeric(0), insolation_y = numeric(0)))
   }
   out <- data.frame(data_x = ties$p, data_y = stats::approx(proxy$x, proxy$y, ties$p, rule = 2)$y,
-                    insolation_x = ties$a, insolation_y = stats::approx(astro$x, astro$y, ties$a, rule = 2)$y)
+      insolation_x = ties$a, insolation_y = stats::approx(astro$x, astro$y, ties$a, rule = 2)$y)
   out <- out[order(out$data_x), ]
   rownames(out) <- NULL
   out
@@ -188,7 +214,7 @@ astro_anchor_app <- function(astro_solution = NULL,
     reg <- data.frame(x = grid, y = stats::approx(proxy$x, proxy$y, grid)$y)
     d <- grid[2] - grid[1]
     w <- analyse_wavelet(reg, dj = 1 / 20, lowerPeriod = 4 * d, upperPeriod = diff(range(grid)) / 4, verbose = FALSE,
-                         omega_nr = 6)
+        omega_nr = 6)
     pw <- rowMeans(matrix(as.numeric(w$Power), nrow = w$nr, ncol = w$nc))
     as.numeric(w$Period)[which.max(pw)]
   }, error = function(e) fallback)
@@ -196,15 +222,19 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 # Taner filter (astrochron) on a record, interpolated to an even grid; flow/fhigh in cycles per unit, roll = 10^roll_exp
 .aaa_taner <- function(dat, flow, fhigh, roll_exp, n_max = 6000) {
-  if (!all(is.finite(c(flow, fhigh, roll_exp))) || flow <= 0 || fhigh <= flow) stop("need 0 < flow < fhigh")
+  if (!all(is.finite(c(flow, fhigh, roll_exp))) || flow <= 0 || fhigh <= flow) {
+    stop("need 0 < flow < fhigh")
+  }
   n <- min(n_max, nrow(dat))
   grid <- seq(min(dat$x), max(dat$x), length.out = n)
   reg <- data.frame(x = grid, y = stats::approx(dat$x, dat$y, grid)$y)
   nyq <- 0.5 / (grid[2] - grid[1])
-  if (flow >= nyq) stop("flow is above the Nyquist frequency (", signif(nyq, 4), ")")
+  if (flow >= nyq) {
+    stop("flow is above the Nyquist frequency (", signif(nyq, 4), ")")
+  }
   fhigh <- min(fhigh, nyq)
   ext <- astrochron::taner(reg, flow = flow, fhigh = fhigh, roll = 10^roll_exp, addmean = FALSE, genplot = FALSE,
-                           verbose = FALSE, check = FALSE)
+      verbose = FALSE, check = FALSE)
   out <- data.frame(x = ext[, 1], y = ext[, 2])
   out[is.finite(out$y), ]
 }
@@ -214,7 +244,9 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 # a cosine metronome: maxima at phase + k * period
 .aaa_metronome <- function(period, phase, from, to) {
-  if (!all(is.finite(c(period, phase, from, to))) || period <= 0 || to <= from) stop("need period > 0 and from < to")
+  if (!all(is.finite(c(period, phase, from, to))) || period <= 0 || to <= from) {
+    stop("need period > 0 and from < to")
+  }
   dt <- max(period / 24, (to - from) / 50000)
   dt <- period / ceiling(period / dt)                                   # a whole number of steps per period
   x <- phase + dt * seq(ceiling((from - phase) / dt), floor((to - phase) / dt))   # maxima fall exactly on the grid
@@ -224,19 +256,21 @@ astro_anchor_app <- function(astro_solution = NULL,
 # Laskar solutions via astrochron::getLaskar (a download); 'getter' can be replaced, e.g. by a cached version
 .aaa_laskar_choices <- function() {
   c("Laskar 2004: ETP" = "laskar:la04_etp", "Laskar 2004: eccentricity" = "laskar:la04_ecc",
-    "Laskar 2004: obliquity" = "laskar:la04_obl", "Laskar 2004: climatic precession" = "laskar:la04_prec",
-    "Laskar 2010a: eccentricity" = "laskar:la10a", "Laskar 2010b: eccentricity" = "laskar:la10b",
-    "Laskar 2010c: eccentricity" = "laskar:la10c", "Laskar 2010d: eccentricity" = "laskar:la10d",
-    "Laskar 2011: eccentricity" = "laskar:la11", "Laskar 2004: insolation 65 N (summer solstice)" = "laskar:insolation")
+      "Laskar 2004: obliquity" = "laskar:la04_obl", "Laskar 2004: climatic precession" = "laskar:la04_prec",
+      "Laskar 2010a: eccentricity" = "laskar:la10a", "Laskar 2010b: eccentricity" = "laskar:la10b",
+      "Laskar 2010c: eccentricity" = "laskar:la10c", "Laskar 2010d: eccentricity" = "laskar:la10d",
+      "Laskar 2011: eccentricity" = "laskar:la11", "Laskar 2004: insolation 65 N (summer solstice)" = "laskar:insolation")
 }
 .aaa_laskar <- function(key, from, to, getter = function(sol) astrochron::getLaskar(sol, verbose = FALSE)) {
   key <- sub("^laskar:", "", key)
-  if (!is.finite(from) || !is.finite(to) || to <= from) stop("need from < to")
+  if (!is.finite(from) || !is.finite(to) || to <= from) {
+    stop("need from < to")
+  }
   if (grepl("^la04_", key)) {
     w <- switch(sub("la04_", "", key), etp = c(1, 1, 1), ecc = c(1, 0, 0), obl = c(0, 1, 0), prec = c(0, 0, 1))
     d <- getter("la04")
     e <- astrochron::etp(tmin = max(0, from), tmax = min(to, max(d[, 1])), dt = 1, eWt = w[1], oWt = w[2], pWt = w[3],
-                         esinw = TRUE, solution = d, standardize = TRUE, genplot = FALSE, verbose = FALSE)
+        esinw = TRUE, solution = d, standardize = TRUE, genplot = FALSE, verbose = FALSE)
     out <- data.frame(x = e[, 1], y = e[, 2])
   } else {
     d <- getter(key)
@@ -254,25 +288,31 @@ astro_anchor_app <- function(astro_solution = NULL,
   .aai_fix_view(c(x - frac * w, x + (1 - frac) * w), lim, w)
 }
 
-# ---- pure tie logic (no shiny) -------------------------------------------------------------------------------------
+# Pure tie logic (no shiny)
 # state: list(ties = data.frame(p, a) positions in data units, pending = NULL or list(panel, x), sel = NULL or row)
 
-.aaa_snap <- function(x, cands, snap) if (snap && nrow(cands) > 0) cands$x[which.min(abs(cands$x - x))] else x
+.aaa_snap <- function(x, cands, snap) if (snap && nrow(cands) > 0) { cands$x[which.min(abs(cands$x - x))] } else { x }
 
 # index of the tie point of one record within 'tol' of x (nearest), or integer(0)
 .aaa_near <- function(s, panel, x, tol) {
-  pos <- s$ties[[if (panel == "proxy") "p" else "a"]]
-  if (length(pos) == 0) return(integer(0))
+  pos <- s$ties[[if (panel == "proxy") { "p" } else { "a" }]]
+  if (length(pos) == 0) {
+    return(integer(0))
+  }
   k <- which.min(abs(pos - x))
-  if (abs(pos[k] - x) <= tol) k else integer(0)
+  if (abs(pos[k] - x) <= tol) {
+    k
+  } else {
+    integer(0)
+  }
 }
 
 # click on position x of record 'panel' ("proxy" or "astro")
 .aaa_click <- function(s, panel, x, cands, tol, snap = TRUE) {
-  col <- if (panel == "proxy") "p" else "a"
+  col <- if (panel == "proxy") { "p" } else { "a" }
   hit <- .aaa_near(s, panel, x, tol)
   if (length(hit) > 0) {                      # a tie point: select it (or deselect when it is selected already)
-    s$sel <- if (identical(s$sel, hit)) NULL else hit
+    s$sel <- if (identical(s$sel, hit)) { NULL } else { hit }
     s$pending <- NULL
     return(s)
   }
@@ -287,8 +327,8 @@ astro_anchor_app <- function(astro_solution = NULL,
   } else if (s$pending$panel == panel) {      # same record again: change the selection
     s$pending <- list(panel = panel, x = xn)
   } else {                                    # other record: tie
-    p_x <- if (panel == "proxy") xn else s$pending$x
-    a_x <- if (panel == "astro") xn else s$pending$x
+    p_x <- if (panel == "proxy") { xn } else { s$pending$x }
+    a_x <- if (panel == "astro") { xn } else { s$pending$x }
     s$ties <- rbind(s$ties, data.frame(p = p_x, a = a_x))
     s$pending <- NULL
   }
@@ -297,7 +337,9 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 .aaa_untie <- function(s, panel, x, tol) {
   hit <- .aaa_near(s, panel, x, tol)
-  if (length(hit) > 0) s$ties <- s$ties[-hit, , drop = FALSE]
+  if (length(hit) > 0) {
+    s$ties <- s$ties[-hit, , drop = FALSE]
+  }
   s$sel <- NULL
   s$pending <- NULL
   s
@@ -306,8 +348,10 @@ astro_anchor_app <- function(astro_solution = NULL,
 # drag from x0 to x1 over one record: the tie point at x0 moves to x1
 .aaa_drag <- function(s, panel, x0, x1, cands, tol, snap = TRUE) {
   hit <- .aaa_near(s, panel, x0, tol)
-  if (length(hit) == 0) return(s)
-  s$ties[hit, if (panel == "proxy") "p" else "a"] <- .aaa_snap(x1, cands, snap)
+  if (length(hit) == 0) {
+    return(s)
+  }
+  s$ties[hit, if (panel == "proxy") { "p" } else { "a" }] <- .aaa_snap(x1, cands, snap)
   s$sel <- NULL
   s$pending <- NULL
   s
@@ -315,13 +359,17 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 # move the selected tie point: to the next peak in direction 'dir' (snap) or by 'dx' data units
 .aaa_nudge <- function(s, panel, dx, cands, snap = TRUE) {
-  if (is.null(s$sel)) return(s)
-  col <- if (panel == "proxy") "p" else "a"
+  if (is.null(s$sel)) {
+    return(s)
+  }
+  col <- if (panel == "proxy") { "p" } else { "a" }
   cur <- s$ties[s$sel, col]
   if (snap && nrow(cands) > 0) {
-    nxt <- if (dx > 0) cands$x[cands$x > cur + 1e-9] else cands$x[cands$x < cur - 1e-9]
-    if (length(nxt) == 0) return(s)
-    s$ties[s$sel, col] <- if (dx > 0) min(nxt) else max(nxt)
+    nxt <- if (dx > 0) { cands$x[cands$x > cur + 1e-9] } else { cands$x[cands$x < cur - 1e-9] }
+    if (length(nxt) == 0) {
+      return(s)
+    }
+    s$ties[s$sel, col] <- if (dx > 0) { min(nxt) } else { max(nxt) }
   } else {
     s$ties[s$sel, col] <- cur + dx
   }
@@ -332,10 +380,12 @@ astro_anchor_app <- function(astro_solution = NULL,
 .aaa_flag <- function(ties, time_dir) {
   n <- nrow(ties)
   flag <- rep(FALSE, n)
-  if (n < 2) return(flag)
+  if (n < 2) {
+    return(flag)
+  }
   o <- order(ties$p)
   d <- diff(ties$a[o])
-  bad <- if (time_dir) d <= 0 else d >= 0
+  bad <- if (time_dir) { d <= 0 } else { d >= 0 }
   fo <- rep(FALSE, n)
   fo[-1] <- fo[-1] | bad
   fo[-n] <- fo[-n] | bad
@@ -345,23 +395,31 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 
 .aaa_cols <- function(n) {
-  if (n == 0) return(character(0))
+  if (n == 0) {
+    return(character(0))
+  }
   grDevices::hsv(h = (seq_len(n) * 0.618034) %% 1, s = 0.75, v = 0.75)
 }
 
-# ---- tuning --------------------------------------------------------------------------------------------------------
+# Tuning
 
 .aaa_tune <- function(proxy, astro, pk_a, ties, time_dir, flow, fhigh, roll_exp, sedrate_factor) {
-  if (nrow(ties) < 2) stop("tie at least two points")
+  if (nrow(ties) < 2) {
+    stop("tie at least two points")
+  }
   t_ord <- ties[order(ties$data_x), ]
   d <- diff(t_ord$insolation_x)
-  if (any(if (time_dir) d <= 0 else d >= 0)) stop("tie points in the wrong order (black crosses)")
+  if (any(if (time_dir) { d <= 0 } else { d >= 0 })) {
+    stop("tie points in the wrong order (black crosses)")
+  }
   tuned <- as.data.frame(anchor2time(anchor_points = cbind(t_ord$data_x, t_ord$insolation_x), data = proxy))
   names(tuned) <- c("time", "value")
   tuned <- tuned[order(tuned$time), ]
   tuned <- tuned[is.finite(tuned$time) & is.finite(tuned$value), ]
   dt <- stats::median(diff(tuned$time))
-  if (!is.finite(dt) || dt <= 0) stop("the tuned time axis is not increasing")
+  if (!is.finite(dt) || dt <= 0) {
+    stop("the tuned time axis is not increasing")
+  }
   n_grid <- min(20000, ceiling(diff(range(tuned$time)) / dt) + 1)
   grid <- seq(min(tuned$time), max(tuned$time), length.out = n_grid)
   reg <- data.frame(time = grid, value = stats::approx(tuned$time, tuned$value, grid)$y)
@@ -374,10 +432,10 @@ astro_anchor_app <- function(astro_solution = NULL,
   a_ext <- stats::approx(astro$x, astro$y, ext$x)$y
   r <- suppressWarnings(stats::cor(ext$y, a_ext, use = "complete.obs"))
   list(reg = reg, ext = as.matrix(ext), r = r, band = c(flow, fhigh), roll = roll_exp, t_ord = t_ord,
-       sedrate = diff(t_ord$data_x) / diff(t_ord$insolation_x) * sedrate_factor)
+      sedrate = diff(t_ord$data_x) / diff(t_ord$insolation_x) * sedrate_factor)
 }
 
-# ---- geometry (normalised device coordinates of the single plot) ---------------------------------------------------------
+# Geometry (normalised device coordinates of the single plot)
 
 .aaa_boxes <- function() {
   list(proxy = c(0.075, 0.985, 0.745, 0.975), astro = c(0.075, 0.985, 0.405, 0.635), tuned = c(0.075, 0.985, 0.045, 0.285))
@@ -386,25 +444,35 @@ astro_anchor_app <- function(astro_solution = NULL,
 .aaa_yr <- function(dat, view) {
   inside <- dat$x >= view[1] & dat$x <= view[2]
   yr <- range(dat$y[inside], na.rm = TRUE)
-  if (!is.finite(diff(yr)) || diff(yr) == 0) yr <- range(dat$y)
+  if (!is.finite(diff(yr)) || diff(yr) == 0) {
+    yr <- range(dat$y)
+  }
   yr + c(-0.08, 0.14) * diff(yr)
 }
 
 # data x <-> normalised device x for one record
 .aaa_to_ndc <- function(box, view, reversed, x) {
   f <- (x - view[1]) / (view[2] - view[1])
-  if (reversed) f <- 1 - f
+  if (reversed) {
+    f <- 1 - f
+  }
   box[1] + f * (box[2] - box[1])
 }
 .aaa_from_ndc <- function(box, view, reversed, xn) {
   f <- (min(max(xn, box[1]), box[2]) - box[1]) / (box[2] - box[1])
-  if (reversed) f <- 1 - f
+  if (reversed) {
+    f <- 1 - f
+  }
   view[1] + f * (view[2] - view[1])
 }
 # which record a vertical position (ndc) belongs to
 .aaa_panel_at <- function(y) {
   b <- .aaa_boxes()
-  for (nm in c("proxy", "astro")) if (y >= b[[nm]][3] - 0.035 && y <= b[[nm]][4] + 0.02) return(nm)
+  for (nm in c("proxy", "astro")) {
+    if (y >= b[[nm]][3] - 0.035 && y <= b[[nm]][4] + 0.02) {
+      return(nm)
+    }
+  }
   NULL
 }
 
@@ -413,17 +481,19 @@ astro_anchor_app <- function(astro_solution = NULL,
 
 
 .aaa_draw_record <- function(dat, cands, view, s, panel, flag, reversed, ylab, box, new, snap) {
-  col <- if (panel == "proxy") "p" else "a"
-  other <- if (panel == "proxy") "a" else "p"
+  col <- if (panel == "proxy") { "p" } else { "a" }
+  other <- if (panel == "proxy") { "a" } else { "p" }
   graphics::par(fig = c(0, 1, 0, 1), plt = box, new = new, mgp = c(2.4, 0.7, 0), cex.axis = 0.85)
   yr <- .aaa_yr(dat, view)
-  xl <- if (reversed) rev(view) else view
+  xl <- if (reversed) { rev(view) } else { view }
   graphics::plot(dat$x, dat$y, type = "n", xlim = xl, ylim = yr, xaxs = "i", yaxs = "i", xlab = "", ylab = ylab)
   graphics::rect(graphics::par("usr")[1], yr[1], graphics::par("usr")[2], yr[2], col = "grey98", border = NA)
   graphics::grid(col = "grey88", lty = 1)
   graphics::lines(dat$x, dat$y, col = "grey25", lwd = 1.2)
   graphics::box(col = "grey50")
-  if (snap) graphics::points(cands$x, cands$y, pch = 21, bg = "white", col = "grey45", cex = 1.1)
+  if (snap) {
+    graphics::points(cands$x, cands$y, pch = 21, bg = "white", col = "grey45", cex = 1.1)
+  }
   n <- nrow(s$ties)
   if (n > 0) {
     ord <- rank(s$ties$p, ties.method = "first")             # numbered along the proxy record
@@ -436,10 +506,14 @@ astro_anchor_app <- function(astro_solution = NULL,
       graphics::points(xv[vis], yv[vis], pch = 21, bg = cols[vis], col = "grey15", cex = 1.9, lwd = 1.2)
       graphics::text(xv[vis], yv[vis], ord[vis], col = "white", cex = 0.7, font = 2)
       graphics::text(xv[vis], rep(yr[1], sum(vis)), paste0(" ", signif(s$ties[[other]][vis], 5)), srt = 90, adj = c(0, -0.4),
-                     cex = 0.65, col = cols[vis])
+          cex = 0.65, col = cols[vis])
     }
-    if (any(flag & vis)) graphics::points(xv[flag & vis], yv[flag & vis], pch = 4, cex = 2.8, lwd = 2.5, col = "black")
-    if (!is.null(s$sel) && vis[s$sel]) graphics::points(xv[s$sel], yv[s$sel], pch = 1, cex = 3.6, lwd = 3, col = "red")
+    if (any(flag & vis)) {
+      graphics::points(xv[flag & vis], yv[flag & vis], pch = 4, cex = 2.8, lwd = 2.5, col = "black")
+    }
+    if (!is.null(s$sel) && vis[s$sel]) {
+      graphics::points(xv[s$sel], yv[s$sel], pch = 1, cex = 3.6, lwd = 3, col = "red")
+    }
   }
   if (!is.null(s$pending) && s$pending$panel == panel) {
     yp <- stats::approx(dat$x, dat$y, s$pending$x, rule = 2)$y
@@ -455,7 +529,9 @@ astro_anchor_app <- function(astro_solution = NULL,
   graphics::plot.new()
   graphics::plot.window(xlim = c(0, 1), ylim = c(0, 1), xaxs = "i", yaxs = "i")
   n <- nrow(s$ties)
-  if (n == 0) return(invisible(NULL))
+  if (n == 0) {
+    return(invisible(NULL))
+  }
   ord <- rank(s$ties$p, ties.method = "first")
   cols <- .aaa_cols(n)[ord]
   y1 <- b$proxy[3]
@@ -465,8 +541,8 @@ astro_anchor_app <- function(astro_solution = NULL,
     xa <- s$ties$a[k]
     p_in <- xp >= view_p[1] && xp <= view_p[2]
     a_in <- xa >= view_a[1] && xa <= view_a[2]
-    lw <- if (identical(s$sel, k)) 4 else 2.2
-    col <- if (flag[k]) "black" else cols[k]
+    lw <- if (identical(s$sel, k)) { 4 } else { 2.2 }
+    col <- if (flag[k]) { "black" } else { cols[k] }
     if (p_in && a_in) {
       graphics::segments(.aaa_to_ndc(b$proxy, view_p, rev_p, xp), y1, .aaa_to_ndc(b$astro, view_a, rev_a, xa), y2, lwd = lw, col = col)
     } else if (p_in) {
@@ -496,23 +572,27 @@ astro_anchor_app <- function(astro_solution = NULL,
   xr <- range(reg$time)
   yz <- range(c(.aaa_zs(reg$value), .aaa_zs(ext[, 2])), na.rm = TRUE)
   ai <- astro[astro$x >= xr[1] & astro$x <= xr[2], ]
-  if (show_astro && nrow(ai) > 1) yz <- range(c(yz, .aaa_zs(ai$y)), na.rm = TRUE)
+  if (show_astro && nrow(ai) > 1) {
+    yz <- range(c(yz, .aaa_zs(ai$y)), na.rm = TRUE)
+  }
   graphics::plot(reg$time, .aaa_zs(reg$value), type = "n", xlim = xr, ylim = yz, xaxs = "i", xlab = "", ylab = "z-score",
-                 main = sprintf("Tuned record, Taner band %s - %s%s   (r with the astronomical solution = %s)",
-                                signif(tu$band[1], 3), signif(tu$band[2], 3), if (show_astro) " and astronomical solution" else "",
-                                format(round(tu$r, 2), nsmall = 2)),
-                 cex.main = 0.95, font.main = 1, adj = 0)
+      main = sprintf("Tuned record, Taner band %s - %s%s   (r with the astronomical solution = %s)",
+          signif(tu$band[1], 3), signif(tu$band[2], 3), if (show_astro) { " and astronomical solution" } else { "" },
+          format(round(tu$r, 2), nsmall = 2)),
+      cex.main = 0.95, font.main = 1, adj = 0)
   graphics::grid(col = "grey88", lty = 1)
   tie_cols <- .aaa_cols(nrow(tu$t_ord))
   if (length(tie_cols) > 0) {
     graphics::abline(v = tu$t_ord$insolation_x, col = grDevices::adjustcolor(tie_cols, 0.8), lty = 3, lwd = 1.5)
   }
   graphics::lines(reg$time, .aaa_zs(reg$value), col = "grey35")
-  if (show_astro && nrow(ai) > 1) graphics::lines(ai$x, .aaa_zs(ai$y), col = grDevices::adjustcolor("dodgerblue3", 0.8), lwd = 1.6)
+  if (show_astro && nrow(ai) > 1) {
+    graphics::lines(ai$x, .aaa_zs(ai$y), col = grDevices::adjustcolor("dodgerblue3", 0.8), lwd = 1.6)
+  }
   graphics::lines(ext[, 1], .aaa_zs(ext[, 2]), col = "red", lwd = 2.2)
   graphics::legend("topright", horiz = TRUE, bty = "n", cex = 0.8, lty = 1, lwd = c(1, 2.2, 1.6),
-                   col = c("grey35", "red", "dodgerblue3")[c(TRUE, TRUE, show_astro)],
-                   legend = c("tuned proxy", "extracted cycle", "astronomical solution")[c(TRUE, TRUE, show_astro)])
+      col = c("grey35", "red", "dodgerblue3")[c(TRUE, TRUE, show_astro)],
+      legend = c("tuned proxy", "extracted cycle", "astronomical solution")[c(TRUE, TRUE, show_astro)])
   graphics::box(col = "grey50")
 }
 
@@ -526,7 +606,7 @@ astro_anchor_app <- function(astro_solution = NULL,
   sr <- tu$sedrate
   xr <- range(tu$reg$time)
   graphics::plot(range(t$insolation_x), range(c(0, sr), na.rm = TRUE), type = "n", xlim = xr, xaxs = "i", xlab = "time",
-                 ylab = "sedimentation rate")
+      ylab = "sedimentation rate")
   graphics::grid(col = "grey88", lty = 1)
   graphics::segments(t$insolation_x[-nrow(t)], sr, t$insolation_x[-1], sr, lwd = 4, col = "darkorange3", lend = 1)
   tie_cols <- .aaa_cols(nrow(t))
@@ -535,10 +615,12 @@ astro_anchor_app <- function(astro_solution = NULL,
 }
 
 
-# ---- the app ---------------------------------------------------------------------------------------------------------
+# The app
 
 .aaa_app <- function(S, time_dir, sedrate_factor, tie_on = "raw", proxy_tan = NULL, tuned_tan = NULL) {
-  if (!requireNamespace("shiny", quietly = TRUE)) stop("package 'shiny' is needed", call. = FALSE)
+  if (!requireNamespace("shiny", quietly = TRUE)) {
+    stop("package 'shiny' is needed", call. = FALSE)
+  }
   astro <- S$astro
   proxy <- S$proxy
   pk_a <- S$pk_a
@@ -547,11 +629,11 @@ astro_anchor_app <- function(astro_solution = NULL,
   tuned_tan <- c(tuned_tan, NA, NA, 3)[seq_len(3)] * 1
   if (length(proxy_tan) < 3) {
     b <- .aaa_band(.aaa_est_period(proxy))
-    proxy_tan <- c(b[["flow"]], b[["fhigh"]], if (length(proxy_tan) == 1) proxy_tan else 3)
+    proxy_tan <- c(b[["flow"]], b[["fhigh"]], if (length(proxy_tan) == 1) { proxy_tan } else { 3 })
   }
   if (length(tuned_tan) < 3 || any(is.na(tuned_tan[1:2]))) {
     b <- .aaa_band(stats::median(diff(pk_a$x)))
-    tuned_tan <- c(b[["flow"]], b[["fhigh"]], if (is.finite(tuned_tan[3])) tuned_tan[3] else 3)
+    tuned_tan <- c(b[["flow"]], b[["fhigh"]], if (is.finite(tuned_tan[3])) { tuned_tan[3] } else { 3 })
   }
   proxy_tan <- signif(proxy_tan, 4)
   tuned_tan <- signif(tuned_tan, 4)
@@ -604,122 +686,132 @@ astro_anchor_app <- function(astro_solution = NULL,
   "
   btn <- function(id, label, ...) shiny::actionButton(id, label, class = "btn-sm aaa-btn", ...)
   numbox <- function(id, label) shiny::div(style = "display:inline-block; width:48%;",
-                                           shiny::numericInput(id, label, NA, step = NA, width = "100%"))
+      shiny::numericInput(id, label, NA, step = NA, width = "100%"))
   ui <- shiny::fluidPage(
-    shiny::tags$head(shiny::tags$style(shiny::HTML(css))),
-    shiny::div(class = "aaa-title", "Tie a proxy record to an astronomical solution"),
-    shiny::div(class = "aaa-sub", "Click each record to tie (peaks or anywhere, see 'Snap to peaks'). Click a tie point to select it, ",
-               "then use the arrows, type a position, click elsewhere or drag over the record to move it. Double click to untie."),
-    shiny::fluidRow(
-      shiny::column(3,
-        shiny::div(class = "aaa-card", shiny::h4("Astronomical solution"),
-                   shiny::selectInput("a_src", NULL, choices = c(stats::setNames(paste0("prov:", names(S$astro_list)), names(S$astro_list)),
-                                                                  "Metronome (cosine)" = "metro", .aaa_laskar_choices()), selected = paste0("prov:", names(S$astro_list)[1])),
-                   shiny::conditionalPanel("input.a_src == 'metro'",
-                     shiny::div(style = "display:flex; gap:6px;",
-                                shiny::numericInput("a_period", "period", 405, min = 0, step = NA, width = "50%"),
-                                shiny::numericInput("a_phase", "time of a maximum", 0, step = NA, width = "50%")),
-                     shiny::selectInput("a_preset", "preset period", c("405 (long eccentricity)" = 405, "100 (short eccentricity)" = 100,
-                                                                         "41 (obliquity)" = 41, "23 (precession)" = 23, "19 (precession)" = 19))),
-                   shiny::div(style = "display:flex; gap:6px;",
-                              shiny::numericInput("a_from", "from (time)", signif(min(S$astro$x), 8), step = NA, width = "50%"),
-                              shiny::numericInput("a_to", "to (time)", signif(max(S$astro$x), 8), step = NA, width = "50%")),
-                   shiny::conditionalPanel("input.a_src.indexOf('laskar:') === 0",
-                     shiny::actionButton("a_load", "Download and load", class = "btn-sm btn-primary"),
-                     shiny::div(shiny::tags$small("Downloads the solution over the internet (astrochron::getLaskar); time in ka."))),
-                   shiny::radioButtons("pk_a_type", "Tie to", c("maxima" = "max", "minima" = "min"), inline = TRUE,
-                                       selected = S$min_or_max_a)),
-        shiny::div(class = "aaa-card", shiny::h4("Tie on"),
-                   shiny::radioButtons("tie_on", NULL, c("Raw proxy record" = "raw", "Cycle extracted from the proxy" = "cycle"),
-                                       selected = tie_on),
-                   shiny::conditionalPanel("input.tie_on == 'cycle'",
-                     shiny::tags$small("Taner filter (cycles per proxy unit)"),
-                     shiny::div(style = "display:flex; gap:6px;",
-                                shiny::numericInput("pflow", "flow", proxy_tan[1], min = 0, step = NA, width = "33%"),
-                                shiny::numericInput("pfhigh", "fhigh", proxy_tan[2], min = 0, step = NA, width = "33%"),
-                                shiny::numericInput("proll", "roll = 10^x", proxy_tan[3], step = 0.5, width = "33%"))),
-                   shiny::radioButtons("pk_p_type", "Peaks of the proxy", c("maxima" = "max", "minima" = "min"), inline = TRUE,
-                                       selected = S$min_or_max_p),
-                   shiny::checkboxInput("snap", "Snap proxy ties to peaks", tie_on == "cycle"),
-                   shiny::tags$small("Ties on the astronomical solution always sit on a maximum/minimum.")),
-        shiny::div(class = "aaa-card", shiny::h4("Tie points"),
-                   shiny::uiOutput("status"),
-                   shiny::div(btn("undo", "Undo"), btn("untie", "Untie selected"), btn("clear", "Clear all")),
-                   shiny::div(class = "aaa-row", shiny::tags$small("Selected tie point: move left / right")),
-                   shiny::div(shiny::tags$small("proxy "), btn("p_cl", "<<"), btn("p_fl", "<"), btn("p_fr", ">"), btn("p_cr", ">>")),
-                   shiny::div(shiny::tags$small("astro "), btn("a_cl", "<<"), btn("a_fl", "<"), btn("a_fr", ">"), btn("a_cr", ">>")),
-                   shiny::div(numbox("sel_p", "proxy position"), numbox("sel_a", "astro position (peak)")),
-                   shiny::div(numbox("sel_off", "proxy offset from nearest peak")),
-                   shiny::tableOutput("ties_table")),
-        shiny::div(class = "aaa-card", shiny::h4("Axes and reference frame"),
-                   shiny::checkboxInput("time_dir", "Time increases with increasing proxy value (depth/height)", time_dir),
-                   shiny::checkboxInput("flip_p", "Flip the proxy axis (right to left)", !time_dir),
-                   shiny::checkboxInput("flip_a", "Flip the astronomical axis (right to left)", FALSE)),
-        shiny::div(class = "aaa-card", shiny::h4("Tuned record"),
-                   shiny::checkboxInput("live", "Update while tying", TRUE),
-                   shiny::div(shiny::actionButton("tune", "Tune now", class = "btn-sm btn-primary")),
-                   shiny::tags$small("Taner filter of the tuned record (cycles per time unit)"),
-                   shiny::div(style = "display:flex; gap:6px;",
-                              shiny::numericInput("flow", "flow", tuned_tan[1], min = 0, step = NA, width = "33%"),
-                              shiny::numericInput("fhigh", "fhigh", tuned_tan[2], min = 0, step = NA, width = "33%"),
-                              shiny::numericInput("roll", "roll = 10^x", tuned_tan[3], step = 0.5, width = "33%")),
-                   shiny::checkboxInput("show_astro", "Show astronomical solution", TRUE),
-                   shiny::checkboxInput("show_sed", "Show sedimentation rate", TRUE)),
-        shiny::actionButton("done", "Done - return tie points", class = "btn-success", width = "100%")),
-      shiny::column(9,
-        shiny::tags$script(shiny::HTML(js)),
-        shiny::fluidRow(
-          shiny::column(6, shiny::sliderInput("win_p", "Proxy window", min = min(proxy$x), max = max(proxy$x), value = S$st$view_p,
-                                              step = signif(diff(range(proxy$x)) / 2000, 2), width = "100%", ticks = FALSE, sep = "")),
-          shiny::column(6, shiny::sliderInput("win_a", "Astronomical window", min = min(S$astro$x), max = max(S$astro$x),
-                                              value = S$st$view_a, step = signif(diff(range(S$astro$x)) / 2000, 2), width = "100%",
-                                              ticks = FALSE, sep = ""))),
-        shiny::fluidRow(
-          shiny::column(6, shiny::div(style = "display:flex; gap:6px; align-items:flex-end;",
-                                      shiny::numericInput("wp_from", "Proxy window: from (type)", signif(S$st$view_p[1], 8), step = NA, width = "50%"),
-                                      shiny::numericInput("wp_to", "to", signif(S$st$view_p[2], 8), step = NA, width = "50%"))),
-          shiny::column(6, shiny::div(style = "display:flex; gap:6px; align-items:flex-end;",
-                                      shiny::numericInput("wa_from", "Astronomical window: from (type)", signif(S$st$view_a[1], 8), step = NA, width = "50%"),
-                                      shiny::numericInput("wa_to", "to", signif(S$st$view_a[2], 8), step = NA, width = "50%")))),
-        shiny::div(btn("sync", "Sync astro window to the proxy ties"), btn("fit", "Show both records in full")),
-        shiny::div(class = "aaa-label", "Mouse: wheel = zoom the record under the pointer, Shift + drag (or right-drag) = move it left/right, plain drag from a tie point = move the tie point"),
-        shiny::div(class = "aaa-plot", shiny::plotOutput("plot_main", height = "880px", click = "click_main", dblclick = shiny::dblclickOpts("dbl_main", delay = 250),
-                       brush = shiny::brushOpts("brush_main", direction = "x", delay = 500, delayType = "debounce",
-                                                fill = "#3b6fe0", opacity = 0.15))),
-        shiny::uiOutput("sed_ui"))))
+      shiny::tags$head(shiny::tags$style(shiny::HTML(css))),
+      shiny::div(class = "aaa-title", "Tie a proxy record to an astronomical solution"),
+      shiny::div(class = "aaa-sub", "Click each record to tie (peaks or anywhere, see 'Snap to peaks'). Click a tie point to select it, ",
+          "then use the arrows, type a position, click elsewhere or drag over the record to move it. Double click to untie."),
+      shiny::fluidRow(
+          shiny::column(3,
+              shiny::div(class = "aaa-card", shiny::h4("Astronomical solution"),
+                  shiny::selectInput("a_src", NULL, choices = c(stats::setNames(paste0("prov:", names(S$astro_list)), names(S$astro_list)),
+                      "Metronome (cosine)" = "metro", .aaa_laskar_choices()), selected = paste0("prov:", names(S$astro_list)[1])),
+                  shiny::conditionalPanel("input.a_src == 'metro'",
+                      shiny::div(style = "display:flex; gap:6px;",
+                          shiny::numericInput("a_period", "period", 405, min = 0, step = NA, width = "50%"),
+                          shiny::numericInput("a_phase", "time of a maximum", 0, step = NA, width = "50%")),
+                      shiny::selectInput("a_preset", "preset period", c("405 (long eccentricity)" = 405, "100 (short eccentricity)" = 100,
+                          "41 (obliquity)" = 41, "23 (precession)" = 23, "19 (precession)" = 19))),
+                  shiny::div(style = "display:flex; gap:6px;",
+                      shiny::numericInput("a_from", "from (time)", signif(min(S$astro$x), 8), step = NA, width = "50%"),
+                      shiny::numericInput("a_to", "to (time)", signif(max(S$astro$x), 8), step = NA, width = "50%")),
+                  shiny::conditionalPanel("input.a_src.indexOf('laskar:') === 0",
+                      shiny::actionButton("a_load", "Download and load", class = "btn-sm btn-primary"),
+                      shiny::div(shiny::tags$small("Downloads the solution over the internet (astrochron::getLaskar); time in ka."))),
+                  shiny::radioButtons("pk_a_type", "Tie to", c("maxima" = "max", "minima" = "min"), inline = TRUE,
+                      selected = S$min_or_max_a)),
+              shiny::div(class = "aaa-card", shiny::h4("Tie on"),
+                  shiny::radioButtons("tie_on", NULL, c("Raw proxy record" = "raw", "Cycle extracted from the proxy" = "cycle"),
+                      selected = tie_on),
+                  shiny::conditionalPanel("input.tie_on == 'cycle'",
+                      shiny::tags$small("Taner filter (cycles per proxy unit)"),
+                      shiny::div(style = "display:flex; gap:6px;",
+                          shiny::numericInput("pflow", "flow", proxy_tan[1], min = 0, step = NA, width = "33%"),
+                          shiny::numericInput("pfhigh", "fhigh", proxy_tan[2], min = 0, step = NA, width = "33%"),
+                          shiny::numericInput("proll", "roll = 10^x", proxy_tan[3], step = 0.5, width = "33%"))),
+                  shiny::radioButtons("pk_p_type", "Peaks of the proxy", c("maxima" = "max", "minima" = "min"), inline = TRUE,
+                      selected = S$min_or_max_p),
+                  shiny::checkboxInput("snap", "Snap proxy ties to peaks", tie_on == "cycle"),
+                  shiny::tags$small("Ties on the astronomical solution always sit on a maximum/minimum.")),
+              shiny::div(class = "aaa-card", shiny::h4("Tie points"),
+                  shiny::uiOutput("status"),
+                  shiny::div(btn("undo", "Undo"), btn("untie", "Untie selected"), btn("clear", "Clear all")),
+                  shiny::div(class = "aaa-row", shiny::tags$small("Selected tie point: move left / right")),
+                  shiny::div(shiny::tags$small("proxy "), btn("p_cl", "<<"), btn("p_fl", "<"), btn("p_fr", ">"), btn("p_cr", ">>")),
+                  shiny::div(shiny::tags$small("astro "), btn("a_cl", "<<"), btn("a_fl", "<"), btn("a_fr", ">"), btn("a_cr", ">>")),
+                  shiny::div(numbox("sel_p", "proxy position"), numbox("sel_a", "astro position (peak)")),
+                  shiny::div(numbox("sel_off", "proxy offset from nearest peak")),
+                  shiny::tableOutput("ties_table")),
+              shiny::div(class = "aaa-card", shiny::h4("Axes and reference frame"),
+                  shiny::checkboxInput("time_dir", "Time increases with increasing proxy value (depth/height)", time_dir),
+                  shiny::checkboxInput("flip_p", "Flip the proxy axis (right to left)", !time_dir),
+                  shiny::checkboxInput("flip_a", "Flip the astronomical axis (right to left)", FALSE)),
+              shiny::div(class = "aaa-card", shiny::h4("Tuned record"),
+                  shiny::checkboxInput("live", "Update while tying", TRUE),
+                  shiny::div(shiny::actionButton("tune", "Tune now", class = "btn-sm btn-primary")),
+                  shiny::tags$small("Taner filter of the tuned record (cycles per time unit)"),
+                  shiny::div(style = "display:flex; gap:6px;",
+                      shiny::numericInput("flow", "flow", tuned_tan[1], min = 0, step = NA, width = "33%"),
+                      shiny::numericInput("fhigh", "fhigh", tuned_tan[2], min = 0, step = NA, width = "33%"),
+                      shiny::numericInput("roll", "roll = 10^x", tuned_tan[3], step = 0.5, width = "33%")),
+                  shiny::checkboxInput("show_astro", "Show astronomical solution", TRUE),
+                  shiny::checkboxInput("show_sed", "Show sedimentation rate", TRUE)),
+              shiny::actionButton("done", "Done - return tie points", class = "btn-success", width = "100%")),
+          shiny::column(9,
+              shiny::tags$script(shiny::HTML(js)),
+              shiny::fluidRow(
+                  shiny::column(6, shiny::sliderInput("win_p", "Proxy window", min = min(proxy$x), max = max(proxy$x), value = S$st$view_p,
+                      step = signif(diff(range(proxy$x)) / 2000, 2), width = "100%", ticks = FALSE, sep = "")),
+                  shiny::column(6, shiny::sliderInput("win_a", "Astronomical window", min = min(S$astro$x), max = max(S$astro$x),
+                      value = S$st$view_a, step = signif(diff(range(S$astro$x)) / 2000, 2), width = "100%",
+                      ticks = FALSE, sep = ""))),
+              shiny::fluidRow(
+                  shiny::column(6, shiny::div(style = "display:flex; gap:6px; align-items:flex-end;",
+                      shiny::numericInput("wp_from", "Proxy window: from (type)", signif(S$st$view_p[1], 8), step = NA, width = "50%"),
+                      shiny::numericInput("wp_to", "to", signif(S$st$view_p[2], 8), step = NA, width = "50%"))),
+                  shiny::column(6, shiny::div(style = "display:flex; gap:6px; align-items:flex-end;",
+                      shiny::numericInput("wa_from", "Astronomical window: from (type)", signif(S$st$view_a[1], 8), step = NA, width = "50%"),
+                      shiny::numericInput("wa_to", "to", signif(S$st$view_a[2], 8), step = NA, width = "50%")))),
+              shiny::div(btn("sync", "Sync astro window to the proxy ties"), btn("fit", "Show both records in full")),
+              shiny::div(class = "aaa-label", "Mouse: wheel = zoom the record under the pointer, Shift + drag (or right-drag) = move it left/right, plain drag from a tie point = move the tie point"),
+              shiny::div(class = "aaa-plot", shiny::plotOutput("plot_main", height = "880px", click = "click_main", dblclick = shiny::dblclickOpts("dbl_main", delay = 250),
+                  brush = shiny::brushOpts("brush_main", direction = "x", delay = 500, delayType = "debounce",
+                      fill = "#3b6fe0", opacity = 0.15))),
+              shiny::uiOutput("sed_ui"))))
 
   server <- function(input, output, session) {
     s0 <- S$st
     # reference frame: does time increase with the proxy value (tuning and the order check), and how are the axes drawn
-    td <- function() if (is.null(input$time_dir)) time_dir else isTRUE(input$time_dir)
-    flip_p <- function() if (is.null(input$flip_p)) !time_dir else isTRUE(input$flip_p)
+    td <- function() if (is.null(input$time_dir)) { time_dir } else { isTRUE(input$time_dir) }
+    flip_p <- function() if (is.null(input$flip_p)) { !time_dir } else { isTRUE(input$flip_p) }
     flip_a <- function() isTRUE(input$flip_a)
     rv <- shiny::reactiveValues(ties = s0$ties, pending = NULL, sel = NULL, history = list(),
-                                view_p = s0$view_p, view_a = s0$view_a)
+        view_p = s0$view_p, view_a = s0$view_a)
     state <- function() list(ties = rv$ties, pending = rv$pending, sel = rv$sel)
     set_state <- function(s, push = TRUE) {
-      if (push) rv$history <- c(rv$history, list(list(ties = rv$ties, pending = rv$pending, sel = rv$sel)))
+      if (push) {
+        rv$history <- c(rv$history, list(list(ties = rv$ties, pending = rv$pending, sel = rv$sel)))
+      }
       rv$ties <- s$ties
       rv$pending <- s$pending
       rv$sel <- s$sel
     }
-    # ---- the astronomical target: provided solution, metronome or Laskar solution, its time interval and its peaks
+    # The astronomical target: provided solution, metronome or Laskar solution, its time interval and its peaks
     raw_a <- shiny::reactiveVal(S$astro_list[[1]])
     lcache <- new.env()
     getter <- function(sol) {
-      if (is.null(lcache[[sol]])) lcache[[sol]] <- astrochron::getLaskar(sol, verbose = FALSE)
+      if (is.null(lcache[[sol]])) {
+        lcache[[sol]] <- astrochron::getLaskar(sol, verbose = FALSE)
+      }
       lcache[[sol]]
     }
     astro_r <- shiny::reactive({
       d <- raw_a()
       lo <- input$a_from
       hi <- input$a_to
-      if (is.null(lo) || is.null(hi) || !is.finite(lo) || !is.finite(hi)) return(d)
+      if (is.null(lo) || is.null(hi) || !is.finite(lo) || !is.finite(hi)) {
+        return(d)
+      }
       s <- d[d$x >= lo & d$x <= hi, ]
-      if (nrow(s) < 20) d else s
+      if (nrow(s) < 20) {
+        d
+      } else {
+        s
+      }
     })
-    type_a <- function() if (is.null(input$pk_a_type)) S$min_or_max_a else input$pk_a_type
-    type_p <- function() if (is.null(input$pk_p_type)) S$min_or_max_p else input$pk_p_type
+    type_a <- function() if (is.null(input$pk_a_type)) { S$min_or_max_a } else { input$pk_a_type }
+    type_p <- function() if (is.null(input$pk_p_type)) { S$min_or_max_p } else { input$pk_p_type }
     pka <- shiny::reactive(.aaa_peaks(astro_r(), type_a(), S$pts))
     pkp <- shiny::reactive(.aaa_peaks(proxy, type_p(), S$pts))
     ra <- function() range(astro_r()$x)
@@ -729,11 +821,13 @@ astro_anchor_app <- function(astro_solution = NULL,
     }
     build_metronome <- function() {
       d <- tryCatch(.aaa_metronome(input$a_period, input$a_phase, input$a_from, input$a_to),
-                    error = function(e) {
-                      shiny::showNotification(paste("Metronome:", conditionMessage(e)), type = "error")
-                      NULL
-                    })
-      if (!is.null(d)) raw_a(d)
+          error = function(e) {
+            shiny::showNotification(paste("Metronome:", conditionMessage(e)), type = "error")
+            NULL
+          })
+      if (!is.null(d)) {
+        raw_a(d)
+      }
     }
     src_changed <- FALSE
     shiny::observeEvent(input$a_src, {
@@ -748,20 +842,24 @@ astro_anchor_app <- function(astro_solution = NULL,
       }
     }, ignoreInit = TRUE)
     shiny::observeEvent(list(input$a_period, input$a_phase, input$a_from, input$a_to), {
-      if (identical(input$a_src, "metro")) build_metronome()
+      if (identical(input$a_src, "metro")) {
+        build_metronome()
+      }
     }, ignoreInit = TRUE)
     shiny::observeEvent(input$a_preset, shiny::updateNumericInput(session, "a_period", value = as.numeric(input$a_preset)),
-                        ignoreInit = TRUE)
+        ignoreInit = TRUE)
     shiny::observeEvent(input$a_load, {
       key <- input$a_src
       shiny::withProgress(message = "Downloading / computing the solution ...", value = 0.5, {
         d <- tryCatch(.aaa_laskar(key, input$a_from, input$a_to, getter),
-                      error = function(e) {
-                        shiny::showNotification(paste("Could not load the solution:", conditionMessage(e)), type = "error", duration = 10)
-                        NULL
-                      })
+            error = function(e) {
+              shiny::showNotification(paste("Could not load the solution:", conditionMessage(e)), type = "error", duration = 10)
+              NULL
+            })
       })
-      if (!is.null(d) && nrow(d) > 20) raw_a(d)
+      if (!is.null(d) && nrow(d) > 20) {
+        raw_a(d)
+      }
     })
     # a new kind of target removes the tie points; changing only the metronome or the interval moves the astronomical side
     # of the tie points to the nearest peaks when that keeps them apart and inside the new interval
@@ -770,7 +868,10 @@ astro_anchor_app <- function(astro_solution = NULL,
       if (nrow(rv$ties) > 0) {
         s <- state()
         pk <- .aaa_peaks(d, type_a(), S$pts)
-        new_a <- vapply(s$ties$a, function(v) pk$x[which.min(abs(pk$x - v))], 1)
+        new_a <- numeric(length(s$ties$a))
+        for (i in seq_along(s$ties$a)) {
+          new_a[i] <- pk$x[which.min(abs(pk$x - s$ties$a[i]))]
+        }
         if (!src_changed && all(s$ties$a >= min(d$x) & s$ties$a <= max(d$x)) && !anyDuplicated(new_a)) {
           s$ties$a <- new_a
           shiny::showNotification("Astronomical tie points moved to the nearest peaks of the new target.", duration = 5)
@@ -793,7 +894,11 @@ astro_anchor_app <- function(astro_solution = NULL,
       if (nrow(rv$ties) > 0) {
         s <- state()
         pk <- pka()
-        s$ties$a <- vapply(s$ties$a, function(v) pk$x[which.min(abs(pk$x - v))], 1)
+        new_a <- numeric(length(s$ties$a))
+        for (i in seq_along(s$ties$a)) {
+          new_a[i] <- pk$x[which.min(abs(pk$x - s$ties$a[i]))]
+        }
+        s$ties$a <- new_a
         set_state(s)
       }
     }, ignoreInit = TRUE)
@@ -816,27 +921,43 @@ astro_anchor_app <- function(astro_solution = NULL,
     shiny::observeEvent(input$win_p, set_window("p", input$win_p[1], input$win_p[2]))
     shiny::observeEvent(input$win_a, set_window("a", input$win_a[1], input$win_a[2]))
     set_window <- function(which, lo, hi) {
-      if (is.null(lo) || is.null(hi) || !is.finite(lo) || !is.finite(hi) || hi <= lo) return()
-      lim <- if (which == "p") range(proxy$x) else ra()
+      if (is.null(lo) || is.null(hi) || !is.finite(lo) || !is.finite(hi) || hi <= lo) {
+        return()
+      }
+      lim <- if (which == "p") { range(proxy$x) } else { ra() }
       v <- c(max(lo, lim[1]), min(hi, lim[2]))
-      if (v[2] <= v[1]) return()
-      cur <- if (which == "p") shiny::isolate(rv$view_p) else shiny::isolate(rv$view_a)
-      if (close_to(v, cur)) return()
-      if (which == "p") rv$view_p <- v else rv$view_a <- v
+      if (v[2] <= v[1]) {
+        return()
+      }
+      cur <- if (which == "p") { shiny::isolate(rv$view_p) } else { shiny::isolate(rv$view_a) }
+      if (close_to(v, cur)) {
+        return()
+      }
+      if (which == "p") {
+        rv$view_p <- v
+      } else {
+        rv$view_a <- v
+      }
     }
     shiny::observeEvent(list(input$wp_from, input$wp_to), set_window("p", input$wp_from, input$wp_to), ignoreInit = TRUE)
     shiny::observeEvent(list(input$wa_from, input$wa_to), set_window("a", input$wa_from, input$wa_to), ignoreInit = TRUE)
     panel_for_y <- function(y) {          # the record whose box (plus margins) holds a vertical position
       b <- .aaa_boxes()
-      for (nm in c("proxy", "astro")) if (y >= b[[nm]][3] - 0.07 && y <= b[[nm]][4] + 0.02) return(nm)
+      for (nm in c("proxy", "astro")) {
+        if (y >= b[[nm]][3] - 0.07 && y <= b[[nm]][4] + 0.02) {
+          return(nm)
+        }
+      }
       NULL
     }
     shiny::observeEvent(input$wheel_main, {
       w <- input$wheel_main
       panel <- panel_for_y(w$y)
-      if (is.null(panel)) return()
+      if (is.null(panel)) {
+        return()
+      }
       b <- .aaa_boxes()
-      f <- if (w$dy > 0) 1.25 else 0.8
+      f <- if (w$dy > 0) { 1.25 } else { 0.8 }
       if (panel == "proxy") {
         xc <- .aaa_from_ndc(b$proxy, rv$view_p, flip_p(), w$x)
         rv$view_p <- .aaa_zoom_at(rv$view_p, xc, f, range(proxy$x))
@@ -848,15 +969,17 @@ astro_anchor_app <- function(astro_solution = NULL,
     shiny::observeEvent(input$pan_main, {
       m <- input$pan_main
       panel <- panel_for_y(m$y)
-      if (is.null(panel)) return()
+      if (is.null(panel)) {
+        return()
+      }
       b <- .aaa_boxes()
       if (panel == "proxy") {
         w <- diff(rv$view_p)
-        shift <- -m$dx / (b$proxy[2] - b$proxy[1]) * w * (if (flip_p()) -1 else 1)
+        shift <- -m$dx / (b$proxy[2] - b$proxy[1]) * w * (if (flip_p()) { -1 } else { 1 })
         rv$view_p <- .aai_fix_view(rv$view_p + shift, range(proxy$x), w)
       } else {
         w <- diff(rv$view_a)
-        rv$view_a <- .aai_fix_view(rv$view_a - m$dx / (b$astro[2] - b$astro[1]) * w * (if (flip_a()) -1 else 1), ra(), w)
+        rv$view_a <- .aai_fix_view(rv$view_a - m$dx / (b$astro[2] - b$astro[1]) * w * (if (flip_a()) { -1 } else { 1 }), ra(), w)
       }
     })
 
@@ -864,58 +987,76 @@ astro_anchor_app <- function(astro_solution = NULL,
 
     # what is shown and tied on the proxy side: the raw record or a cycle extracted from it
     cyc <- shiny::reactive({
-      if (!identical(input$tie_on, "cycle")) return(NULL)
+      if (!identical(input$tie_on, "cycle")) {
+        return(NULL)
+      }
       tryCatch(list(dat = .aaa_taner(proxy, input$pflow, input$pfhigh, input$proll)),
-               error = function(e) list(error = conditionMessage(e)))
+          error = function(e) list(error = conditionMessage(e)))
     })
     rec_p <- shiny::reactive({
       cy <- cyc()
-      if (is.null(cy) || !is.null(cy$error)) return(list(dat = proxy, cands = pkp()))
+      if (is.null(cy) || !is.null(cy$error)) {
+        return(list(dat = proxy, cands = pkp()))
+      }
       list(dat = cy$dat, cands = .aaa_peaks(cy$dat, type_p(), S$pts))
     })
-    snap <- function(panel = "proxy") if (panel == "astro") TRUE else isTRUE(input$snap)   # astro ties: always on peaks
+    snap <- function(panel = "proxy") if (panel == "astro") { TRUE } else { isTRUE(input$snap) }   # astro ties: always on peaks
     shiny::observeEvent(input$tie_on, shiny::updateCheckboxInput(session, "snap", value = identical(input$tie_on, "cycle")),
-                        ignoreInit = TRUE)
+        ignoreInit = TRUE)
 
     geo <- function() {
       b <- .aaa_boxes()
       list(proxy = list(box = b$proxy, view = rv$view_p, rev = flip_p()),
-           astro = list(box = b$astro, view = rv$view_a, rev = flip_a()))
+          astro = list(box = b$astro, view = rv$view_a, rev = flip_a()))
     }
-    cands_of <- function(panel) if (panel == "proxy") rec_p()$cands else pka()
+    cands_of <- function(panel) if (panel == "proxy") { rec_p()$cands } else { pka() }
     # map a plot position (normalised device coordinates) to a record and a data value
     locate <- function(xn, yn) {
       panel <- .aaa_panel_at(yn)
-      if (is.null(panel)) return(NULL)
+      if (is.null(panel)) {
+        return(NULL)
+      }
       g <- geo()[[panel]]
       list(panel = panel, x = .aaa_from_ndc(g$box, g$view, g$rev, xn), tol = 0.025 * diff(g$view))
     }
     last_brush <- 0
     shiny::observeEvent(input$click_main, {
-      if (as.numeric(Sys.time()) - last_brush < 1) return()      # the mouse-up of a drag is not a click
+      if (as.numeric(Sys.time()) - last_brush < 1) {
+        return()
+      }      # the mouse-up of a drag is not a click
       h <- locate(input$click_main$x, input$click_main$y)
-      if (!is.null(h)) set_state(.aaa_click(shiny::isolate(state()), h$panel, h$x, cands_of(h$panel), h$tol, snap(h$panel)))
+      if (!is.null(h)) {
+        set_state(.aaa_click(shiny::isolate(state()), h$panel, h$x, cands_of(h$panel), h$tol, snap(h$panel)))
+      }
     })
     shiny::observeEvent(input$dbl_main, {
       h <- locate(input$dbl_main$x, input$dbl_main$y)
-      if (is.null(h)) return()
-      if (length(.aaa_near(state(), h$panel, h$x, h$tol)) > 0) set_state(.aaa_untie(state(), h$panel, h$x, h$tol))
+      if (is.null(h)) {
+        return()
+      }
+      if (length(.aaa_near(state(), h$panel, h$x, h$tol)) > 0) {
+        set_state(.aaa_untie(state(), h$panel, h$x, h$tol))
+      }
     })
     shiny::observeEvent(input$brush_main, {
       b <- input$brush_main
-      if (is.null(b)) return()
+      if (is.null(b)) {
+        return()
+      }
       last_brush <<- as.numeric(Sys.time())
       h0 <- locate(b$xmin, (b$ymin + b$ymax) / 2)
       h1 <- locate(b$xmax, (b$ymin + b$ymax) / 2)
       if (!is.null(h0) && !is.null(h1) && nrow(rv$ties) > 0) {
         s_old <- state()
-        pos <- s_old$ties[[if (h0$panel == "proxy") "p" else "a"]]
+        pos <- s_old$ties[[if (h0$panel == "proxy") { "p" } else { "a" }]]
         # the tie point nearest to either edge is where the drag started
         start_low <- min(abs(pos - h0$x)) <= min(abs(pos - h1$x))
-        x_from <- if (start_low) h0$x else h1$x
-        x_to <- if (start_low) h1$x else h0$x
+        x_from <- if (start_low) { h0$x } else { h1$x }
+        x_to <- if (start_low) { h1$x } else { h0$x }
         new <- .aaa_drag(s_old, h0$panel, x_from, x_to, cands_of(h0$panel), 3 * h0$tol, snap(h0$panel))
-        if (!identical(new$ties, s_old$ties)) set_state(new)
+        if (!identical(new$ties, s_old$ties)) {
+          set_state(new)
+        }
       }
       session$resetBrush("brush_main")
     })
@@ -946,10 +1087,12 @@ astro_anchor_app <- function(astro_solution = NULL,
     })
     # arrows: fine and coarse steps (or the next peak when snapping)
     nudge <- function(panel, dir, coarse) {
-      v <- if (panel == "proxy") rv$view_p else rv$view_a
-      dx <- dir * diff(v) / (if (coarse) 40 else 400)
+      v <- if (panel == "proxy") { rv$view_p } else { rv$view_a }
+      dx <- dir * diff(v) / (if (coarse) { 40 } else { 400 })
       s <- .aaa_nudge(state(), panel, dx, cands_of(panel), snap(panel))
-      if (!identical(s$ties, rv$ties)) set_state(s)
+      if (!identical(s$ties, rv$ties)) {
+        set_state(s)
+      }
     }
     shiny::observeEvent(input$p_cl, nudge("proxy", -1, TRUE))
     shiny::observeEvent(input$p_fl, nudge("proxy", -1, FALSE))
@@ -962,7 +1105,11 @@ astro_anchor_app <- function(astro_solution = NULL,
     # typed positions of the selected tie point (the astronomical one snaps to the nearest peak)
     nearest_peak <- function(x) {
       cd <- rec_p()$cands
-      if (nrow(cd) == 0) NA_real_ else cd$x[which.min(abs(cd$x - x))]
+      if (nrow(cd) == 0) {
+        NA_real_
+      } else {
+        cd$x[which.min(abs(cd$x - x))]
+      }
     }
     # the offset is measured from the peak that was nearest when the tie point was selected or moved otherwise
     anchor <- NA_real_
@@ -970,9 +1117,13 @@ astro_anchor_app <- function(astro_solution = NULL,
     shiny::observe({
       k <- rv$sel
       if (is.null(k) || k > nrow(rv$ties)) {
-        for (id in c("sel_p", "sel_a", "sel_off")) shiny::updateNumericInput(session, id, value = NA)
+        for (id in c("sel_p", "sel_a", "sel_off")) {
+          shiny::updateNumericInput(session, id, value = NA)
+        }
       } else {
-        if (!keep_anchor || !is.finite(anchor)) anchor <<- nearest_peak(rv$ties$p[k])
+        if (!keep_anchor || !is.finite(anchor)) {
+          anchor <<- nearest_peak(rv$ties$p[k])
+        }
         keep_anchor <<- FALSE
         shiny::updateNumericInput(session, "sel_p", value = signif(rv$ties$p[k], 8))
         shiny::updateNumericInput(session, "sel_a", value = signif(rv$ties$a[k], 8))
@@ -981,13 +1132,19 @@ astro_anchor_app <- function(astro_solution = NULL,
     })
     typed <- function(col, v, offset = FALSE) {
       k <- shiny::isolate(rv$sel)
-      if (is.null(k) || is.null(v) || !is.finite(v)) return()
+      if (is.null(k) || is.null(v) || !is.finite(v)) {
+        return()
+      }
       if (offset) {
-        if (!is.finite(anchor)) anchor <<- nearest_peak(rv$ties$p[k])
+        if (!is.finite(anchor)) {
+          anchor <<- nearest_peak(rv$ties$p[k])
+        }
         v <- anchor + v
         keep_anchor <<- TRUE
       }
-      if (col == "a") v <- pka()$x[which.min(abs(pka()$x - v))]
+      if (col == "a") {
+        v <- pka()$x[which.min(abs(pka()$x - v))]
+      }
       if (abs(v - rv$ties[[col]][k]) > 1e-7 * max(1, abs(v))) {
         s <- state()
         s$ties[k, col] <- v
@@ -1004,7 +1161,9 @@ astro_anchor_app <- function(astro_solution = NULL,
       rv$view_a <- ra()
     })
     shiny::observeEvent(input$sync, {   # move the astronomical window to the partners of the tie points in the proxy window
-      if (nrow(rv$ties) == 0) return()
+      if (nrow(rv$ties) == 0) {
+        return()
+      }
       in_p <- rv$ties$p >= rv$view_p[1] & rv$ties$p <= rv$view_p[2]
       in_a <- rv$ties$a >= rv$view_a[1] & rv$ties$a <= rv$view_a[2]
       if (any(in_p)) {
@@ -1020,44 +1179,56 @@ astro_anchor_app <- function(astro_solution = NULL,
     tie_d <- shiny::debounce(shiny::reactive(rv$ties), 400)
     tuned <- shiny::reactive({
       input$tune
-      ties <- if (isTRUE(input$live)) tie_d() else shiny::isolate(rv$ties)
+      ties <- if (isTRUE(input$live)) { tie_d() } else { shiny::isolate(rv$ties) }
       o <- .aaa_output(ties, proxy, astro_r())
       tryCatch(.aaa_tune(proxy, astro_r(), pka(), o, td(), input$flow, input$fhigh, input$roll, sedrate_factor),
-               error = function(e) list(error = conditionMessage(e)))
+          error = function(e) list(error = conditionMessage(e)))
     })
     output$plot_main <- shiny::renderPlot({
       b <- .aaa_boxes()
       s <- state()
       fl <- flag()
       rp_ <- rec_p()
-      lab <- if (!is.null(cyc()) && is.null(cyc()$error)) "proxy cycle" else "proxy"
+      lab <- if (!is.null(cyc()) && is.null(cyc()$error)) { "proxy cycle" } else { "proxy" }
       .aaa_draw_record(rp_$dat, rp_$cands, rv$view_p, s, "proxy", fl, flip_p(), lab, b$proxy, FALSE, snap())
       .aaa_draw_record(astro_r(), pka(), rv$view_a, s, "astro", fl, flip_a(), "astronomical solution", b$astro, TRUE, TRUE)
       .aaa_draw_tuned(tuned(), astro_r(), s, pka(), isTRUE(input$show_astro), b$tuned)
       .aaa_draw_links(s, rv$view_p, rv$view_a, flip_p(), fl, flip_a())   # last: its coordinates are the click coordinates
     })
     output$sed_ui <- shiny::renderUI({
-      if (!isTRUE(input$show_sed)) return(NULL)
+      if (!isTRUE(input$show_sed)) {
+        return(NULL)
+      }
       shiny::tagList(shiny::div(class = "aaa-label", "sedimentation rate between the tie points"),
-                     shiny::div(class = "aaa-plot", shiny::plotOutput("plot_s", height = "150px")))
+          shiny::div(class = "aaa-plot", shiny::plotOutput("plot_s", height = "150px")))
     })
     output$plot_s <- shiny::renderPlot(.aaa_draw_sedrate(tuned()))
 
     output$status <- shiny::renderUI({
       n <- nrow(rv$ties)
       bad <- sum(flag())
-      txt <- sprintf("%d tie point%s", n, if (n == 1) "" else "s")
-      if (bad > 0) txt <- paste0(txt, sprintf(", %d in the wrong order (crossed)", bad))
-      if (!is.null(cyc()$error)) txt <- paste0(txt, " - filter: ", cyc()$error)
-      if (!is.null(rv$pending)) txt <- paste0(txt, sprintf(" - now click the %s",
-                                                           if (rv$pending$panel == "proxy") "astronomical solution" else "proxy record"))
-      if (!is.null(rv$sel)) txt <- paste0(txt, sprintf(" - tie %d selected: move it or click a free position",
-                                                       rank(rv$ties$p, ties.method = "first")[rv$sel]))
+      txt <- sprintf("%d tie point%s", n, if (n == 1) { "" } else { "s" })
+      if (bad > 0) {
+        txt <- paste0(txt, sprintf(", %d in the wrong order (crossed)", bad))
+      }
+      if (!is.null(cyc()$error)) {
+        txt <- paste0(txt, " - filter: ", cyc()$error)
+      }
+      if (!is.null(rv$pending)) {
+        txt <- paste0(txt, sprintf(" - now click the %s",
+            if (rv$pending$panel == "proxy") { "astronomical solution" } else { "proxy record" }))
+      }
+      if (!is.null(rv$sel)) {
+        txt <- paste0(txt, sprintf(" - tie %d selected: move it or click a free position",
+            rank(rv$ties$p, ties.method = "first")[rv$sel]))
+      }
       shiny::div(class = "aaa-status", txt)
     })
     output$ties_table <- shiny::renderTable({
       o <- out()
-      if (nrow(o) == 0) return(data.frame(`#` = integer(0), proxy = numeric(0), time = numeric(0), check.names = FALSE))
+      if (nrow(o) == 0) {
+        return(data.frame(`#` = integer(0), proxy = numeric(0), time = numeric(0), check.names = FALSE))
+      }
       data.frame(`#` = seq_len(nrow(o)), proxy = signif(o$data_x, 6), time = signif(o$insolation_x, 6), check.names = FALSE)
     }, digits = 6, spacing = "xs", class = "aaa-ties")
 

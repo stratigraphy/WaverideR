@@ -18,9 +18,25 @@ win_timeOpt(
   roll = 10^6,
   targetE = c(405.7, 130.7, 123.8, 98.9, 94.9),
   targetP = c(20.9, 19.9, 17.1, 17.2),
+  targetO = c(53.6, 41, 39.6),
+  targetOmod = 173,
   detrend = TRUE,
   normalize = TRUE,
   linLog = 1,
+  window_mode = c("depth", "time"),
+  window_duration = 1500,
+  step = 1,
+  centres = NULL,
+  bias_correction = c("null", "none"),
+  noise_model = c("auto", "ar1", "powerlaw"),
+  n_null = 50,
+  null_rho_step = 0.05,
+  null_beta_step = 0.1,
+  null_smooth = 2,
+  alpha = 0.05,
+  min_samples = 3,
+  min_cycles = 2,
+  null_cache = NULL,
   run_multicore = FALSE,
   n_cores = NULL,
   verbose = FALSE,
@@ -28,83 +44,221 @@ win_timeOpt(
 )
 }
 \arguments{
-\item{data}{Input data set  should consist of a matrix with 2 columns with the
-first column being depth and the second column being a proxy \code{Default=NULL}}
+\item{data}{Record to analyse (matrix or data frame with two columns: depth in metres in column 1, proxy value in
+column 2), evenly sampled (the depth steps must be equal within 0.1 percent; use e.g. \code{linterp} of
+'astrochron' to resample). Must be given (the \code{NULL} default fails). \code{Default=NULL}.}
 
-\item{window_size}{size of the moving window in metres \code{Default=15}}
+\item{window_size}{Thickness of the moving window in metres (numeric, > 0), only used with
+\code{window_mode = "depth"}. \code{Default=10}.}
 
-\item{sedmin}{Minimum sedimentation rate for investigation (cm/ka). \code{Default=0.1}}
+\item{sedmin}{Lowest sedimentation rate of the grid (numeric, > 0, in cm/kyr). \code{Default=0.5}.}
 
-\item{sedmax}{Maximum sedimentation rate for investigation (cm/ka). \code{Default=1}}
+\item{sedmax}{Highest sedimentation rate of the grid (numeric, > \code{sedmin}, in cm/kyr). \code{Default=2}.}
 
-\item{numsed}{Number of sedimentation rates to investigate
-in optimisation grid. \code{Default=100}}
+\item{numsed}{Number of sedimentation rates of the grid between \code{sedmin} and \code{sedmax} (integer, >= 1;
+1 tests \code{sedmin} only). \code{Default=100}.}
 
-\item{limit}{Limit evaluated sedimentation rates to region in which full
-target signal can be recovered? .\code{Default=FALSE}}
+\item{limit}{Limit the evaluated sedimentation rates to the range in which the full target signal can be
+recovered (logical, TRUE or FALSE; passed to \code{\link[astrochron]{timeOpt}}). Only used with
+\code{window_mode = "depth"}; the untestable mask (\code{min_samples}, \code{min_cycles}) is usually the better
+choice. \code{Default=FALSE}.}
 
-\item{fit}{Test for (1) precession amplitude modulation or (2) short
-eccentricity amplitude modulation? \code{Default=2}}
+\item{fit}{Which amplitude modulation is tested (numeric, one of 1, 2, 3): 1 precession modulated by eccentricity,
+2 short eccentricity modulated by the 405-kyr cycle, 3 obliquity modulated by the obliquity modulation periods
+(\code{targetO}, \code{targetOmod}; see Details). \code{Default=2}.}
 
-\item{fitModPwr}{Include the modulation periods
-in the spectral fit? \code{Default=TRUE}}
+\item{fitModPwr}{Include the modulation periods in the spectral power fit (logical, TRUE or FALSE; passed to
+\code{\link[astrochron]{timeOpt}}; not used for \code{fit = 3}). \code{Default=TRUE}.}
 
-\item{flow}{Low frequency cut-off for
-Taner bandpass (half power point in cycles/ka) \code{Default=TRUE}}
+\item{flow}{Low-frequency cut-off of the Taner bandpass filter that isolates the carrier (numeric, half power point
+in cycles/kyr). \code{NULL} uses the default of \code{\link[astrochron]{timeOpt}} for \code{fit = 1} and
+\code{fit = 2}, and 1/46 for \code{fit = 3}. \code{Default=NULL}.}
 
-\item{fhigh}{High frequency cut-off for
-Taner bandpass (half power point; in cycles/ka) \code{Default=NULL}}
+\item{fhigh}{High-frequency cut-off of the Taner bandpass filter (numeric, half power point in cycles/kyr).
+\code{NULL} uses the default of \code{\link[astrochron]{timeOpt}} for \code{fit = 1} and \code{fit = 2}, and 1/36
+for \code{fit = 3}. \code{Default=NULL}.}
 
-\item{roll}{Taner filter roll-off rate, in dB/octave. \code{Default=c(10^6)}}
+\item{roll}{Roll-off rate of the Taner filter (numeric, > 0, in dB/octave); larger values give steeper filter
+edges. \code{Default=10^6}.}
 
-\item{targetE}{A vector of eccentricity periods to evaluate (in ka).
-These must be in order of decreasing period, with a first value of 405 ka.
-\code{Default= "c(405.7, 130.7, 123.8, 98.9, 94.9)"}}
+\item{targetE}{Eccentricity periods to evaluate (numeric vector, in kyr), in order of decreasing period with 405
+kyr (or 405.7) first. \code{Default=c(405.7, 130.7, 123.8, 98.9, 94.9)}.}
 
-\item{targetP}{A vector of precession periods to evaluate (in ka).
-These must be in order of decreasing period. \code{Default=c(20.9, 19.9, 17.1, 17.2)}}
+\item{targetP}{Precession periods to evaluate (numeric vector, in kyr), in order of decreasing period; used for
+\code{fit = 1} and in the spectral fit. \code{Default=c(20.9, 19.9, 17.1, 17.2)}.}
 
-\item{detrend}{Remove linear trend from data series? \code{Default=TRUE}}
+\item{targetO}{Obliquity carrier periods (numeric vector, in kyr), only used for \code{fit = 3}.
+\code{Default=c(53.6, 41.0, 39.6)}.}
 
-\item{normalize}{normalize the r2 curves of individual timeOpt runs \code{Default=TRUE}}
+\item{targetOmod}{Obliquity modulation periods (numeric vector, in kyr) used in the envelope fit of \code{fit = 3}.
+\code{Default=173}.}
 
-\item{linLog}{Use linear or logarithmic scaling for sedimentation
-rate grid spacing? (0=linear, 1=log; default value is 1) \code{Default=1}}
+\item{detrend}{Remove a linear trend from every window before the analysis (logical, TRUE or FALSE); also used for
+the noise model fit. \code{Default=TRUE}.}
 
-\item{run_multicore}{Run function using multiple cores \code{Default=FALSE}}
+\item{normalize}{Divide the raw r-squared curve of every window by its maximum, so that it peaks at 1 (logical,
+TRUE or FALSE). The bias-corrected z-scores are not normalised. \code{Default=TRUE}.}
 
-\item{n_cores}{Number of cores used when `run_multicore = TRUE` (`Default = NULL`: an
-automatic, safe number: physical cores minus one, at most 4, and limited by the free memory).
-Set `options(waverider.n_cores = ...)` to change the default. A value > 1 also switches on
-parallel computing. Results do not depend on the number of cores.}
+\item{linLog}{Spacing of the sedimentation rate grid (numeric, 0 or 1): 0 linear, 1 logarithmic.
+\code{Default=1}.}
 
-\item{verbose}{print text \code{Default=FALSE}}
+\item{window_mode}{How the window is defined (character, one of \code{"depth"}, \code{"time"}): \code{"depth"} a
+window of fixed thickness \code{window_size} (the behaviour of earlier versions); \code{"time"} a window of fixed
+duration \code{window_duration} for every trial sedimentation rate, which removes most of the bias towards high
+rates (see Details). \code{Default="depth"}.}
 
-\item{normalise}{British spelling of \code{normalize}; if given it overrides \code{normalize}.}
+\item{window_duration}{Duration of the window in kyr (numeric, > 0), only used with \code{window_mode = "time"}; its
+thickness at a trial rate is \code{window_duration * sedrate / 100} m. \code{Default=1500}.}
+
+\item{step}{Spacing of the window centres in samples: every \code{step}-th data point is a window centre (integer,
+>= 1); larger values are faster. Ignored when \code{centres} is given. \code{Default=1}.}
+
+\item{centres}{Depths of the window centres to evaluate (numeric vector, in metres; each is moved to the nearest
+sample); overrides \code{step}. \code{NULL} uses \code{step}. \code{Default=NULL}.}
+
+\item{bias_correction}{Correction of the r-squared values for their bias towards high sedimentation rates
+(character, one of \code{"null"}, \code{"none"}): \code{"null"} standardises them against noise series of a fitted
+noise model and gives z-scores and family-wise probabilities (see Details); \code{"none"} only returns the raw
+r-squared values (much faster). \code{Default="null"}.}
+
+\item{noise_model}{Noise model of the correction (character, one of \code{"auto"}, \code{"ar1"},
+\code{"powerlaw"}): \code{"ar1"} AR(1) red noise, \code{"powerlaw"} \eqn{f^{-\beta}} noise, \code{"auto"} the one of
+the two that fits the periodogram of the window best (Whittle likelihood). Only used with
+\code{bias_correction = "null"}. \code{Default="auto"}.}
+
+\item{n_null}{Number of noise series per grid node of the noise model (integer, >= 1); more series give more stable
+z-scores and probabilities and take longer (the family-wise probabilities need at least 5). \code{Default=50}.}
+
+\item{null_rho_step}{Step of the grid of AR(1) coefficients on which the noise level is computed and interpolated
+(numeric, between 0 and 1); smaller steps are more precise and slower. \code{Default=0.05}.}
+
+\item{null_beta_step}{Step of the grid of power-law exponents on which the noise level is computed and interpolated
+(numeric, > 0). \code{Default=0.1}.}
+
+\item{null_smooth}{Half width (in grid steps of the sedimentation rate, integer >= 0) of the moving average of the
+noise mean and standard deviation over neighbouring rates; 0 means no smoothing. \code{Default=2}.}
+
+\item{alpha}{False-alarm level of the family-wise threshold \code{z_threshold} and of the column
+\code{significant} (numeric, between 0 and 1). \code{Default=0.05}.}
+
+\item{min_samples}{Minimum number of samples per shortest carrier cycle (precession for fit 1, short eccentricity
+for fit 2, obliquity for fit 3) for a rate to be testable (numeric, > 0; in tests timeOpt still worked with 3.4
+samples per shortest precession cycle). \code{Default=3}.}
+
+\item{min_cycles}{Minimum number of cycles of the longest fitted period that the window must span for a rate to be
+testable (numeric, > 0). \code{Default=2}.}
+
+\item{null_cache}{Noise tables to reuse: the \code{null_cache} element of an earlier result of
+\code{win_timeOpt} with the same settings (list); missing grid nodes are added. \code{NULL} computes all tables.
+\code{Default=NULL}.}
+
+\item{run_multicore}{Run the windows and the noise simulations in parallel on several cores (logical, TRUE or
+FALSE). \code{Default=FALSE}.}
+
+\item{n_cores}{Number of cores used when \code{run_multicore = TRUE} (integer; \code{NULL}: an automatic, safe
+number: physical cores minus one, at most 4, and limited by the free memory). Set
+\code{options(waverider.n_cores = ...)} to change the default. A value > 1 also switches on parallel computing.
+Results do not depend on the number of cores. \code{Default=NULL}.}
+
+\item{verbose}{Show progress bars of the window and noise computations (logical, TRUE or FALSE).
+\code{Default=FALSE}.}
+
+\item{normalise}{British spelling of \code{normalize}; if given (not \code{NULL}) it overrides \code{normalize}.
+\code{Default=NULL}.}
 }
 \value{
-Returns a list which contains 10 elements
-element 1: r_2_envelope matrix
-element 2: r_2_power matrix
-element 3: r_2_opt matrix
-element 4: r_2_envelope_avg
-element 5: r_2_opt_avg
-element 6: depth
-element 7: y_axis
-element 8: linLog value
+Returns a list of class \code{win_timeOpt.result} with the elements
+\describe{
+  \item{r_2_envelope, r_2_power, r_2_opt}{matrices (sedimentation rate x window) of the
+  raw r-squared values (normalised when \code{normalize = TRUE})}
+  \item{r_2_envelope_avg, r_2_power_avg, r_2_opt_avg}{their averages over all windows}
+  \item{sedrate}{the sedimentation rates (cm/ka)}
+  \item{x, y}{depth and proxy value of the window centres}
+  \item{linLog}{the linLog value}
+  \item{z_envelope, z_power, z_opt}{z-scores against noise (\code{NULL} when
+  \code{bias_correction = "none"}; \code{NA} for untestable cells)}
+  \item{z_envelope_avg, z_power_avg, z_opt_avg}{their averages over all windows}
+  \item{p_fw}{family-wise probability that noise reaches z_opt anywhere on the rate grid}
+  \item{z_threshold}{family-wise 1 - alpha threshold of z_opt per window}
+  \item{best_sedrate, best_z, p_best, significant}{per window: the rate with the highest
+  z_opt among the testable rates (raw r2_opt when there is no correction), its z-score and
+  family-wise probability, and whether \code{p_best < alpha}}
+  \item{untestable_code, testable}{see Details}
+  \item{noise_family, noise_param}{fitted noise model per cell (1 = AR(1) coefficient, 2 =
+  power-law exponent)}
+  \item{npts}{number of points of each window}
+  \item{data}{the input data}
+  \item{window_mode, window_size, window_duration, fit, bias_correction, noise_model, alpha}{
+  the settings}
+  \item{null_cache}{the noise tables, for reuse}
+}
 }
 \description{
-The \code{\link{win_timeOpt}} function for conducts a widowed
-timeOpt sedimentation rate estimation
-This function is based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}} but allows for
-multithreaded analysis speeding up the
-process of conducting a Windowed timeOpt sedimentation rate estimation
+The \code{\link{win_timeOpt}} function conducts a windowed
+timeOpt sedimentation rate estimation.
+This function is based on \code{\link[astrochron:timeOpt]{timeOpt}} and
+\code{\link[astrochron:eTimeOpt]{eTimeOpt}} of the 'astrochron' package, but allows for
+multithreaded analysis, windows of fixed duration, a correction of the r-squared values for
+their bias towards high sedimentation rates, a mask of rates that cannot be tested and an
+obliquity version of the fit.
+}
+\details{
+\strong{Bias towards high sedimentation rates.} In a window of fixed thickness, a higher
+trial sedimentation rate means a shorter time span, so fewer cycles of the target periods fit
+in the window. The envelope fit and the spectral power fit then have fewer independent
+data points per fitted sinusoid, and for red noise the target frequencies move to the strong
+low-frequency end of the spectrum. Both raise the r-squared values that pure noise reaches,
+so the raw r-squared surface has a rising baseline, and a genuine peak at a low sedimentation
+rate can be smaller than the noise level at high sedimentation rates.
+
+\strong{Windows of fixed duration} (\code{window_mode = "time"}). For every trial
+sedimentation rate the window is cut to \code{window_duration} kyr (its thickness is
+\code{window_duration * sedrate / 100} m), so every rate is tested on the same number of
+cycles. This removes most of the bias at its source. Rates whose window does not fit in the
+record around a given depth are marked as untestable there. timeOpt is run once per rate.
+With \code{window_mode = "depth"} (default) the window has a fixed thickness
+\code{window_size} (the behaviour of earlier versions).
+
+\strong{Noise-level correction} (\code{bias_correction = "null"}). For each window a noise
+model is fitted to the periodogram (Whittle likelihood; for time windows on the window of the
+middle rate that fits in the record): an AR(1) spectrum (flat at low
+frequencies, bending to f^-2) and a power law (f^-beta, e.g. pink noise for beta = 1).
+With \code{noise_model = "auto"} the better-fitting one is used. Noise series of the same model,
+length and sample spacing are analysed with exactly the same timeOpt settings. This gives,
+for every trial sedimentation rate, the mean and standard deviation of the noise r-squared
+values (on a logit scale, because r-squared is bounded by 0 and 1). These are smoothed over
+neighbouring rates (\code{null_smooth}) and the observed values are expressed as z-scores:
+\deqn{z_{env} = (logit(r^2_{env}) - \mu_{env}) / \sigma_{env}}
+and likewise for the spectral power fit; both are combined (Stouffer's method) as
+\eqn{z_{opt} = (z_{env} + z_{pwr}) / \sqrt{2}}. A z-score of 0 is the noise level at
+that sedimentation rate. To keep the computation affordable, the noise level is computed on a
+grid of model parameters (steps \code{null_rho_step} and \code{null_beta_step}; for depth windows
+also three window lengths) and interpolated. The noise tables can be reused with
+\code{null_cache}.
+
+\strong{Probabilities.} For each grid node the maximum z_opt over all testable rates is
+recorded for every noise series. This gives a family-wise false-alarm threshold per window
+(\code{z_threshold}, the 1 - \code{alpha} quantile) and a family-wise probability per cell
+(\code{p_fw}): the probability that noise reaches this z-score anywhere on the rate grid.
+
+\strong{Untestable rates} (\code{untestable_code}): 1 = fewer than \code{min_samples} samples
+per shortest carrier cycle (precession for fit 1, short eccentricity for fit 2, obliquity for
+fit 3); 2 = the window spans fewer than \code{min_cycles} of the longest fitted period;
+3 = the window does not fit in the record. Untestable cells get no z-score.
+
+\strong{Obliquity version} (\code{fit = 3}): timeOpt fit 1 with obliquity carrier periods
+(\code{targetO}) bandpassed between \code{flow} and \code{fhigh} (default 1/46-1/36 cycles/kyr)
+and the obliquity modulation periods (\code{targetOmod}) in the envelope fit. A precession
+record read as obliquity gives a peak at half the true rate, an obliquity record read as
+precession (fit 1) a peak at twice the true rate; compare the fits with
+\code{\link{win_timeOpt_multi}}.
 }
 \examples{
 \donttest{
 #Conduct a windowed timeOpt on the magnetic susceptibility record
 #of the Sullivan core of Pas et al., (2018).
-mag_win_timeOpt <-win_timeOpt(
+set.seed(1)
+mag_win_timeOpt <- win_timeOpt(
 data = mag[1:250, ],
 window_size = 6,
 sedmin = 0.1,
@@ -119,18 +273,23 @@ roll = 10 ^ 6,
 targetE = c(405.7, 130.7, 123.8, 98.9, 94.9),
 targetP = c(20.9, 19.9, 17.1, 17.2),
 detrend = TRUE,
-normalize =TRUE,
+normalize = TRUE,
 linLog = 1,
-run_multicore =FALSE,
-verbose=FALSE)
+bias_correction = "null",
+n_null = 6,
+noise_model = "ar1",
+step = 10,
+run_multicore = FALSE,
+verbose = FALSE)
 }
 
 }
 \references{
-Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <doi:10.1016/j.earscirev.2018.11.015>
+Meyers, S.R. (2019). Cyclostratigraphy and the problem of astrochronologic testing.
+Earth-Science Reviews 190, 190-223 <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
-Based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}
-function of the 'astrochron' R package.
+Based on the \code{\link[astrochron:timeOpt]{timeOpt}} and
+\code{\link[astrochron:eTimeOpt]{eTimeOpt}}
+functions of the 'astrochron' R package.
 }

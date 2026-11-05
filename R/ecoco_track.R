@@ -21,35 +21,53 @@
 #' Translated from Acycle v3.1 ecocotrack.m, ecocotrackn.m, eccount.m and
 #' eccpeaks.m (Mingsong Li).
 #'
-#' @param ecoco An eCOCO result list (from \code{ecoco_blocked},
-#' \code{ecoco_interleaved} or cocoR \code{ecoco_adaptive}) with elements
-#' sr, depth, rho, p_global, pcoco and norbit. \code{Default=NULL}
-#' @param sr,depth,rho,p,pcoco,norbit,score Explicit inputs used when
-#' \code{ecoco} is NULL: rate grid, window depths and rate-by-window maps
-#' (\code{score} is the map searched for peaks; default pcoco).
-#' \code{Default=NULL}
-#' @param location Optional matrix of peak row indices (n_peaks x windows,
-#' NA = no peak), replacing the eccpeaks step. \code{Default=NULL}
-#' @param mode "slices" (ecocotrack) or "single" (ecocotrackn).
-#' \code{Default="slices"}
-#' @param n_peaks Number of peaks per window. \code{Default=3}
-#' @param rho_min Minimum correlation of a peak and of a path mean.
-#' \code{Default=0.3}
-#' @param p_max Maximum p-value (same units as \code{p}) of a peak.
-#' \code{Default=0.05}
-#' @param p_track_max Maximum mean p-value of a path. \code{Default=p_max}
-#' @param norbit_min Minimum orbit count of a peak and minimum summed orbit
-#' count of a path. \code{Default=3}
-#' @param sr_threshold Search radius and trial-rate spacing (cm/kyr).
-#' \code{Default=2.5}
-#' @param n_slices Number of depth slices. \code{Default=5}
-#' @param initial_sr Starting rate for \code{mode = "single"} (cm/kyr).
-#' \code{Default=NULL}: the best rate of the first window.
-#' @param reference "median5" (median of the previous five tracked rates) or
-#' "previous" (previous tracked rate) for \code{mode = "single"}.
-#' \code{Default="median5"}
-#' @param genplot Plot the tracked rates against depth. \code{Default=FALSE}
-#'
+#' @param ecoco eCOCO result (list) with elements \code{sr}, \code{depth}, \code{rho}, \code{p_global},
+#' \code{pcoco} and \code{norbit}, e.g. the output of \code{\link{ecoco_blocked}}, \code{\link{ecoco_interleaved}}
+#' or \code{\link{ecoco_adaptive}}. When given, it replaces \code{sr}, \code{depth}, \code{rho}, \code{p},
+#' \code{pcoco} and \code{norbit}. \code{NULL} means that these must be given explicitly. \code{Default=NULL}.
+#' @param sr Sedimentation-rate grid, in cm/kyr (numeric vector with a constant step, one value per row of the
+#' maps). Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.
+#' @param depth Depths of the window centres, in metres (numeric vector, one value per column of the maps); only used
+#' when \code{ecoco=NULL}. \code{NULL} then uses the window numbers \code{1, 2, ...}. \code{Default=NULL}.
+#' @param rho Correlation coefficients (numeric matrix, rates in rows, windows in columns); used to filter peaks and
+#' paths with \code{rho_min}. Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.
+#' @param p P-values (numeric matrix of the same size as \code{rho}), e.g. global Monte Carlo p-values; used to filter
+#' peaks with \code{p_max} and paths with \code{p_track_max}. Only used (and then required) when \code{ecoco=NULL}.
+#' \code{Default=NULL}.
+#' @param pcoco pCOCO values (numeric matrix of the same size as \code{rho}); the path with the largest summed pCOCO
+#' is kept in each slice. Only used (and then required) when \code{ecoco=NULL}. \code{Default=NULL}.
+#' @param norbit Number of contributing orbital periods (numeric matrix of the same size as \code{rho}); used to
+#' filter peaks and paths with \code{norbit_min}. Only used (and then required) when \code{ecoco=NULL}.
+#' \code{Default=NULL}.
+#' @param score Map searched for the per-window peaks (numeric matrix of the same size as \code{rho}); \code{NULL}
+#' uses \code{pcoco} (or the \code{pcoco} element of \code{ecoco}). \code{Default=NULL}.
+#' @param location Peak locations that replace the automatic peak search (eccpeaks step): an integer matrix of row
+#' indices into \code{sr}, \code{n_peaks} rows by windows, \code{NA} where there is no peak; \code{NULL} finds the
+#' peaks from \code{score}. \code{Default=NULL}.
+#' @param mode Tracking mode (character): \code{"slices"} (Acycle ecocotrack.m: the windows are divided into
+#' \code{n_slices} depth slices, paths are started from trial rates every \code{sr_threshold} and the best path is
+#' kept in each slice) or \code{"single"} (Acycle ecocotrackn.m: one path started at \code{initial_sr}).
+#' \code{Default="slices"}.
+#' @param n_peaks Number of peaks (largest score values passing the criteria) kept per window (integer, >= 1).
+#' \code{Default=3}.
+#' @param rho_min Minimum correlation coefficient of a peak and of the mean of a path (numeric, -1 to 1).
+#' \code{Default=0.3}.
+#' @param p_max Maximum p-value of a peak, on the same scale as \code{p} (numeric). \code{Default=0.05}.
+#' @param p_track_max Maximum mean p-value of a path in \code{mode="slices"} (numeric). \code{Default=p_max}.
+#' @param norbit_min Minimum number of contributing orbital periods of a peak and minimum summed number of a path
+#' (numeric, >= 0). \code{Default=3}.
+#' @param sr_threshold Search radius around the reference rate when following the peaks, and spacing of the trial
+#' starting rates in \code{mode="slices"}, in cm/kyr (numeric, > 0). Larger values allow larger rate jumps between
+#' windows. \code{Default=2.5}.
+#' @param n_slices Number of depth slices (sharing their boundary windows) in which a path is tracked separately in
+#' \code{mode="slices"} (integer, >= 1). \code{Default=5}.
+#' @param initial_sr Starting sedimentation rate of the path in \code{mode="single"}, in cm/kyr (numeric);
+#' \code{NULL} uses the rate with the highest score in the first window. \code{Default=NULL}.
+#' @param reference Reference rate used to find the next peak in \code{mode="single"} (character):
+#' \code{"median5"} (median of the previous five tracked rates) or \code{"previous"} (previous tracked rate).
+#' \code{Default="median5"}.
+#' @param genplot Plot the tracked sedimentation rates against depth (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
 #' @author Michiel Arts (R translation); original MATLAB code: Mingsong Li
 #' @references Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking
 #' variable sedimentation rates and astronomical forcing in Phanerozoic
@@ -84,17 +102,15 @@
 #' @importFrom stats median
 #' @importFrom graphics plot
 ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
-                        p = NULL, pcoco = NULL, norbit = NULL, score = NULL,
-                        location = NULL, mode = "slices", n_peaks = 3,
-                        rho_min = 0.3, p_max = 0.05, p_track_max = p_max,
-                        norbit_min = 3, sr_threshold = 2.5, n_slices = 5,
-                        initial_sr = NULL, reference = "median5",
-                        genplot = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    p = NULL, pcoco = NULL, norbit = NULL, score = NULL,
+    location = NULL, mode = "slices", n_peaks = 3,
+    rho_min = 0.3, p_max = 0.05, p_track_max = p_max,
+    norbit_min = 3, sr_threshold = 2.5, n_slices = 5,
+    initial_sr = NULL, reference = "median5",
+    genplot = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # MATLAB-compatible scalar helpers
-  # ---------------------------------------------------------------------------
 
   ecocox_round <- function(x){
     # MATLAB round: halves away from zero (R round() rounds half to even)
@@ -119,12 +135,10 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
     ok[which.max(v[ok])]
   }
 
-  # ---------------------------------------------------------------------------
   # Legacy peak tracking (eccpeaks.m, ecocotrackn.m, ecocotrack.m, eccount.m)
-  # ---------------------------------------------------------------------------
 
   ecocox_eccpeaks <- function(X, ecc, eci, norbit, rho_min = 0.3, p_max = 5,
-                              norbit_min = 3, n = 1){
+      norbit_min = 3, n = 1){
     # eccpeaks.m (dim = 1, fill value NaN): row indices of the n largest
     # values of every column that pass the rho / p / orbit-count criteria.
     X <- as.matrix(X)
@@ -142,7 +156,7 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
           next
         }
         if (isTRUE(ecc[hit, i] >= rho_min && eci[hit, i] <= p_max &&
-                   norbit[hit, i] >= norbit_min)){
+            norbit[hit, i] >= norbit_min)){
           locat[j, i] <- hit
         }
       }
@@ -249,11 +263,11 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
   ecocox_sortrows <- function(M){
     # MATLAB sortrows (ascending, NaN last), all columns as keys
     o <- order(M[, 1], M[, 2], M[, 3], M[, 4], M[, 5], M[, 6], M[, 7],
-               na.last = TRUE)
+        na.last = TRUE)
     M[o, , drop = FALSE]
   }
 
-  # ---- main code ----
+  # Main code
   mode <- match.arg(mode, c("slices", "single"))
   reference <- match.arg(reference, c("median5", "previous"))
   if (!is.null(ecoco)){
@@ -282,7 +296,7 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
   srstep <- stats::median(diff(sr))
   if (is.null(location)){
     location <- ecocox_eccpeaks(score, rho, p, norbit, rho_min, p_max,
-                                norbit_min, n_peaks)
+        norbit_min, n_peaks)
   }
   location <- as.matrix(location)
   m3 <- ncol(location)
@@ -302,7 +316,7 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
     }
     idx <- ecocox_trackn(location, thr, ini, ref_method)
     out <- list(depth = depth, sr = sr[1] + srstep * (idx - 1), index = idx,
-                location = location)
+        location = location)
   } else {
     trial <- seq(sr[1], sr[length(sr)], by = sr_threshold) / srstep
     trial <- ecocox_round(trial)
@@ -322,9 +336,9 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
       }
       paths[, c1:c2] <- srn
       ec <- ecocox_eccount(srn, rho[, c1:c2, drop = FALSE],
-                           p[, c1:c2, drop = FALSE],
-                           pcoco[, c1:c2, drop = FALSE],
-                           norbit[, c1:c2, drop = FALSE])
+          p[, c1:c2, drop = FALSE],
+          pcoco[, c1:c2, drop = FALSE],
+          norbit[, c1:c2, drop = FALSE])
       ec <- ecocox_sortrows(ec)
       keep <- rep(TRUE, nt)
       for (i in seq_len(nt)){
@@ -360,13 +374,13 @@ ecoco_track <- function(ecoco = NULL, sr = NULL, depth = NULL, rho = NULL,
       summ[[s]] <- ecn
     }
     out <- list(depth = depth, sr = sr[1] + srstep * (best - 1), index = best,
-                location = location, slice_range = srange, paths = paths,
-                summary = summ)
+        location = location, slice_range = srange, paths = paths,
+        summary = summ)
   }
   if (genplot){
     graphics::plot(out$sr, out$depth, xlim = range(sr),
-                   xlab = "Sedimentation rate (cm/kyr)", ylab = "Depth (m)",
-                   main = "Tracked sedimentation rate")
+        xlab = "Sedimentation rate (cm/kyr)", ylab = "Depth (m)",
+        main = "Tracked sedimentation rate")
   }
   out
 }

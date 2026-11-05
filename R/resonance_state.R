@@ -1,4 +1,3 @@
-# =============================================================================
 # Chaotic resonance transitions in deep time
 #
 # The Earth-Mars secular resonance argument is
@@ -19,22 +18,24 @@
 #   chaos_scenario()    if g3 and g4 (and s3, s4) shift, what happens to every
 #                       other cycle? Some terms move a lot, some not at all.
 #   term_sensitivity()  the same thing as partial derivatives.
-# =============================================================================
 
 #' Which secular resonance state does a record show?
 #'
-#' @param ecc_kyr measured period of the long eccentricity modulation (the
-#'   "2.4 Myr" cycle, g4-g3)
-#' @param obl_kyr measured period of the obliquity modulation (the "1.2 Myr"
-#'   cycle, s4-s3)
-#' @param max_ratio largest integer ratio to consider
-#' @param data_dir Directory with the data files (`NULL` = the data installed with the package).
+#' @param ecc_kyr Measured period of the long eccentricity modulation (the "2.4 Myr" cycle, g4-g3), in kyr (numeric,
+#'   > 0, e.g. \code{2400}). Required, no default.
+#' @param obl_kyr Measured period of the obliquity modulation (the "1.2 Myr" cycle, s4-s3), in kyr (numeric, > 0, e.g.
+#'   \code{1200}). Required, no default.
+#' @param max_ratio Largest integer p and q considered when searching the simple ratio p:q closest to the measured
+#'   frequency ratio f(obliquity modulation) / f(eccentricity modulation) (integer, >= 1). \code{Default=4}.
+#' @param data_dir Directory that contains the data file \code{La04gisi.csv} with the La2004 secular frequencies used
+#'   for the modern values (character path). \code{NULL} uses the data installed with the package (or
+#'   \code{options(cocoR.data)}). \code{Default=NULL}.
 #' @return list: the implied frequencies, their ratio, the nearest simple
 #'   resonance, the resonance argument (arcsec/yr and as a period), and the
 #'   modern values for comparison
 #' @export
 resonance_state <- function(ecc_kyr, obl_kyr, max_ratio = 4, data_dir = NULL){
-  # ---- internal helper functions (local to this function) ----
+  # Internal helper functions (local to this function)
 
   coco_data_dir <- function(){
     if (!is.null(.coco_env$src)){
@@ -61,7 +62,7 @@ resonance_state <- function(ecc_kyr, obl_kyr, max_ratio = 4, data_dir = NULL){
     list(g = gisi[1:9], s = gisi[10:18])
   }
 
-  # --- Astronomical periods at a given age (calculate_orbit9.m) --------------
+  # Astronomical periods at a given age (calculate_orbit9.m)
   # Nine principal periods from the La2004 secular frequencies g_i, s_i
   # (La04gisi.csv) and the precession constant k(t) of AstroGeo22
   # (AstroGeo22.txt, column 11, arcsec/yr), both bundled in Acycle
@@ -76,7 +77,7 @@ resonance_state <- function(ecc_kyr, obl_kyr, max_ratio = 4, data_dir = NULL){
     NULL
   })
 
-  # ---- main code ----
+  # Main code
   gs <- .la04_gisi(data_dir)
   f_ecc <- 360 * 3600 / (ecc_kyr * 1000)
   f_obl <- 360 * 3600 / (obl_kyr * 1000)
@@ -92,13 +93,13 @@ resonance_state <- function(ecc_kyr, obl_kyr, max_ratio = 4, data_dir = NULL){
     arg_period <- Inf
   }
   list(ecc_kyr = ecc_kyr, obl_kyr = obl_kyr,
-       f_ecc_arcsec = f_ecc, f_obl_arcsec = f_obl,
-       ratio = ratio, nearest = sprintf("%d:%d", cands$p, cands$q),
-       argument_arcsec = theta,
-       argument_period_kyr = arg_period,
-       modern_ratio = modern_obl / modern_ecc,
-       modern_ecc_kyr = 360 * 3600 / abs(modern_ecc) / 1000,
-       modern_obl_kyr = 360 * 3600 / abs(modern_obl) / 1000,
-       modern_state = "2:1 (g4-g3 : s4-s3 lock, La2004)",
-       matches_modern = abs(ratio - modern_obl / modern_ecc) < 0.1)
+      f_ecc_arcsec = f_ecc, f_obl_arcsec = f_obl,
+      ratio = ratio, nearest = sprintf("%d:%d", cands$p, cands$q),
+      argument_arcsec = theta,
+      argument_period_kyr = arg_period,
+      modern_ratio = modern_obl / modern_ecc,
+      modern_ecc_kyr = 360 * 3600 / abs(modern_ecc) / 1000,
+      modern_obl_kyr = 360 * 3600 / abs(modern_obl) / 1000,
+      modern_state = "2:1 (g4-g3 : s4-s3 lock, La2004)",
+      matches_modern = abs(ratio - modern_obl / modern_ecc) < 0.1)
 }

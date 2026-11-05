@@ -13,78 +13,78 @@ plot_win_fft(
   freq_max = NULL,
   freq_min = NULL,
   keep_editable = FALSE,
-  palette_name = "rainbow",
-  color_brewer = "grDevices",
+  palette_name = "viridis",
+  color_brewer = "viridis",
   plot_horizontal = TRUE,
   dev_new = wr_dev_new_default(),
   colour_brewer = NULL
 )
 }
 \arguments{
-\item{win_fft}{list which is the results of the \code{\link{win_fft}}}
+\item{win_fft}{Result of the windowed FFT (required): the list returned by \code{\link{win_fft}}. \code{Default=NULL}.}
 
-\item{x_lab}{label for the y-axis \code{Default="depth"}}
+\item{x_lab}{Label of the depth/time axis (character). \code{Default="depth (m)"}.}
 
-\item{y_lab}{label for the y-axis \code{Default="sedrate"}}
+\item{y_lab}{Label of the frequency axis (character). \code{Default="frequency cycle/metre"}.}
 
-\item{plot_res}{plot 1 of 8 options option 1: Amplitude matrix,
-option 2: Power matrix,
-option 3: Phase matrix,
-option 4: AR1_CL matrix,
-option 5: AR1_Fit matrix ,
-option 6: AR1_90_power matrix,
-option 7: AR1_95_power matrix,
-option 8: AR1_99_power matrix, \code{Default=1}}
+\item{plot_res}{Which matrix of \code{win_fft} to plot, given as its position in the list (integer, 1 to 9):
+\itemize{
+\item 1: amplitude (\code{Amplitude_mat}),
+\item 2: power (\code{Power_mat}),
+\item 3: phase (\code{Phase_mat}),
+\item 4: frequency uncertainty (\code{uncer_mat}),
+\item 5: AR1 confidence level in \% (\code{AR1_CL_mat}),
+\item 6: AR1 red-noise fit (\code{AR1_Fit_mat}),
+\item 7: AR1 90\% confidence power (\code{AR1_90_power_mat}),
+\item 8: AR1 95\% confidence power (\code{AR1_95_power_mat}),
+\item 9: AR1 99\% confidence power (\code{AR1_99_power_mat}).
+}
+\code{Default=1}.}
 
-\item{perc_vis}{Cutoff percentile when plotting \code{Default=0}}
+\item{perc_vis}{Lower quantile of the colour scale (numeric, between 0 and 1): the colour breaks run from this
+quantile of the plotted values to the maximum, and values below it are left blank, which hides the background.
+\code{0} colours all values. \code{Default=0}.}
 
-\item{freq_max}{Maximum frequency to plot}
+\item{freq_max}{Highest frequency plotted, in cycles per depth/time unit (numeric, or \code{NULL} for the highest
+frequency of \code{win_fft}). \code{Default=NULL}.}
 
-\item{freq_min}{Minimum frequency to plot}
+\item{freq_min}{Lowest frequency plotted, in cycles per depth/time unit (numeric, or \code{NULL} for the lowest
+frequency of \code{win_fft}). \code{Default=NULL}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters (\code{par}, layout) of the plot after the function returns, so that
+extra elements can be added to the plot afterwards (logical). With \code{FALSE} the previous graphical parameters
+are restored on exit. \code{Default=FALSE}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function
-The R package 'scico' has the color palette options: “acton”, “bam”,“bamako”,
-“bamO”, “batlow”, “batlowK”,“batlowW”,“berlin”,“bilbao”,”broc”,”brocO”,
-”buda”,”bukavu”,”cork”,”CorkO”,”davos”,”devon”,”fes”,”Glasgow”,”grayC”,
-“hawaii”,”imola”,”lajolla”,”lapaz”,”lipari”,”lisbon”,”manague”,”navia”,
-”nuuk”,”oleron”,”oslo”,”roma”,”romaO”,”Tofino”,”Tokyo”,”turku”,”Vanimo”,
-”vik”,”vikO”
-The R package 'Viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps,scico and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power  \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the plot (logical): \code{TRUE} puts depth/time on the x-axis and frequency on
+the y-axis, with the mean spectrum to the left; \code{FALSE} draws depth/time on the y-axis and frequency on the
+x-axis, with the mean spectrum on top. \code{Default=TRUE}.}
 
 \item{dev_new}{Open a new plotting window for the plot. The wavelet plots contain a raster image that needs more room
 than the small RStudio plot pane, which gives "figure margins too large" errors or clipped text, so a separate window is
 opened by default in the RStudio GUI. In every other front end (plain R, ESS, Positron, knitr, Rscript) the plot is drawn
 on the current device and no window is opened. Set TRUE or FALSE to force either behaviour, or set
-\code{options(waverider.dev_new = TRUE/FALSE)}. Default: TRUE in the RStudio GUI, FALSE elsewhere.}
+\code{options(waverider.dev_new = TRUE/FALSE)}. Logical.
+\code{Default=wr_dev_new_default()}: TRUE in the RStudio GUI, FALSE elsewhere.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 Returns a plot of, which plot 1 of 8 options,

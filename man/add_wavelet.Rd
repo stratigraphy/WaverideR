@@ -12,8 +12,8 @@ add_wavelet(
   upper_depth_time = NULL,
   n.levels = 100,
   plot.COI = TRUE,
-  color_brewer = "grDevices",
-  palette_name = "rainbow",
+  color_brewer = "viridis",
+  palette_name = "viridis",
   plot_dir = FALSE,
   add_lines = NULL,
   add_points = NULL,
@@ -30,76 +30,90 @@ add_wavelet(
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (list) created with \code{\link{analyse_wavelet}} (or another function returning
+the same structure, with elements \code{x}, \code{Period}, \code{Power}, \code{axis.2}, \code{coi.1} and
+\code{coi.2}). Required (\code{Default=NULL} gives an error).}
 
-\item{lowerPeriod}{Lowest period value which will be plotted}
+\item{lowerPeriod}{Shortest period shown on the period axis, in the same unit as the depth/time axis of the
+wavelet (numeric, > 0); \code{NULL} uses the shortest period of \code{wavelet}. \code{Default=NULL}.}
 
-\item{upperPeriod}{Highest period value which will be plotted}
+\item{upperPeriod}{Longest period shown on the period axis, in the same unit as the depth/time axis of the
+wavelet (numeric, > \code{lowerPeriod}); \code{NULL} uses the longest period of \code{wavelet}.
+\code{Default=NULL}.}
 
-\item{lower_depth_time}{lowest depth/time value which will be plotted}
+\item{lower_depth_time}{Lowest depth/time value shown on the depth/time axis (numeric, same unit as the
+record); \code{NULL} uses the minimum depth/time of \code{wavelet}. \code{Default=NULL}.}
 
-\item{upper_depth_time}{Highest depth/time value which will be plotted}
+\item{upper_depth_time}{Highest depth/time value shown on the depth/time axis (numeric, same unit as the
+record); \code{NULL} uses the maximum depth/time of \code{wavelet}. \code{Default=NULL}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the power scale (integer, > 1); the colour breaks are quantiles of
+the wavelet power, so each colour covers the same fraction of the scalogram. \code{Default=100}.}
 
-\item{plot.COI}{Option to plot the cone of influence \code{Default=TRUE}.}
+\item{plot.COI}{Draw the cone of influence as a semi-transparent white overlay (logical, TRUE or FALSE).
+\code{Default=TRUE}.}
 
-\item{color_brewer}{Name of the R package from which the color palette is chosen from.
-The included R packages from which palettes can be chosen
-are; the RColorBrewer, grDevices, ColorRamps and Viridis R packages.
-There are many options to choose from so please
-read the documentation of these packages. "\code{Default=grDevices}}
+\item{color_brewer}{Palette family from which \code{palette_name} is taken, a character string: \code{"grDevices"},
+\code{"viridis"}, \code{"RColorBrewer"}, \code{"colorRamps"} or \code{"scico"} (the last one, except for \code{"batlowK"}, needs the
+\pkg{scico} package). See \code{palette_name} for the palette names of each family. \code{Default="viridis"}.}
 
-\item{palette_name}{Name of the color palette which is used for plotting.
-The color palettes than can be chosen depends on which the R package is specified in
-the color_brewer parameter. The included R packages from which palettes can be chosen
-from are; the 'RColorBrewer', 'grDevices', 'ColorRamps' and 'Viridis' R packages.
-There are many options to choose from so please
-read the documentation of these packages \code{Default=rainbow}.
-The R package 'viridis' has the color palette options: “magma”, “plasma”,
-“inferno”, “viridis”, “mako”, and “rocket”  and “turbo”
-To see the color palette options of the The R pacakge 'RColorBrewer' run
-the wr_brewer_palettes() function
-The R package 'colorRamps' has the color palette options:"blue2green",
-"blue2green2red", "blue2red",    "blue2yellow", "colorRamps",    "cyan2yellow",
-"green2red", "magenta2green", "matlab.like", "matlab.like2" and    "ygobb"
-The R package 'grDevices' has the built in  palette options:"rainbow",
-"heat.colors", "terrain.colors","topo.colors" and "cm.colors"
-To see even more color palette options of the The R pacakge 'grDevices' run
-the grDevices::hcl.pals() function}
+\item{palette_name}{Name of the colour palette of the power (colour) scale, a character string. Which names are
+valid depends on \code{color_brewer}:
+\itemize{
+\item \code{color_brewer = "grDevices"}: \code{"rainbow"}, \code{"heat.colors"}, \code{"terrain.colors"}, \code{"topo.colors"}, \code{"cm.colors"},
+or any of the 115 \code{\link[grDevices]{hcl.colors}} palettes (list them with \code{grDevices::hcl.pals()}), for
+example \code{"viridis"}, \code{"Plasma"}, \code{"Inferno"}, \code{"YlOrRd"}, \code{"Spectral"}, \code{"Blue-Red"}, \code{"Zissou 1"}.
+\item \code{color_brewer = "viridis"}: \code{"viridis"}, \code{"magma"}, \code{"inferno"}, \code{"plasma"}, \code{"cividis"}, \code{"rocket"}, \code{"mako"}, \code{"turbo"}.
+\item \code{color_brewer = "RColorBrewer"}: \code{"BrBG"}, \code{"PiYG"}, \code{"PRGn"}, \code{"PuOr"}, \code{"RdBu"}, \code{"RdGy"}, \code{"RdYlBu"}, \code{"RdYlGn"}, \code{"Spectral"}, \code{"Accent"}, \code{"Dark2"}, \code{"Paired"}, \code{"Pastel1"}, \code{"Pastel2"}, \code{"Set1"}, \code{"Set2"}, \code{"Set3"}, \code{"Blues"}, \code{"BuGn"}, \code{"BuPu"}, \code{"GnBu"}, \code{"Greens"}, \code{"Greys"}, \code{"Oranges"}, \code{"OrRd"}, \code{"PuBu"}, \code{"PuBuGn"}, \code{"PuRd"}, \code{"Purples"}, \code{"RdPu"}, \code{"Reds"}, \code{"YlGn"}, \code{"YlGnBu"}, \code{"YlOrBr"}, \code{"YlOrRd"} (also listed by \code{wr_brewer_palettes()}).
+\item \code{color_brewer = "colorRamps"}: \code{"blue2green"}, \code{"blue2green2red"}, \code{"blue2red"}, \code{"blue2yellow"}, \code{"cyan2yellow"}, \code{"green2red"}, \code{"magenta2green"}, \code{"matlab.like"}, \code{"matlab.like2"}, \code{"ygobb"}.
+\item \code{color_brewer = "scico"} (all except \code{"batlowK"} need the \pkg{scico} package): \code{"acton"}, \code{"bam"}, \code{"bamako"}, \code{"bamO"}, \code{"batlow"}, \code{"batlowK"}, \code{"batlowW"}, \code{"berlin"}, \code{"bilbao"}, \code{"broc"}, \code{"brocO"}, \code{"buda"}, \code{"bukavu"}, \code{"cork"}, \code{"corkO"}, \code{"davos"}, \code{"devon"}, \code{"fes"}, \code{"glasgow"}, \code{"grayC"}, \code{"hawaii"}, \code{"imola"}, \code{"lajolla"}, \code{"lapaz"}, \code{"lipari"}, \code{"lisbon"}, \code{"managua"}, \code{"navia"}, \code{"nuuk"}, \code{"oleron"}, \code{"oslo"}, \code{"roma"}, \code{"romaO"}, \code{"tofino"}, \code{"tokyo"}, \code{"turku"}, \code{"vanimo"}, \code{"vik"}, \code{"vikO"}.
+}
+Low power is drawn with the first colour of the palette and high power with the last. \code{Default="viridis"}.}
 
-\item{plot_dir}{The direction of the proxy record which is assumed for tuning if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then plot_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then plot_dir should be set to FALSE \code{plot_dir=TRUE}}
+\item{plot_dir}{Direction of the depth/time axis (logical, TRUE or FALSE). \code{TRUE} draws depth/time
+increasing away from the origin (e.g. a borehole where age increases with depth); \code{FALSE} reverses the
+depth/time axis (e.g. an outcrop log where 0 m is the base of the section). \code{Default=FALSE}.}
 
-\item{add_lines}{Add  lines to the wavelet plot input should be matrix with first axis being depth/time the columns after that
-should be period values  \code{Default=NULL}}
+\item{add_lines}{Curves to draw on top of the scalogram (e.g. a tracked period): a matrix or data frame with
+depth/time in column 1 and one or more columns of period values (same unit as the period axis) after it;
+every period column is drawn as a line. \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{add_points}{Add points to the wavelet plot input should be matrix with first axis being depth/time and columns after that
-should be period values \code{Default=NULL}}
+\item{add_points}{Same input as \code{add_lines} (matrix or data frame, depth/time in column 1, period values
+in the next columns); the period columns are currently also drawn as lines. \code{NULL} draws none.
+\code{Default=NULL}.}
 
-\item{add_abline_h}{Add horizontal lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_h}{Positions of horizontal reference lines (numeric vector, e.g. \code{c(2, 3, 5, 6)}). With
+\code{plot_horizontal=TRUE} these are periods (log2-transformed internally to match the period axis); with
+\code{plot_horizontal=FALSE} they are depth/time values. \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{add_abline_v}{Add vertical lines to the plot. Specify the lines as a vector e.g. c(2,3,5,6)  \code{Default=NULL}}
+\item{add_abline_v}{Positions of vertical reference lines (numeric vector, e.g. \code{c(2, 3, 5, 6)}). With
+\code{plot_horizontal=TRUE} these are depth/time values; with \code{plot_horizontal=FALSE} they are periods
+(log2-transformed internally). \code{NULL} draws none. \code{Default=NULL}.}
 
-\item{plot_horizontal}{plot the wavelet horizontal or vertical eg y axis is depth or y axis power \code{Default=TRUE}}
+\item{plot_horizontal}{Orientation of the plot (logical, TRUE or FALSE): \code{TRUE} puts depth/time on the
+x axis and period on the y axis; \code{FALSE} puts period on the x axis and depth/time on the y axis (for
+vertical log-style composite plots). \code{Default=TRUE}.}
 
-\item{period_ticks}{tick mark spacing 1 is all tickmarks and higher value removes tick marks by
-the fraction of the tick mark spacing value, the opposite is true for value lower than 1 which
-will add aditional tickmarks}
+\item{period_ticks}{Spacing of the period tick marks in octaves (numeric, > 0): a tick is placed every
+\code{period_ticks} powers of 2, so 1 labels every power of 2, 2 every second one, and values below 1 add
+intermediate ticks. \code{Default=1}.}
 
-\item{periodlab}{lable for the the period column}
+\item{periodlab}{Label of the period axis (character string). \code{Default="period (m)"}.}
 
-\item{main}{main title}
+\item{main}{Main title of the plot (character string); \code{NULL} gives no title. \code{Default=NULL}.}
 
-\item{yaxt}{turn on of off the yaxis "s" is on "n" is off \code{Default="s"}}
+\item{yaxt}{Draw the depth/time axis when \code{plot_horizontal=FALSE} (character): \code{"s"} draws it,
+\code{"n"} suppresses it (see \code{\link[graphics]{par}}). Ignored when \code{plot_horizontal=TRUE}, where the
+period axis is always drawn by the function itself. \code{Default="s"}.}
 
-\item{xaxt}{turn on of off the xaxis "s" is on "n" is off \code{Default="s"}}
+\item{xaxt}{Accepted for symmetry with \code{yaxt} but currently not used: the x axis is always drawn
+(\code{plot_horizontal=TRUE}) or replaced by the period axis (\code{plot_horizontal=FALSE}) (character,
+\code{"s"} or \code{"n"}). \code{Default="s"}.}
 
-\item{depth_time_lab}{lable for the the depth/time column}
+\item{depth_time_lab}{Label of the depth/time axis (character string). \code{Default="depth (m)"}.}
 
-\item{colour_brewer}{British spelling of \code{color_brewer}; if given it overrides \code{color_brewer}.}
+\item{colour_brewer}{British spelling of \code{color_brewer}, with the same options; if given (not \code{NULL}) it overrides
+\code{color_brewer}. \code{Default=NULL}.}
 }
 \value{
 returns a plot of a wavelet scalogram
@@ -112,6 +126,7 @@ a larger composite plot
 \donttest{
 #generate a plot for the magnetic susceptibility data set of Pas et al., (2018)
 
+oldpar <- par(no.readonly = TRUE)
 plot.new()
 layout.matrix <- matrix(c(rep(0, 2), 1, 0,0,seq(2, 6, by = 1)),
                        nrow = 2,
@@ -256,6 +271,7 @@ plot(mag_110[,2],mag_110[,1],type="l",
 
 lines(mag_110_mean + mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
 lines(mag_110_mean - mag_110_amp[, 2], mag_110_amp[, 1], col = "red")
+par(oldpar)
 }
 }
 \references{

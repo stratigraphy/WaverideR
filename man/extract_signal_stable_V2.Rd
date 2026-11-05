@@ -14,17 +14,24 @@ extract_signal_stable_V2(
 )
 }
 \arguments{
-\item{wavelet}{wavelet object created using the \code{\link{analyse_wavelet}} function.}
+\item{wavelet}{Wavelet object (list) created with \code{\link{analyse_wavelet}}; the signal is reconstructed from
+its coefficients. Required (\code{Default=NULL}).}
 
-\item{period_max}{Maximum period (upper boundary) to be used to extract a cycle.}
+\item{period_max}{Upper period boundary of the band that is reconstructed, in the depth/time unit of the wavelet
+(numeric, > \code{period_min}; the nearest wavelet period is used). Required (\code{Default=NULL}).}
 
-\item{period_min}{Minimum period (lower boundary) to be used to extract a cycle.}
+\item{period_min}{Lower period boundary of the band that is reconstructed, in the depth/time unit of the wavelet
+(numeric, > 0; the nearest wavelet period is used). Required (\code{Default=NULL}).}
 
-\item{add_mean}{Add mean to the extracted cycle \code{Default=TRUE}.}
+\item{add_mean}{Add the mean of the original data series to the extracted cycle (logical, TRUE or FALSE);
+\code{FALSE} returns it centred on zero. \code{Default=TRUE}.}
 
-\item{plot_residual}{Plot the signal from which the extracted cycle is subtracted \code{Default=FALSE}.}
+\item{plot_residual}{Plot the residual (extracted cycle minus data) against depth/time and its histogram
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the plot layout active after the call so that extra features can be added to the
+residual plot (logical, TRUE or FALSE); \code{FALSE} restores the previous graphical parameters. Only used when
+\code{plot_residual=TRUE}. \code{Default=FALSE}.}
 }
 \value{
 Signal extracted from the wavelet spectra.

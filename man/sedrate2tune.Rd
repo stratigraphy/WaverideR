@@ -12,15 +12,21 @@ sedrate2tune(
 )
 }
 \arguments{
-\item{data}{Input should be a matrix of 2 columns with first column being depth and the second column
-is a proxy value}
+\item{data}{Proxy record in the depth domain (required): matrix or data frame with depth in metres in column 1 and
+the proxy value in column 2. The proxy values are paired row by row with the times computed on the (regularly
+resampled) depths of \code{sed_curve}, so \code{data} must be evenly sampled on the same depths as \code{sed_curve}
+(e.g. the record from which the sedimentation rate curve was made). \code{Default=NULL}.}
 
-\item{sed_curve}{Input should be a matrix of 2 columns with first column being depth and the second column
-is the sedimentation rate is cm/kyr}
+\item{sed_curve}{Sedimentation rate curve (required): matrix or data frame with depth in metres in column 1 and the
+sedimentation rate in cm/kyr in column 2, e.g. the output of \code{\link{minimal_tuning}}
+with \code{output = 1}. It is sorted, cleaned of
+\code{NA} rows and linearly interpolated to its median depth step before being integrated to time (in kyr).
+\code{Default=NULL}.}
 
-\item{genplot}{Generates a plot of the proxy record in  the time domain \code{Default=FALSE}.}
+\item{genplot}{Plot the proxy record against time (kyr) (logical). \code{Default=FALSE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the graphical parameters of the plot after the function returns, so that extra elements
+can be added (logical); only used with \code{genplot = TRUE}. \code{Default=FALSE}.}
 }
 \value{
 The output is a matrix with 2 columns.

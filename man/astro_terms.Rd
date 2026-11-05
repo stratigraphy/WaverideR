@@ -7,11 +7,15 @@
 astro_terms(age_ma = 0, k_yr = NULL, data_dir = NULL)
 }
 \arguments{
-\item{age_ma}{age in Ma; the precession constant comes from AstroGeo22}
+\item{age_ma}{Age in Ma (numeric, single value, 0 to 4429) at which the periods are computed; the precession
+constant used for the k-bearing (obliquity and precession) terms is taken from \code{\link{astrogeo22}} at
+this age unless \code{k_yr} is given. \code{Default=0}.}
 
-\item{k_yr}{optional: your own precession constant (yr) instead of the model}
+\item{k_yr}{Your own precession constant k, as a period in years (numeric, > 0), used instead of the
+AstroGeo22 value at \code{age_ma}; \code{NULL} uses the AstroGeo22 value. \code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{data_dir}{Folder that contains the data files \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path); \code{NULL} uses the copy installed with the package. \code{Default=NULL}.}
 }
 \value{
 data.frame from the longest to the shortest period

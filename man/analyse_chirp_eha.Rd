@@ -50,61 +50,87 @@ analyze_chirp_eha(
 )
 }
 \arguments{
-\item{data}{Record: first column depth, second column proxy (uniformly sampled; it is interpolated otherwise).}
+\item{data}{Input record in the depth domain: a matrix or data frame with depth in column 1 and the proxy value
+in column 2 (further columns are ignored). Incomplete rows are removed, the rows are sorted, the record is
+interpolated to the median depth spacing and standardised. Required, no default.}
 
-\item{window}{Window length (depth units), or several lengths, whose template scores are then averaged (short
-windows resolve abrupt changes, long ones resolve the lines). \code{NULL} with \code{criterion = "template"}:
-windows of about 12 and 25 cycles of the shortest cycle at the geometric mean of \code{sedrate}. A window should
-hold 15-25 cycles of the cycles that carry the evidence and be shorter than the scale over which the rate changes.}
+\item{window}{Length of the moving window in depth units (numeric, > 0), or several lengths (numeric vector),
+whose template scores are then averaged (short windows resolve abrupt changes, long ones resolve the lines; the
+longest window is returned for display). A window should hold 15-25 cycles of the cycles that carry the
+evidence and be shorter than the scale over which the rate changes. \code{NULL} is only allowed with
+\code{criterion="template"} and given \code{astro_periods} and \code{sedrate}: windows of about 12 and 25 cycles
+of the shortest cycle at the geometric mean of \code{sedrate}. \code{Default=NULL}.}
 
-\item{step}{Step between window centres \code{Default=window / 20}.}
+\item{step}{Distance between successive window centres in depth units (numeric, > 0); \code{NULL} uses
+\code{window / 20} (of the shortest window). \code{Default=NULL}.}
 
-\item{chirp}{Relative rate gradients tried (per depth unit): g = (dr/dz) / r at the window centre
-\code{Default=seq(-0.05, 0.05, by = 0.005)}; \code{"auto"} (with the template): 25 values up to a factor 3 change
-of the rate within the longest window.}
+\item{chirp}{Relative rate gradients g = (dr/dz) / r at the window centre that are tried, per depth unit
+(numeric vector; 0 is the ordinary EHA, gradients at which the rate would reach zero inside the window are
+skipped). \code{"auto"} (with \code{criterion="template"}, \code{astro_periods} and \code{sedrate}) uses 25 values
+up to a factor 3 change of the rate within the longest window. \code{Default=seq(-0.05, 0.05, by = 0.005)}.}
 
-\item{nw}{Multitaper time-bandwidth product \code{Default=3}; \code{k} tapers \code{Default=2 nw - 1}.}
+\item{nw}{Time-bandwidth product of the multitaper spectra (numeric, > 0, typically 2 to 4); larger values give
+smoother spectra with a coarser period resolution. \code{Default=3}.}
 
-\item{k}{Number of Slepian tapers; by default \code{2 * nw - 1}.}
+\item{k}{Number of Slepian (DPSS) tapers (integer, >= 2, at most \code{2 * nw - 1}); \code{NULL} uses
+\code{2 * nw - 1}. \code{Default=NULL}.}
 
-\item{lowerPeriod, upperPeriod, dj}{Log2 period grid of the output.}
+\item{lowerPeriod, upperPeriod, dj}{Log2 period grid of the output: shortest and longest period in depth units
+(numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{NULL} uses \code{3} times the sampling interval and
+\code{window / 2}) and the spacing in octaves (numeric, > 0). Defaults: \code{lowerPeriod}:
+\code{Default=NULL}; \code{upperPeriod}: \code{Default=NULL}; \code{dj}: \code{Default=1/50}.}
 
-\item{band}{Period range (depth units) within which the concentration criterion is evaluated
-\code{Default=c(lowerPeriod, min(upperPeriod, window / 3))}.}
+\item{band}{Period range in depth units within which the criterion is evaluated (numeric vector
+\code{c(lower, upper)}); \code{NULL} uses \code{c(lowerPeriod, min(upperPeriod, window / 3))}.
+\code{Default=NULL}.}
 
-\item{criterion}{How the gradient of a window is chosen: \code{"ftest"} (default; sum of the harmonic F-test
-values above 2 in \code{band}, i.e. the strength of the lines), \code{"template"} (the match with the
-astronomical template, see \code{astro_periods}; pools all cycles and is the most robust in noisy records),
-\code{"peak"} (the highest whitened peak) or
-\code{"entropy"} (Renyi entropy of order 2 of the power in \code{band}; biased towards strong warps in noisy
-records).}
+\item{criterion}{How the gradient of a window is chosen (character), one of:
+\itemize{
+\item \code{"ftest"}: the sum of the harmonic F-test values above 2 in \code{band}, i.e. the strength of the
+lines;
+\item \code{"template"}: the match with the astronomical template, see \code{astro_periods}; pools all cycles and
+is the most robust in noisy records;
+\item \code{"peak"}: the highest whitened peak in \code{band};
+\item \code{"entropy"}: the Renyi entropy of order 2 of the power in \code{band}; biased towards strong warps in
+noisy records.
+}
+\code{Default="ftest"} (the first element of \code{c("ftest", "template", "peak", "entropy")}).}
 
-\item{astro_periods, sedrate}{For \code{criterion = "template"}: the astronomical periods (vector, or data frame
-with \code{period} and \code{weight}) and the sedimentation-rate range searched; the de-chirped spectrum of every
-window is then matched to the astronomical template (summed log line-to-continuum ratio at the periods of all
-cycles, over a grid of rates, as in eCOCO), the gradient with the best match is chosen, and the best rate per
-window is returned as \code{sedrate} with the score matrix \code{template_score} (windows x rates).}
+\item{astro_periods}{Astronomical periods in kyr used by \code{criterion="template"}: a numeric vector (equal
+weights) or a data frame with columns \code{period} and \code{weight}. The de-chirped spectrum of every window
+is matched to this template (summed log line-to-continuum ratio at the periods of all cycles, over a grid of
+rates, as in eCOCO), the gradient with the best match is chosen, and the best rate per window is returned as
+\code{sedrate} with the score matrix \code{template_score} (windows x rates). Required for
+\code{criterion="template"}. \code{Default=NULL}.}
 
-\item{smooth_chirp}{The criterion is averaged over this length (depth units) along the record before the gradient
-is chosen, because the gradient changes slowly and the choice from one noisy window is unreliable
-\code{Default=window / 2}.}
+\item{sedrate}{Range of sedimentation rates searched by \code{criterion="template"}, in depth units per kyr
+(numeric vector \code{c(lower, upper)}); \code{NULL} uses the rates that put the template inside \code{band}.
+\code{Default=NULL}.}
 
-\item{steer}{Optional tracked sedimentation rate (a \code{\link{track_astro_hmm}} or \code{\link{track_astro_auto}}
-result): every window is then de-chirped with the gradient of the track (nearest value of \code{chirp}) instead
-of the gradient chosen by \code{criterion}. Where the track is right, all cycles become sharp lines that follow
-the changes of the rate; where it is wrong, they do not, which makes the map a check of the track that is
-independent of the power the track was fitted to.}
+\item{smooth_chirp}{Length in depth units over which the criterion is averaged along the record before the
+gradient is chosen (numeric, >= 0; 0 switches it off), because the gradient changes slowly and the choice from
+one noisy window is unreliable; \code{NULL} uses \code{window / 2}. \code{Default=NULL}.}
 
-\item{pad}{Zero-padding factor of the window spectra \code{Default=8}.}
+\item{steer}{Optional tracked sedimentation rate: a \code{wr_track} (\code{\link{track_astro_hmm}},
+\code{\link{track_chirp_hmm}}) or a \code{\link{track_astro_auto}} result, with \code{depth} and \code{sedrate}.
+Every window is then de-chirped with the gradient of the track (nearest value of \code{chirp}) instead of the
+gradient chosen by \code{criterion}. Where the track is right, all cycles become sharp lines that follow the
+changes of the rate; where it is wrong, they do not, which makes the map a check of the track that is
+independent of the power the track was fitted to. \code{NULL} does not steer. \code{Default=NULL}.}
 
-\item{detrend}{Remove a linear trend from every window \code{Default=TRUE}.}
+\item{pad}{Zero-padding factor of the window spectra (numeric, >= 1): the FFT length is the next power of 2 of
+\code{pad} times the window length, giving a finer frequency grid. \code{Default=8}.}
 
-\item{continuum}{How the continuum against which a line is measured is estimated from the spectrum of a window:
-\code{"lowess"} (default; a smooth fit of log power against log period over the whole window spectrum, which is
-not pulled up by clusters of lines such as the precession triplet) or \code{"median"} (running median over
-0.5 octave; it was pulled up inside line clusters, so that isolated aliases scored better than the true rate).}
+\item{detrend}{Remove a least-squares linear trend from every window before the spectrum is computed (logical,
+TRUE or FALSE); \code{FALSE} only removes the mean. \code{Default=TRUE}.}
 
-\item{verbose}{Print the progress \code{Default=FALSE}.}
+\item{continuum}{How the continuum against which a line is measured is estimated from the spectrum of a window
+(character), one of \code{"lowess"} (a smooth fit of log power against log period over the whole window
+spectrum, which is not pulled up by clusters of lines such as the precession triplet) or \code{"median"}
+(running median over 0.5 octave; it is pulled up inside line clusters, so that isolated aliases can score better
+than the true rate). \code{Default="lowess"} (the first element of \code{c("lowess", "median")}).}
+
+\item{verbose}{Print the progress every 25 windows (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list of class \code{analyze.wavelet} (usable in \code{\link{plot_wavelet}},

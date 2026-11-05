@@ -19,34 +19,50 @@ ctest(
 )
 }
 \arguments{
-\item{data}{8x2 table (matrix, data.frame or tibble) as read from the
-published spreadsheet, or built with ctest_input()}
+\item{data}{Interpreted spectral peaks as an 8 x 2 table (matrix, data frame or tibble), in the layout of the
+published spreadsheet, best built with \code{\link{ctest_input}}: row 1 the age range of the record in Ma
+(min, max); rows 2 to 8 the frequency ranges in cycles per metre of the 405-kyr, ~125-kyr and ~95-kyr
+eccentricity cycles, the obliquity cycle (k+s3) and the three precession cycles (k+g5; k+g2; k+g4 and k+g3), with
+the lower frequency (longer wavelength) in column 1 and the higher frequency in column 2. The obliquity row may
+be \code{NA} when \code{mode="P"} and the precession rows when \code{mode="T"}. Required, no default.}
 
-\item{nsim}{number of successful samples to collect}
+\item{nsim}{Number of accepted (successful) samples to collect (integer, > 0). \code{Default=1000}.}
 
-\item{mode}{"PT", "P" or "T" (see file header)}
+\item{mode}{Which cycles constrain the precession constant besides eccentricity (character): \code{"PT"}
+precession and obliquity (tilt), \code{"P"} precession only, \code{"T"} obliquity only.
+\code{Default=c("PT", "P", "T")}, i.e. \code{"PT"}.}
 
-\item{ptest}{range of precession constants to sample, in years}
+\item{ptest}{Range of the precession constant that is sampled (uniformly), given as its period in years
+(numeric vector \code{c(min, max)}). \code{Default=c(10000, 28000)}.}
 
-\item{sampleorb}{"U" uniform within 2 sigma (used in the paper) or "N" normal}
+\item{sampleorb}{Distribution from which the secular frequencies g2, g3, g4 and g5 are drawn around their
+Laskar et al. (2011) values, with an uncertainty that grows with the square root of age (character):
+\code{"U"} uniform within 2 sigma (used in the paper) or \code{"N"} normal. \code{Default=c("U", "N")}, i.e.
+\code{"U"}.}
 
-\item{seed}{optional RNG seed}
+\item{seed}{Seed of the random number generator (integer), so that the samples can be reproduced; \code{NULL}
+leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{max_attempts}{abort if no nsim successes are found within this many draws}
+\item{max_attempts}{Maximum number of draws (numeric); the function stops with an error if fewer than
+\code{nsim} samples have been accepted by then, which usually means the interpreted cycle ranges are
+inconsistent. \code{Default=5e7}.}
 
-\item{verbose}{print progress every 10\%}
+\item{verbose}{Print progress messages with the number of accepted samples and the acceptance rate (logical,
+TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{engine}{"vectorized" (default, draws in blocks; fast) or "loop",
-which follows the published draw order exactly and reproduces
-mmc3/mmc4/mmc5 sample for sample under the same seed}
+\item{engine}{Sampling engine (character): \code{"vectorized"} draws in blocks of \code{block} samples (fast);
+\code{"loop"} draws one sample at a time in the published draw order and reproduces mmc3/mmc4/mmc5 sample for
+sample under the same seed. \code{Default=c("vectorized", "loop")}, i.e. \code{"vectorized"}.}
 
-\item{block}{number of draws per block for the vectorized engine}
+\item{block}{Number of draws per block for \code{engine="vectorized"} (integer; limited to 1000 to 5e6); larger
+blocks are faster but use more memory. Ignored by \code{engine="loop"}. \code{Default=1e5}.}
 
-\item{s3_uncertainty}{"published" keeps the published code's draw for s3,
-rnorm(1, s3, ds3*sqrt(t/1e8)), in which the relative uncertainty ds3 is
-applied as an absolute one in years, so s3 is effectively fixed.
-"scaled" applies it the same way as for g2-g5 (s3 * ds3 * sqrt(t/1e8)),
-which gives s3 a realistic spread. Use "published" to reproduce the paper.}
+\item{s3_uncertainty}{How the uncertainty of the secular frequency s3 (used for obliquity) is applied
+(character): \code{"published"} keeps the draw of the published code,
+\code{rnorm(1, s3, ds3 * sqrt(t / 1e8))}, in which the relative uncertainty \code{ds3} is applied as an absolute
+one in years, so s3 is effectively fixed (use this to reproduce the paper); \code{"scaled"} applies it as for
+g2 to g5 (\code{s3 * ds3 * sqrt(t / 1e8)}), which gives s3 a realistic spread.
+\code{Default=c("published", "scaled")}, i.e. \code{"published"}.}
 }
 \value{
 list with `summary` (table as in the paper), `samples`

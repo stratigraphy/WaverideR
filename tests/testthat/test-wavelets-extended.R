@@ -30,7 +30,12 @@ test_that("second-order synchrosqueezing sharpens a chirp", {
   d <- data.frame(z, cos(2 * pi * cumsum(f)))
   conc <- function(w) {
     j <- which(z > 200 & z < 1300)
-    mean(sapply(j, function(i) sum(w$Power[abs(w$Period * f[i] - 1) <= 0.03, i]) / sum(w$Power[, i])))
+    r <- numeric(length(j))
+    for (m in seq_along(j)) {
+      i <- j[m]
+      r[m] <- sum(w$Power[abs(w$Period * f[i] - 1) <= 0.03, i]) / sum(w$Power[, i])
+    }
+    mean(r)
   }
   a <- analyse_wavelet_sst(d, lowerPeriod = 12, upperPeriod = 100, dj = 1 / 40, omega_nr = 20)
   b <- analyse_wavelet_sst(d, lowerPeriod = 12, upperPeriod = 100, dj = 1 / 40, omega_nr = 20, sst_order = 2)
@@ -49,8 +54,8 @@ test_that("superlet synchrosqueezing separates adjacent close cycles in noise", 
   d <- data.frame(z, sin(2 * pi * cumsum(1 / Pt)) + rnorm(length(z), sd = 1))
   s <- analyse_superlet_sst(d, lowerPeriod = 20, upperPeriod = 100, dj = 1 / 40, o = 4)
   expect_true(isTRUE(s$superlet))
-  r1 <- s$Period[apply(s$Power[, z > 150 & z < 500], 2, which.max)]
-  r2 <- s$Period[apply(s$Power[, z > 700 & z < 1050], 2, which.max)]
+  r1 <- s$Period[max.col(t(s$Power[, z > 150 & z < 500]), ties.method = "first")]
+  r2 <- s$Period[max.col(t(s$Power[, z > 700 & z < 1050]), ties.method = "first")]
   expect_lt(abs(median(r1) / 40 - 1), 0.04)
   expect_lt(abs(median(r2) / 46 - 1), 0.04)
   expect_identical(analyze_superlet_sst, analyse_superlet_sst)
@@ -73,5 +78,9 @@ test_that("multisynchrosqueezing, reassignment, ConceFT and significance work", 
   expect_true(is.logical(sig$significant))
   expect_gt(sum(sig$Power[abs(sig$Period / 40 - 1) <= 0.03, ]), 0.5 * sum(m$Power[abs(m$Period / 40 - 1) <= 0.03, ]))
   expect_lt(sum(sig$Power), sum(m$Power) + 1e-9)
-  expect_silent(suppressMessages({pdf(NULL); plot_wavelet(sig); dev.off()}))
+  expect_silent(suppressMessages({
+    pdf(NULL)
+    plot_wavelet(sig)
+    dev.off()
+  }))
 })

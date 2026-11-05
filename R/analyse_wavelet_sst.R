@@ -14,42 +14,72 @@
 #' \code{analyze.wavelet}), so it can be plotted with \code{\link{plot_wavelet}} and used by the tracking and extraction
 #' functions (e.g. \code{\link{track_period_wavelet}}, \code{\link{extract_signal}}) in place of the scalogram.
 #'
-#' @param data Input is a time series with the first column being depth or time and the second column being a proxy.
-#' @param dj Spacing of the scales in octaves (as in \code{\link{analyse_wavelet}}); also the spacing of the squeezed
-#' period axis.
-#' @param lowerPeriod,upperPeriod Shortest and longest period of the transform.
-#' @param omega_nr Central angular frequency of the Morlet wavelet (see \code{\link{analyse_wavelet}}); several values (e.g. \code{c(6, 10, 16, 24)}) select adaptive synchrosqueezing, see \code{adaptive_window}. Synchrosqueezing separates cycles that are further apart than the bandwidth of the wavelet, so a larger value (10 to 12) separates close cycles better; the interference of two close cycles otherwise makes the ridges wave.
-#' @param wavelet,wavelet_order Mother wavelet and its order, see \code{\link{analyse_wavelet}}. Synchrosqueezing needs an
-#' analytic wavelet of \code{\link{analyse_wavelet}} (not the real wavelets dog, morl, hhat, poisson, haar, db, sym and battle).
-#' @param n_iter Number of synchrosqueezing iterations (multisynchrosqueezing, Yu et al. 2019) \code{Default=1}.
+#' @param data Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+#' (further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+#' linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+#' error).
+#' @param dj Spacing of the scales in octaves (numeric, > 0; \code{1/x} gives x periods per doubling of the period,
+#' as in \code{\link{analyse_wavelet}}); also the spacing of the squeezed period axis, so smaller values give
+#' sharper ridges at a higher computation time. \code{Default=1/100}.
+#' @param lowerPeriod,upperPeriod Shortest and longest period of the transform, in the same unit as the depth/time
+#' column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+#' the sampling interval). Coefficients squeezed to a period outside this range are discarded.
+#' Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}: \code{Default=1024}.
+#' @param omega_nr Number of cycles (central angular frequency omega_0) of the Morlet wavelet, see
+#' \code{\link{analyse_wavelet}} (numeric, > 0). Several values (e.g. \code{c(6, 10, 16, 24)}) select adaptive
+#' synchrosqueezing, see \code{adaptive_window}. Synchrosqueezing separates cycles that are further apart than the
+#' bandwidth of the wavelet, so a larger value (10 to 12) separates close cycles better; the interference of two
+#' close cycles otherwise makes the ridges wave. \code{Default=12}.
+#' @param wavelet,wavelet_order Mother wavelet (character string or function) and its parameter(s) (numeric or
+#' \code{NULL} for the default parameters), see \code{\link{analyse_wavelet}}. Synchrosqueezing needs an analytic
+#' wavelet of \code{\link{analyse_wavelet}} (not the real wavelets dog, morl, hhat, poisson, haar, db, sym and
+#' battle, which give an error). \code{wavelet}: \code{Default="morlet"}; \code{wavelet_order}: \code{Default=NULL}.
+#' @param n_iter Number of synchrosqueezing iterations (integer, >= 1); values > 1 give multisynchrosqueezing
+#' (Yu et al. 2019), in which a coefficient is moved repeatedly to the instantaneous period estimated at the period
+#' it was moved to, giving thinner ridges. Only used when \code{type="sst"}. \code{Default=1}.
 #' @param threshold Coefficients with a modulus below this value are not squeezed, because the phase of a
 #' coefficient that is dominated by noise gives a meaningless frequency, and squeezing them scatters noise
-#' over the whole spectrum. \code{"riskshrink"} (default) estimates the noise level from the finest scales as
-#' \code{sqrt(2 log(N)) * 1.4826 * MAD(|W|)} (Donoho and Johnstone 1994; as in the Synchrosqueezing Toolbox of Brevdo
-#' and Thakur and in \code{ssqueezepy}); a number is used directly, in standard deviations of the (standardised) record,
-#' since the transform is normalised so that white noise gives the same modulus at every scale; \code{"none"}
-#' uses a negligible value (sqrt of the machine epsilon), which squeezes everything.
-#' @param sst_order \code{1} (default) for the classic synchrosqueezing, \code{2} for the second-order
-#' synchrosqueezing transform (Oberlin, Meignen and Perrier 2015; Oberlin and Meignen 2017). The first-order
-#' estimate of the instantaneous frequency is the frequency at the centre of gravity (in time) of the part of the
-#' signal that a wavelet sees, which lags behind when the period changes quickly (a changing sedimentation rate makes
-#' the cycle a chirp). The second-order estimate measures the rate of change of the frequency (the chirp rate) from
-#' additional transforms and corrects for it, so that ridges follow fast changes of the sedimentation rate without
-#' giving up frequency resolution.
-#' @param type \code{"sst"} (default) squeezes every coefficient to its instantaneous period; \code{"set"} is the
-#' synchroextracting transform (Yu et al. 2017), which keeps only the coefficients whose instantaneous period equals
-#' the period of their own scale (the ridge itself) and gives the thinnest ridges, at the cost of discarding the energy
-#' away from the ridge (it cannot be used to reconstruct the full signal).
-#' @param adaptive_window Only used when \code{omega_nr} has several values (adaptive synchrosqueezing): the transform is
-#' computed for every \code{omega_nr} and at every position the one with the most concentrated energy (lowest Renyi
-#' entropy of order 3 within a moving window of this length, in the units of the depth/time axis) is used. A short
-#' wavelet is then chosen where the period changes quickly and a long wavelet where close cycles need to be separated.
-#' \code{Default=NULL}: three times the geometric mean of \code{lowerPeriod} and \code{upperPeriod}.
-#' @param adaptive_on Transform on which the entropy of the adaptive selection is measured: \code{"sst"} (default),
-#' the squeezed transform, which picks short wavelets where the period changes quickly, but in very noisy records also
-#' prefers short wavelets (noise is squeezed into sparse spikes); or \code{"cwt"}, the wavelet transform, which is
-#' robust against noise but nearly always prefers the longest wavelet.
-#' @param verbose Print messages.
+#' over the whole spectrum. Either a character string or a number (numeric, >= 0):
+#' \itemize{
+#' \item \code{"riskshrink"}: estimates the noise level from the finest scales as
+#' \code{sqrt(2 log(N)) * 1.4826 * MAD(|W|)} (Donoho and Johnstone 1994; as in the Synchrosqueezing Toolbox of
+#' Brevdo and Thakur and in \code{ssqueezepy}), capped so that at least a tenth of the coefficients is kept;
+#' \item a number: used directly, in standard deviations of the (standardised) record, since the transform is
+#' normalised so that white noise gives the same modulus at every scale;
+#' \item \code{"none"}: uses a negligible value (sqrt of the machine epsilon), which squeezes everything.
+#' }
+#' \code{Default="riskshrink"}.
+#' @param sst_order Order of the synchrosqueezing transform (numeric, \code{1} or \code{2}; other values give an
+#' error). \code{1} is the classic synchrosqueezing, \code{2} the second-order synchrosqueezing transform (Oberlin,
+#' Meignen and Perrier 2015; Oberlin and Meignen 2017). The first-order estimate of the instantaneous frequency is
+#' the frequency at the centre of gravity (in time) of the part of the signal that a wavelet sees, which lags
+#' behind when the period changes quickly (a changing sedimentation rate makes the cycle a chirp). The second-order
+#' estimate measures the rate of change of the frequency (the chirp rate) from additional transforms and corrects
+#' for it, so that ridges follow fast changes of the sedimentation rate without giving up frequency resolution.
+#' \code{Default=1}.
+#' @param type Kind of transform (character), one of:
+#' \itemize{
+#' \item \code{"sst"}: synchrosqueezing, every coefficient is moved to its instantaneous period (invertible);
+#' \item \code{"set"}: synchroextracting transform (Yu et al. 2017), which keeps only the coefficients whose
+#' instantaneous period equals the period of their own scale (the ridge itself) and gives the thinnest ridges, at
+#' the cost of discarding the energy away from the ridge (it cannot be used to reconstruct the full signal);
+#' \item \code{"reassign"}: reassigned scalogram (Auger and Flandrin 1995), in which the power is moved both in
+#' period and in depth/time; not invertible (the stored coefficients have zero phase).
+#' }
+#' \code{Default="sst"} (the first element of \code{c("sst", "set", "reassign")}).
+#' @param adaptive_window Length of the moving window used for adaptive synchrosqueezing, in the units of the
+#' depth/time axis (numeric, > 0). Only used when \code{omega_nr} has several values: the transform is computed for
+#' every \code{omega_nr} and at every position the one with the most concentrated energy (lowest Renyi entropy of
+#' order 3 within the moving window) is used. A short wavelet is then chosen where the period changes quickly and a
+#' long wavelet where close cycles need to be separated. \code{NULL} uses three times the geometric mean of
+#' \code{lowerPeriod} and \code{upperPeriod}. \code{Default=NULL}.
+#' @param adaptive_on Transform on which the entropy of the adaptive selection is measured (character), one of
+#' \code{"sst"}, the squeezed transform, which picks short wavelets where the period changes quickly, but in very
+#' noisy records also prefers short wavelets (noise is squeezed into sparse spikes); or \code{"cwt"}, the wavelet
+#' transform, which is robust against noise but nearly always prefers the longest wavelet. Only used when
+#' \code{omega_nr} has several values. \code{Default="sst"} (the first element of \code{c("sst", "cwt")}).
+#' @param verbose Print the sampling interval to which the record was interpolated (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
 #'
 #' @details Every coefficient W(s, t) is moved to the period that its instantaneous frequency gives. With
 #' the Torrence and Compo (1998) normalisation the reconstruction sum W / sqrt(s) is conserved: the squeezed
@@ -108,23 +138,25 @@
 #' @importFrom stats approx sd
 #' @export
 analyse_wavelet_sst <- function(data = NULL,
-                                dj = 1 / 100,
-                                lowerPeriod = 2,
-                                upperPeriod = 1024,
-                                omega_nr = 12,
-                                wavelet = "morlet",
-                                wavelet_order = NULL,
-                                threshold = "riskshrink",
-                                sst_order = 1,
-                                type = c("sst", "set", "reassign"),
-                                n_iter = 1,
-                                adaptive_window = NULL,
-                                adaptive_on = c("sst", "cwt"),
-                                verbose = FALSE) {
+    dj = 1 / 100,
+    lowerPeriod = 2,
+    upperPeriod = 1024,
+    omega_nr = 12,
+    wavelet = "morlet",
+    wavelet_order = NULL,
+    threshold = "riskshrink",
+    sst_order = 1,
+    type = c("sst", "set", "reassign"),
+    n_iter = 1,
+    adaptive_window = NULL,
+    adaptive_on = c("sst", "cwt"),
+    verbose = FALSE) {
   settings <- mget(setdiff(names(formals(sys.function())), c("data", "verbose")))
   type <- match.arg(type)
   adaptive_on <- match.arg(adaptive_on)
-  if (!(sst_order %in% c(1, 2))) stop("sst_order must be 1 or 2")
+  if (!(sst_order %in% c(1, 2))) {
+    stop("sst_order must be 1 or 2")
+  }
   dat <- as.matrix(data)
   dat <- dat[stats::complete.cases(dat[, 1:2]), 1:2, drop = FALSE]
   dat <- dat[order(dat[, 1]), , drop = FALSE]
@@ -137,12 +169,15 @@ analyse_wavelet_sst <- function(data = NULL,
   n <- length(xi)
   xs <- (xi - mean(xi)) / stats::sd(xi)
 
-  runs <- lapply(omega_nr, function(om) {
+  runs <- vector("list", length(omega_nr))
+  names(runs) <- names(omega_nr)
+  for (oi in seq_along(omega_nr)) {
+    om <- omega_nr[[oi]]
     wdef <- .wr_wavelet(wavelet, wavelet_order, om)
     if (!wdef$analytic){
       stop("synchrosqueezing needs an analytic wavelet: use an analytic wavelet such as \"morlet\", \"morlet0\", ",
-           "\"paul\", \"morse\", \"bump\", \"cmor\", \"cgau\", \"loggabor\" or \"gammatone\"; real wavelets ",
-           "(dog, morl, hhat, poisson, haar, db, sym, battle) cannot be synchrosqueezed")
+          "\"paul\", \"morse\", \"bump\", \"cmor\", \"cgau\", \"loggabor\" or \"gammatone\"; real wavelets ",
+          "(dog, morl, hhat, poisson, haar, db, sym, battle) cannot be synchrosqueezed")
     }
     # common period axis for all omega_nr: the scales follow from the Fourier factor of each wavelet
     J <- as.integer(log2(upperPeriod / lowerPeriod) / dj)
@@ -152,37 +187,46 @@ analyse_wavelet_sst <- function(data = NULL,
     r$wdef <- wdef
     r$scales <- scales
     r$periods <- periods
-    r
-  })
+    runs[[oi]] <- r
+  }
   periods <- runs[[1]]$periods
   ns <- length(periods)
   sel <- rep(1L, n)
   if (length(runs) > 1) {
     # adaptive: per position the omega_nr with the lowest Renyi entropy (order 3) in a moving window
-    if (is.null(adaptive_window)) adaptive_window <- 3 * sqrt(lowerPeriod * upperPeriod)
+    if (is.null(adaptive_window)) {
+      adaptive_window <- 3 * sqrt(lowerPeriod * upperPeriod)
+    }
     L <- max(3, 2 * floor(adaptive_window / dt / 2) + 1)
     L <- min(L, 2 * floor((n - 1) / 2) + 1)
     k <- rep(1, L)
-    H <- sapply(runs, function(r) {
-      P <- if (adaptive_on == "cwt") Mod(r$wave)^2 / r$scales else Mod(r$tx)^2 / r$scales
+    H <- matrix(NA_real_, n, length(runs))
+    for (ri in seq_along(runs)) {
+      r <- runs[[ri]]
+      P <- if (adaptive_on == "cwt") { Mod(r$wave)^2 / r$scales } else { Mod(r$tx)^2 / r$scales }
       s1 <- as.numeric(stats::filter(colSums(P), k, sides = 2))
       s3 <- as.numeric(stats::filter(colSums(P^3), k, sides = 2))
       h <- -0.5 * log(s3 / s1^3)
       h[!is.finite(h)] <- NA
-      h
-    })
-    H <- apply(H, 2, function(h) {   # fill the edges of the window with the nearest value
+      # fill the edges of the window with the nearest value
       ok <- which(!is.na(h))
-      if (!length(ok)) return(rep(0, n))
-      stats::approx(ok, h[ok], seq_len(n), rule = 2)$y
-    })
+      if (!length(ok)) {
+        H[, ri] <- rep(0, n)
+      } else {
+        H[, ri] <- stats::approx(ok, h[ok], seq_len(n), rule = 2)$y
+      }
+    }
     sel <- max.col(-H, ties.method = "first")
   }
   pick <- function(el) {
     out <- runs[[1]][[el]]
-    if (length(runs) > 1) for (i in 2:length(runs)) {
-      j <- which(sel == i)
-      if (length(j)) out[, j] <- runs[[i]][[el]][, j]
+    if (length(runs) > 1) {
+      for (i in 2:length(runs)) {
+        j <- which(sel == i)
+        if (length(j)) {
+          out[, j] <- runs[[i]][[el]][, j]
+        }
+      }
     }
     out
   }
@@ -192,11 +236,13 @@ analyse_wavelet_sst <- function(data = NULL,
   scales <- runs[[1]]$scales
   wdef <- runs[[1]]$wdef
   # the squeezed coefficients are stored on the scales of the first wavelet (the sum of W / sqrt(s) is kept)
-  if (length(runs) > 1) for (i in 2:length(runs)) {
-    j <- which(sel == i)
-    if (length(j)) {
-      tx[, j] <- tx[, j] * sqrt(scales / runs[[i]]$scales)
-      wave[, j] <- wave[, j] * sqrt(scales / runs[[i]]$scales)
+  if (length(runs) > 1) {
+    for (i in 2:length(runs)) {
+      j <- which(sel == i)
+      if (length(j)) {
+        tx[, j] <- tx[, j] * sqrt(scales / runs[[i]]$scales)
+        wave[, j] <- wave[, j] * sqrt(scales / runs[[i]]$scales)
+      }
     }
   }
   wave_sst <- tx
@@ -207,23 +253,28 @@ analyse_wavelet_sst <- function(data = NULL,
 
   x_axis <- xout
   coi <- fourier.factor * .wr_coi_factor(wdef) * dt *
-    c(1e-5, 1:((n + 1) / 2 - 1), rev(1:(n / 2 - 1)), 1e-5)
+      c(1e-5, 1:((n + 1) / 2 - 1), rev(1:(n / 2 - 1)), 1e-5)
   coi.x <- c(x_axis[c(1, 1)] - dt * 0.5, x_axis, x_axis[c(n, n)] + dt * 0.5)
   logyint <- lp[2] - lp[1]
   yl <- c(lp[ns] + 0.5 * logyint, lp[1] - 0.5 * logyint)
   coi.y <- c(yl, log2(coi), rev(yl))
   Power_cwt <- Mod(wave)^2 / matrix(rep(scales, n), nrow = ns)
 
+  thresholds <- vector("list", length(runs))
+  names(thresholds) <- names(runs)
+  for (ri in seq_along(runs)) {
+    thresholds[[ri]] <- runs[[ri]]$gam
+  }
   out <- list(Wave = wave_sst, Phase = Arg(wave_sst), Ampl = Ampl, Power = Power,
-              dt = dt, dj = dj, Power.avg = rowMeans(Power), Period = periods, Scale = scales,
-              coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = x_axis, axis.2 = lp,
-              omega_nr = omega_nr[1], wavelet = wdef$name, wavelet_order = wdef$order,
-              fourier_factor = fourier.factor, psi0 = wdef$psi0,
-              x = xout, y = xi, Power.avg.pval = NULL, Power.pval = NULL,
-              synchrosqueezed = TRUE, sst_order = sst_order, type = type,
-              threshold = sapply(runs, function(r) r$gam),
-              omega_nr_all = omega_nr, omega_selected = omega_nr[sel],
-              Wave_cwt = wave, Power_cwt = Power_cwt, inst_period = p_inst)
+      dt = dt, dj = dj, Power.avg = rowMeans(Power), Period = periods, Scale = scales,
+      coi.1 = coi.x, coi.2 = coi.y, nc = n, nr = ns, axis.1 = x_axis, axis.2 = lp,
+      omega_nr = omega_nr[1], wavelet = wdef$name, wavelet_order = wdef$order,
+      fourier_factor = fourier.factor, psi0 = wdef$psi0,
+      x = xout, y = xi, Power.avg.pval = NULL, Power.pval = NULL,
+      synchrosqueezed = TRUE, sst_order = sst_order, type = type,
+      threshold = unlist(thresholds),
+      omega_nr_all = omega_nr, omega_selected = omega_nr[sel],
+      Wave_cwt = wave, Power_cwt = Power_cwt, inst_period = p_inst)
   out$settings <- settings
   out$transform <- "analyse_wavelet_sst"
   class(out) <- "analyze.wavelet"
@@ -235,7 +286,7 @@ analyse_wavelet_sst <- function(data = NULL,
 # that the sum over scales of Re(tx) / sqrt(s) equals that of the wavelet transform), the wavelet
 # transform, the instantaneous periods and the threshold.
 .wr_sst_core <- function(xs, dt, wdef, scales, dj, sst_order = 1, type = "sst", threshold = "riskshrink",
-                         n_iter = 1) {
+    n_iter = 1) {
   n <- length(xs)
   ns <- length(scales)
   pad <- 2^(trunc(log2(n) + 0.5) + 1) - n
@@ -248,7 +299,9 @@ analyse_wavelet_sst <- function(data = NULL,
   lp <- log2(periods)
 
   wave <- matrix(0 + 0i, ns, n)
-  for (j in seq_len(ns)) wave[j, ] <- inv(wdef$daughter(scales[j], omega.k, dt))
+  for (j in seq_len(ns)) {
+    wave[j, ] <- inv(wdef$daughter(scales[j], omega.k, dt))
+  }
   amod <- Mod(wave)
   if (is.character(threshold)){
     threshold <- match.arg(threshold, c("riskshrink", "none"))
@@ -294,7 +347,9 @@ analyse_wavelet_sst <- function(data = NULL,
       q <- ifelse(abs(d_t) > 1e-6, d_om / d_t, 0)
       om2 <- om + q * tau
       # use the corrected estimate where it is defined and positive
-      if (sst_order == 2) om <- ifelse(is.finite(om2) & om2 > 0, om2, om)
+      if (sst_order == 2) {
+        om <- ifelse(is.finite(om2) & om2 > 0, om2, om)
+      }
       if (type == "reassign") {
         # reassignment in depth/time as well: the centre of gravity t_hat = b - Re(W_tau / W)
         tb <- round((seq_len(n) - 1) - tau / dt) + 1
@@ -331,11 +386,15 @@ analyse_wavelet_sst <- function(data = NULL,
   for (j in seq_len(ns)) {
     b <- bmat[j, ]
     ok <- which(!is.na(b))
-    if (!length(ok)) next
+    if (!length(ok)) {
+      next
+    }
     if (type == "reassign") {
       tb <- tbin[j, ok]
       k <- !is.na(tb)
-      if (!any(k)) next
+      if (!any(k)) {
+        next
+      }
       idx <- cbind(b[ok][k], tb[k])
       # accumulate power (|W|^2 / s): the reassigned scalogram is not invertible
       v <- Mod(wave[j, ok][k])^2 / scales[j]

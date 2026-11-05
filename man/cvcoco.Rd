@@ -26,58 +26,63 @@ cvcoco(
 )
 }
 \arguments{
-\item{data}{Matrix with two columns: depth (m) and proxy value.
-Unsorted, duplicated and irregularly spaced depths are allowed.}
+\item{data}{Record to test (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+column 2. Unsorted, duplicated and irregularly spaced depths are allowed (each fold is cleaned and linearly
+interpolated to its own median spacing). Required (\code{Default=NULL} gives an error).}
 
-\item{orbit9}{Nine astronomical periods (kyr): one long eccentricity, four
-short eccentricity, one obliquity and three precession periods (groups
-are identified by descending period rank).
-\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897,
-23.6820, 22.3758, 18.9519)}}
+\item{orbit9}{The nine astronomical target periods in kyr (numeric vector of nine distinct, positive values):
+one long eccentricity, four short eccentricity, one obliquity and three precession periods (the groups are
+identified by descending period rank), e.g. from \code{\link{orbit9_at_age}} for the age of the record.
+\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.}
 
-\item{pad}{Periodogram length (zero padding); each fold uses
-\code{max(pad, n_fold)}. \code{Default=0} (no padding, as in the Acycle
-GUI when padding is unchecked)}
+\item{pad}{Length (number of points) of the zero-padded periodogram (non-negative integer); each fold uses
+\code{max(pad, n_fold)}, so \code{0} means no padding (as in the Acycle GUI when padding is unchecked); a larger
+value gives a finer frequency grid but uses more memory. \code{Default=0}.}
 
-\item{sr1}{Minimum sedimentation rate (cm/kyr). \code{Default=1}}
+\item{sr1}{Lowest sedimentation rate tested, in cm/kyr (numeric, > 0). \code{Default=1}.}
 
-\item{sr2}{Maximum sedimentation rate (cm/kyr). \code{Default=20}}
+\item{sr2}{Highest sedimentation rate tested, in cm/kyr (numeric, >= \code{sr1}). \code{Default=20}.}
 
-\item{srstep}{Sedimentation-rate step (cm/kyr). \code{Default=0.1}}
+\item{srstep}{Step of the sedimentation-rate grid, in cm/kyr (numeric, > 0). \code{Default=0.1}.}
 
-\item{red}{Red-noise background removal: 0 none, 1 classical AR(1),
-2 robust AR(1), 3 smoothed-window average (SWA). \code{Default=0}}
+\item{red}{Red-noise background removed from every spectrum (integer): \code{0} none, \code{1} classical AR(1),
+\code{2} robust AR(1) (median-smoothed spectrum), \code{3} smoothed-window average (SWA). \code{Default=0}.}
 
-\item{n_sim}{Number of Monte Carlo simulations (0 gives only the
-deterministic curves). \code{Default=1000}}
+\item{n_sim}{Number of AR(1) Monte Carlo simulations of the complete bidirectional train/validate pipeline,
+used for the p-values and pCOCO (integer, 0 to 1e6); \code{0} gives only the deterministic curves.
+\code{Default=1000}.}
 
-\item{cor_method}{Correlation method, "Pearson" or "Spearman".
-\code{Default="Pearson"}}
+\item{cor_method}{Correlation coefficient used in all spectral correlations (character): \code{"Pearson"} or
+\code{"Spearman"}. \code{Default="Pearson"}.}
 
-\item{method}{Split design: "blocked" (depth midpoint halves) or
-"interleaved" (odd/even observations). \code{Default="blocked"}}
+\item{method}{How the record is split into the two folds (character): \code{"blocked"} (two contiguous halves at
+the depth midpoint; Blocked cvCOCO, the Acycle default) or \code{"interleaved"} (odd and even observations;
+Interleaved cvCOCO). \code{Default="blocked"}.}
 
-\item{target_model}{"four-group-coherent-nine" or "four-group" (only for
-\code{method = "blocked"}). \code{Default="four-group-coherent-nine"}}
+\item{target_model}{Design of the target (character): \code{"four-group-coherent-nine"} (the four group
+amplitudes expanded to nine zero-phase sinusoids summed coherently; Acycle GUI default) or \code{"four-group"}
+(phase-averaged, noncoherent four-group target; only allowed with \code{method="blocked"}).
+\code{Default="four-group-coherent-nine"}.}
 
-\item{max_frequency}{Maximum temporal frequency (cycle/kyr) used in all
-spectral correlations. \code{NULL} uses 1.2 times the highest orbital
-frequency. \code{Default=NULL}}
+\item{max_frequency}{Highest frequency used in all spectral correlations, in cycles/kyr (numeric, at least the
+highest orbital frequency \code{max(1/orbit9)}); \code{NULL} uses 1.2 times the highest orbital frequency.
+\code{Default=NULL}.}
 
-\item{batch_size}{Monte Carlo realisations processed simultaneously.
-\code{Default=100}}
+\item{batch_size}{Number of Monte Carlo realisations processed together (positive integer; it is reduced
+automatically when memory would run short); larger batches are faster but use more memory.
+\code{Default=100}.}
 
-\item{seed}{Seed for the random-number generator; \code{NULL} leaves the
-generator untouched. \code{Default=NULL}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
 
-\item{interleaved_phase}{0: the first cleaned observation belongs to the
-Odd fold; 1: it belongs to the Even fold. \code{Default=0}}
+\item{interleaved_phase}{Which fold the first cleaned observation belongs to when \code{method="interleaved"}
+(integer): \code{0} the odd fold, \code{1} the even fold. Ignored for \code{method="blocked"}.
+\code{Default=0}.}
 
-\item{genplot}{Plot the results with \code{\link{plot_cvcoco}}.
-\code{Default=FALSE}}
+\item{genplot}{Plot the results with \code{\link{plot_cvcoco}} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{verbose}{Print preprocessing information and a progress bar.
-\code{Default=FALSE}}
+\item{verbose}{Print preprocessing information and show a progress bar of the Monte Carlo simulations
+(logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list with elements

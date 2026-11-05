@@ -14,17 +14,26 @@ orbital_periods(
 )
 }
 \arguments{
-\item{k_yr}{precession constant (period of p) in years, e.g. 20700 for the
-Devonian estimate of Zeeden et al. (2023); or give `p_arcsec`}
+\item{k_yr}{Precession constant k expressed as the period of the axial precession, in years (numeric, > 0), e.g.
+20700 for the Devonian estimate of Zeeden et al. (2023); ignored when \code{p_arcsec} is given. One of
+\code{k_yr} and \code{p_arcsec} is required. \code{Default=NULL}.}
 
-\item{p_arcsec}{Precession constant in arcsec/yr.}
+\item{p_arcsec}{Precession constant as a frequency in arcsec/yr (numeric, > 0; about 50.5 today); if given it is
+used instead of \code{k_yr}. \code{Default=NULL}.}
 
-\item{g, s}{secular frequencies in arcsec/yr (default: La2004, La04gisi.csv)}
+\item{g}{Secular frequencies g1-g9 of the planetary perihelia in arcsec/yr (numeric vector of length 9).
+\code{NULL} uses the La2004 values of \code{La04gisi.csv}. \code{Default=NULL}.}
 
-\item{terms}{"nine" (the Acycle ORBIT9 set) or "all" (every g_i-g_j and
-k+s_i / k+g_i combination for i = 1..5)}
+\item{s}{Secular frequencies s1-s9 of the planetary nodes in arcsec/yr (numeric vector of length 9).
+\code{NULL} uses the La2004 values of \code{La04gisi.csv}. \code{Default=NULL}.}
 
-\item{data_dir}{Directory with the data files (`NULL` = the data installed with the package).}
+\item{terms}{Which terms are returned (character): \code{"nine"} (the Acycle ORBIT9 set: g2-g5, g3-g2, g4-g2,
+g3-g5, g4-g5, k+s3, k+g5, k+g2, k+g4) or \code{"all"} (every gi-gj eccentricity term and every k+si and k+gi term
+for i = 1 to 5). \code{Default=c("nine", "all")}, i.e. \code{"nine"}.}
+
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 data.frame: term, group, frequency (arcsec/yr), period (kyr)

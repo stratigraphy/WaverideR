@@ -26,21 +26,71 @@ ecoco_classic(
 )
 }
 \arguments{
-\item{data, target, orbit, sr, dt, pad, red, nsim, slices, adjust, method, seed}{see coco_classic()}
+\item{data}{Record to analyse (matrix or data frame; the first two columns are used): depth in metres in column 1
+and the proxy in column 2, evenly spaced (it is not interpolated; incomplete rows are dropped and the rows sorted
+by depth). Required, no default.}
 
-\item{window}{sliding window length (m)}
+\item{target}{Astronomical target periodogram (two-column matrix or data frame): frequency in cycles/kyr in
+column 1 and power in column 2, e.g. the output of \code{\link{coco_target_from_periods}} or
+\code{\link{coco_target_from_series}}; passed to \code{\link{coco_classic}} for every window. Required, no
+default.}
 
-\item{step}{sliding step in number of samples}
+\item{orbit}{Astronomical periods in kyr (numeric vector), used to count how many astronomical parameters
+contribute at each rate (and, with \code{adjust=1}, to define the target bands; then seven periods are needed).
+\code{NULL} uses the periods stored with the target (attribute \code{"orbit"}), or else the seven periods of Li
+et al. (2018) (400, 120.5, 93.1, 38.6, 23.0, 21.8 and 18.5 kyr). \code{Default=NULL}.}
 
-\item{delinear}{1 = remove the mean of each window (as in Acycle ecoco.m)}
+\item{window}{Length of the sliding window, in metres (numeric, > 0; it must contain at least 3 samples and at
+most the whole record). Required, no default.}
 
-\item{mc}{"first-window" reproduces Acycle 2018-2019: the Monte Carlo null
-is simulated once (first window) and reused for all windows.
-"each-window" simulates a separate null for every window (slower).}
+\item{step}{Step between successive windows, in number of samples (integer, >= 1 and smaller than half the number
+of samples). \code{Default=1}.}
 
-\item{track_ridge}{track a smooth ridge (ecoco_track_ridge()) \code{Default=TRUE}}
+\item{sr}{Sedimentation rates to test in every window, in cm/kyr (numeric vector, > 0).
+\code{Default=seq(0.2, 20, by = 0.2)}.}
 
-\item{verbose}{progress messages \code{Default=TRUE}}
+\item{dt}{Sampling interval of \code{data}, in metres (numeric, > 0); \code{NULL} uses the median spacing of the
+depth column. It also sets the number of samples per window, \code{trunc(window / dt)}. \code{Default=NULL}.}
+
+\item{pad}{Length (number of points) to which each window is zero-padded for the periodogram (integer, at least
+the number of samples per window); a larger value gives a finer frequency grid. \code{Default=5000}.}
+
+\item{red}{Red-noise treatment of the window periodograms, passed to \code{\link{coco_classic}} (integer):
+\code{0} none; \code{1} the AR(1) background is subtracted (as in Li et al. 2018); \code{2} the periodogram is
+divided by the AR(1) background minus 1; \code{3} a robust AR(1) background (median-smoothed spectrum) is
+subtracted; a value from \code{50} to \code{99} divides by that AR(1) confidence level (in \%) minus 1. Negative
+values are set to zero. \code{Default=1}.}
+
+\item{nsim}{Number of Monte Carlo simulations of the null hypothesis of no astronomical forcing, used for the
+p-value \code{p_h0} and pCOCO (integer, >= 0; 2000 in Li et al. 2018); \code{0} skips them and the score becomes
+\code{norbit * rho}. See \code{mc} for where the null is simulated. \code{Default=0}.}
+
+\item{slices}{Number of equal-depth slices of each window whose periodograms are averaged (integer, >= 1);
+\code{1} uses the whole window. \code{Default=1}.}
+
+\item{adjust}{Adjust the power of the target in four bands (long eccentricity, short eccentricity, obliquity,
+precession) to the power of the data in those bands at each rate (integer): \code{0} no, \code{1} yes (only for a
+seven-period target). \code{Default=0}.}
+
+\item{delinear}{Remove the mean of each window before the analysis, as in Acycle ecoco.m (numeric): \code{1} yes,
+any other value no. \code{Default=1}.}
+
+\item{method}{Correlation coefficient between the data and target spectra (character): \code{"Pearson"} (as in
+Li et al. 2018) or \code{"Spearman"}. \code{Default=c("Pearson", "Spearman")}, i.e. \code{"Pearson"}.}
+
+\item{mc}{Where the Monte Carlo null distribution is simulated (character): \code{"first-window"} reproduces
+Acycle 2018-2019, the null is simulated once in the first window and reused for all windows;
+\code{"each-window"} simulates a separate null for every window (slower). Only used when \code{nsim > 0}.
+\code{Default=c("first-window", "each-window")}, i.e. \code{"first-window"}.}
+
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=NULL}.}
+
+\item{track_ridge}{Track a smooth sedimentation-rate ridge through the score map with
+\code{\link{ecoco_track_ridge}} (logical, TRUE or FALSE); \code{FALSE} returns the best rate per window
+(\code{\link{ecoco_best_per_window}}) as \code{track}. \code{Default=TRUE}.}
+
+\item{verbose}{Print progress messages for every window (logical, TRUE or FALSE). \code{Default=TRUE}.}
 }
 \value{
 list of matrices (rows = sr, columns = windows): rho, p_h0, norbit,

@@ -7,21 +7,31 @@
 #' position to the next and a penalty for large changes, so that the track does not hop between
 #' neighbouring peaks. Optionally the track is read off the stored peaks instead of the image.
 #'
-#' @param x output of \code{\link{mesa_evolutive}}.
-#' @param window number or length of the window to track in.
-#' @param period Period (wavelength) band \code{c(lower, upper)} in which the ridge is searched,
-#' in the units of the first column of the record. Give \code{period} or \code{frequency}.
-#' @param frequency Frequency band \code{c(lower, upper)}, alternative to \code{period}.
-#' @param max_jump Largest relative change of the frequency between neighbouring window positions
-#' (default 0.1, i.e. 10 percent).
-#' @param penalty Penalty (in units of log10 relative power) for a change of the frequency by
-#' \code{max_jump}; smaller changes cost proportionally less. Default 0.3.
-#' @param start Optional period at the first position (or last, if \code{start_at = "end"})
-#' that fixes where the track begins; the search then starts at the peak nearest to it.
-#' @param start_at \code{"top"} (first position, default) or \code{"end"}.
-#' @param snap If TRUE (default) every position of the track is moved to the nearest local maximum
-#' of the spectrum within one frequency step, so that the track follows the spectral peak and not
-#' the shoulder of a broad one.
+#' @param x Evolutive MESA to track in: the output of \code{\link{mesa_evolutive}} (list with the elements
+#' \code{windows}, \code{frequency} and \code{position}). Required, no default.
+#' @param window Which window length of \code{x} to track in (numeric): either the window length itself (in the units
+#' of the first column of the record, matched exactly) or the index of the window in \code{x$windows} (integer, 1 is
+#' the first window length given to \code{\link{mesa_evolutive}}). A length is matched first. \code{Default=1}.
+#' @param period Period (wavelength) band in which the ridge is searched (numeric vector \code{c(lower, upper)}, in the
+#' units of the first column of the record; the band must hold at least three frequencies of \code{x}). Give
+#' \code{period} or \code{frequency}; \code{frequency} takes precedence when both are given. \code{Default=NULL}.
+#' @param frequency Frequency band in which the ridge is searched (numeric vector \code{c(lower, upper)}, in cycles per
+#' unit of the first column of the record), alternative to \code{period}. \code{Default=NULL}.
+#' @param max_jump Largest relative change of the frequency between neighbouring window positions (numeric, > 0;
+#' 0.1 allows 10 percent); larger values let the track follow faster changes but make hopping between neighbouring
+#' peaks easier. \code{Default=0.1}.
+#' @param penalty Penalty for a change of the frequency by \code{max_jump}, in units of log10 relative power
+#' (numeric, >= 0); smaller changes cost proportionally less (linear in the log of the frequency ratio), 0 means no
+#' penalty within \code{max_jump}. \code{Default=0.3}.
+#' @param start Optional period (numeric, same units as \code{period}) at the first position (or at the last, if
+#' \code{start_at = "end"}) that fixes where the track begins: only frequencies within \code{max_jump} of it are allowed
+#' there. \code{NULL} lets the search start anywhere in the band. \code{Default=NULL}.
+#' @param start_at Direction of the search (character, one of \code{"top"}, \code{"end"}): \code{"top"} starts at the
+#' first window position, \code{"end"} at the last; this also decides where \code{start} applies.
+#' \code{Default="top"}.
+#' @param snap Move every position of the track to the largest value of the spectrum within two frequency steps of the
+#' path (logical, TRUE or FALSE), so that the track follows the spectral peak and not the shoulder of a broad one.
+#' \code{Default=TRUE}.
 #'
 #' @return A data frame of class \code{mesa_track} with \code{position}, \code{frequency},
 #' \code{period} and \code{rel_power} (power relative to the maximum at that position), and the
@@ -36,14 +46,14 @@
 #' plot_mesa_evolutive(ev, track = tr, vertical = FALSE)
 #' @export
 track_mesa <- function(x,
-                       window = 1,
-                       period = NULL,
-                       frequency = NULL,
-                       max_jump = 0.1,
-                       penalty = 0.3,
-                       start = NULL,
-                       start_at = c("top", "end"),
-                       snap = TRUE) {
+    window = 1,
+    period = NULL,
+    frequency = NULL,
+    max_jump = 0.1,
+    penalty = 0.3,
+    start = NULL,
+    start_at = c("top", "end"),
+    snap = TRUE) {
   start_at <- match.arg(start_at)
   w <- .mesa_pick_window(x, window)
   pw <- x$windows[[w]]$power
@@ -63,7 +73,11 @@ track_mesa <- function(x,
   if (!length(valid)){
     stop("no spectra in this window")
   }
-  rel <- sweep(pw, 2, apply(pw, 2, max, na.rm = TRUE), "/")
+  cmax <- numeric(ncol(pw))
+  for (j in seq_len(ncol(pw))) {
+    cmax[j] <- max(pw[, j], na.rm = TRUE)
+  }
+  rel <- sweep(pw, 2, cmax, "/")
   sc <- log10(pmax(rel[band, valid, drop = FALSE], 1e-12))
   nb <- length(band)
   nt <- length(valid)
@@ -73,8 +87,11 @@ track_mesa <- function(x,
     j <- which(abs(fb - fb[i]) <= max_jump * fb[i])
     list(j = j, c = penalty * abs(log(fb[j] / fb[i])) / log1p(max_jump))
   }
-  tr <- lapply(seq_len(nb), cost)
-  dir <- if (start_at == "top") seq_len(nt) else rev(seq_len(nt))
+  tr <- vector("list", nb)
+  for (i in seq_len(nb)) {
+    tr[[i]] <- cost(i)
+  }
+  dir <- if (start_at == "top") { seq_len(nt) } else { rev(seq_len(nt)) }
   score <- matrix(-Inf, nb, nt)
   from <- matrix(NA_integer_, nb, nt)
   s0 <- sc[, dir[1]]
@@ -108,9 +125,12 @@ track_mesa <- function(x,
     }
   }
   pos <- x$position[valid[dir]]
-  relp <- vapply(seq_len(nt), function(tt) rel[idx[tt], valid[dir][tt]], numeric(1))
+  relp <- numeric(nt)
+  for (tt in seq_len(nt)) {
+    relp[tt] <- rel[idx[tt], valid[dir][tt]]
+  }
   out <- data.frame(position = pos, frequency = freq[idx], period = 1 / freq[idx],
-                    rel_power = relp)
+      rel_power = relp)
   out <- out[order(out$position), ]
   rownames(out) <- NULL
   attr(out, "window") <- x$windows[[w]]$window

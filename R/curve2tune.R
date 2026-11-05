@@ -4,19 +4,21 @@
 #' using a tracked curve/cycle to depth domain an assigning a duration (in kyr) set
 #' tracked curve/cycle.
 #'
-#' @param data Data set (matrix with 2 columns 1st column depth 2nd column proxy value)
-#' which was used as input for the \code{\link{analyse_wavelet}} function. \cr
-#' That result was then used to tracked a cycle using the \code{\link{track_period_wavelet}} function
-#' @param tracked_cycle_curve Tracking result of a cycle tracked using the
-#' \code{\link{track_period_wavelet}} function \cr
-#' Any input (matrix or data frame) in which the first column
-#' is depth in meters and the second column is period in meters can be used.
-#' @param tracked_cycle_period Period of the tracked curve (in kyr).
-#' @param genplot If \code{genplot=TRUE} 3 plots stacked on top of each other will be plotted.
-#'Plot 1: the original data set.
-#'Plot 2: the depth time plot.
-#'Plot 3: the data set in the time domain.
-#'@param keep_editable Keep option to add extra features after plotting  \code{Default=FALSE}
+#' @param data Record to convert to the time domain (matrix or data frame, two columns): depth in metres in column 1
+#' and the proxy in column 2, normally the data set that was analysed with \code{\link{analyse_wavelet}} to track
+#' the cycle. Depths outside the tracked curve get the age of its nearest end. Required (\code{Default=NULL} gives
+#' an error).
+#' @param tracked_cycle_curve Tracked period curve of one astronomical cycle (matrix or data frame, two columns):
+#' depth in metres in column 1 and the period of the tracked cycle in metres in column 2, e.g. the output of
+#' \code{\link{track_period_wavelet}} (preferably completed with \code{\link{completed_series}}). Rows with
+#' \code{NA} are dropped. Required (\code{Default=NULL} gives an error).
+#' @param tracked_cycle_period Duration of the tracked cycle in kyr (single numeric value, > 0, e.g. 405 for the
+#' long eccentricity cycle), used to convert the tracked period to a sedimentation rate that is integrated to time.
+#' Required (\code{Default=NULL} gives an error).
+#' @param genplot Plot three panels stacked on top of each other (logical, TRUE or FALSE): the data in the depth
+#' domain, the depth-time curve and the data in the time domain. \code{Default=FALSE}.
+#' @param keep_editable Keep the graphical parameters of the plot so that extra elements can be added afterwards
+#' (logical, TRUE or FALSE); \code{FALSE} restores the previous \code{par} settings. \code{Default=FALSE}.
 #'
 #'@author
 #' Part of the code is based on the \link[astrochron]{sedrate2time}
@@ -85,13 +87,13 @@
 
 
 curve2tune <- function(data = NULL,
-                       tracked_cycle_curve = NULL,
-                       tracked_cycle_period = NULL,
-                       genplot = FALSE,
-                       keep_editable = FALSE) {
+    tracked_cycle_curve = NULL,
+    tracked_cycle_period = NULL,
+    genplot = FALSE,
+    keep_editable = FALSE) {
   my.data <- data
   tracked_cycle_curve[, 2] <-
-    tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
+      tracked_cycle_curve[, 2] / (tracked_cycle_period / 100)
   sedrates <- data.frame(tracked_cycle_curve)
   dat <- as.matrix(tracked_cycle_curve)
   dat <- na.omit(dat)
@@ -106,7 +108,7 @@ curve2tune <- function(data = NULL,
   xout <- seq(start, end, by = dt)
   npts <- length(xout)
   interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-                   n = npts)
+      n = npts)
   sedrates <- as.data.frame(interp)
   npts <- length(sedrates[, 1])
   sedrates[1] = sedrates[1] * 100
@@ -125,12 +127,12 @@ curve2tune <- function(data = NULL,
   yleft_comp <- completed_series[1, 2]
   yright_com <- completed_series[nrow(completed_series), 2]
   app <- approx(
-    x = out[, 1],
-    y = out[, 2],
-    xout = my.data[, 1],
-    method = "linear",
-    yleft = yleft_comp,
-    yright = yright_com
+      x = out[, 1],
+      y = out[, 2],
+      xout = my.data[, 1],
+      method = "linear",
+      yleft = yleft_comp,
+      yright = yright_com
   )
   completed_series <- as.data.frame(cbind(app$y, my.data[, 2]))
 
@@ -141,37 +143,37 @@ curve2tune <- function(data = NULL,
     }
     layout.matrix <- matrix(c(1, 2, 3), nrow = 3, ncol = 1)
     graphics::layout(
-      mat = layout.matrix,
-      heights = c(1, 1, 1),
-      # Heights of the two rows
-      widths = c(1, 1, 1)
+        mat = layout.matrix,
+        heights = c(1, 1, 1),
+        # Heights of the two rows
+        widths = c(1, 1, 1)
     ) # Widths of the two columns
     par(mar = c(4, 4, 2, 2))
     plot(
-      x = data[, 1],
-      y = data[, 2],
-      type = "l",
-      main = "Data depth domain",
-      xlab = "meters",ylab = "proxy value "
+        x = data[, 1],
+        y = data[, 2],
+        type = "l",
+        main = "Data depth domain",
+        xlab = "meters",ylab = "proxy value "
     )
 
     plot(
-      x = out[, 1],
-      y = out[, 2],
-      type = "l",
-      xlab = "meters",
-      ylab = "Time (ka)",
-      main = "Depth-time plot"
+        x = out[, 1],
+        y = out[, 2],
+        type = "l",
+        xlab = "meters",
+        ylab = "Time (ka)",
+        main = "Depth-time plot"
     )
     points(x = out[, 1], y = out[, 2], cex = 1)
 
     plot(
-      completed_series[, 1],
-      completed_series[, 2],
-      type = "l",
-      xlab = "Time (ka)",
-      ylab = "proxy value",
-      main = "Data time domain"
+        completed_series[, 1],
+        completed_series[, 2],
+        type = "l",
+        xlab = "Time (ka)",
+        ylab = "proxy value",
+        main = "Data time domain"
     )
   }
 

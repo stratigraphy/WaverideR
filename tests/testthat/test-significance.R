@@ -6,10 +6,11 @@ noise_wt <- function(phi = 0.5, n = 512, seed = 1, omega = 8) {
 }
 
 test_that("analytic (Torrence and Compo) levels give about 5 percent false positives", {
-  fr <- vapply(1:12, function(k) {
+  fr <- numeric(12)
+  for (k in 1:12) {
     s <- wavelet_significance(noise_wt(0.5, seed = k))
-    mean(s$significant[s$valid])
-  }, 1)
+    fr[k] <- mean(s$significant[s$valid])
+  }
   expect_gt(mean(fr), 0.02)
   expect_lt(mean(fr), 0.08)
   s <- wavelet_significance(noise_wt(0.5))
@@ -42,7 +43,8 @@ test_that("significance works for superlets and can be plotted", {
   expect_error(wavelet_significance(sl, method = "analytic"), "only valid for wavelets")
   s <- wavelet_significance(sl, n_sim = 12, seed = 1)
   expect_equal(dim(s$significant), dim(sl$Power))
-  grDevices::pdf(NULL); on.exit(grDevices::dev.off())
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
   expect_error(plot_superlet(sl, dev_new = FALSE, add_signif = s, add_avg = TRUE), NA)
   expect_error(plot_superlet(sl, dev_new = FALSE, add_signif = s, plot_horizontal = FALSE), NA)
   w <- noise_wt()

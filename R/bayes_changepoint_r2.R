@@ -40,21 +40,19 @@
 #' @importFrom stats runif
 #' @importFrom graphics plot
 bayes_changepoint_r2 <- function(data = NULL,
-                                 k_max = 10,
-                                 d_min = 1,
-                                 k_0 = 0.01,
-                                 v_0 = NULL,
-                                 sig_0 = NULL,
-                                 n_sim = 500,
-                                 seed = NULL,
-                                 stable = FALSE,
-                                 genplot = FALSE,
-                                 verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    k_max = 10,
+    d_min = 1,
+    k_0 = 0.01,
+    v_0 = NULL,
+    sig_0 = NULL,
+    n_sim = 500,
+    seed = NULL,
+    stable = FALSE,
+    genplot = FALSE,
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @keywords internal
   # @noRd
@@ -91,7 +89,7 @@ bayes_changepoint_r2 <- function(data = NULL,
       stop("k_0, v_0 and sig_0 must be positive")
     }
     list(x = x, y = y, k_max = k_max, d_min = d_min, k_0 = k_0, v_0 = v_0,
-         sig_0 = sig_0, n_sim = n_sim)
+        sig_0 = sig_0, n_sim = n_sim)
   }
 
   # @keywords internal
@@ -184,13 +182,13 @@ bayes_changepoint_r2 <- function(data = NULL,
       b2 <- bh$b2
       g <- b1 + b2 * i - y[i]
       ssr <- s_zz[sel] - 2 * g * s_z[sel] - 2 * b2 * s_uz[sel] + a * g * g +
-        2 * g * b2 * s_u[sel] + b2 * b2 * s_uu[sel]
+          2 * g * b2 * s_u[sel] + b2 * b2 * s_uu[sel]
       ssr[ssr < 0] <- 0
       s_n <- v_0 * sig_0 + k_0 * (b1 * b1 + b2 * b2) + ssr
       v_n <- v_0 + a
       dj <- bcp_det2(j11, j12, j22)
       py[i, (j0):nn] <- const + lgamma(v_n / 2) - v_n * log(s_n / 2) / 2 -
-        a * log(2 * pi) / 2 - log(dj) / 2
+          a * log(2 * pi) / 2 - log(dj) / 2
     }
     py
   }
@@ -284,7 +282,7 @@ bayes_changepoint_r2 <- function(data = NULL,
   # @keywords internal
   # @noRd
   bcp_sample <- function(y, py, pp, kprob, n_sim, k_0, stable = FALSE,
-                         keep_models = TRUE, verbose = FALSE){
+      keep_models = TRUE, verbose = FALSE){
     # stochastic backtrace (bayes_cpt.m step 5)
     nn <- length(y)
     k_max <- nrow(pp)
@@ -365,16 +363,16 @@ bayes_changepoint_r2 <- function(data = NULL,
     model <- beta1 + tt_all * beta2
     r2 <- 1 - sum((y - model)^2) / sum(y^2)
     list(samp_holder = samp_holder, chgpt_loc = chgpt_loc, beta1 = beta1,
-         beta2 = beta2, model = model, r2 = r2, n_cpt = n_cpt, models = models)
+        beta2 = beta2, model = model, r2 = r2, n_cpt = n_cpt, models = models)
   }
 
-  # ---- main code ----
+  # Main code
   prep <- bcp_prepare(data, k_max, d_min, k_0, v_0, sig_0, n_sim)
   if (!is.null(seed)){
     set.seed(seed)
   }
   py <- bcp_log_py(prep$y, prep$d_min, prep$k_0, prep$v_0, prep$sig_0,
-                   stable = stable)
+      stable = stable)
   pp <- bcp_partition(py, prep$k_max, stable = stable)
   r2_all <- matrix(0, prep$k_max, 2)
   colnames(r2_all) <- c("k_max", "r2")
@@ -385,7 +383,7 @@ bayes_changepoint_r2 <- function(data = NULL,
     p_ii <- pp[1:ii, , drop = FALSE]
     kprob <- bcp_k_posterior(p_ii, py, ii, prep$d_min, stable = stable)
     smp <- bcp_sample(prep$y, py, p_ii, kprob, prep$n_sim, prep$k_0,
-                      stable = stable, keep_models = FALSE, verbose = FALSE)
+        stable = stable, keep_models = FALSE, verbose = FALSE)
     r2_all[ii, ] <- c(ii, smp$r2)
     if (verbose == TRUE){
       utils::setTxtProgressBar(pb, ii)
@@ -396,8 +394,8 @@ bayes_changepoint_r2 <- function(data = NULL,
   }
   if (genplot == TRUE){
     graphics::plot(r2_all[, 1], r2_all[, 2], type = "o", col = "red",
-                   xlab = "maximum number of change points",
-                   ylab = expression(R^2))
+        xlab = "maximum number of change points",
+        ylab = expression(R^2))
   }
   r2_all
 }

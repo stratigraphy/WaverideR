@@ -1,4 +1,4 @@
-# ---- shared internal helpers of the MESA functions -------------------------------------
+# Shared internal helpers of the MESA functions
 
 # Burg recursion: coefficients of the prediction error filter A(z) = 1 + a1 z^-1 + ...
 # for every order up to m_max and the prediction error power of every order
@@ -67,7 +67,7 @@
     chosen <- criterion
   }
   list(order = order, a = rec$coefs[[order]], noise_variance = e[order + 1],
-       criteria = criteria, criterion = chosen)
+      criteria = criteria, criterion = chosen)
 }
 
 # One-sided power spectral density of the AR model at the given frequencies
@@ -82,7 +82,7 @@
 .mesa_peaks <- function(freq, power, n_peaks = 10){
   nf <- length(power)
   empty <- data.frame(frequency = numeric(0), period = numeric(0),
-                      power = numeric(0), prominence = numeric(0))
+      power = numeric(0), prominence = numeric(0))
   if (nf < 3){
     return(empty)
   }
@@ -91,7 +91,9 @@
   if (!length(idx)){
     return(empty)
   }
-  prom <- vapply(idx, function(i){
+  prom <- numeric(length(idx))
+  for (k in seq_along(idx)){
+    i <- idx[k]
     l <- i
     while (l > 1 && power[l - 1] < power[l]){
       l <- l - 1
@@ -100,10 +102,10 @@
     while (r < nf && power[r + 1] < power[r]){
       r <- r + 1
     }
-    power[i] / max(power[l], power[r])
-  }, numeric(1))
+    prom[k] <- power[i] / max(power[l], power[r])
+  }
   pk <- data.frame(frequency = freq[idx], period = 1 / freq[idx],
-                   power = power[idx], prominence = prom)
+      power = power[idx], prominence = prom)
   pk <- pk[order(-pk$power), ]
   pk <- utils::head(pk, n_peaks)
   rownames(pk) <- NULL
@@ -185,32 +187,41 @@
 #' Spurious peak splitting at high orders is a known property of the method; compare several
 #' orders or criteria (see \code{criteria} in the output) before interpreting a peak.
 #'
-#' @param data Input is a time series with the first column being depth or time and the second
-#' column being a proxy. It should be evenly sampled, see \code{regularise}.
-#' @param order Order of the AR model (number of coefficients). The default NULL selects the order
-#' with \code{criterion}.
-#' @param order_max Largest order considered when the order is selected. The default is
-#' \code{min(floor(N / 3), 300)} for \code{N} samples.
-#' @param criterion Order-selection criterion: \code{"fpe"} (final prediction error, Akaike 1969),
-#' \code{"aic"} (Akaike information criterion), \code{"mdl"} (minimum description length of
-#' Rissanen, the most conservative) or \code{"cat"} (criterion autoregressive transfer of Parzen).
-#' Ignored when \code{order} is given.
-#' @param demean Remove the mean of the series before the analysis (default TRUE).
-#' @param detrend Remove a linear trend before the analysis (default FALSE).
-#' @param regularise If TRUE (default) an unevenly sampled series is linearly interpolated to its
-#' median sampling interval (with a message); if FALSE an uneven series is an error.
-#' @param nfreq Number of frequencies at which the spectrum is evaluated between \code{fmin} and
-#' \code{fmax} (default 2048).
-#' @param fmin,fmax Frequency range of the spectrum. Defaults are 0 and the Nyquist frequency.
-#' @param n_peaks Maximum number of spectral peaks returned (the strongest ones); default 10.
-#' @param window Optional \code{c(from, to)} (in the units of the first column) selecting one window of
-#' the record. The window may extend beyond the record; the missing part is filled according to
-#' \code{pad}, so a spectrum that spans a window centred on the very top or bottom can be made.
-#' The default NULL uses the entire record.
-#' @param pad How samples of the window outside the record are filled: \code{"reflect"} (mirror the
-#' record at its edge, the default), \code{"mean"} (the mean of the window), \code{"zero"} (the
-#' mean of the record, i.e. zero after demeaning) or \code{"none"} (the window is cut at the edge of
-#' the record). Padding only adds samples outside the record; it never changes the record.
+#' @param data Record to analyse: a two-column matrix or data frame with depth or time in column 1 (strictly
+#' increasing after sorting) and the proxy value in column 2; rows with \code{NA} are removed and at least 8 samples
+#' are needed. It should be evenly sampled, see \code{regularise}. Required (\code{Default=NULL}).
+#' @param order Order of the AR model, i.e. the number of AR coefficients (integer, between 1 and N - 3 for N
+#' samples). Higher orders give sharper and more peaks. \code{NULL} selects the order with \code{criterion}.
+#' \code{Default=NULL}.
+#' @param order_max Largest AR order considered when the order is selected (integer, >= 1; it is capped at N - 3).
+#' \code{NULL} uses \code{min(floor(N / 3), 300)}. \code{Default=NULL}.
+#' @param criterion Order-selection criterion (character), one of \code{"fpe"} (final prediction error, Akaike
+#' 1969), \code{"aic"} (Akaike information criterion), \code{"mdl"} (minimum description length of Rissanen, the
+#' most conservative) or \code{"cat"} (criterion autoregressive transfer of Parzen); ignored when \code{order} is
+#' given. \code{Default=c("fpe", "aic", "mdl", "cat")}, i.e. \code{"fpe"}.
+#' @param demean Remove the mean of the series before the analysis (logical, TRUE or FALSE). \code{Default=TRUE}.
+#' @param detrend Remove a linear trend before the analysis instead of only the mean (logical, TRUE or FALSE).
+#' \code{Default=FALSE}.
+#' @param regularise Linearly interpolate an unevenly sampled series to its median sampling interval, with a message
+#' (logical, TRUE or FALSE); with \code{FALSE} an unevenly sampled series gives an error. \code{Default=TRUE}.
+#' @param nfreq Number of frequencies, evenly spaced between \code{fmin} and \code{fmax}, at which the spectrum is
+#' evaluated (integer, > 1). \code{Default=2048}.
+#' @param fmin Lowest frequency of the spectrum, in cycles per unit of the first column of \code{data} (numeric,
+#' >= 0 and < \code{fmax}). \code{Default=0}.
+#' @param fmax Highest frequency of the spectrum, in cycles per unit of the first column of \code{data} (numeric,
+#' > \code{fmin}; values above the Nyquist frequency are reduced to it). \code{NULL} uses the Nyquist frequency.
+#' \code{Default=NULL}.
+#' @param n_peaks Maximum number of spectral peaks (local maxima) returned, the strongest ones (integer, > 0).
+#' \code{Default=10}.
+#' @param window Part of the record to analyse, \code{c(from, to)} in the unit of the first column of \code{data}
+#' (numeric vector of length 2, from < to). The window may extend beyond the record; the missing part is filled
+#' according to \code{pad}, so that a spectrum of a window centred on the very top or bottom can be made.
+#' \code{NULL} uses the entire record. \code{Default=NULL}.
+#' @param pad How samples of \code{window} that lie outside the record are filled (character): \code{"reflect"}
+#' (mirror the record at its edge), \code{"mean"} (the mean of the part of the window inside the record),
+#' \code{"zero"} (zero, i.e. the mean of the record after demeaning) or \code{"none"} (the window is cut at the edge
+#' of the record). Padding only adds samples outside the record; it never changes the record. Only used with
+#' \code{window}. \code{Default=c("reflect", "mean", "zero", "none")}, i.e. \code{"reflect"}.
 #'
 #' @details The power spectral density is one-sided and scaled so that its integral over frequency
 #' equals the variance of the (demeaned) series. The AR coefficients are returned in the convention
@@ -263,19 +274,19 @@
 #' @importFrom stats approx median complete.cases lm.fit
 #' @export
 mesa_spectrum <- function(data = NULL,
-                          order = NULL,
-                          order_max = NULL,
-                          criterion = c("fpe", "aic", "mdl", "cat"),
-                          demean = TRUE,
-                          detrend = FALSE,
-                          regularise = TRUE,
-                          nfreq = 2048,
-                          fmin = 0,
-                          fmax = NULL,
-                          n_peaks = 10,
-                          window = NULL,
-                          pad = c("reflect", "mean", "zero", "none")) {
-  # ---- main code ----
+    order = NULL,
+    order_max = NULL,
+    criterion = c("fpe", "aic", "mdl", "cat"),
+    demean = TRUE,
+    detrend = FALSE,
+    regularise = TRUE,
+    nfreq = 2048,
+    fmin = 0,
+    fmax = NULL,
+    n_peaks = 10,
+    window = NULL,
+    pad = c("reflect", "mean", "zero", "none")) {
+  # Main code
   criterion <- match.arg(criterion)
   pad <- match.arg(pad)
   prep <- .mesa_prepare(data, regularise = regularise, demean = demean, detrend = detrend)
@@ -307,12 +318,12 @@ mesa_spectrum <- function(data = NULL,
   freq <- seq(fmin, fmax, length.out = nfreq)
   power <- .mesa_psd(fit$a, fit$noise_variance, dt, freq)
   spec <- data.frame(frequency = freq,
-                     period = ifelse(freq > 0, 1 / freq, Inf),
-                     power = power)
+      period = ifelse(freq > 0, 1 / freq, Inf),
+      power = power)
   pk <- .mesa_peaks(freq, power, n_peaks)
   out <- list(spectrum = spec, peaks = pk, order = fit$order, ar = -fit$a[-1],
-              noise_variance = fit$noise_variance, criteria = fit$criteria,
-              criterion = fit$criterion, dt = dt, n = n, window = window)
+      noise_variance = fit$noise_variance, criteria = fit$criteria,
+      criterion = fit$criterion, dt = dt, n = n, window = window)
   class(out) <- "mesa_spectrum"
   out
 }

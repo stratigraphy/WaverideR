@@ -13,22 +13,27 @@ plot_astro_anchor(
 )
 }
 \arguments{
-\item{astro_solution}{Input is an astronomical solution with with the the proxy record was be anchored to,
-the input should be a matrix or data frame with the first column being
-age and the second column should be a insolation/angle/value}
+\item{astro_solution}{Astronomical solution to which the proxy record was anchored, drawn in the bottom panel: a
+two-column matrix or data frame with age/time in column 1 and the insolation/angle/ETP value in column 2 (the
+same solution as used in \code{\link{astro_anchor}}). Required (\code{Default=NULL} gives an error).}
 
-\item{proxy_signal}{Input is the proxy data set which will which was
-anchored to an astronomical solution, the input should be a matrix or
-data frame with the first column being  depth/time and the second column should be a proxy value.}
+\item{proxy_signal}{Proxy record that was anchored, drawn in the top panel: a two-column matrix or data frame
+with depth/time in column 1 (metres) and the proxy value in column 2 (the same record as used in
+\code{\link{astro_anchor}}). Required (\code{Default=NULL} gives an error).}
 
-\item{anchor_points}{Anchor points generated using the \code{\link{astro_anchor}} function}
+\item{anchor_points}{Tie points to draw: the four-column matrix returned by \code{\link{astro_anchor}} (depth of
+the proxy tie point, age of the astronomical tie point, proxy value, astronomical solution value). The proxy tie
+points are drawn as green dots, the astronomical ones as red dots, and lines connect each pair. Required
+(\code{Default=NULL} gives an error).}
 
-\item{time_dir}{The direction of the proxy record which was assumed during anchoring if time increases with increasing depth/time values
-(e.g. bore hole data which gets older with increasing depth ) then time_dir should be set to TRUE
-if time decreases with depth/time values (eg stratospheric logs where 0m is the bottom of the section)
-then time_dir should be set to FALSE \code{time_dir=TRUE}}
+\item{time_dir}{Direction of time in the proxy record that was assumed during anchoring (logical). \code{TRUE}:
+time increases with increasing depth (e.g. a borehole that gets older downwards), so the depth axis runs left to
+right; \code{FALSE}: time decreases with increasing depth/height (e.g. an outcrop log with 0 m at the base), so the
+depth axis is reversed to line up with the age axis. \code{Default=TRUE}.}
 
-\item{keep_editable}{Keep option to add extra features after plotting  \code{Default=FALSE}}
+\item{keep_editable}{Keep the plot layout and graphical parameters (\code{par}) after plotting, so that extra
+elements can be added (logical). With \code{FALSE} the previous \code{par} settings are restored on exit.
+\code{Default=FALSE}.}
 }
 \value{
 The output is a set of 2 plots connected by lines

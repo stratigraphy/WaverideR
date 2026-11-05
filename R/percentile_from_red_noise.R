@@ -5,9 +5,14 @@
 #' a set percentile based. To generate the percentile curve the results of
 #'  the \code{\link{model_red_noise_wt}} function are used.
 #'
-#'@param red_noise Red noise curves generated using the \code{\link{model_red_noise_wt}} function.
-#'@param wavelet Wavelet object created using the \code{\link{analyse_wavelet}} function.
-#'@param percentile Percentile value (0-1).
+#' @param red_noise Average spectral power curves of red-noise simulations, the output of
+#' \code{\link{model_red_noise_wt}} (numeric matrix, one row per period of \code{wavelet} and one column per
+#' simulation). Required (\code{Default=NULL}).
+#' @param wavelet Wavelet object, the output of \code{\link{analyse_wavelet}}; the same object that was given to
+#' \code{model_red_noise_wt}, its periods form the first output column. Required (\code{Default=NULL}).
+#' @param percentile Percentile of the red-noise power that is returned for every period (numeric, between 0 and 1,
+#' e.g. 0.95); computed from a normal distribution with the mean and standard deviation of the simulations. Required
+#' (\code{Default=NULL}).
 #'
 #'@examples
 #'\donttest{
@@ -46,16 +51,16 @@
 
 
 percentile_from_red_noise <- function(red_noise = NULL,
-                                      wavelet = NULL,
-                                      percentile = NULL) {
+    wavelet = NULL,
+    percentile = NULL) {
   noise_period <- cbind(wavelet$Period, red_noise)
   noise_period2 <- as.data.frame(noise_period)
   noise_period2$mean <-
-    rowMeans(noise_period2[, 2:(ncol(red_noise) + 1)])
+      rowMeans(noise_period2[, 2:(ncol(red_noise) + 1)])
   noise_period2$sd <-
-    wr_row_sds(as.matrix(noise_period2[, 2:(ncol(red_noise) + 1)]))
+      wr_row_sds(as.matrix(noise_period2[, 2:(ncol(red_noise) + 1)]))
   prob <-
-    qnorm(p = percentile,
+      qnorm(p = percentile,
           mean = noise_period2$mean,
           sd = noise_period2$sd)
   prob <- cbind(noise_period[, 1], prob)

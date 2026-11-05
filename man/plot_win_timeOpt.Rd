@@ -14,51 +14,63 @@ plot_win_timeOpt(
   xlab = "depth (m)",
   ylab = "sedrate (cm/kyr)",
   sel_parameter = 3,
-  n.levels = 100
+  n.levels = 100,
+  corrected = TRUE,
+  show_untestable = TRUE,
+  show_best = TRUE
 )
 }
 \arguments{
-\item{win_timeOpt_result}{result of the \code{\link{win_timeOpt}}function
-that needs to be used as input \code{Default=NULL}}
+\item{win_timeOpt_result}{Result to plot (required): the list returned by \code{\link{win_timeOpt}}. \code{Default=NULL}.}
 
-\item{proxy_name}{the name of the used proxy record \code{Default=NULL}}
+\item{proxy_name}{Label of the y-axis of the proxy panel on top (character, e.g. \code{"magnetic susceptibility"});
+\code{NULL} leaves it empty. \code{Default=NULL}.}
 
-\item{abline_h}{Add horizontal lines to the plot. Specify the lines as a
-vector e.g. 2,3,5,6  \code{Default=NULL}}
+\item{abline_h}{Sedimentation rates at which dashed horizontal lines are drawn on the map, in the units of
+\code{win_timeOpt_result$sedrate} (numeric vector, e.g. \code{c(2, 3, 5)}, or \code{NULL} for none). \code{Default=NULL}.}
 
-\item{abline_v}{Add vertical lines to the plot. Specify the lines as a
-vector e.g. 2,3,5,6  \code{Default=NULL}}
+\item{abline_v}{Depths at which dashed vertical lines are drawn on the map, in the depth unit of the record (numeric
+vector or \code{NULL} for none). \code{Default=NULL}.}
 
-\item{add_lines}{Add  lines to the wavelet plot input should be matrix
-with first axis being depth/time the columns after that
-should be period values  \code{Default=NULL}}
+\item{add_lines}{Lines to draw on the map, e.g. a sedimentation rate curve (matrix or data frame, or \code{NULL} for
+none): depth in column 1 and one or more columns of sedimentation rates after it; each column is drawn as a separate
+line. \code{Default=NULL}.}
 
-\item{fig_lts}{Add a text box \code{Default=NULL}}
+\item{fig_lts}{Text (e.g. a figure letter such as \code{"A"}) written in large type in the upper left corner of the
+proxy panel (character, or \code{NULL} for none). \code{Default=NULL}.}
 
-\item{xlab}{add a label to x-axis \code{Default="depth (m)"}}
+\item{xlab}{Label of the depth axis (character). \code{Default="depth (m)"}.}
 
-\item{ylab}{add a label to y-axis  \code{Default="sedrate (cm/kyr)"}}
+\item{ylab}{Label of the sedimentation rate axis (character). \code{Default="sedrate (cm/kyr)"}.}
 
-\item{sel_parameter}{select one of the three returns of the
-\code{\link{win_timeOpt}}function
-element 1: r_2_envelope matrix
-element 2: r_2_power matrix
-element 3: r_2_opt matrix     \code{Default=3}}
+\item{sel_parameter}{Which timeOpt fit to plot (integer): \code{1} envelope fit, \code{2} spectral power fit,
+\code{3} combined fit (opt). \code{Default=3}.}
 
-\item{n.levels}{Number of color levels \code{Default=100}.}
+\item{n.levels}{Number of colour levels of the map (integer, > 1); the breaks are quantiles of the plotted values.
+\code{Default=100}.}
+
+\item{corrected}{Plot the bias-corrected z-scores (\code{z_envelope}, \code{z_power}, \code{z_opt}) instead of the
+raw r-squared values, when the result contains them (\code{bias_correction = "null"} in \code{\link{win_timeOpt}})
+(logical). The median z threshold is then drawn as a dotted line on the average panel. \code{Default=TRUE}.}
+
+\item{show_untestable}{Grey out the cells that cannot be tested (too few samples per cycle, too few cycles in the
+window or window outside the record), as flagged in \code{testable} of the result (logical). \code{Default=TRUE}.}
+
+\item{show_best}{Mark the best sedimentation rate of every window (logical); filled symbols are significant at the
+family-wise level of \code{\link{win_timeOpt}}, open symbols are not. \code{Default=TRUE}.}
 }
 \value{
-The output is a plot of the average spectral power of a windowed timeOpt
+The output is a plot of a windowed timeOpt with the average curve over all windows.
 }
 \description{
-The \code{\link{plot_win_timeOpt}} function plots a widowed
- timeOpt sedimentation rate estimation
-This function is based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}function
+The \code{\link{plot_win_timeOpt}} function plots a windowed
+ timeOpt sedimentation rate estimation of \code{\link{win_timeOpt}}.
 }
 \examples{
 \donttest{
 #plot the windowed timeOpt of the magnetic susceptibility record
 #of the Sullivan core of Pas et al., (2018).
+set.seed(1)
 mag_win_timeOpt <-win_timeOpt(
 data = mag[1:250, ],
 window_size = 6,
@@ -76,6 +88,10 @@ targetP = c(20.9, 19.9, 17.1, 17.2),
 detrend = TRUE,
 normalize =TRUE,
 linLog = 1,
+bias_correction = "null",
+n_null = 6,
+noise_model = "ar1",
+step = 10,
 run_multicore = FALSE,
 verbose=FALSE)
 
@@ -88,13 +104,14 @@ fig_lts = NULL,
 xlab="depth (m)",
 ylab= "sedrate (cm/kyr)",
 sel_parameter=3,
-n.levels=100)
+n.levels=100,
+corrected = TRUE)
 }
 
 }
 \references{
-Routines for astrochronologic testing, astronomical time scale construction, and
-time series analysis <doi:10.1016/j.earscirev.2018.11.015>
+Meyers, S.R. (2019). Cyclostratigraphy and the problem of astrochronologic testing.
+Earth-Science Reviews 190, 190-223 <doi:10.1016/j.earscirev.2018.11.015>
 }
 \author{
 Based on the \code{\link[astrochron:eTimeOpt]{eTimeOpt}}

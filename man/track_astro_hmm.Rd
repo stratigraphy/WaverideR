@@ -42,96 +42,163 @@ track_astro_hmm(
 )
 }
 \arguments{
-\item{wavelet}{Scalogram object (class \code{analyze.wavelet}), see \code{\link{track_ridge_hmm}}.}
+\item{wavelet}{Scalogram to track (list of class \code{analyze.wavelet}), the output of
+\code{\link{analyse_wavelet}}, \code{\link{analyse_wavelet_sst}}, \code{\link{analyse_superlet_sst}} or a similar
+function, see \code{\link{track_ridge_hmm}}. Required, no default.}
 
-\item{astro_periods}{Periods of the astronomical cycles in time
-\code{Default=c(405, 125, 95, 53.6, 41, 39.7, 23.7, 22.4, 19)} (kyr, Cenozoic values). Listing all the main terms
-(including the weaker obliquity and precession terms) helps to tell the cycles apart.}
+\item{astro_periods}{Periods of the astronomical cycles in time units (numeric vector, e.g. kyr), or a data frame
+with the columns \code{period} and (optionally) \code{weight} such as the output of
+\code{\link{astro_periods_tracking}}. The default holds Cenozoic values (kyr). Listing all the main terms (including
+the weaker obliquity and precession terms) helps to tell the cycles apart. Replaced when \code{age_ma} or
+\code{k_yr} is given. \code{Default=c(405, 125, 95, 53.6, 41, 39.7, 23.7, 22.4, 19)}.}
 
-\item{weights}{Weights of the cycles in the evidence, best proportional to their expected amplitude. Default: for
-the default periods \code{c(0.5, 0.3, 0.3, 0.3, 1, 0.4, 1, 0.8, 0.6)}, otherwise 1 for all.}
+\item{weights}{Weights of the cycles in the evidence (numeric vector, one value >= 0 per entry of
+\code{astro_periods}), best proportional to their expected amplitude. \code{NULL} takes the \code{weight} column of
+a data frame \code{astro_periods}; otherwise \code{c(0.5, 0.3, 0.3, 0.3, 1, 0.4, 1, 0.8, 0.6)} for the default
+periods and 1 for all cycles for any other periods. \code{Default=NULL}.}
 
-\item{sedrate}{Range \code{c(lower, upper)} of the sedimentation rate (depth units per time unit of
-\code{astro_periods}) in which the track is searched.}
+\item{sedrate}{Range of the sedimentation rate in which the track is searched (numeric vector \code{c(lower, upper)},
+> 0, in depth units per time unit of \code{astro_periods}, e.g. m/kyr for a record in metres and periods in kyr).
+\code{NULL} uses the widest range at which at least one cycle falls inside the period range of the scalogram.
+Giving a realistic range is strongly recommended. \code{Default=NULL}.}
 
-\item{guide}{Optional rough sedimentation rate curve (data frame: depth, sedimentation rate), e.g. from a manual
-tracking divided by the period of the tracked cycle; the search is restricted to \code{guide * (1 +- guide_tolerance)}.
-In very noisy records this prevents the track from locking onto the wrong cycle.}
+\item{guide}{Optional rough sedimentation rate curve (two-column data frame or matrix: depth in column 1,
+sedimentation rate in column 2, same units as \code{sedrate}), e.g. from a manual tracking divided by the period of
+the tracked cycle. It is interpolated to all positions (constant beyond its ends) and rates outside
+\code{guide * (1 +- guide_tolerance)} are penalised by \code{guide_penalty}. In very noisy records this prevents the
+track from locking onto the wrong cycle. \code{Default=NULL} (no guide).}
 
-\item{guide_tolerance}{Relative width of the search band around the guide \code{Default=0.25}.}
+\item{guide_tolerance}{Relative half width of the band around \code{guide} (numeric, > 0; e.g. 0.25 allows rates from
+0.8 to 1.25 times the guide). \code{Default=0.25}.}
 
-\item{floor}{Value added to the normalised evidence (average one) before taking the logarithm. It limits the penalty
-for a cycle that is absent at a position \code{Default=0.5}.}
+\item{floor}{Value added to the normalised evidence (whose average is one) before taking the logarithm (numeric,
+> 0). It limits the penalty for a cycle that is absent at a position: small values punish missing cycles strongly,
+large values make the evidence flatter. \code{Default=0.5}.}
 
-\item{whiten}{Divide the power of every period by its average along the record before tracking (removes the
-red-noise slope) \code{Default=FALSE} (in tests this made the tracking worse, because noise at the long periods is amplified).}
+\item{whiten}{Divide the power of every period by its average along the record before tracking, which removes the
+red-noise slope (logical, TRUE or FALSE; only used with \code{normalise = "column"}). In tests this made the
+tracking worse, because noise at the long periods is amplified. \code{Default=FALSE}.}
 
-\item{background}{\code{"none"} or \code{"ar1"}: evidence relative to an AR1 red-noise background \code{Default="none"}.}
+\item{background}{Background against which the power is scored (character): \code{"none"} uses the power as it is,
+\code{"ar1"} divides it by the theoretical AR1 (red-noise) spectrum of the record (Torrence and Compo 1998), so that
+red noise has the same expected level at every period. \code{Default="none"} (the first of
+\code{c("none", "ar1")}).}
 
 \item{sd_change}{Standard deviation of the change of log2(sedimentation rate) over a distance of one cycle of the
-shortest astronomical period \code{Default=0.15}.}
+shortest astronomical period (numeric, > 0); larger values allow faster changes of the rate, smaller values give a
+smoother track. \code{Default=0.15}.}
 
-\item{jump_prob}{Probability of an abrupt change of the sedimentation rate between neighbouring positions
-\code{Default=1e-4}; small, because a jump of the track by the ratio of two astronomical periods (e.g. from
-precession to obliquity) is the typical failure of tracking.}
+\item{jump_prob}{Probability of an abrupt change of the sedimentation rate (a jump to any rate of the range) between
+neighbouring positions (numeric, between 0 and 1). It is small by default, because a jump of the track by the ratio
+of two astronomical periods (e.g. from precession to obliquity) is the typical failure of tracking.
+\code{Default=1e-4}.}
 
-\item{smooth_period, smooth_depth, fallback, fallback_weight, sharpness, n_positions, n_samples, level, seed}{See
-\code{\link{track_ridge_hmm}}; \code{smooth_depth} defaults to twice the depth period of the shortest cycle at the
-(geometric) mean sedimentation rate. For this tracker a scalogram in which weak cycles are kept (the Morlet scalogram with omega_nr
-around 12, or \code{\link{analyse_wavelet_sst}} with \code{n_iter = 4}) worked better in tests than the consensus of
-\code{\link{analyse_superlet_sst}}, which removes weak cycles.}
+\item{smooth_period}{Gaussian smoothing of the scalogram along the period axis before tracking (numeric, >= 0; the
+standard deviation in octaves; 0 switches it off). \code{Default=0.02}.}
 
-\item{jump_depths, jump_prob_at, constraints}{See \code{\link{track_ridge_hmm}}.}
+\item{smooth_depth}{Width of the moving average of the scalogram along the record before tracking (numeric, in depth
+units; at least one sampling interval is used). \code{NULL} uses twice the depth period of the shortest cycle at the
+geometric mean sedimentation rate of \code{sedrate}. \code{Default=NULL}.}
 
-\item{long_window, long_weight}{Long-window evidence (similar to eCOCO): the wavelet power averaged over windows of
-\code{long_window} depth units (default eight cycles of the shortest period at the mean sedimentation rate), with the
-red-noise slope removed, is correlated with the astronomical template and added with weight \code{long_weight}
-\code{Default=0} (off). In stress tests this term kept the track on the right cycles when the noise was three times the
-signal (largest age error about 400 instead of 700 kyr in 3000 kyr) but made the age model less accurate at lower
-noise, because the averaged spectra are biased where the sedimentation rate changes within a window. Use it (e.g.
-\code{long_weight = 1}) for very noisy records, or through \code{\link{track_astro_auto}} as an independent check.}
+\item{fallback}{Second source of evidence that is mixed in where the scalogram is empty: \code{"cwt"} the
+normalised Morlet wavelet power (computed if \code{wavelet} has no \code{Power_cwt}), another scalogram object on the
+same grid, or \code{"none"}; see \code{\link{track_ridge_hmm}}. For this tracker a scalogram in which weak cycles are
+kept (the Morlet scalogram with \code{omega_nr} around 12, or \code{\link{analyse_wavelet_sst}} with
+\code{n_iter = 4}) worked better in tests than the consensus of \code{\link{analyse_superlet_sst}}, which removes weak
+cycles. \code{Default="cwt"}.}
 
-\item{local_weight}{Weight of the local (scalogram) evidence \code{Default=1}; 0 with \code{long_weight > 0} gives a
-pure long-window estimate.}
+\item{fallback_weight}{Weight of the fallback evidence in the mix (numeric, between 0 and 1; 0 switches it off).
+\code{Default=0.2}.}
 
-\item{guide_penalty}{Penalty (log-likelihood per octave outside the band, plus 10 percent) for sedimentation rates
-outside \code{guide * (1 +- guide_tolerance)} \code{Default=50}, i.e. practically a hard limit; smaller values make
-the guide soft.}
+\item{sharpness}{Weight of the scalogram evidence relative to the smoothness of the track (numeric, > 0); larger
+values trust the scalogram more and give narrower credible bands, see \code{\link{track_ridge_hmm}}.
+\code{Default=0.5}.}
 
-\item{normalise}{How the scalogram is turned into evidence: \code{"median"} (default) divides the power by its running
-median along the period axis (over +- \code{local_octaves}), which removes the red-noise slope without being pulled
-up by the cycles themselves, and scores every cycle relative to the average evidence at that position, so that cycles
-outside the period range of the scalogram neither help nor hurt; \code{"column"} (the behaviour before) divides by the
-mean power at each position, \code{"local"} by a Gaussian average and \code{"loglog"} by a quadratic fit of log power
-against log period. In synthetic tests \code{"column"} and \code{"median"} were best; in six real records
-\code{"column"} was biased towards sedimentation rates that put the long cycles on the red-noise slope or the short
-cycles outside the resolved range, and \code{"median"} gave the smallest errors when an approximate mean sedimentation
-rate was given.}
+\item{n_positions}{Maximum number of positions along the record at which the track is computed (integer, > 1); the
+result is interpolated to all positions. Fewer are used when positions would be closer than a quarter of the depth
+period of the shortest cycle. \code{Default=1500}.}
 
-\item{local_octaves}{Half width (octaves) of the background window of \code{normalise} \code{Default=1}.}
+\item{n_samples}{Number of paths drawn from the posterior for the credible bands of the sedimentation rate and of the
+age model (integer, >= 1). \code{Default=200}.}
 
-\item{consistent_cycles}{\code{TRUE}: use only the cycles that lie inside the period range of the scalogram at
-every sedimentation rate of \code{sedrate}; \code{"partial"} (default): cycles that leave the period range at one
-end of the rate range (typically precession below the sampling resolution at the lowest rates) are kept, but only
-the changes of their evidence along the record are used (row means removed), so they show where the rate changes
-without favouring the rates at which they are resolved; \code{FALSE}: all cycles, all evidence. In CIP Case 3
-(precession at 3-5 samples per cycle) \code{TRUE} silently dropped the precession cycles and the 1.2-Myr
-oscillation of the rate was lost; \code{"partial"} keeps them. If the set of usable cycles changed with the sedimentation
-rate, rates at which more cycles fall inside the resolved range would be favoured: in the Klonk core, which resolves
-only eccentricity, the ~110-kyr cycle was read as obliquity and the 405-kyr cycle as ~125 kyr. Give a realistic
-\code{sedrate} range (or a guide) so that the cycles you expect stay in.}
+\item{level}{Probability content of the credible bands (numeric, between 0 and 1). \code{Default=0.95}.}
 
-\item{smooth_path}{Optional L1 smoothing of the tracked path (Viterbi path) with weights from the posterior
-(majorisation-minimisation; Wang et al. 2023): \code{"tv"} penalises the first differences of the log sedimentation
-rate (total variation: a piecewise constant rate with sharp jumps is favoured), \code{"trend"} the second
-differences (piecewise linear). \code{Default="none"}.}
+\item{jump_depths}{Optional depths where an abrupt change of the sedimentation rate is plausible (numeric vector, in
+depth units, e.g. hiatuses or facies changes known from the field); near them the jump probability is raised to
+\code{jump_prob_at}, see \code{\link{track_ridge_hmm}}. \code{Default=NULL} (none).}
 
-\item{smooth_lambda}{Strength of the smoothing: the penalty per octave of change of the log2 sedimentation rate
-(\code{"tv"}) or per octave of change of its slope (\code{"trend"}), against the weighted squared distance from
-the tracked path \code{Default=1}.}
+\item{jump_prob_at}{Jump probability near \code{jump_depths} (numeric, between 0 and 1). \code{Default=0.05}.}
 
-\item{age_ma, k_yr}{Optional age (Ma) or precession constant: the astronomical periods and weights are then taken from
-\code{\link{astro_periods_tracking}} (deep-time obliquity and precession periods), replacing \code{astro_periods}.}
+\item{long_window}{Length of the windows of the long-window evidence (numeric, in depth units); only used when
+\code{long_weight > 0}. The wavelet power averaged over windows of this length, with the red-noise slope removed, is
+correlated with the astronomical template (similar to eCOCO); only cycles that repeat at least three times in a
+window are used. \code{NULL} uses eight cycles of the shortest period at the mean sedimentation rate.
+\code{Default=NULL}.}
+
+\item{long_weight}{Weight of the long-window evidence added to the local evidence (numeric, >= 0; 0 switches it
+off). In stress tests this term kept the track on the right cycles when the noise was three times the signal
+(largest age error about 400 instead of 700 kyr in 3000 kyr) but made the age model less accurate at lower noise,
+because the averaged spectra are biased where the sedimentation rate changes within a window. Use it (e.g.
+\code{long_weight = 1}) for very noisy records, or through \code{\link{track_astro_auto}} as an independent check.
+\code{Default=0}.}
+
+\item{local_weight}{Weight of the local (scalogram) evidence (numeric, >= 0); 0 together with
+\code{long_weight > 0} gives a pure long-window estimate. \code{Default=1}.}
+
+\item{guide_penalty}{Penalty for sedimentation rates outside \code{guide * (1 +- guide_tolerance)} (numeric, >= 0;
+log-likelihood per octave outside the band, plus a step of 10 percent of it). The default is practically a hard
+limit; smaller values make the guide soft. Only used with \code{guide}. \code{Default=50}.}
+
+\item{normalise}{How the scalogram is turned into evidence (character, one of \code{"median"}, \code{"column"},
+\code{"local"}, \code{"loglog"}): \code{"median"} divides the power by its running median along the period axis
+(over +- \code{local_octaves}), which removes the red-noise slope without being pulled up by the cycles themselves,
+and scores every cycle relative to the average evidence at that position, so that cycles outside the period range of
+the scalogram neither help nor hurt; \code{"column"} (the behaviour before) divides by the mean power at each
+position, \code{"local"} by a Gaussian average along the period axis (sd \code{local_octaves}) and \code{"loglog"}
+by a quadratic fit of log power against log period. In synthetic tests \code{"column"} and \code{"median"} were
+best; in six real records \code{"column"} was biased towards sedimentation rates that put the long cycles on the
+red-noise slope or the short cycles outside the resolved range, and \code{"median"} gave the smallest errors when an
+approximate mean sedimentation rate was given. \code{Default="median"}.}
+
+\item{local_octaves}{Half width of the background window of \code{normalise = "median"} and standard deviation of
+the Gaussian of \code{normalise = "local"} (numeric, > 0, in octaves of period). \code{Default=1}.}
+
+\item{consistent_cycles}{Which cycles are used (logical TRUE/FALSE or \code{"partial"}): \code{TRUE} uses only the
+cycles that lie inside the period range of the scalogram at every sedimentation rate of \code{sedrate};
+\code{"partial"} keeps cycles that leave the period range at one end of the rate range (typically precession below
+the sampling resolution at the lowest rates), but uses only the changes of their evidence along the record (row means
+removed), so they show where the rate changes without favouring the rates at which they are resolved; \code{FALSE}
+uses all cycles and all evidence. In CIP Case 3 (precession at 3-5 samples per cycle) \code{TRUE} silently dropped
+the precession cycles and the 1.2-Myr oscillation of the rate was lost; \code{"partial"} keeps them. If the set of
+usable cycles changed with the sedimentation rate, rates at which more cycles fall inside the resolved range would be
+favoured: in the Klonk core, which resolves only eccentricity, the ~110-kyr cycle was read as obliquity and the
+405-kyr cycle as ~125 kyr. Give a realistic \code{sedrate} range (or a guide) so that the cycles you expect stay in.
+\code{Default="partial"}.}
+
+\item{constraints}{Optional geological duration constraints (data frame with the columns \code{from}, \code{to}
+(depths), \code{duration} (in the time unit of \code{astro_periods}) and optionally \code{tolerance} (relative,
+default 0.025)); the track is then the most probable one that satisfies them, see \code{\link{track_ridge_hmm}}.
+\code{Default=NULL} (none).}
+
+\item{smooth_path}{Optional L1 smoothing of the tracked (Viterbi) path with weights from the posterior
+(majorisation-minimisation; Wang et al. 2023), one of \code{"none"}, \code{"tv"}, \code{"trend"}: \code{"tv"}
+penalises the first differences of the log sedimentation rate (total variation: a piecewise constant rate with sharp
+jumps is favoured), \code{"trend"} the second differences (piecewise linear), \code{"none"} leaves the path as it
+is. \code{Default="none"}.}
+
+\item{smooth_lambda}{Strength of the smoothing of \code{smooth_path} (numeric, >= 0): the penalty per octave of
+change of the log2 sedimentation rate (\code{"tv"}) or per octave of change of its slope (\code{"trend"}), against
+the weighted squared distance from the tracked path; 0 means no smoothing. \code{Default=1}.}
+
+\item{age_ma}{Optional age of the record in Ma (numeric). If \code{age_ma} or \code{k_yr} is given, the periods and
+weights are taken from \code{\link{astro_periods_tracking}} (deep-time obliquity and precession periods), replacing
+\code{astro_periods} (and \code{weights}, unless given); with only \code{k_yr} the age 0 is used. \code{Default=NULL}.}
+
+\item{k_yr}{Optional precession constant (numeric, the period of the axial precession in years) passed to
+\code{\link{astro_periods_tracking}} instead of the AstroGeo22 value. \code{Default=NULL}.}
+
+\item{seed}{Seed of the random number generator for the posterior sampling (integer), so that the credible bands can
+be reproduced; the random state of the session is restored afterwards. \code{Default=1}.}
 }
 \value{
 A data frame of class \code{wr_track} with \code{depth}, \code{sedrate} (Viterbi path), \code{sedrate_mean},

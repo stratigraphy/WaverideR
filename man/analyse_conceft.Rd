@@ -40,29 +40,50 @@ analyze_conceft(
 )
 }
 \arguments{
-\item{data}{Input is a time series with the first column being depth or time and the second column being a proxy.}
+\item{data}{Input record: a matrix or data frame with depth/time in column 1 and the proxy value in column 2
+(further columns are ignored). Incomplete rows are removed, the rows are sorted by depth/time, the record is
+linearly interpolated to the median sampling interval and standardised. Required (\code{Default=NULL} gives an
+error).}
 
-\item{lowerPeriod, upperPeriod}{Shortest and longest period.}
+\item{lowerPeriod, upperPeriod}{Shortest and longest period of the transform, in the same unit as the depth/time
+column of \code{data} (numeric, 0 < \code{lowerPeriod} < \code{upperPeriod}; \code{lowerPeriod} at least twice
+the sampling interval). Defaults: \code{lowerPeriod}: \code{Default=2}; \code{upperPeriod}: \code{Default=1024}.}
 
-\item{dj}{Spacing of the period axis in octaves \code{Default=1/100}.}
+\item{dj}{Spacing of the period axis in octaves (numeric, > 0; \code{1/x} gives x periods per doubling of the
+period). \code{Default=1/100}.}
 
-\item{gamma, beta}{Parameters of the generalised Morse wavelets \code{Default=3} and \code{Default=20} (Lilly's
-default family; Daubechies et al. 2016 used gamma = 9, beta = 30). A larger beta gives longer wavelets (better
-frequency resolution, worse depth/time resolution).}
+\item{gamma, beta}{Parameters gamma and beta of the generalised Morse wavelets (numeric, > 0); the defaults are
+Lilly's default family (Daubechies et al. 2016 used gamma = 9, beta = 30). A larger beta gives longer wavelets
+(better period resolution, worse depth/time resolution). Defaults: \code{gamma}: \code{Default=3}; \code{beta}:
+\code{Default=20}.}
 
-\item{K}{Number of orthonormal Morse wavelets \code{Default=2}. More tapers suppress noise better but broaden ridges.}
+\item{K}{Number of orthonormal Morse wavelets (tapers) of orders 0 to K-1 (integer, >= 1). More tapers suppress
+noise better but broaden the ridges. \code{Default=2}.}
 
-\item{n_comb}{Number of random combinations \code{Default=20}.}
+\item{n_comb}{Number of random combinations of the tapers whose synchrosqueezed transforms are averaged
+(integer, >= 1); only used when \code{method="conceft"}. The first combination is always the zero-order Morse
+wavelet itself. More combinations average out more noise at a higher computation time. \code{Default=20}.}
 
-\item{method}{\code{"conceft"} (default) or \code{"multitaper"} (average of the synchrosqueezed transforms of the K
-orthonormal wavelets themselves).}
+\item{method}{Averaging method (character), one of \code{"conceft"} (average over \code{n_comb} random unit-vector
+combinations of the K tapers) or \code{"multitaper"} (average of the synchrosqueezed transforms of the K
+orthonormal wavelets themselves). \code{Default="conceft"} (the first element of
+\code{c("conceft", "multitaper")}).}
 
-\item{sst_order, n_iter, threshold}{Settings of the synchrosqueezing of every combination, see
-\code{\link{analyse_wavelet_sst}}.}
+\item{sst_order}{Order of the synchrosqueezing of every combination (numeric, \code{1} or \code{2}), see
+\code{\link{analyse_wavelet_sst}}. \code{Default=1}.}
 
-\item{seed}{Seed of the random combinations (for reproducible results) \code{Default=1}.}
+\item{n_iter}{Number of iterations of the frequency reassignment of every combination (integer, >= 1), see
+\code{\link{analyse_wavelet_sst}}. \code{Default=1}.}
 
-\item{verbose}{Print messages.}
+\item{threshold}{Noise threshold of the synchrosqueezing: \code{"riskshrink"}, \code{"none"} or a number (numeric,
+in standard deviations of the standardised record), see \code{\link{analyse_wavelet_sst}}.
+\code{Default="riskshrink"}.}
+
+\item{seed}{Seed of the random number generator used to draw the random combinations (integer), so that results
+are reproducible; the previous random state is restored afterwards. Only used when \code{method="conceft"}.
+\code{Default=1}.}
+
+\item{verbose}{Print a message after each combination (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 A list of class \code{analyze.wavelet} (see \code{\link{analyse_wavelet_sst}}) with the averaged power in

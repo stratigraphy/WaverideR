@@ -31,67 +31,84 @@ ecoco_blocked(
 )
 }
 \arguments{
-\item{data}{Two-column matrix: depth (m) and proxy value. Irregular data
-are linearly interpolated at the median spacing (cocoPrepareRegularData).}
+\item{data}{Record to analyse (matrix or data frame, two columns): depth in metres in column 1 and the proxy in
+column 2. Non-finite rows are dropped, duplicated depths averaged, and unevenly spaced data are linearly
+interpolated to the median sample spacing (see \code{\link{coco_prepare_regular_data}}). Required
+(\code{Default=NULL}).}
 
-\item{orbit9}{Nine orbital periods (kyr).
-\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}}
+\item{orbit9}{The nine astronomical target periods in kyr (numeric vector of nine distinct positive values: long
+eccentricity, four short eccentricity terms, obliquity, three precession terms), e.g. from
+\code{\link{orbit9_at_age}} for the age of the record.
+\code{Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)}.}
 
-\item{window}{Sliding-window length (m). \code{Default=NULL}: 25\% of the
-record length (Acycle GUI default).}
+\item{window}{Length of the sliding validation and anchor windows, in metres (numeric, > 0; every window must
+contain at least 8 samples). \code{NULL} uses 25\% of the record length (Acycle GUI default).
+\code{Default=NULL}.}
 
-\item{sr}{Sedimentation-rate grid (cm/kyr), strictly increasing.
-\code{Default=NULL}: the Acycle GUI default range.}
+\item{sr}{Sedimentation rates to test, in cm/kyr (numeric vector, > 0, strictly increasing). \code{NULL} uses the
+Acycle GUI default: from \code{2 * dt * 0.065 * 100} up to 100 cm/kyr (reduced so that the longest period fits in
+the record), in steps of 0.1 cm/kyr or at most 300 steps. \code{Default=NULL}.}
 
-\item{step_depth}{Spacing of the output window centres (m).
-\code{Default=NULL}: the Acycle GUI default (dt, or dt*ceiling(n/300)).}
+\item{step_depth}{Spacing of the output (validation) window centres, in metres (numeric, > 0); only used with
+\code{window_mode="physical-depth"}. \code{NULL} uses the sample interval \code{dt}, or
+\code{dt * ceiling(n / 300)} for more than 300 samples. \code{Default=NULL}.}
 
-\item{step}{Legacy integer sample step, used when
-\code{window_mode = "legacy-count"}. \code{Default=1}}
+\item{step}{Step between successive validation windows, in samples (integer, >= 1); only used with
+\code{window_mode="legacy-count"}. \code{Default=1}.}
 
-\item{pad}{Periodogram length (nfft, at least the window point count).
-\code{Default=NULL}: Acycle's defaultPad (5000 for up to 2500 points).}
+\item{pad}{Length (number of points) to which every window is zero-padded for the periodogram (integer, at least
+the number of points per window). \code{NULL} uses the Acycle default: 5000 for up to 2500 samples, 10000 for up
+to 5000 samples, and \code{floor(n / 5000) * 5000 + 5000} above that. \code{Default=NULL}.}
 
-\item{red}{Background removal: 0 none, 1 classical AR(1), 2 robust AR(1),
-3 smoothed-window average (SWA). \code{Default=0}}
+\item{red}{Background (red-noise) removal applied to every window spectrum (integer): \code{0} none, \code{1}
+classical AR(1) background, \code{2} robust AR(1) background, \code{3} smoothed-window-average (SWA) background.
+Negative power after subtraction is set to zero. \code{Default=0}.}
 
-\item{n_sim}{Number of Monte Carlo simulations. \code{Default=2000}}
+\item{n_sim}{Number of AR(1) Monte Carlo simulations used for the global and local p-values (integer, >= 0); each
+simulation repeats the anchor training and validation. \code{Default=2000}.}
 
-\item{method}{Correlation, "Pearson" or "Spearman". \code{Default="Pearson"}}
+\item{method}{Correlation coefficient between the window spectrum and the target spectrum (character):
+\code{"Pearson"} or \code{"Spearman"}. \code{Default="Pearson"}.}
 
-\item{max_frequency}{Maximum temporal frequency (cycles/kyr) in the
-correlation. \code{Default=NULL}: 1.2/min(orbit9).}
+\item{max_frequency}{Highest frequency of the target spectrum that enters the correlation, in cycles/kyr
+(numeric, at least \code{max(1/orbit9)}); \code{NULL} uses \code{1.2 * max(1/orbit9)}. \code{Default=NULL}.}
 
-\item{seed}{Random seed (\code{set.seed}); NULL leaves the RNG state.
-\code{Default=1}}
+\item{seed}{Seed of the random number generator (integer), so that the Monte Carlo results can be reproduced;
+\code{NULL} leaves the current random state unchanged. \code{Default=1}.}
 
-\item{anchor_fraction}{Anchor spacing as a fraction of the window
-(0 < x <= 2). \code{Default=0.5}}
+\item{anchor_fraction}{Spacing of the anchor windows (where the target amplitudes are trained) as a fraction of
+\code{window} (numeric, > 0 and <= 2); smaller values give more, overlapping anchors. \code{Default=0.5}.}
 
-\item{window_mode}{"physical-depth" (Acycle wrapper and GUI) or
-"legacy-count" (fixed sample count). \code{Default="physical-depth"}}
+\item{window_mode}{How the windows are defined (character): \code{"physical-depth"} (windows of fixed length in
+metres centred every \code{step_depth}, as in the Acycle wrapper and GUI) or \code{"legacy-count"} (windows of a
+fixed number of samples moved by \code{step} samples; needs evenly sampled data).
+\code{Default="physical-depth"}.}
 
-\item{edge_pad}{Zero-pad half a window at both ends and restrict the
-output centres to the original record (Acycle GUI requirement for Blocked
-eCOCO). \code{Default=TRUE}}
+\item{edge_pad}{Zero-pad the record by half a window at both ends and restrict the output centres to the original
+record, so that windows reach the record ends (logical, TRUE or FALSE; Acycle GUI setting for Blocked eCOCO).
+Only used with \code{window_mode="physical-depth"}. \code{Default=TRUE}.}
 
-\item{center_limits}{Optional c(first, last) output-centre limits
-(overrides the limits set by \code{edge_pad}). \code{Default=NULL}}
+\item{center_limits}{Depths of the first and last output window centre, in metres (numeric vector
+\code{c(first, last)}, or \code{NULL}); overrides the limits set by \code{edge_pad}. \code{NULL} uses the record
+ends (with \code{edge_pad=TRUE}) or \code{c(first depth + window/2, last depth - window/2)}.
+\code{Default=NULL}.}
 
-\item{compute_local_p}{Also compute same-rate local p-values.
-\code{Default=TRUE}}
+\item{compute_local_p}{Also compute the local p-values, comparing each rate with the null correlations at the same
+rate (logical, TRUE or FALSE). \code{Default=TRUE}.}
 
-\item{consensus_policy}{"supported" (one-direction fallback at edges) or
-"strict" (bidirectional windows only). \code{Default="supported"}}
+\item{consensus_policy}{How windows at the record edges, which have an anchor on only one side, are treated
+(character): \code{"supported"} uses the available direction, \code{"strict"} leaves windows without both a
+forward and a backward anchor empty. \code{Default="supported"}.}
 
-\item{batch_size}{Monte Carlo simulations per batch (results do not depend
-on it). \code{Default=20}}
+\item{batch_size}{Number of Monte Carlo simulations processed together (integer, >= 1); larger batches are faster
+but use more memory, the results do not depend on it. \code{Default=20}.}
 
-\item{genplot}{Plot the result with \code{plot_ecoco_cv}. \code{Default=FALSE}}
+\item{genplot}{Plot the result with \code{\link{plot_ecoco_cv}} (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{verbose}{Print progress messages. \code{Default=FALSE}}
+\item{verbose}{Print progress messages (logical, TRUE or FALSE). \code{Default=FALSE}.}
 
-\item{centre_limits}{British spelling of \code{center_limits}; if given it overrides \code{center_limits}.}
+\item{centre_limits}{British spelling of \code{center_limits}; if given (not \code{NULL}) it overrides
+\code{center_limits}. \code{Default=NULL}.}
 }
 \value{
 A list (class "ecoco_cv") with elements \code{method},

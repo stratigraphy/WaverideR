@@ -16,15 +16,32 @@ ecoco_track_ridge(
 )
 }
 \arguments{
-\item{score, rho, p, norbit}{rate-by-window matrices}
+\item{score}{Score map through which the ridge is tracked (numeric matrix, rates in rows, windows in columns),
+e.g. element \code{score} of the output of \code{\link{ecoco_adaptive}}; it is min-max normalised within each
+window before tracking. Required, no default.}
 
-\item{sr}{sedimentation-rate grid (cm/kyr)}
+\item{sr}{Sedimentation-rate grid of the score map, in cm/kyr (numeric vector, one value per row of
+\code{score}). Required, no default.}
 
-\item{depth}{window centres (m)}
+\item{depth}{Depths of the window centres, in metres (numeric vector, one value per column of \code{score}).
+Required, no default.}
 
-\item{fallback}{result of ecoco_best_per_window() \code{Default=NULL}}
+\item{rho}{Correlation coefficients (numeric matrix of the same size as \code{score}); the values along the
+ridge are returned. Required, no default.}
 
-\item{jump_penalty}{weight of the quadratic jump penalty \code{Default=0.35}}
+\item{p}{Global Monte Carlo p-values (numeric matrix of the same size as \code{score}); the values along the
+ridge are returned. Required, no default.}
+
+\item{norbit}{Number of contributing orbital periods (numeric matrix of the same size as \code{score}); the values
+along the ridge are returned. Required, no default.}
+
+\item{fallback}{Result returned for windows the ridge does not reach, the output of
+\code{\link{ecoco_best_per_window}} (data frame); \code{NULL} computes it from the other arguments.
+\code{Default=NULL}.}
+
+\item{jump_penalty}{Weight of the quadratic penalty on rate jumps between neighbouring windows (numeric, >= 0):
+each step costs \code{jump_penalty * (|sr jump| / max(2, 4 * sr step))^2}. Larger values give a smoother
+ridge, \code{0} picks the best rate in every window independently. \code{Default=0.35}.}
 }
 \value{
 data.frame with depth, sr, rho, p_global, norbit, score, sr_low, sr_high

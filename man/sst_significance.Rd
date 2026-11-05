@@ -16,23 +16,31 @@ sst_significance(
 )
 }
 \arguments{
-\item{wavelet}{Object made by \code{\link{analyse_wavelet_sst}}, \code{\link{analyse_superlet_sst}} or
-\code{\link{analyse_conceft}}.}
+\item{wavelet}{Transform to test (required, no default): the list returned by \code{\link{analyse_wavelet_sst}},
+\code{\link{analyse_superlet_sst}} or \code{\link{analyse_conceft}} (it must contain the \code{transform} and
+\code{settings} elements, which are used to transform the noise records with exactly the same settings).}
 
-\item{n_sim}{Number of simulated noise records \code{Default=50}.}
+\item{n_sim}{Number of simulated noise records (integer, > 0); more simulations give a more stable threshold but
+take proportionally longer. \code{Default=50}.}
 
-\item{alpha}{Significance level \code{Default=0.05}.}
+\item{alpha}{Significance level (numeric, between 0 and 1): the threshold of every period is the (1 - \code{alpha})
+quantile of the pooled noise power. \code{Default=0.05}.}
 
-\item{ar_order_max}{Maximum order of the AR noise model \code{Default=5}; 1 gives the classical red noise (AR1).}
+\item{ar_order_max}{Maximum order of the autoregressive noise model (integer, >= 1); the order is chosen by AIC with
+\code{\link[stats]{ar}} (Yule-Walker) up to this value. \code{1} gives the classical red noise (AR1).
+\code{Default=5}.}
 
-\item{local_variance}{Scale the threshold with the local variance of the noise \code{Default=FALSE}.}
+\item{local_variance}{Let the noise variance change along the record (logical): the simulated noise is scaled by
+the moving standard deviation of the AR innovations and the threshold by the local noise variance.
+\code{Default=FALSE}.}
 
-\item{window}{Length (in depth/time units) of the moving window of the local variance \code{Default=NULL}: twice
-the longest period of the transform.}
+\item{window}{Length of the moving window of the local variance, in depth/time units (numeric, > 0); only used with
+\code{local_variance = TRUE}. \code{NULL} uses twice the longest period of the transform. \code{Default=NULL}.}
 
-\item{seed}{Seed of the simulations \code{Default=1}.}
+\item{seed}{Seed of the random number generator (integer) used for the noise simulations, so that the result can be
+reproduced; the previous random state is restored afterwards. \code{Default=1}.}
 
-\item{verbose}{Print messages.}
+\item{verbose}{Print a message after every simulation (logical, TRUE or FALSE). \code{Default=FALSE}.}
 }
 \value{
 The input object with \code{Power}, \code{Wave}, \code{Ampl} and \code{Power.avg} restricted to the

@@ -22,32 +22,37 @@
 #' flow dynamic_filter.m / dynamic_filter_lang.m, GUI DynamicFilter.m)
 #' (Mingsong Li).
 #'
-#' @param data Input data set, a matrix or data frame with 2 columns: the
-#' first column being depth/time (strictly increasing, regularly sampled to
-#' a relative spacing tolerance of 1e-5; interpolate beforehand otherwise)
-#' and the second column being the proxy value.
-#' @param controls Pass band control points. Either a matrix/data frame with
-#' columns \code{depth}, \code{f_low}, \code{f_high} and optionally
-#' \code{f_centre} (unnamed columns are taken in that order), or a list with
-#' elements \code{lower} and \code{upper}, each a 2-column matrix
-#' [depth, frequency] (Acycle's separate lower/upper boundary picks, which
-#' may be at different depths). Depths must be strictly increasing and lie
-#' within the data range. A single row gives a constant pass band. Because
-#' the Acycle Gaussian response is symmetric, a supplied \code{f_centre}
-#' must equal \code{(f_low + f_high) / 2} (it is only checked).
-#' @param window_length Window length in depth units (first-to-last sample
-#' span). \code{Default=NULL}: 20 percent of the record length (Acycle GUI
-#' default). A window of about two times the longest period of the target
-#' cycle is recommended.
-#' @param step_length Step between successive windows in depth units.
-#' \code{Default=NULL}: 4 times the sample interval, or
-#' \code{(record length - window_length) / 500} when that gives more than
-#' 500 steps (Acycle GUI default).
-#' @param genplot Generate a plot using \code{\link{plot_dynamic_filter}}
-#' \code{Default=FALSE}.
-#' @param x_lab label for the x-axis \code{Default="depth"}.
-#' @param y_lab label for the y-axis \code{Default="proxy"}.
-#' @param verbose Show a progress bar \code{Default=FALSE}.
+#' @param data Input series (two-column matrix or data frame of finite numeric values: depth/time in column 1,
+#' strictly increasing and regularly sampled to a relative spacing tolerance of 1e-5, proxy value in column 2; at
+#' least 8 rows). Interpolate irregular data to a regular grid beforehand. Required (\code{Default=NULL}).
+#' @param controls Pass band control points, in cycles per depth/time unit. Either
+#' \itemize{
+#' \item a matrix or data frame with columns \code{depth}, \code{f_low}, \code{f_high} and optionally
+#' \code{f_centre} (unnamed columns are taken in that order), e.g. the output of
+#' \code{\link{dynamic_filter_controls}}, or
+#' \item a list with elements \code{lower} and \code{upper}, each a two-column matrix [depth, frequency]
+#' (separate lower/upper boundary picks, which may be at different depths).
+#' }
+#' Depths must be strictly increasing and lie within the data range, frequencies must be > 0, with
+#' \code{f_low < f_high} and \code{f_high} below the Nyquist frequency everywhere. Between control points the band
+#' is linearly interpolated, beyond the first/last point it is held constant; a single row gives a constant pass
+#' band. Because the Gaussian response is symmetric, a supplied \code{f_centre} must equal
+#' \code{(f_low + f_high) / 2} (it is only checked). Required (\code{Default=NULL}).
+#' @param window_length Length of the sliding windows, in depth/time units (numeric, > 0, at most the record length
+#' and at least 8 samples). Longer windows give a sharper frequency resolution but follow changes in the pass band
+#' less closely; a window of about two times the longest period of the target cycle is recommended. \code{NULL}
+#' uses 20\% of the record length (Acycle GUI default). \code{Default=NULL}.
+#' @param step_length Step between successive windows, in depth/time units (numeric, > 0, between half a sample
+#' interval and \code{window_length}). \code{NULL} uses 4 times the sample interval, or
+#' \code{(record length - window_length) / 500} when that would give more than 500 steps (Acycle GUI default).
+#' \code{Default=NULL}.
+#' @param genplot Plot the data and the filtered signal with \code{\link{plot_dynamic_filter}} (logical, TRUE or
+#' FALSE). \code{Default=FALSE}.
+#' @param x_lab Label of the depth/time axis of the plot, passed to \code{\link{plot_dynamic_filter}} (character).
+#' Only used when \code{genplot=TRUE}. \code{Default="depth"}.
+#' @param y_lab Label of the proxy axis of the plot, passed to \code{\link{plot_dynamic_filter}} (character). Only
+#' used when \code{genplot=TRUE}. \code{Default="proxy"}.
+#' @param verbose Show a progress bar over the windows (logical, TRUE or FALSE). \code{Default=FALSE}.
 #'
 #' @author Michiel Arts (R translation); original MATLAB code: Nicolas
 #' Thibault and Giovanni Rizzi (2019), adapted by Mingsong Li (Acycle).
@@ -105,18 +110,16 @@
 #' @importFrom utils setTxtProgressBar
 
 dynamic_filter <- function(data = NULL,
-                           controls = NULL,
-                           window_length = NULL,
-                           step_length = NULL,
-                           genplot = FALSE,
-                           x_lab = "depth",
-                           y_lab = "proxy",
-                           verbose = FALSE){
-  # ---- internal helper functions (local to this function) ----
+    controls = NULL,
+    window_length = NULL,
+    step_length = NULL,
+    genplot = FALSE,
+    x_lab = "depth",
+    y_lab = "proxy",
+    verbose = FALSE){
+  # Internal helper functions (local to this function)
 
-  # ---------------------------------------------------------------------------
   # internal helpers
-  # ---------------------------------------------------------------------------
 
   # @title Strict series check (Acycle validateSeries)
   # @keywords internal
@@ -144,8 +147,8 @@ dynamic_filter <- function(data = NULL,
     rel_dep <- max(abs(spacing - dt)) / dt
     if (!(is.finite(rel_dep)) || rel_dep > 1e-5){
       stop(sprintf(paste0("%s: relative spacing departure %.3g exceeds 1e-5; ",
-                          "interpolate the data to a regular grid first"),
-                   fun, rel_dep))
+          "interpolate the data to a regular grid first"),
+          fun, rel_dep))
     }
     list(data = data, sample_interval = dt, nyquist = 1 / (2 * dt))
   }
@@ -197,7 +200,7 @@ dynamic_filter <- function(data = NULL,
       return(rep(points[1, 2], length(query)))
     }
     approx(points[, 1], points[, 2], xout = query, method = "linear",
-           rule = 2, ties = "ordered")$y
+        rule = 2, ties = "ordered")$y
   }
 
   # @title Split controls into lower/upper [depth, frequency] matrices
@@ -212,7 +215,7 @@ dynamic_filter <- function(data = NULL,
         stop("a controls list must contain elements 'lower' and 'upper'")
       }
       return(list(lower = as.matrix(controls$lower),
-                  upper = as.matrix(controls$upper)))
+          upper = as.matrix(controls$upper)))
     }
     cm <- as.matrix(controls)
     if (ncol(cm) < 3){
@@ -242,7 +245,7 @@ dynamic_filter <- function(data = NULL,
       mid <- fl + (fh - fl) / 2
       if (any(!is.finite(fc)) || any(abs(fc - mid) > 1e-8 * abs(mid))){
         stop(paste0("f_centre must equal (f_low + f_high) / 2: the Acycle ",
-                    "Gaussian pass band is symmetric about its centre"))
+            "Gaussian pass band is symmetric about its centre"))
       }
     }
     list(lower = cbind(d, fl), upper = cbind(d, fh))
@@ -252,7 +255,7 @@ dynamic_filter <- function(data = NULL,
   # @keywords internal
   # @noRd
   dynf_check_points <- function(points = NULL, name = "lower", d_start = 0,
-                                d_end = 1){
+      d_end = 1){
     points <- as.matrix(points)
     if (ncol(points) != 2 || nrow(points) < 1){
       stop(paste0(name, " control points must be a K x 2 matrix [depth, frequency]"))
@@ -269,7 +272,7 @@ dynamic_filter <- function(data = NULL,
     }
     if (any(points[, 1] < d_start) || any(points[, 1] > d_end)){
       stop(sprintf("every %s control depth must lie inside the data range [%.10g, %.10g]",
-                   name, d_start, d_end))
+          name, d_start, d_end))
     }
     if (any(points[, 2] <= 0)){
       stop(paste0("every ", name, " control frequency must be positive"))
@@ -277,7 +280,7 @@ dynamic_filter <- function(data = NULL,
     points
   }
 
-  # ---- main code ----
+  # Main code
   series <- dynf_check_series(data, fun = "dynamic_filter")
   depth <- series$data[, 1]
   values <- series$data[, 2]
@@ -297,14 +300,14 @@ dynamic_filter <- function(data = NULL,
   if (any(check_high >= nyquist)){
     first <- which(check_high >= nyquist)[1]
     stop(sprintf(paste0("upper frequency %.10g at depth %.10g must be ",
-                        "strictly below the Nyquist frequency %.10g"),
-                 check_high[first], check_depth[first], nyquist))
+        "strictly below the Nyquist frequency %.10g"),
+        check_high[first], check_depth[first], nyquist))
   }
   if (any(check_low >= check_high)){
     first <- which(check_low >= check_high)[1]
     stop(sprintf(paste0("pass band must satisfy f_low < f_high; at depth ",
-                        "%.10g they are %.10g and %.10g"),
-                 check_depth[first], check_low[first], check_high[first]))
+        "%.10g they are %.10g and %.10g"),
+        check_depth[first], check_low[first], check_high[first]))
   }
 
   # Acycle GUI defaults
@@ -322,13 +325,13 @@ dynamic_filter <- function(data = NULL,
 
   if (window_length > span){
     stop(sprintf("window_length %.10g exceeds the data span %.10g",
-                 window_length, span))
+        window_length, span))
   }
   window_intervals <- floor(window_length / dt + 0.5)
   window_samples <- window_intervals + 1
   if (window_samples < 8){
     stop(sprintf(paste0("window_length resolves to %d samples; at least ",
-                        "eight are required"), window_samples))
+        "eight are required"), window_samples))
   }
   if (window_samples > n){
     stop("window_length resolves to more samples than the data contain")
@@ -352,7 +355,7 @@ dynamic_filter <- function(data = NULL,
   n_win <- length(start_idx)
   if (n_win > 1e4){
     stop(sprintf(paste0("the request produces %d windows (maximum 10000); ",
-                        "increase step_length"), n_win))
+        "increase step_length"), n_win))
   }
 
   win_low <- dynf_interp_clamped(lower, centres)
@@ -369,8 +372,8 @@ dynamic_filter <- function(data = NULL,
   if (any(width < df - tol)){
     first <- which(width < df - tol)[1]
     stop(sprintf(paste0("window %d has pass band width %.10g, below the ",
-                        "FFT resolution %.10g; increase window_length or ",
-                        "widen the pass band"), first, width[first], df))
+        "FFT resolution %.10g; increase window_length or ",
+        "widen the pass band"), first, width[first], df))
   }
 
   value_scale <- max(abs(values))
@@ -419,25 +422,25 @@ dynamic_filter <- function(data = NULL,
   }
 
   out_filtered <- cbind(depth = depth, filtered = filtered,
-                        coverage_count = cov_count,
-                        coverage_weight = cov_weight)
+      coverage_count = cov_count,
+      coverage_weight = cov_weight)
   out_windows <- cbind(centre = centres, f_low = win_low, f_high = win_high,
-                       f_centre = win_centre, start_depth = depth[start_idx],
-                       end_depth = depth[end_idx], start_index = start_idx,
-                       end_index = end_idx)
+      f_centre = win_centre, start_depth = depth[start_idx],
+      end_depth = depth[end_idx], start_index = start_idx,
+      end_index = end_idx)
   colnames(lower) <- c("depth", "frequency")
   colnames(upper) <- c("depth", "frequency")
   res <- list(filtered = out_filtered, windows = out_windows,
-              lower_controls = lower, upper_controls = upper,
-              sample_interval = dt, nyquist = nyquist,
-              window_samples = window_samples, step_samples = step_samples,
-              window_length = window_intervals * dt,
-              step_length = step_samples * dt, fft_length = fft_length,
-              terminal_window_appended = terminal)
+      lower_controls = lower, upper_controls = upper,
+      sample_interval = dt, nyquist = nyquist,
+      window_samples = window_samples, step_samples = step_samples,
+      window_length = window_intervals * dt,
+      step_length = step_samples * dt, fft_length = fft_length,
+      terminal_window_appended = terminal)
 
   if (genplot == TRUE){
     plot_dynamic_filter(data = series$data, dyn_filter = res,
-                        x_lab = x_lab, y_lab = y_lab)
+        x_lab = x_lab, y_lab = y_lab)
   }
   res
 }

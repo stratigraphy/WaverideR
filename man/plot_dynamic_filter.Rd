@@ -13,17 +13,21 @@ plot_dynamic_filter(
 )
 }
 \arguments{
-\item{data}{Input data set used in \code{\link{dynamic_filter}}
-(2-column matrix [depth, value]).}
+\item{data}{Record that was filtered, the same as given to \code{\link{dynamic_filter}}: a two-column matrix or
+data frame with depth/time in column 1 and the proxy value in column 2. It is drawn demeaned in the top panel.
+Required (\code{Default=NULL} gives an error).}
 
-\item{dyn_filter}{Output list of \code{\link{dynamic_filter}}.}
+\item{dyn_filter}{Dynamic filter result to plot: the list returned by \code{\link{dynamic_filter}} (its
+\code{filtered}, \code{windows}, \code{lower_controls} and \code{upper_controls} elements are used). Required
+(\code{Default=NULL} gives an error).}
 
-\item{period}{Plot the pass band as period instead of frequency
-\code{Default=FALSE}.}
+\item{period}{Unit of the pass band in the bottom panel (logical): \code{TRUE} draws the band limits, centre and
+control points as periods (1/frequency, depth/time units), \code{FALSE} as frequencies (cycles per depth/time
+unit). \code{Default=FALSE}.}
 
-\item{x_lab}{label for the x-axis \code{Default="depth"}.}
+\item{x_lab}{Label of the depth/time axis of both panels (character). \code{Default="depth"}.}
 
-\item{y_lab}{label for the y-axis of the data panel \code{Default="proxy"}.}
+\item{y_lab}{Label of the y-axis of the data panel (character). \code{Default="proxy"}.}
 }
 \value{
 No return value; a plot is produced.

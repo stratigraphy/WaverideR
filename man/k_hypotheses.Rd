@@ -13,15 +13,25 @@ k_hypotheses(
 )
 }
 \arguments{
-\item{period_kyr}{the observed cycle period (kyr)}
+\item{period_kyr}{Observed period of the precession (or obliquity) cycle in kyr (numeric, one value > 0).
+Required (no default).}
 
-\item{age_ma}{approximate age, used for the obliquity and the model row}
+\item{age_ma}{Approximate age of the record in Ma (numeric, one value); used for the obliquity of the
+angular-momentum inversion and for the AstroGeo22 model value that the column \code{dk_vs_model_kyr} is compared
+with. Required (no default).}
 
-\item{terms}{candidate terms}
+\item{terms}{Candidate astronomical terms the cycle may represent (character vector; each must contain k), e.g.
+\code{"k+g5"}, \code{"k+g2"}, \code{"k+g4"}, \code{"k+g3"}, \code{"k+s3"}; one output row per term (names of a
+named vector become row names). \code{Default=c("k+g5", "k+g2", "k+g4", "k+g3", "k+s3")}.}
 
-\item{method}{"angular_momentum" or "astrogeo22"}
+\item{method}{How the precession constant is converted to Earth-Moon distance and length of day (character,
+passed to \code{\link{earthmoon_state}}): \code{"angular_momentum"} (conservation of Earth-Moon angular
+momentum) or \code{"astrogeo22"} (inversion of the AstroGeo22 curve of Farhat et al., 2022).
+\code{Default=c("angular_momentum", "astrogeo22")}, i.e. \code{"angular_momentum"}.}
 
-\item{data_dir}{folder with the AstroGeo22 table}
+\item{data_dir}{Folder that contains the data tables \code{AstroGeo22.txt} and \code{La04gisi.csv} (character
+path). \code{NULL} uses \code{getOption("cocoR.data")} or the copies installed with WaverideR.
+\code{Default=NULL}.}
 }
 \value{
 data.frame, one row per candidate term
