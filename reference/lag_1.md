@@ -1,0 +1,127 @@
+# lag-1 autocorrelation coefficient
+
+The `lag_1` function calculates the lag-1 autocorrelation coefficient
+using a windowed analysis monte carlo analysis
+
+## Usage
+
+``` r
+lag_1(
+  data = NULL,
+  n_sim = 10,
+  run_multicore = FALSE,
+  n_cores = NULL,
+  win_max = NULL,
+  win_min = NULL,
+  verbose = FALSE
+)
+```
+
+## Arguments
+
+- data:
+
+  Two-column matrix or data frame: depth or time in column 1 and the
+  proxy value in column 2; it is sorted and linearly interpolated to its
+  mean sampling interval. Required (`Default=NULL`).
+
+- n_sim:
+
+  Number of Monte Carlo simulations (integer, \> 0). In every simulation
+  the record is resampled at a random sampling interval (truncated
+  normal around the mean interval) and a random window size between
+  `win_min` and `win_max` is used; the output is the mean and standard
+  deviation over the simulations. `Default=10`.
+
+- run_multicore:
+
+  Run the simulations in parallel on several cores (logical, TRUE or
+  FALSE). Results do not depend on it. `Default=FALSE`.
+
+- n_cores:
+
+  Number of cores used when `run_multicore = TRUE` (integer or `NULL`).
+  `NULL` gives an automatic, safe number (physical cores minus one, at
+  most 4, limited by the free memory); change this default with
+  `options(waverider.n_cores = ...)`. A value \> 1 also switches on
+  parallel computing. Results do not depend on the number of cores.
+  `Default=NULL`.
+
+- win_max:
+
+  Largest width of the moving window in which the lag-1 autocorrelation
+  is computed, in the unit of the first column of `data` (numeric, \>
+  0). Required (`Default=NULL`).
+
+- win_min:
+
+  Smallest width of the moving window, in the unit of the first column
+  of `data` (numeric, \> 0; the window width of each simulation is drawn
+  uniformly between `win_min` and `win_max`). Required (`Default=NULL`).
+
+- verbose:
+
+  Show a progress bar of the simulations (logical, TRUE or FALSE).
+  `Default=FALSE`.
+
+## Value
+
+Returns a matrix which contains 3 columns column 1: depth/time matrix
+column 2: mean autocorrelation coefficient column 3: sd autocorrelation
+coefficient
+
+## Author
+
+Michiel Arts
+
+## Examples
+
+``` r
+# \donttest{
+#The example uses the magnetic susceptibility data set of Pas et al., (2018).
+# perform the CWT
+mag_wt <- analyse_wavelet(data = mag,
+dj = 1/100,
+lowerPeriod = 0.1,
+upperPeriod = 254,
+verbose = FALSE,
+omega_nr = 10)
+
+#Track the 405 kyr eccentricity cycle in a wavelet spectra
+
+#mag_track <- track_period_wavelet(astro_cycle = 405,
+#                                   wavelet=mag_wt,
+#                                   n.levels = 100,
+#                                   periodlab = "Period (meters)",
+#                                   x_lab = "depth (meters)")
+
+#Instead of tracking, the tracked solution data set mag_track_solution is used
+mag_track <- mag_track_solution
+
+mag_track_complete <- completed_series(
+  wavelet = mag_wt,
+  tracked_curve = mag_track,
+  period_up = 1.2,
+  period_down = 0.8,
+  extrapolate = TRUE,
+  genplot = FALSE
+)
+
+# smooth the tracking of the 405 kyr eccentricity cycle
+mag_track_complete <- loess_auto(time_series = mag_track_complete,
+genplot = FALSE, print_span = FALSE)
+#convert period in meters to sedrate depth vs time
+mag_track_time<- curve2tune(data=mag,
+                           tracked_cycle_curve=mag_track_complete,
+                           tracked_cycle_period=405,
+                           genplot = FALSE,
+                           keep_editable=FALSE)
+
+mag_lag_1 <- lag_1(data = mag_track_time,n_sim = 10,
+run_multicore = FALSE,
+win_max = 505,
+win_min = 150,
+verbose=FALSE)
+
+# }
+```

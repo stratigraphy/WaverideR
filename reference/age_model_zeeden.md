@@ -1,0 +1,24 @@
+# Age model of Zeeden et al., (2013) for the (154-174m) interval of the IODP 926 grey scale record
+
+Age model (anchor points) of the IODP 926 grey scale (154-174m) record
+of Zeeden et al., (2013)  
+Anchored to the eccentricity-tilt-precession model p-0.5t of la 2004.
+
+## Details
+
+Column 1: Depth (meters)  
+Column 2: Age (kyr)  
+
+## References
+
+Christian Zeeden, Frederik Hilgen, Thomas Westerhold, Lucas Lourens,
+Ursula Röhl, Torsten Bickert, Revised Miocene splice, astronomical
+tuning and calcareous plankton biochronology of ODP Site 926 between 5
+and 14.4Ma, Palaeogeography, Palaeoclimatology, Palaeoecology,Volume
+369,2013,Pages 430-451,ISSN 0031-0182,
+\<doi:10.1016/j.palaeo.2012.11.009\>
+
+J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B.
+Levrard, B., 2004, A long term numerical solution for the insolation
+quantities of the Earth: Astron. Astrophys., Volume 428, 261-285.
+\<doi:10.1051/0004-6361:20041335\>

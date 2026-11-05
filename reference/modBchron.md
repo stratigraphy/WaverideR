@@ -1,0 +1,280 @@
+# Run a modified version of the Bchronology algorithm from the R package "Bchron" (Haslett and Parnell, 2008)
+
+Run a modified version of the Bchronology algorithm from the R package
+"Bchron" (Haslett and Parnell, 2008)
+
+## Usage
+
+``` r
+modBchron(
+  ages,
+  ageSds,
+  positions,
+  positionThicknesses = rep(0, length(positions)),
+  ids,
+  distTypes = rep("G", length(ages)),
+  MC = 10000,
+  burn = 2000,
+  probability = 0.95,
+  adapt = TRUE,
+  mhSD = rep(0.001, length(unique(ids))),
+  psiSD = 0.001,
+  muSD = 0.001,
+  mu0 = NULL,
+  psi0 = NULL,
+  thetas0 = NULL,
+  mu_fixed = NULL,
+  psi_fixed = NULL,
+  predictPositions = seq(min(positions), max(positions), length = 500),
+  truncateUp = 0,
+  extrapUp = 100,
+  truncateDown = 1e+10,
+  extrapDown = 100
+)
+```
+
+## Arguments
+
+- ages:
+
+  Ages of the dated samples (numeric vector, one value per date, in one
+  time unit such as kyr or Ma that is used for all age arguments).
+  Required (no default).
+
+- ageSds:
+
+  One-sigma uncertainties of `ages` (numeric vector, \> 0, same unit,
+  length and order as `ages`); for `distTypes = "U"` it is the
+  half-width of the uniform distribution. Required (no default).
+
+- positions:
+
+  Stratigraphic positions of the dated samples as distance above the
+  base of the section, e.g. in metres (numeric vector, same length and
+  order as `ages`; unordered positions are sorted with a warning).
+  Required (no default).
+
+- positionThicknesses:
+
+  Stratigraphic uncertainty of each date, given as half thickness in the
+  unit of `positions` (numeric vector, \>= 0, same length and order as
+  `ages`). `Default=rep(0, length(positions))` (no positional
+  uncertainty).
+
+- ids:
+
+  Sample names of the dates (character or numeric vector, same length
+  and order as `ages`); all dates with the same id are combined into a
+  single age PDF of one dated horizon. Required (no default).
+
+- distTypes:
+
+  Distribution used for each date (character vector, same length and
+  order as `ages`): `"G"` Gaussian (mean `ages`, standard deviation
+  `ageSds`) or `"U"` uniform (`ages` plus or minus `ageSds`).
+  `Default=rep('G', length(ages))`.
+
+- MC:
+
+  Number of MCMC iterations (integer, \> `burn`). `Default=10000`.
+
+- burn:
+
+  Number of initial MCMC iterations discarded as burn-in when the
+  intervals are computed (integer, \>= 1 and \< `MC`). `Default=2000`.
+
+- probability:
+
+  Probability of the returned highest density interval and of the
+  outlier check of the dates (numeric, between 0 and 1; 0.95 is 95
+  percent). `Default=0.95`.
+
+- adapt:
+
+  Tune the proposal standard deviations of the model parameters during
+  the run with the adaptive proposal algorithm of Haario et al. (1998)
+  (logical, TRUE or FALSE). `Default=TRUE`.
+
+- mhSD:
+
+  Metropolis-Hastings proposal standard deviations of the ages of the
+  dated horizons, in the age unit (numeric vector of length
+  `length(unique(ids))`, \> 0); the starting values when `adapt = TRUE`,
+  used as they are otherwise. `Default=rep(0.001, length(unique(ids)))`.
+
+- psiSD:
+
+  Metropolis-Hastings proposal standard deviation of the Compound
+  Poisson-Gamma scale parameter psi (numeric, \> 0); the starting value
+  when `adapt = TRUE`. `Default=0.001`.
+
+- muSD:
+
+  Metropolis-Hastings proposal standard deviation of the Compound
+  Poisson-Gamma mean parameter mu (numeric, \> 0); the starting value
+  when `adapt = TRUE`. `Default=0.001`.
+
+- mu0:
+
+  Warm-start centre of the initial Compound Poisson-Gamma mean parameter
+  mu (numeric, \> 0, or `NULL`). If `NULL`, mu is initialised the
+  original way, from the raw date/position spacing. If given, the chain
+  starts at `abs(rnorm(1, mean = mu0, sd = muSD))`, so that a chain can
+  be restarted near a previously known good region of parameter space
+  (e.g. in a rejection-sampling/restart scheme) instead of re-exploring
+  from scratch. It does not change the Metropolis-Hastings acceptance
+  ratio, only where the chain begins. `Default=NULL`.
+
+- psi0:
+
+  Warm-start centre of the initial Compound Poisson-Gamma scale
+  parameter psi (numeric, \> 0, or `NULL`), analogous to `mu0`. If
+  `NULL`, psi is initialised the original way
+  (`abs(rnorm(1, 1, sd = psiSD))`). `Default=NULL`.
+
+- thetas0:
+
+  Warm-start vector of starting ages of the dated horizons (numeric
+  vector, one value per unique id, in the same order as `unique(ids)`).
+  If NULL (default) each is initialised from its own likelihood peak, as
+  before. This matters most in a batch-RESTART scheme: the adaptive
+  proposal SDs start at their `mhSD` default of 0.001 and grow by only
+  about a factor of 10 per 200-iteration adaptation window, so they need
+  roughly 1000 iterations to reach the right scale (measured on a 7500
+  +/- 15 date: mhSD goes 0.001 -\> 0.012 at iter 200 -\> 0.157 at iter
+  400 -\> ~34 at iter 1000). A chain restarted COLD inside a short batch
+  never gets there: its dated horizons stay pinned within a fraction of
+  a kyr of their starting values, so the run silently reports near-ZERO
+  age uncertainty at the dated horizons. Passing `thetas0` together with
+  the previous run's adapted `mhSD`/`psiSD`/`muSD` lets a restarted
+  chain resume properly mixed instead of paying that burn-in again.
+  Values are still clipped into \[truncateUp, truncateDown\].
+  `Default=NULL`.
+
+- mu_fixed, psi_fixed:
+
+  Hold the Compound Poisson-Gamma mean (`mu_fixed`) or scale
+  (`psi_fixed`) parameter at the given value and skip its
+  Metropolis-Hastings updates (numeric, \> 0, or `NULL`). `NULL`
+  estimates the parameter in the MCMC as before. `Default=NULL` for
+  both.
+
+  WHY THIS EXISTS. mu and psi are estimated from the gaps BETWEEN dated
+  horizons, so n dates give only n-1 numbers to estimate both. With a
+  handful of dates psi is effectively UNIDENTIFIED: on a 3-date section
+  its posterior spanned a factor of 489 (95% range 28.9 to 14100). That
+  matters enormously, because psi controls the Poisson event rate of the
+  age-depth bridge, lambda = mu^(2-p)/(psi\*(2-p)). At the posterior
+  median psi of ~3450 that works out at about ONE event across a whole
+  3750-kyr interval – the age path between two dates is then essentially
+  a single random gamma jump, and the interior uncertainty balloons to
+  several hundred kyr regardless of how precise the dates are. Left
+  "free", psi is not being estimated so much as allowed to wander
+  somewhere unhelpful.
+
+  WHAT PINNING IT BUYS (measured, floating-time model, 3 dates at +/-30
+  kyr, 3 replicates each): psi free : interior SD 458 kyr, RMSE of the
+  median vs the true curve 15.8 kyr psi = 100 : interior SD 245 kyr,
+  RMSE 20.3 kyr psi = 10 : interior SD 82 kyr, RMSE 15.4 kyr psi = 1 :
+  interior SD 35 kyr, RMSE 15.4 kyr So a 13-fold tightening with NO loss
+  of accuracy – the free-psi width was not information, it was an
+  unidentified nuisance parameter wandering.
+
+  THE PRICE, AND IT IS REAL. psi encodes how much you trust the
+  timescale you are fitting against. Pinning it small asserts that the
+  cyclostratigraphic axis is right. Repeating the test with a
+  deliberately WRONG axis (cycle misidentified as 25 kyr instead of 21,
+  plus a spurious trend): psi free : interior SD 451 kyr, RMSE 94 kyr,
+  95% coverage 1.00 psi = 1 : interior SD 35 kyr, RMSE 94 kyr, 95%
+  coverage 0.49 Both are equally WRONG, but the wide free-psi band still
+  contained the truth while the pinned one did not – at half of all
+  depths the true age fell outside the model's own 95% interval. The
+  sprawling free-psi uncertainty was acting as an accidental safety net.
+
+  SO: pin psi only alongside the independent astronomical controls in
+  spectral_filter.R (the spectral peak test and the cycle-count test).
+  Those are what establish that the axis is right, and once psi is
+  pinned they are no longer a refinement – they are the thing standing
+  between you and a confidently wrong answer. Report a sensitivity range
+  over psi rather than a single value.
+
+- predictPositions:
+
+  Stratigraphic positions at which the age model is evaluated, in the
+  unit of `positions` (numeric vector); positions above the top or below
+  the base date are extrapolated.
+  `Default=seq(min(positions), max(positions), length = 500)` (500
+  evenly spaced points from the bottom to the top dated horizon).
+
+- truncateUp:
+
+  Youngest permitted age, used as truncation for extrapolating above the
+  top of the section (numeric, in the age unit). `Default=0`. IMPORTANT:
+  this is a HARD lower bound on the age of the TOPMOST DATED HORIZON as
+  well, not just on extrapolated points above it – it is used directly
+  as the `low` limit of that horizon's Metropolis-Hastings proposal. So
+  if your top date's own likelihood sits close to this bound (the common
+  case being a "present day" date of 0 +/- sd with the default
+  truncateUp = 0), roughly the lower half of that date's likelihood is
+  excluded by the bound, and its posterior comes out correspondingly
+  narrower and skewed. For a date of 0 +/- 15 with truncateUp = 0 the
+  posterior is a half-normal: sd ~9.0 instead of 15, and a 95% width of
+  ~33 kyr instead of ~59 kyr – verified against both the model output
+  and the closed-form half-normal. That is the model correctly doing
+  what you told it, NOT uncertainty being lost; the age-depth model's
+  uncertainty at a dated horizon equals that date's POSTERIOR, which for
+  any date far from a bound comes back essentially equal to the input
+  (e.g. 7500 +/- 15 at the base returns a 95% width of ~58.6 kyr against
+  the input's 58.8 kyr). If you did not intend the bound to bite, set
+  truncateUp below the youngest age you want to permit (e.g. -1000) and
+  the full date uncertainty is recovered. The same reasoning applies to
+  `truncateDown` and the bottommost date.
+
+- extrapUp:
+
+  Number of Compound Poisson-Gamma events simulated for every
+  extrapolated age path above the top dated horizon (integer, \> 1); it
+  must be large enough for the path to reach the highest
+  `predictPositions`. `Default=100`.
+
+- truncateDown:
+
+  Oldest permitted age, used as truncation for extrapolating below the
+  bottom of the section (numeric, in the age unit). See the note on
+  `truncateUp`: it is likewise a hard upper bound on the age of the
+  bottommost dated horizon, not only on extrapolated points.
+  `Default=1e10` (in effect no bound).
+
+- extrapDown:
+
+  Number of Compound Poisson-Gamma events simulated for every
+  extrapolated age path below the bottom dated horizon (integer, \> 1),
+  as `extrapUp`. `Default=100`.
+
+## Value
+
+HDI = specified probability highest density interval for the model run
+
+model = Raw model predictions for each MCMC iteration
+
+thetas = The posterior values for each dated horizon from each MCMC run.
+burn is not removed.
+
+predictPositions = Stratigraphic positions where the model was
+evaluated. Same as `predictPositions`
+
+mu, psi = The posterior values for the Compound Poisson-Gamma mean and
+scale parameters. burn is not removed.
+
+ageGrid = Grid that age PDFs were evaluated over. Useful for plotting
+
+likelihoods = Age PDFs for each set of dated samples. Useful for
+plotting
+
+nAges = Number of ages that were combined into each sample. Useful for
+plotting
+
+masterPositions = Stratigraphic positions for each set of combined ages.
+Useful for plotting
+
+ids = Vector of unique sample names. Useful for plotting

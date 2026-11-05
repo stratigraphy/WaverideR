@@ -1,0 +1,143 @@
+# Power decomposition analysis (strict evolutionary MTM band-power ratio)
+
+The `pda` function calculates, in moving windows, the ratio between the
+multitaper (MTM) power inside a set of target frequency bands and the
+power inside a total frequency band (power decomposition analysis, PDA;
+Li et al., 2016). Each window is linearly detrended, its
+adaptive-weighted MTM power spectral density is computed on an explicit
+FFT grid, and band powers are obtained by trapezoidal integration of the
+PSD with piecewise-linear interpolation at the exact band limits. The
+input is divided by one global scale (maximum absolute value) so that
+powers are comparable between windows. The data must already be
+regularly sampled (relative spacing tolerance 1e-5); no sorting,
+interpolation or padding is performed. Defaults for `step`, `nfft` and
+`total_band` follow the Acycle compatibility wrapper `pda.m` (one sample
+interval, next power of two of the window length, DC to Nyquist).
+Translated from Acycle v3.1 acyclePowerDecomposition.m and pda.m
+(Mingsong Li).
+
+## Usage
+
+``` r
+pda(
+  data = NULL,
+  target_bands = c(1/45, 1/25),
+  window = 500,
+  step = NULL,
+  nw = 2,
+  nfft = NULL,
+  total_band = NULL,
+  genplot = FALSE,
+  verbose = FALSE
+)
+```
+
+## Arguments
+
+- data:
+
+  Numeric two-column matrix or data frame: depth/time in column 1
+  (strictly increasing and evenly spaced, relative spacing tolerance
+  1e-5; interpolate first if needed) and the proxy value in column 2; at
+  least eight rows, all values finite. Required (`Default=NULL`).
+
+- target_bands:
+
+  Target frequency bands whose summed power is divided by the power of
+  `total_band`, in cycles per unit of the depth/time column: either a B
+  x 2 matrix with the lower limit in column 1 and the upper limit in
+  column 2 (rows ordered by increasing lower limit, non-overlapping), or
+  a numeric vector of paired limits
+  `c(lower1, upper1, lower2, upper2, ...)`. Every band must lie inside
+  `total_band`, below the Nyquist frequency and be at least as wide as
+  the FFT resolution. `Default=c(1/45, 1/25)`.
+
+- window:
+
+  Length of the moving window (first-to-last coordinate span), in the
+  unit of the depth/time column (numeric, \> 0 and not longer than the
+  record; rounded to a whole number of sample intervals, at least 8
+  samples). `Default=500`.
+
+- step:
+
+  Distance between the starts of successive windows, in the unit of the
+  depth/time column (numeric, \> 0; rounded to whole samples). `NULL`
+  uses one sample interval. `Default=NULL`.
+
+- nw:
+
+  Time-bandwidth product of the DPSS (Slepian) tapers of the multitaper
+  spectrum (numeric, \>= 0.5 and less than half the number of samples
+  per window); larger values smooth the spectrum more. `Default=2`.
+
+- nfft:
+
+  Length of the FFT (even integer, at least the number of samples per
+  window); larger values give a finer frequency grid. `NULL` uses the
+  next power of two of the number of samples per window. `Default=NULL`.
+
+- total_band:
+
+  Total frequency band `c(lower, upper)` in cycles per unit of the
+  depth/time column (numeric vector of length 2, 0 \<= lower \< upper
+  \<= Nyquist frequency), the denominator of the power ratio. `NULL`
+  uses `c(0, Nyquist frequency)`. `Default=NULL`.
+
+- genplot:
+
+  Plot the data and the power ratio against depth/time (logical, TRUE or
+  FALSE). `Default=FALSE`.
+
+- verbose:
+
+  Show a progress bar over the windows (logical, TRUE or FALSE).
+  `Default=FALSE`.
+
+## Value
+
+A list with elements `result`: matrix with columns window center, ratio
+(target power / total power), target power (union of all target bands)
+and total power; `band_powers`: matrix with the window center followed
+by one power column per target band; `meta`: list with the resolved
+sampling interval, window and step samples, effective window/step
+lengths, nfft, frequency resolution, Nyquist frequency, value scale and
+number of unused trailing samples.
+
+## References
+
+Li, M., Huang, C., Hinnov, L., Ogg, J., Chen, Z.-Q., Zhang, Y., 2016.
+Obliquity-forced climate during the Early Triassic hothouse in China.
+Geology 44, 623-626.
+[doi:10.1130/G37970.1](https://doi.org/10.1130/G37970.1)
+
+Li, M., Hinnov, L., Kump, L., 2019. Acycle: Time-series analysis
+software for paleoclimate research and education. Computers &
+Geosciences 127, 12-22.
+[doi:10.1016/j.cageo.2019.02.011](https://doi.org/10.1016/j.cageo.2019.02.011)
+
+## Author
+
+Michiel Arts (R translation); original MATLAB code: Mingsong Li and
+Linda Hinnov (Acycle).
+
+## Examples
+
+``` r
+# \donttest{
+set.seed(1)
+t <- seq(0, 2000, by = 2)
+x <- sin(2 * pi * t / 40) + 0.5 * sin(2 * pi * t / 100) +
+  0.5 * as.numeric(arima.sim(list(ar = 0.7), n = length(t)))
+res <- pda(data = cbind(t, x), target_bands = c(1/45, 1/35),
+  window = 300, step = 10, nw = 2, genplot = FALSE)
+head(res$result)
+#>      center     ratio target_power total_power
+#> [1,]    150 0.3611018   0.02865209  0.07934631
+#> [2,]    160 0.3383209   0.02810777  0.08308022
+#> [3,]    170 0.3086794   0.02743037  0.08886362
+#> [4,]    180 0.2902889   0.02847236  0.09808285
+#> [5,]    190 0.2774705   0.02849600  0.10269921
+#> [6,]    200 0.2786652   0.02890460  0.10372519
+# }
+```

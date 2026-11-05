@@ -1,0 +1,385 @@
+# Convert the re-tracked curve results to a depth time space with uncertainty
+
+Converts the re-tracked curve results from
+[`retrack_wt_MC`](https://stratigraphy.github.io/WaverideR/reference/retrack_wt_MC.md)
+function to a depth time space while also taking into account the
+uncertainty of the tracked astronomical cycle
+
+## Usage
+
+``` r
+curve2time_unc(
+  tracked_cycle_curve = NULL,
+  tracked_cycle_period = NULL,
+  tracked_cycle_period_unc = NULL,
+  tracked_cycle_period_unc_dist = "n",
+  n_simulations = NULL,
+  output = 1
+)
+```
+
+## Arguments
+
+- tracked_cycle_curve:
+
+  Re-tracked cycle with its uncertainty (matrix or data frame, three
+  columns): depth in metres in column 1, the mean tracked frequency in
+  cycles per metre in column 2 and its standard deviation (1 sigma,
+  cycles per metre) in column 3, e.g. the output of
+  [`retrack_wt_MC`](https://stratigraphy.github.io/WaverideR/reference/retrack_wt_MC.md).
+  Rows with `NA` are dropped and the curve is interpolated to its median
+  depth spacing. Required (`Default=NULL` gives an error).
+
+- tracked_cycle_period:
+
+  Duration of the tracked cycle in kyr (single numeric value, \> 0, e.g.
+  405 for the long eccentricity cycle). Required (`Default=NULL` gives
+  an error).
+
+- tracked_cycle_period_unc:
+
+  Uncertainty of `tracked_cycle_period` in kyr (single numeric value,
+  \>= 0): the standard deviation when
+  `tracked_cycle_period_unc_dist="n"`, the half-width of the range when
+  `"u"`. Required (`Default=NULL` gives an error).
+
+- tracked_cycle_period_unc_dist:
+
+  Distribution from which the duration of the tracked cycle is drawn in
+  every simulation (character): `"n"` normal or `"u"` uniform.
+  `Default="n"`.
+
+- n_simulations:
+
+  Number of age models to simulate (integer, \> 0); in every simulation
+  one duration and one quantile of the frequency uncertainty (applied
+  along the whole curve) are drawn. Simulations whose age model is not
+  monotonic are discarded. Required (`Default=NULL` gives an error).
+
+- output:
+
+  Form of the result (integer): `1` a matrix with the simulated ages
+  (kyr) at every depth, one column per kept simulation; `2` a matrix
+  with depth, the mean tracked frequency and the 0.02275, 0.373, 0.5,
+  0.6827 and 0.97725 quantiles of the simulated ages; `3` a matrix with
+  depth, the mean and the standard deviation of the simulated ages.
+  `Default=1`.
+
+## Value
+
+If output = 1 a matrix with the predicted ages given the input for each
+run is given If output = 2 a matrix with 6 columns is generated, the
+first column is depth/height, the other columns are the quantile
+(0.02275, 0.373, 0.5, 0.6827, 0.97725) age values of the runs if output
+= 3 a matrix with 4 columns is generated with the first column being
+depth/height, column 2 is the mean tracked duration (in kyrs) column 3
+is mean duration + 1 standard deviation and column 4 is mean duration -
+1 standard deviation
+
+## References
+
+Routines for astrochronologic testing, astronomical time scale
+construction, and time series analysis
+\<doi:10.1016/j.earscirev.2018.11.015\>
+
+## Author
+
+Based on the
+[sedrate2time](https://rdrr.io/pkg/astrochron/man/sedrate2time.html)
+function of the 'astrochron' R package
+
+## Examples
+
+``` r
+# \donttest{
+# Re-track the 110kyr eccentricity cycle in the wavelet scalogram
+# from the XRF record of the Bisciaro data set of Arts (2014) and then
+# add generate and age model including uncertainty
+
+Bisciaro_al <- Bisciaro_XRF[, c(1, 61)]
+Bisciaro_al <- astrochron::sortNave(Bisciaro_al,verbose=FALSE,genplot=FALSE)
+#>  * Duplicates found
+#>  * Duplicates values will be averaged.
+#>  * Number of samples post-averaging= 287 
+Bisciaro_al <- astrochron::linterp(Bisciaro_al, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_al <- Bisciaro_al[Bisciaro_al[, 1] > 2, ]
+
+Bisciaro_al_wt <-
+ analyse_wavelet(
+   data = Bisciaro_al,
+   dj = 1 /50 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_al_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_al_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+# Bisciaro_al_wt_track <- completed_series(
+#   wavelet = Bisciaro_al_wt,
+#   tracked_curve = Bisciaro_al_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_al_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_al_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
+
+Bisciaro_ca <- Bisciaro_XRF[, c(1, 55)]
+Bisciaro_ca <- astrochron::sortNave(Bisciaro_ca,verbose=FALSE,genplot=FALSE)
+#>  * Duplicates found
+#>  * Duplicates values will be averaged.
+#>  * Number of samples post-averaging= 287 
+Bisciaro_ca <- astrochron::linterp(Bisciaro_ca, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_ca <- Bisciaro_ca[Bisciaro_ca[, 1] > 2, ]
+
+Bisciaro_ca_wt <-
+ analyse_wavelet(
+   data = Bisciaro_ca,
+   dj = 1 /50 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_ca_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_ca_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+# Bisciaro_ca_wt_track <- completed_series(
+#   wavelet = Bisciaro_ca_wt,
+#   tracked_curve = Bisciaro_ca_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_ca_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_ca_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE)
+
+Bisciaro_sial <- Bisciaro_XRF[,c(1,64)]
+Bisciaro_sial <- astrochron::sortNave(Bisciaro_sial,verbose=FALSE,genplot=FALSE)
+#>  * Duplicates found
+#>  * Duplicates values will be averaged.
+#>  * Number of samples post-averaging= 287 
+Bisciaro_sial <- astrochron::linterp(Bisciaro_sial, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_sial <- Bisciaro_sial[Bisciaro_sial[, 1] > 2, ]
+
+Bisciaro_sial_wt <-
+ analyse_wavelet(
+   data = Bisciaro_sial,
+   dj = 1 /50 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_sial_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_sial_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_sial_wt_track <- completed_series(
+#   wavelet = Bisciaro_sial_wt,
+#   tracked_curve = Bisciaro_sial_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_sial_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_sial_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
+
+
+Bisciaro_Mn <- Bisciaro_XRF[,c(1,46)]
+Bisciaro_Mn <- astrochron::sortNave(Bisciaro_Mn,verbose=FALSE,genplot=FALSE)
+#>  * Duplicates found
+#>  * Duplicates values will be averaged.
+#>  * Number of samples post-averaging= 287 
+Bisciaro_Mn <- astrochron::linterp(Bisciaro_Mn, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mn <- Bisciaro_Mn[Bisciaro_Mn[, 1] > 2, ]
+
+Bisciaro_Mn_wt <-
+ analyse_wavelet(
+   data = Bisciaro_Mn,
+   dj = 1 /50 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_Mn_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_Mn_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_Mn_wt_track <- completed_series(
+#   wavelet = Bisciaro_Mn_wt,
+#   tracked_curve = Bisciaro_Mn_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+# Bisciaro_Mn_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_Mn_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE
+#   )
+
+Bisciaro_Mg <- Bisciaro_XRF[,c(1,71)]
+Bisciaro_Mg <- astrochron::sortNave(Bisciaro_Mg,verbose=FALSE,genplot=FALSE)
+#>  * Duplicates found
+#>  * Duplicates values will be averaged.
+#>  * Number of samples post-averaging= 287 
+Bisciaro_Mg <- astrochron::linterp(Bisciaro_Mg, dt = 0.01,verbose=FALSE,genplot=FALSE)
+Bisciaro_Mg <- Bisciaro_Mg[Bisciaro_Mg[, 1] > 2, ]
+
+Bisciaro_Mg_wt <-
+ analyse_wavelet(
+   data = Bisciaro_Mg,
+   dj = 1 /50 ,
+   lowerPeriod = 0.01,
+   upperPeriod = 50,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+
+# Bisciaro_Mg_wt_track <-
+#   track_period_wavelet(
+#     astro_cycle = 110,
+#     wavelet = Bisciaro_Mg_wt,
+#     n.levels = 100,
+#     periodlab = "Period (metres)",
+#     x_lab = "depth (metres)"
+#   )
+#
+#
+# Bisciaro_Mg_wt_track <- completed_series(
+#   wavelet = Bisciaro_Mg_wt,
+#   tracked_curve = Bisciaro_Mg_wt_track,
+#   period_up = 1.2,
+#   period_down = 0.8,
+#   extrapolate = TRUE,
+#   genplot = FALSE,
+#   keep_editable = FALSE
+# )
+#
+# Bisciaro_Mg_wt_track <-
+#   loess_auto(
+#     time_series = Bisciaro_Mg_wt_track,
+#     genplot = FALSE,
+#     print_span = FALSE,
+#     keep_editable = FALSE)
+
+
+
+
+wt_list_bisc <- list(Bisciaro_al_wt,
+               Bisciaro_ca_wt,
+               Bisciaro_sial_wt,
+               Bisciaro_Mn_wt,
+               Bisciaro_Mg_wt)
+
+#Instead of tracking, the tracked solution data sets Bisciaro_al_wt_track,
+#Bisciaro_ca_wt_track, Bisciaro_sial_wt_track, Bisciaro_Mn_wt_track,
+# Bisciaro_Mn_wt_track and Bisciaro_Mg_wt_track are used
+
+data_track_bisc <- cbind(Bisciaro_al_wt_track[,2],
+                     Bisciaro_ca_wt_track[,2],
+                     Bisciaro_sial_wt_track[,2],
+                     Bisciaro_Mn_wt_track[,2],
+                     Bisciaro_Mg_wt_track[,2])
+
+x_axis_bisc <- Bisciaro_al_wt_track[,1]
+
+
+bisc_retrack <- retrack_wt_MC(wt_list = wt_list_bisc,
+             data_track = data_track_bisc,
+             x_axis = x_axis_bisc,
+             nr_simulations = 20,
+             seed_nr = 1337,
+             verbose = FALSE,
+             genplot = FALSE,
+             keep_editable = FALSE,
+             create_GIF = FALSE,
+             plot_GIF = FALSE,
+             width_plt =  600,
+             height_plt = 450,
+            period_up  =  1.5,
+             period_down = 0.5,
+             plot.COI = TRUE,
+             n.levels = 100,
+             palette_name = "rainbow",
+             color_brewer = "grDevices",
+             periodlab = "Period (metres)",
+             x_lab = "depth (metres)",
+             add_avg = FALSE,
+             time_dir = TRUE,
+             file_name = NULL,
+             run_multicore = FALSE,
+             output = 5,
+             n_imgs = 50,
+             plot_horizontal = TRUE,
+             empty_folder = FALSE)
+
+bisc_retrack_age_incl_unc <- curve2time_unc(tracked_cycle_curve = bisc_retrack,
+tracked_cycle_period = 110,
+tracked_cycle_period_unc = ((135-110)+(110-95))/2,
+tracked_cycle_period_unc_dist = "n",
+n_simulations = 20,
+output = 1)
+
+
+# }
+```

@@ -1,0 +1,283 @@
+# Blocked eCOCO (cross-fitted evolutionary correlation coefficient)
+
+Blocked eCOCO evaluates complete sliding validation windows with
+astronomical targets trained on strictly non-overlapping anchor windows.
+Four leakage-corrected orbital-group amplitudes (long eccentricity,
+short eccentricity, obliquity, precession; groups identified by
+descending period rank) are fitted at regularly spaced anchor windows
+(spacing `anchor_fraction * window`) using the complete
+sedimentation-rate grid, and expanded to a coherent nine-term sine
+target. Every validation window is evaluated with the nearest
+lower-depth anchor (forward) and the nearest higher-depth anchor
+(backward) with frozen weights. The consensus correlation at a rate is
+the smaller of the two directional correlations; at the record edges the
+available direction is used (`consensus_policy = "supported"`) or the
+window is left empty (`"strict"`). Stationary Gaussian AR(1) Monte Carlo
+nulls, one per unique window interval, repeat the complete anchor
+training and frozen validation. Global p-values use the null maximum
+over the complete rate grid within each window, local p-values the same
+rate. pCOCO = rho \* \|log10(p_global)\| is the ridge score; the
+sedimentation-rate ridge is tracked as in Acycle (`trackEcocoRidge`).
+Translated from Acycle v3.1 ecocoCrossfitCore.m, ecoco.m (Blocked
+branch), ecocoWindowSpectra.m, ecocoEstimateAr1.m,
+ecocoPhysicalCenters.m, ecocoPhysicalWindowValues.m,
+cocoNonnegativeLeakageSolve.m and zeropad2.m (Mingsong Li). Uses the
+COCO helper functions of this package (helpers_coco.R and the ecoco\_\*
+functions).
+
+## Usage
+
+``` r
+ecoco_blocked(
+  data = NULL,
+  orbit9 = c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.682, 22.3758,
+    18.9519),
+  window = NULL,
+  sr = NULL,
+  step_depth = NULL,
+  step = 1,
+  pad = NULL,
+  red = 0,
+  n_sim = 2000,
+  method = "Pearson",
+  max_frequency = NULL,
+  seed = 1,
+  anchor_fraction = 0.5,
+  window_mode = "physical-depth",
+  edge_pad = TRUE,
+  center_limits = NULL,
+  compute_local_p = TRUE,
+  consensus_policy = "supported",
+  batch_size = 20,
+  genplot = FALSE,
+  verbose = FALSE,
+  centre_limits = NULL
+)
+```
+
+## Arguments
+
+- data:
+
+  Record to analyse (matrix or data frame, two columns): depth in metres
+  in column 1 and the proxy in column 2. Non-finite rows are dropped,
+  duplicated depths averaged, and unevenly spaced data are linearly
+  interpolated to the median sample spacing (see
+  [`coco_prepare_regular_data`](https://stratigraphy.github.io/WaverideR/reference/coco_prepare_regular_data.md)).
+  Required (`Default=NULL`).
+
+- orbit9:
+
+  The nine astronomical target periods in kyr (numeric vector of nine
+  distinct positive values: long eccentricity, four short eccentricity
+  terms, obliquity, three precession terms), e.g. from
+  [`orbit9_at_age`](https://stratigraphy.github.io/WaverideR/reference/orbit9_at_age.md)
+  for the age of the record.
+  `Default=c(405.6912, 130.6979, 123.8532, 98.8517, 94.8856, 40.9897, 23.6820, 22.3758, 18.9519)`.
+
+- window:
+
+  Length of the sliding validation and anchor windows, in metres
+  (numeric, \> 0; every window must contain at least 8 samples). `NULL`
+  uses 25% of the record length (Acycle GUI default). `Default=NULL`.
+
+- sr:
+
+  Sedimentation rates to test, in cm/kyr (numeric vector, \> 0, strictly
+  increasing). `NULL` uses the Acycle GUI default: from
+  `2 * dt * 0.065 * 100` up to 100 cm/kyr (reduced so that the longest
+  period fits in the record), in steps of 0.1 cm/kyr or at most 300
+  steps. `Default=NULL`.
+
+- step_depth:
+
+  Spacing of the output (validation) window centres, in metres (numeric,
+  \> 0); only used with `window_mode="physical-depth"`. `NULL` uses the
+  sample interval `dt`, or `dt * ceiling(n / 300)` for more than 300
+  samples. `Default=NULL`.
+
+- step:
+
+  Step between successive validation windows, in samples (integer, \>=
+  1); only used with `window_mode="legacy-count"`. `Default=1`.
+
+- pad:
+
+  Length (number of points) to which every window is zero-padded for the
+  periodogram (integer, at least the number of points per window).
+  `NULL` uses the Acycle default: 5000 for up to 2500 samples, 10000 for
+  up to 5000 samples, and `floor(n / 5000) * 5000 + 5000` above that.
+  `Default=NULL`.
+
+- red:
+
+  Background (red-noise) removal applied to every window spectrum
+  (integer): `0` none, `1` classical AR(1) background, `2` robust AR(1)
+  background, `3` smoothed-window-average (SWA) background. Negative
+  power after subtraction is set to zero. `Default=0`.
+
+- n_sim:
+
+  Number of AR(1) Monte Carlo simulations used for the global and local
+  p-values (integer, \>= 0); each simulation repeats the anchor training
+  and validation. `Default=2000`.
+
+- method:
+
+  Correlation coefficient between the window spectrum and the target
+  spectrum (character): `"Pearson"` or `"Spearman"`.
+  `Default="Pearson"`.
+
+- max_frequency:
+
+  Highest frequency of the target spectrum that enters the correlation,
+  in cycles/kyr (numeric, at least `max(1/orbit9)`); `NULL` uses
+  `1.2 * max(1/orbit9)`. `Default=NULL`.
+
+- seed:
+
+  Seed of the random number generator (integer), so that the Monte Carlo
+  results can be reproduced; `NULL` leaves the current random state
+  unchanged. `Default=1`.
+
+- anchor_fraction:
+
+  Spacing of the anchor windows (where the target amplitudes are
+  trained) as a fraction of `window` (numeric, \> 0 and \<= 2); smaller
+  values give more, overlapping anchors. `Default=0.5`.
+
+- window_mode:
+
+  How the windows are defined (character): `"physical-depth"` (windows
+  of fixed length in metres centred every `step_depth`, as in the Acycle
+  wrapper and GUI) or `"legacy-count"` (windows of a fixed number of
+  samples moved by `step` samples; needs evenly sampled data).
+  `Default="physical-depth"`.
+
+- edge_pad:
+
+  Zero-pad the record by half a window at both ends and restrict the
+  output centres to the original record, so that windows reach the
+  record ends (logical, TRUE or FALSE; Acycle GUI setting for Blocked
+  eCOCO). Only used with `window_mode="physical-depth"`. `Default=TRUE`.
+
+- center_limits:
+
+  Depths of the first and last output window centre, in metres (numeric
+  vector `c(first, last)`, or `NULL`); overrides the limits set by
+  `edge_pad`. `NULL` uses the record ends (with `edge_pad=TRUE`) or
+  `c(first depth + window/2, last depth - window/2)`. `Default=NULL`.
+
+- compute_local_p:
+
+  Also compute the local p-values, comparing each rate with the null
+  correlations at the same rate (logical, TRUE or FALSE).
+  `Default=TRUE`.
+
+- consensus_policy:
+
+  How windows at the record edges, which have an anchor on only one
+  side, are treated (character): `"supported"` uses the available
+  direction, `"strict"` leaves windows without both a forward and a
+  backward anchor empty. `Default="supported"`.
+
+- batch_size:
+
+  Number of Monte Carlo simulations processed together (integer, \>= 1);
+  larger batches are faster but use more memory, the results do not
+  depend on it. `Default=20`.
+
+- genplot:
+
+  Plot the result with
+  [`plot_ecoco_cv`](https://stratigraphy.github.io/WaverideR/reference/plot_ecoco_cv.md)
+  (logical, TRUE or FALSE). `Default=FALSE`.
+
+- verbose:
+
+  Print progress messages (logical, TRUE or FALSE). `Default=FALSE`.
+
+- centre_limits:
+
+  British spelling of `center_limits`; if given (not `NULL`) it
+  overrides `center_limits`. `Default=NULL`.
+
+## Value
+
+A list (class "ecoco_cv") with elements `method`, `sr` (rate grid),
+`depth` (window centres), rate-by-window matrices `rho`, `p_global`,
+`p_local`, `norbit`, `pcoco` and `score` (the published consensus
+surface), the lists `forward`, `backward`, `consensus`, `strict` (each
+with rho, p_global, p_local, norbit, pcoco, best_rate, ...), `support`
+(per-window "bidirectional", "forward-only", "backward-only" or "none"),
+`windows` and `anchors` (data frames with bounds, anchor links and
+trained rates/weights), `geometry` (rate masks), `rho_m` (per-window
+AR(1)), `best` (best rate per window) and `track` (tracked ridge: depth,
+sr, rho, p_global, norbit, score, sr_low, sr_high).
+
+## References
+
+Li, M., Kump, L.R., Hinnov, L.A., Mann, M.E., 2018. Tracking variable
+sedimentation rates and astronomical forcing in Phanerozoic paleoclimate
+proxy series with evolutionary correlation coefficients and hypothesis
+testing. Earth and Planetary Science Letters 501, 165-179.
+[doi:10.1016/j.epsl.2018.08.041](https://doi.org/10.1016/j.epsl.2018.08.041)
+
+Li, M., Hinnov, L., Kump, L., 2019. Acycle: Time-series analysis
+software for paleoclimate research and education. Computers &
+Geosciences 127, 12-22.
+[doi:10.1016/j.cageo.2019.02.011](https://doi.org/10.1016/j.cageo.2019.02.011)
+
+## Author
+
+Michiel Arts (R translation); original MATLAB code: Mingsong Li
+
+## Examples
+
+``` r
+# \donttest{
+set.seed(2)
+dt <- 0.05
+depth <- seq(0, 30, by = dt)
+tt <- depth * 100 / 5          # 5 cm/kyr
+x <- sin(2 * pi * tt / 405.7) + 0.8 * sin(2 * pi * tt / 98.9) +
+  0.5 * sin(2 * pi * tt / 40.99) + 0.4 * sin(2 * pi * tt / 23.68) +
+  0.3 * rnorm(length(tt))
+res <- ecoco_blocked(cbind(depth, x), window = 10, sr = seq(3, 8, 0.5),
+                     step_depth = 1, pad = 400, n_sim = 20)
+#> Warning: Blocked eCOCO has no tested rate with complete all-nine training geometry; continuing with the partial-orbit target at 8 of 11 rates (degraded/exploratory result).
+res$track[, c("depth", "sr")]
+#>    depth  sr
+#> 1      0 4.5
+#> 2      1 4.5
+#> 3      2 4.5
+#> 4      3 4.5
+#> 5      4 4.5
+#> 6      5 5.0
+#> 7      6 5.0
+#> 8      7 4.5
+#> 9      8 4.5
+#> 10     9 4.5
+#> 11    10 4.5
+#> 12    11 4.5
+#> 13    12 4.5
+#> 14    13 5.0
+#> 15    14 5.0
+#> 16    15 4.5
+#> 17    16 4.5
+#> 18    17 4.5
+#> 19    18 4.5
+#> 20    19 4.5
+#> 21    20 4.5
+#> 22    21 4.5
+#> 23    22 4.5
+#> 24    23 4.5
+#> 25    24 4.5
+#> 26    25 5.0
+#> 27    26 5.0
+#> 28    27 5.0
+#> 29    28 5.0
+#> 30    29 5.0
+#> 31    30 5.5
+# }
+```

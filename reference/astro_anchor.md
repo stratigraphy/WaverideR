@@ -1,0 +1,476 @@
+# Anchor proxy record to an astronomical solution
+
+Anchor the extracted signal to an astronomical solution using a GUI. The
+`astro_anchor` function allows one to tie minima or maxima in the proxy
+record to minima or maxima in an astronomical solution. By tying the
+proxy record to an astronomical solution one will generate tie-points
+which can be used to generate a astrochronological age-model As minima
+or maxima in the proxy record are tied to minima or maxima in an
+astronomical solution it is important to provide input which has clearly
+definable minima and maxima. As such input should be of a "sinusoidal"
+nature otherwise the `extract_astrosolution=TRUE` and/or
+`extract_proxy_signal=TRUE` options need to be set to TRUE to create
+sinusoidal signals.
+
+Astronomical solutions option are:
+
+- La2004 Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2004 Obliquity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2004 Precession solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2010a Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)function
+
+- La2010a Obliquity solution
+
+- La2010a Precession solution
+
+- La2010b Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2010b Obliquity solution
+
+- La2010b Precession solution
+
+- La2010c Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2010c Obliquity solution
+
+- La2010c Precession solution
+
+- La2010d Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- La2010d Obliquity solution
+
+- La2010d Precession solution
+
+- La2011 Eccentricity solution available via the
+  [getLaskar](https://rdrr.io/pkg/astrochron/man/getLaskar.html)
+  function
+
+- ZB17a Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17a Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17b Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17b Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17c Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17c Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17d Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17d Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17e Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17e Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17f Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17f Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17h Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17h Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17i Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17i Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17j Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17j Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17k Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17k Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17p Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB17p Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB18a Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB18a Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20a Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20a Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20b Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20b Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20c Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20c Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20d Eccentricity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- ZB20d Obliquity solution downloadable via
+  <https://www.soest.hawaii.edu/oceanography/faculty/zeebe_files/Astro.html>
+
+- 405kyr eccentricity 405 metronome can be generated using the
+  formula:  
+  e405=0.027558-0.010739\*cos(0.0118+2(pi)\*(t/405000)) (laskar et al.,
+  2004 & laskar 2020)
+
+- 173kyr obliquity metronome can be generated using using the formula:  
+  es3-s6(t) = 0.144\*cos(1.961+2(pi)\*(t/172800) (laskar et al., 2004 &
+  laskar 2020)
+
+- An etp model using the
+  [etp](https://rdrr.io/pkg/astrochron/man/etp.html) function of the
+  'astrochron' R package
+
+## Usage
+
+``` r
+astro_anchor(
+  astro_solution = NULL,
+  proxy_signal = NULL,
+  proxy_min_or_max = "max",
+  clip_astrosolution = FALSE,
+  astrosolution_min_or_max = "max",
+  clip_high = NULL,
+  clip_low = NULL,
+  extract_astrosolution = FALSE,
+  astro_period_up = 1.2,
+  astro_period_down = 0.8,
+  astro_period_cycle = NULL,
+  extract_proxy_signal = FALSE,
+  proxy_period_up = 1.2,
+  proxy_period_down = 0.8,
+  proxy_period_cycle = NULL,
+  pts = 3,
+  verbose = FALSE,
+  time_dir = TRUE,
+  genplot = FALSE
+)
+```
+
+## Arguments
+
+- astro_solution:
+
+  Astronomical solution to which the proxy record is anchored (matrix or
+  data frame with two columns: age (e.g. in kyr) in column 1,
+  insolation/angle/value in column 2). Its maxima or minima (see
+  `astrosolution_min_or_max`) are the candidate tie points. Required, no
+  default (`Default=NULL` gives an error).
+
+- proxy_signal:
+
+  Proxy record to be anchored (matrix or data frame with two columns:
+  depth or time in column 1, proxy value in column 2). Its maxima or
+  minima (see `proxy_min_or_max`) are tied one by one to the
+  astronomical solution. For the best results the astronomical component
+  should be extracted first, either beforehand (filtering/cycle
+  extraction) or with `extract_proxy_signal = TRUE`. Required, no
+  default (`Default=NULL` gives an error).
+
+- proxy_min_or_max:
+
+  Tie the maxima or the minima of the proxy record (character): `"max"`
+  or `"min"`. `Default="max"`.
+
+- clip_astrosolution:
+
+  Clip the astronomical solution to the age range `clip_low` to
+  `clip_high` before anchoring (logical, TRUE or FALSE).
+  `Default=FALSE`.
+
+- astrosolution_min_or_max:
+
+  Tie to the maxima or the minima of the astronomical solution
+  (character): `"max"` or `"min"`. `Default="max"`.
+
+- clip_high:
+
+  Upper age limit of the clipped astronomical solution, in the unit of
+  its first column (numeric); only used when
+  `clip_astrosolution = TRUE`. `Default=NULL`.
+
+- clip_low:
+
+  Lower age limit of the clipped astronomical solution, in the unit of
+  its first column (numeric); only used when
+  `clip_astrosolution = TRUE`. `Default=NULL`.
+
+- extract_astrosolution:
+
+  Extract one astronomical cycle from the astronomical solution before
+  anchoring (logical, TRUE or FALSE): a wavelet transform
+  ([`analyse_wavelet`](https://stratigraphy.github.io/WaverideR/reference/analyse_wavelet.md))
+  is computed and the cycle `astro_period_cycle` is extracted with
+  [`extract_signal_stable`](https://stratigraphy.github.io/WaverideR/reference/extract_signal_stable.md).
+  `Default=FALSE`.
+
+- astro_period_up:
+
+  Factor by which `astro_period_cycle` is multiplied to give the upper
+  (longest) period of the band extracted from the astronomical solution
+  (numeric, \> 1). `Default=1.2`.
+
+- astro_period_down:
+
+  Factor by which `astro_period_cycle` is multiplied to give the lower
+  (shortest) period of the band extracted from the astronomical solution
+  (numeric, between 0 and 1). `Default=0.8`.
+
+- astro_period_cycle:
+
+  Period of the astronomical cycle to extract from the astronomical
+  solution, in the unit of its first column (e.g. kyr) (numeric, \> 0);
+  required when `extract_astrosolution = TRUE`. `Default=NULL`.
+
+- extract_proxy_signal:
+
+  Extract one astronomical cycle from the proxy record before anchoring
+  (logical, TRUE or FALSE), with
+  [`analyse_wavelet`](https://stratigraphy.github.io/WaverideR/reference/analyse_wavelet.md)
+  and
+  [`extract_signal_stable`](https://stratigraphy.github.io/WaverideR/reference/extract_signal_stable.md).
+  `Default=FALSE`.
+
+- proxy_period_up:
+
+  Factor by which `proxy_period_cycle` is multiplied to give the upper
+  (longest) period of the band extracted from the proxy record (numeric,
+  \> 1). `Default=1.2`.
+
+- proxy_period_down:
+
+  Factor by which `proxy_period_cycle` is multiplied to give the lower
+  (shortest) period of the band extracted from the proxy record
+  (numeric, between 0 and 1). `Default=0.8`.
+
+- proxy_period_cycle:
+
+  Period of the cycle to extract from the proxy record, in the unit of
+  the first column of the record that is filtered (numeric, \> 0);
+  required when `extract_proxy_signal = TRUE`. `Default=NULL`.
+
+- pts:
+
+  Number of points to the left and right of a value that the peak
+  detection
+  ([`max_detect`](https://stratigraphy.github.io/WaverideR/reference/max_detect.md),
+  [`min_detect`](https://stratigraphy.github.io/WaverideR/reference/min_detect.md))
+  compares it with (integer, \>= 1): a value is a peak if it is higher
+  (or lower) than all of them. Larger values give more certain peaks but
+  may miss minor peaks. `Default=3`.
+
+- verbose:
+
+  Ask for confirmation in the console after every selected tie point and
+  print feedback (logical, TRUE or FALSE); with `FALSE` every selection
+  is accepted directly. `Default=FALSE`.
+
+- time_dir:
+
+  Direction of time in the proxy record (logical): `TRUE` if time
+  increases with increasing depth/time values (e.g. borehole data that
+  get older with depth), `FALSE` if it decreases (e.g. stratigraphic
+  logs with 0 m at the base of the section); the proxy record is then
+  plotted with a reversed axis. `Default=TRUE`.
+
+- genplot:
+
+  Plot the proxy record and the astronomical solution with the selected
+  tie points connected after the anchoring (logical, TRUE or FALSE).
+  `Default=FALSE`.
+
+## Value
+
+The output is a matrix with the 4 columns. The first column is the
+depth/time of the proxy tie-point. The second column is the time value
+of the astronomical solution tie-point. The third column is the proxy
+value of the proxy tie-point. The fourth column is the proxy/insolation
+value of the astronomical solution tie-point. If genplot is set to true
+then at plot of the of the achored points will be plotted
+
+## References
+
+J. Laskar, P. Robutel, F. Joutel, M. Gastineau, A.C.M. Correia, and B.
+Levrard, B., 2004, A long term numerical solution for the insolation
+quantities of the Earth: Astron. Astrophys., Volume 428, 261-285.
+\<doi:10.1051/0004-6361:20041335\>  
+
+Laskar, J., Fienga, A., Gastineau, M., Manche, H., 2011a, La2010: A new
+orbital solution for the long-term motion of the Earth: Astron.
+Astrophys., Volume 532, A89 \<doi:10.1051/0004-6361/201116836\>  
+
+Laskar, J., Gastineau, M., Delisle, J.-B., Farres, A., Fienga, A.:
+2011b, Strong chaos induced by close encounters with Ceres and Vesta,
+Astron: Astrophys., Volume 532, L4.
+\<doi:10.1051/0004-6361/201117504\>  
+
+J. Laskar,Chapter 4 - Astrochronology,Editor(s): Felix M. Gradstein,
+James G. Ogg, Mark D. Schmitz, Gabi M. Ogg,Geologic Time Scale
+2020,Elsevier,2020,Pages 139-158,ISBN 9780128243602,
+\<doi:10.1016/B978-0-12-824360-2.00004-8\>  
+
+Zeebe, R. E. and Lourens, L. J. Geologically constrained astronomical
+solutions for the Cenozoic era, Earth and Planetary Science Letters,
+2022
+\<[doi:10.1016/j.epsl.2022.117595](https://doi.org/10.1016/j.epsl.2022.117595)
+\>  
+
+Richard E. Zeebe Lucas J. Lourens ,Solar System chaos and the
+Paleocene–Eocene boundary age constrained by geology and
+astronomy.Science365,926-929(2019) \<doi:10.1126/science.aax0612\>  
+
+Zeebe, Richard E. "Numerical solutions for the orbital motion of the
+Solar System over the past 100 Myr: limits and new results." The
+Astronomical Journal 154, no. 5 (2017): 193.
+\<doi:10.3847/1538-3881/aa8cce\>  
+
+Stephen R. Meyers,Cyclostratigraphy and the problem of astrochronologic
+testing, Earth-Science Reviews,Volume 190,2019,Pages 190-223,ISSN
+0012-8252 \<doi:10.1016/j.earscirev.2018.11.015\>
+
+## Examples
+
+``` r
+# \donttest{
+if (interactive()) { # needs mouse input (identify())
+# Use the grey_track example tracking points to anchor the grey scale data set
+# of Zeeden et al., (2013) to the p-0.5t la2004 solution
+
+grey_wt <-
+ analyse_wavelet(
+   data = grey,
+   dj = 1/200,
+   lowerPeriod = 0.02,
+   upperPeriod = 256,
+   verbose = FALSE,
+   omega_nr = 8
+ )
+#Use the pre-tracked grey_track curve which traced the precession cycle
+grey_track <- completed_series(
+ wavelet = grey_wt,
+ tracked_curve  = grey_track,
+ period_up  = 1.25,
+ period_down  = 0.75,
+ extrapolate = TRUE,
+genplot = FALSE
+)
+# Extract precession, obliquity and eccentricity to create a synthetic insolation curve
+
+grey_prec <- extract_signal(
+tracked_cycle_curve = grey_track[,c(1,2)],
+wavelet = grey_wt,
+period_up = 1.2,
+period_down = 0.8,
+add_mean = FALSE,
+tracked_cycle_period = 22,
+extract_cycle = 22,
+tune = FALSE,
+plot_residual = FALSE
+)
+
+grey_obl <- extract_signal(
+ tracked_cycle_curve = grey_track[,c(1,2)],
+ wavelet = grey_wt,
+ period_up = 1.2,
+ period_down = 0.8,
+ add_mean = FALSE,
+ tracked_cycle_period = 22,
+ extract_cycle = 110,
+ tune = FALSE,
+ plot_residual = FALSE
+)
+
+grey_ecc <- extract_signal(
+ tracked_cycle_curve = grey_track[,c(1,2)],
+ wavelet = grey_wt,
+ period_up = 1.25,
+ period_down = 0.75,
+ add_mean = FALSE,
+ tracked_cycle_period = 22,
+ extract_cycle = 40.8,
+ tune = FALSE,
+ plot_residual = FALSE
+)
+
+insolation_extract <- cbind(grey_ecc[,1],grey_prec[,2]+grey_obl[,2]+grey_ecc[,2]+mean(grey[,2]))
+insolation_extract <- as.data.frame(insolation_extract)
+insolation_extract_mins <- min_detect(insolation_extract,pts=3)
+
+#use the astrosignal_example to tune to which is an \cr
+# ETP solution (p-0.5t la2004 solution)
+astrosignal_example <- na.omit(astrosignal_example)
+astrosignal_example[,2] <- -1*astrosignal_example[,2]
+astrosignal <- as.data.frame(astrosignal_example)
+
+#anchor the synthetic insolation curve extracted from the grey scale record to the insolation curve.
+
+anchor_pts <- astro_anchor(
+astro_solution = astrosignal,
+proxy_signal = insolation_extract,
+proxy_min_or_max = "min",
+clip_astrosolution = FALSE,
+astrosolution_min_or_max = "min",
+clip_high = NULL,
+clip_low = NULL,
+extract_astrosolution  = FALSE,
+astro_period_up  = NULL,
+astro_period_down  = NULL,
+astro_period_cycle  = NULL,
+extract_proxy_signal  = FALSE,
+proxy_period_up  = NULL,
+proxy_period_down  = NULL,
+proxy_period_cycle  = NULL,
+pts=3,
+verbose=FALSE, #set verbose to TRUE to allow for anchoring using text feedback commands
+genplot=FALSE
+)}# }
+```

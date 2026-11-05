@@ -1,0 +1,86 @@
+# Bayesian probability spectrum
+
+Calculates the Bayesian probability spectrum of Gregory (2005) as used
+by Weedon et al. (2019) and Weedon (2020): the data are pre-whitened
+with the lag-1 autocorrelation coefficient, linearly detrended, tapered
+with a 5% split cosine taper and standardised; the variance-normalised
+Lomb-Scargle periodogram (routine PERIOD of Press et al., 1992) is then
+converted into the posterior probability of a single sinusoid at each
+frequency, \\p(f) \propto (1 - 2 P(f) / (N \overline{d^2}))^{(2 -
+N)/2}\\, normalised so that the probabilities sum to one. Translated
+from Acycle v3.1 specbayes.m (Mingsong Li, after the FORTRAN program of
+Graham P. Weedon).
+
+## Usage
+
+``` r
+bayes_spectrum(data = NULL, genplot = FALSE, verbose = FALSE)
+```
+
+## Arguments
+
+- data:
+
+  Record to analyse (matrix or data frame with two columns: depth or
+  time in column 1, proxy value in column 2; further columns are
+  ignored). Rows are sorted on the first column and rows with non-finite
+  values are removed; uneven spacing is allowed (Lomb-Scargle
+  periodogram). Required, no default (`Default=NULL` gives an error).
+
+- genplot:
+
+  Plot the periodogram and the Bayesian probability against frequency
+  (logical, TRUE or FALSE). `Default=FALSE`.
+
+- verbose:
+
+  Print the maximum probability and its frequency and period (logical,
+  TRUE or FALSE). `Default=FALSE`.
+
+## Value
+
+A list with elements `freq` (frequencies), `period` (1/freq), `power`
+(variance-normalised Lomb-Scargle periodogram of the pre-whitened,
+detrended, tapered and standardised data), `bayes_prob` (normalised
+Bayesian probability), `max_prob`, `freq_max` (frequency of maximum
+probability) and `rho1` (lag-1 autocorrelation used for pre-whitening).
+
+## References
+
+Gregory, P.C., 2005. Bayesian Logical Data Analysis for the Physical
+Sciences. Cambridge University Press.
+
+Press, W.H., Teukolsky, S.A., Vetterling, W.T., Flannery, B.P., 1992.
+Numerical Recipes in FORTRAN, 2nd ed. Cambridge University Press.
+
+Weedon, G.P., Page, K.N., Jenkyns, H.C., 2019. Cyclostratigraphy,
+stratigraphic gaps and the duration of the Hettangian (Jurassic):
+insights from the Blue Lias Formation of Southern Britain. Geological
+Magazine 156, 1469-1509.
+
+Weedon, G.P., 2020. Confirmed detection of Palaeogene and Jurassic
+orbitally-forced sedimentary cycles in the depth domain using False
+Discovery Rates and Bayesian probability spectra. Boletin Geologico y
+Minero 131, 207-230.
+
+## Author
+
+Michiel Arts (R translation); original MATLAB code: Mingsong Li,
+translated from the FORTRAN program of Graham P. Weedon.
+
+## Examples
+
+``` r
+# \donttest{
+set.seed(2)
+n <- 400
+t <- 1:n
+noise <- as.numeric(stats::filter(stats::rnorm(n), 0.5,
+  method = "recursive"))
+x <- noise + 1.5 * sin(2 * pi * t / 23)
+res <- bayes_spectrum(data = cbind(t, x), genplot = TRUE)
+
+1 / res$freq_max
+#> [1] 23.47059
+# }
+```

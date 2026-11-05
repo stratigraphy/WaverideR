@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  WaverideR-intro: WaverideR-intro.html
+last_built: 2026-11-05T15:48Z
+urls:
+  reference: https://stratigraphy.github.io/WaverideR/reference
+  article: https://stratigraphy.github.io/WaverideR/articles

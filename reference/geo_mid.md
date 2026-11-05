@@ -1,0 +1,229 @@
+# Generate the mean age of a geological subdivision
+
+Generates the mean age of a geological subdivision which is based on the
+Geological Time Scale
+
+## Usage
+
+``` r
+geo_mid(name = NULL)
+```
+
+## Arguments
+
+- name:
+
+  Name of the geochronological subdivision (character, exact and
+  case-sensitive), e.g. an eon, era, period, epoch or stage such as
+  `"Silurian"` or `"Rhuddanian"`, as listed in column 1 of
+  [`GTS_info`](https://stratigraphy.github.io/WaverideR/reference/GTS_info.md)
+  (Geologic Time Scale 2020). The mean of the top and bottom age (Ma) of
+  that unit is returned. Required (`Default=NULL`).
+
+## Value
+
+Returns the mean age of the geochronological subdivision
+
+## References
+
+Ogg, Gabi & Ogg, James & Gradstein, Felix. (2021). Recommended color
+coding of stages - Appendix 1 from Geologic Time Scale 2020.
+
+## Examples
+
+``` r
+#generate the Silurian part of the GTS
+plot.new()
+plot(
+ x = c(0, 1),
+ y = c(419.2, 443.8),
+ col = "white",
+ xlab = "",
+ ylab = "Time (Ma)",
+ xaxt = "n",
+ xaxs = "i",
+ yaxs = "i",
+ ylim = rev(c(419, 444))
+)            # Draw empty plot
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Rhuddanian"),
+ col =geo_col("Rhuddanian")
+)
+
+text(
+ 0.85,geo_mid("Rhuddanian"),
+ "Rhuddanian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Aeronian"),
+ col =geo_col("Aeronian")
+)
+
+text(
+ 0.85,geo_mid("Aeronian"),
+ "Aeronian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Telychian"),
+ col =geo_col("Telychian")
+)
+
+text(
+ 0.85,geo_mid("Telychian"),
+ "Telychian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Sheinwoodian"),
+ col =geo_col("Sheinwoodian")
+)
+
+text(
+ 0.85,geo_mid("Sheinwoodian"),
+ "Sheinwoodian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Homerian"),
+ col =geo_col("Homerian")
+)
+
+text(
+ 0.85,geo_mid("Homerian"),
+ "Homerian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Gorstian"),
+ col =geo_col("Gorstian")
+)
+
+text(
+ 0.85,geo_mid("Gorstian"),
+ "Gorstian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Ludfordian"),
+ col =geo_col("Ludfordian")
+)
+
+text(
+ 0.85,geo_mid("Ludfordian"),
+ "Ludfordian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.66, 1, 1, 0.66),
+ y = geo_loc("Pridoli_Age"),
+ col =geo_col("Pridoli_Age")
+)
+
+
+
+polygon(
+ x = c(0.33, 0.66, 0.66, 0.33),
+ y = geo_loc("Pridoli"),
+ col =geo_col("Pridoli")
+)
+
+text(
+ 0.5,geo_mid("Pridoli"),
+ "Pridoli",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+
+polygon(
+ x = c(0.33, 0.66, 0.66, 0.33),
+ y = geo_loc("Ludlow"),
+ col =geo_col("Ludlow")
+)
+
+text(
+ 0.5,geo_mid("Ludlow"),
+ "Ludlow",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.33, 0.66, 0.66, 0.33),
+ y = geo_loc("Wenlock"),
+ col =geo_col("Wenlock")
+)
+
+text(
+ 0.5,geo_mid("Wenlock"),
+ "Wenlock",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0.33, 0.66, 0.66, 0.33),
+ y = geo_loc("Llandovery"),
+ col =geo_col("Llandovery")
+)
+
+text(
+ 0.5,geo_mid("Llandovery"),
+ "Llandovery",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+polygon(
+ x = c(0, 0.33, 0.33, 0),
+ y = geo_loc("Silurian"),
+ col =geo_col("Silurian")
+)
+
+text(
+ 0.165,geo_mid("Silurian"),
+ "Silurian",
+ cex = 1,
+ col = "black",
+ srt = 0
+)
+
+
+```
