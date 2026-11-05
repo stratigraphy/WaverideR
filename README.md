@@ -1,9 +1,12 @@
 # WaverideR
 
-Tools for extracting and analysing cyclic signals from stratigraphic and other time series
-with the continuous wavelet transform and the superlet transform: spectra, significance tests,
-sedimentation rate estimation, tracking of periods and age-model uncertainty, plus the
-astrochronology functions of acycle2R and the Bayesian age-model code of astroMCBchron.
+Extracts and analyses cyclic signals in stratigraphic and other time series using the continuous
+wavelet transform, superlets and synchrosqueezed transforms: spectra, significance tests,
+sedimentation-rate estimation, tracking of astronomical cycles and periods, age models with
+uncertainty and de-chirped spectra, together with the astrochronology functions of acycle2R and the
+Bayesian age-model code of astroMCBchron.
+
+Website with the manual, the function reference and the tutorial: <https://stratigraphy.github.io/WaverideR/>
 
 Version 0.6.0 (see `NEWS.md` for all changes).
 

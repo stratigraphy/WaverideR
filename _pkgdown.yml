@@ -1,0 +1,286 @@
+url: https://stratigraphy.github.io/WaverideR/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1f4e79"
+
+home:
+  title: "WaverideR: wavelet and superlet analysis for cyclostratigraphy in R"
+  description: >
+    Extracts and analyses cyclic signals in stratigraphic and other time series with the continuous wavelet
+    transform, superlets and synchrosqueezed transforms: spectra, significance tests, sedimentation-rate
+    estimation, tracking of astronomical cycles, age models with uncertainty and astrochronological testing.
+
+navbar:
+  structure:
+    left: [intro, articles, reference, news]
+    right: [search, github]
+
+reference:
+  - title: Wavelet and superlet transforms
+    desc: Continuous wavelet, superlet, adaptive and cross transforms, and their plots.
+    contents:
+      - analyse_wavelet
+      - analyse_superlet
+      - analyse_Awavelet
+      - analyse_Xwavelet
+      - analyse_Xsuperlet
+      - analyse_wavelet_coherence
+      - plot_wavelet
+      - plot_superlet
+      - plot_Awavelet
+      - plot_Xwavelet
+      - plot_Xsuperlet
+      - plot_wavelet_coherence
+      - plot_avg_wavelet
+      - add_wavelet
+      - add_wavelet_avg
+  - title: Synchrosqueezing, chirplets and de-chirped spectra
+    desc: Sharpened scalograms, chirp-matched spectra and checks of an age model in the de-chirped record.
+    contents:
+      - analyse_wavelet_sst
+      - analyse_superlet_sst
+      - analyse_chirplet_sst
+      - analyse_conceft
+      - analyse_chirp_wavelet
+      - analyse_chirp_eha
+      - chirp_eha_significance
+      - plot_chirp_eha
+      - rate_gram
+      - analyse_dechirped
+      - plot_dechirped
+      - check_agemodel
+      - plot_agemodel_check
+      - detect_transients
+  - title: Significance and uncertainty of spectra
+    contents:
+      - wavelet_significance
+      - wavelet_band_significance
+      - sst_significance
+      - model_red_noise_wt
+      - percentile_from_red_noise
+      - wavelet_uncertainty
+      - fft_uncertainty
+      - fft_frequency_uncertainty
+      - wr_coloured_noise
+  - title: Other spectral methods
+    desc: Evolutive harmonic analysis, windowed FFT, MESA, multitaper, SWA, Bayesian and bispectral analysis.
+    contents:
+      - eha_log2
+      - plot_eha_log2
+      - win_fft
+      - plot_win_fft
+      - mesa_spectrum
+      - mesa_evolutive
+      - mesa_average
+      - plot_mesa_spectrum
+      - plot_mesa_evolutive
+      - track_mesa
+      - amtm_spectrum
+      - amtm_prewhiten
+      - plot_amtm_spectrum
+      - swa_spectrum
+      - swa_background
+      - bayes_spectrum
+      - spectral_moments
+      - plot_spectral_moments
+      - bispectral_analysis
+      - bispectral_surrogate
+      - plot_bispectral
+      - cycle_band
+  - title: Tracking cycles
+    desc: Interactive and automatic tracking of the period of a cycle and of the sedimentation rate.
+    contents:
+      - track_period
+      - track_period_wavelet
+      - delpts_tracked_period_wt
+      - completed_series
+      - retrack_wt_MC
+      - loess_auto
+      - track_ridge_hmm
+      - track_astro_hmm
+      - track_astro_auto
+      - track_astro_iterative
+      - track_chirp_hmm
+      - plot_track
+      - plot_astro_evidence
+      - astro_periods_tracking
+      - as_wr_track
+  - title: Extracting signals and filtering
+    contents:
+      - extract_signal
+      - extract_signal_stable
+      - extract_signal_stable_V2
+      - extract_signal_standard_deviation
+      - dynamic_extraction
+      - extract_amplitude
+      - extract_power
+      - extract_power_stable
+      - gaussian_bandpass
+      - dynamic_filter
+      - dynamic_filter_controls
+      - plot_dynamic_filter
+      - max_detect
+      - min_detect
+  - title: Sedimentation rates and astronomical testing
+    desc: TimeOpt with noise correction, COCO and eCOCO, and other estimates of the sedimentation rate.
+    contents:
+      - astro_sedrate_test
+      - plot.astro_sedrate_test
+      - astro_sedrate_multi
+      - plot.astro_sedrate_multi
+      - astro_tune_test
+      - plot.astro_tune_test
+      - win_timeOpt
+      - plot_win_timeOpt
+      - win_timeOpt_multi
+      - plot_win_timeOpt_multi
+      - flmw
+      - flmw_path
+      - plot_sed_model
+      - sum_power_sedrate
+      - coco_classic
+      - plot.coco_classic
+      - coco_adaptive
+      - plot.coco_adaptive
+      - coco_adaptive_evaluate
+      - coco_prepare_regular_data
+      - coco_target_fixed
+      - coco_fixed_target_weights
+      - coco_target_from_periods
+      - coco_target_from_series
+      - cvcoco
+      - plot_cvcoco
+      - ecoco_classic
+      - plot.ecoco_classic
+      - ecoco_adaptive
+      - plot.ecoco_adaptive
+      - ecoco_blocked
+      - ecoco_interleaved
+      - plot_ecoco_cv
+      - ecoco_best_per_window
+      - ecoco_track
+      - ecoco_track_ridge
+      - track_ecoco
+  - title: Age models and tuning
+    contents:
+      - curve2time
+      - curve2time_unc
+      - curve2time_unc_anchor
+      - curve2tune
+      - curve2sedrate
+      - sedrate2tune
+      - minimal_tuning
+      - anchor2time
+      - astro_anchor
+      - plot_astro_anchor
+      - astro_anchor_interactive
+      - astro_anchor_app
+      - dur_gaps
+      - expSedRamp
+  - title: Bayesian age-depth models
+    desc: Radioisotopic dates combined with a floating astrochronology (astroMCBchron), and a pure-R modifiedBChron.
+    contents:
+      - astroMCBchron
+      - plot.astroMCBchron
+      - predict.astroMCBchron
+      - modBchron
+      - modBchron_predict
+      - upb_grain_loglik
+  - title: Sedimentary noise and change points
+    contents:
+      - dynot
+      - plot_dynot
+      - pda
+      - pda_legacy
+      - rho1_evolutive
+      - lag_1
+      - bayes_changepoint
+      - bayes_changepoint_r2
+      - plot_bayes_changepoint
+  - title: Precession constant, astronomical periods and the Earth-Moon system
+    desc: Astronomical periods for any age, tests of the precession constant and Earth-Moon parameters.
+    contents:
+      - ctest
+      - plot.ctest
+      - print.ctest
+      - ctest_input
+      - ctest_combine
+      - ctest_earthmoon
+      - astro_ctest
+      - astro_from_peaks
+      - print.astro_from_peaks
+      - astro_from_periods
+      - astro_invert
+      - astro_mc
+      - plot_astro
+      - astro_terms
+      - astro_term_search
+      - astro_obliquity
+      - astrogeo22
+      - orbit9
+      - orbit9_at_age
+      - orbital_periods
+      - calculate_orbit9
+      - la2004_extrap
+      - k_from_bundling
+      - k_from_cycles
+      - k_from_period
+      - k_from_ratio
+      - k_hypotheses
+      - k_scan
+      - cycles_to_k
+      - bundling_ratios
+      - compare_published
+      - term_sensitivity
+      - chaos_scenario
+      - resonance_state
+      - test_tuned
+      - test_tuned_check
+      - plot_test_k
+      - earthmoon_state
+      - earthmoon_from_precession
+      - em_state
+      - earth_moment_of_inertia
+      - earth_omega
+      - earthmoon_angular_momentum
+      - precession_frequency
+      - lod_hours
+      - lod_from_moon_distance
+      - moon_distance_from_lod
+      - moon_distance_from_months
+      - months_per_year
+      - omega_from_moon_distance
+      - days_per_year
+      - zeeden2023_table1
+      - example_pridoli
+  - title: Geological time scale and lithology
+    contents:
+      - geo_col
+      - geo_loc
+      - geo_mid
+      - GTS_info
+      - lithlog_disc
+  - title: Example data
+    contents:
+      - WaverideR_Datasets
+      - Bisciaro_XRF
+      - Bisciaro_al_wt_track
+      - Bisciaro_ca_wt_track
+      - Bisciaro_Mg_wt_track
+      - Bisciaro_Mn_wt_track
+      - Bisciaro_sial_wt_track
+      - anchor_points_Bisciaro_al
+      - grey
+      - grey_track
+      - age_model_zeeden
+      - anchor_points_grey
+      - mag
+      - mag_track_solution
+      - TSI
+      - astrosignal_example
+      - depth_rank_example
+  - title: Package
+    contents:
+      - WaverideR-package

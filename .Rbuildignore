@@ -13,3 +13,6 @@
 ^_to_delete$
 ^\.RData$
 ^\.Rhistory$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
