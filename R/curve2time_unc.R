@@ -21,8 +21,9 @@
 #' quantile of the frequency uncertainty (applied along the whole curve) are drawn. Simulations whose age model is
 #' not monotonic are discarded. Required (\code{Default=NULL} gives an error).
 #' @param output Form of the result (integer): \code{1} a matrix with the simulated ages (kyr) at every depth, one
-#' column per kept simulation; \code{2} a matrix with depth, the mean tracked frequency and the 0.02275, 0.373,
-#' 0.5, 0.6827 and 0.97725 quantiles of the simulated ages; \code{3} a matrix with depth, the mean and the
+#' column per kept simulation; \code{2} a matrix with depth, the mean tracked frequency and the 0.02275, 0.15866,
+#' 0.5, 0.84134 and 0.97725 quantiles of the simulated ages (median, +-1 and +-2 standard deviations of a normal
+#' distribution); \code{3} a matrix with depth, the mean and the
 #' standard deviation of the simulated ages. \code{Default=1}.
 #'
 #' @author
@@ -315,7 +316,7 @@
 #'is given
 #'If output = 2 a matrix with 6 columns is generated, the first column is
 #'depth/height, the other columns are the quantile
-#'(0.02275, 0.373, 0.5, 0.6827, 0.97725) age values of the runs
+#'(0.02275, 0.15866, 0.5, 0.84134, 0.97725) age values of the runs
 #'if output = 3 a matrix with 4 columns is generated with the first column
 #'being depth/height, column 2 is the mean tracked duration (in kyrs) column 3
 #'is mean duration + 1 standard deviation and column 4  is mean duration -  1
@@ -378,12 +379,9 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
 
 
     new_curve <- tracked_cycle_curve_2[, c(1, 2)]
-    val <-
-        rnorm(1, mean = tracked_cycle_curve_2[1, 2], sd = tracked_cycle_curve_2[1, 3])
-    pnorm_val <- 1 - pnorm(val,
-        mean = tracked_cycle_curve_2[1, 2],
-        sd = tracked_cycle_curve_2[1, 3],
-        lower.tail = FALSE)
+    # quantile of the frequency uncertainty from a standard-normal draw (the same draw as rnorm(1, mean, sd)); with
+    # an uncertainty of 0 the former 1 - pnorm(val, sd = 0, lower.tail = FALSE) gave 1 and qnorm(1) = Inf
+    pnorm_val <- pnorm(rnorm(1))
 
     for (j in 1:nrow(new_curve)) {
       new_curve[j, 2] <-
@@ -434,7 +432,7 @@ curve2time_unc <- function(tracked_cycle_curve = NULL,
     res <-
         cbind(res, wr_row_quantiles(
             out_2,
-            probs = c(0.02275, 0.373, 0.5, 0.6827, 0.97725),
+            probs = c(0.02275, 0.15866, 0.5, 0.84134, 0.97725),
             na.rm = TRUE
         ))
   }

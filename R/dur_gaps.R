@@ -97,347 +97,158 @@ dur_gaps <- function(proxies = NULL,
     run_multicore = FALSE, n_cores = NULL) {
 
 
-  if (run_multicore == TRUE) {
-    set.seed(seed_nr)
+  # one code path for serial and parallel runs (wr_lapply() runs serially when run_multicore = FALSE)
+  set.seed(seed_nr)
 
-    dur_gaps <-
-        wr_lapply(seq_len(n_simulations), function(j) {
-          new_curve_1 <- matrix(
-              data = NA,
-              nrow = nrow(retracked_period_1),
-              ncol = 2
-          )
-          new_curve_1[, 1] <- retracked_period_1[, 1]
+  dur_gaps <-
+      wr_lapply(seq_len(n_simulations), function(j) {
+        new_curve_1 <- matrix(
+            data = NA,
+            nrow = nrow(retracked_period_1),
+            ncol = 2
+        )
+        new_curve_1[, 1] <- retracked_period_1[, 1]
 
-          new_curve_2 <-
-              matrix(
-                  data = NA,
-                  nrow = nrow(retracked_period_2),
-                  ncol = 2
-              )
-          new_curve_2[, 1] <-  retracked_period_2[, 1]
-
-          proxy_nr <- floor(runif(1, min = 1, max = length(proxies)))
-
-
-          val_1 <- abs(
-              rnorm(1, mean = retracked_period_1[1, 2], sd = retracked_period_1[1, 3]))
-
-          pnorm_val_1 <-  pnorm(
-              val_1,
-              mean =retracked_period_1[1, 2],
-              sd = retracked_period_1[1, 3],
-              lower.tail = FALSE
-          )
-
-
-          for (k in 1:nrow(new_curve_1)) {
-            new_curve_1[k, 2] <-
-                1/(qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3]))
-          }
-
-          val_2 <- abs(
-              rnorm(1, mean = retracked_period_2[1, 2], sd = retracked_period_2[1, 3]))
-
-          pnorm_val_2 <-  pnorm(
-              val_2,
-              mean = retracked_period_2[1, 2],
-              sd = retracked_period_2[1, 3],
-              lower.tail = FALSE
-          )
-
-          for (k in 1:nrow(new_curve_2)) {
-            new_curve_2[k, 2] <-
-                1/(qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3]))
-          }
-
-
-          proxy_1 <- proxies[[proxy_nr]]
-          proxy_1 <- proxy_1[proxy_1[, 1] >= new_curve_1[1, 1], ]
-          proxy_1 <-
-              proxy_1[proxy_1[, 1] <= new_curve_1[nrow(new_curve_1), 1], ]
-
-          proxy_2 <- proxies[[proxy_nr]]
-          proxy_2 <- proxy_2[proxy_2[, 1] >= new_curve_2[1, 1], ]
-          proxy_2 <-
-              proxy_2[proxy_2[, 1] <= new_curve_2[nrow(new_curve_2), 1], ]
-
-
-          if (tracked_cycle_period_unc_dist == "u") {
-            tracked_cycle_period_new <-
-                runif(
-                    1,
-                    min = tracked_cycle_period - tracked_cycle_period_unc,
-                    max = tracked_cycle_period + tracked_cycle_period_unc
-                )
-          }
-
-          if (tracked_cycle_period_unc_dist == "n") {
-            tracked_cycle_period_new <-
-                rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
-          }
-
-          if (tracked_cycle_period == missing_cycle_dur) {
-            missing_cycle_dur_new <- tracked_cycle_period_new
-          } else{
-            if (missing_cycle_unc_dist == "u") {
-              missing_cycle_dur_new <-
-                  runif(1,
-                      min = missing_cycle_dur - missing_cycle_unc,
-                      max = tracked_cycle_period + missing_cycle_unc)
-            }
-            if (missing_cycle_unc_dist == "n") {
-              missing_cycle_dur_new <-
-                  rnorm(1, mean = missing_cycle_dur, sd = missing_cycle_unc)
-            }
-          }
-
-
-
-          tuned_1 <- WaverideR::curve2tune(
-              data = proxy_1,
-              tracked_cycle_curve = new_curve_1,
-              tracked_cycle_period = tracked_cycle_period_new
-          )
-
-          tuned_2 <- WaverideR::curve2tune(
-              data = proxy_2,
-              tracked_cycle_curve = new_curve_2,
-              tracked_cycle_period = tracked_cycle_period_new
-          )
-
-
-          tuned_1_wt <-
-              analyse_wavelet(
-                  tuned_1,
-                  dj = dj,
-                  lowerPeriod = lowerPeriod,
-                  upperPeriod = upperPeriod
-              )
-          tuned_1_wt_cycle <- extract_signal_stable_V2(
-              wavelet = tuned_1_wt,
-              period_max = period_max,
-              period_min = period_min,
-              add_mean = FALSE,
-              plot_residual = FALSE,
-              keep_editable = FALSE
-          )
-
-          tuned_1_wt <- NULL
-
-          tuned_2_wt <-
-              analyse_wavelet(
-                  tuned_2,
-                  dj = dj,
-                  lowerPeriod = lowerPeriod,
-                  upperPeriod = upperPeriod
-              )
-          tuned_2_wt_cycle <- extract_signal_stable_V2(
-              wavelet = tuned_2_wt,
-              period_max = period_max,
-              period_min = period_min,
-              add_mean = FALSE,
-              plot_residual = FALSE,
-              keep_editable = FALSE
-          )
-          tuned_2_wt <- NULL
-
-          peak_opt <- min_max[[proxy_nr]]
-
-
-          if (peak_opt == "min") {
-            pts_tuned_1_wt_cycle <-
-                min_detect(data = tuned_1_wt_cycle, pts = pts)
-            pts_tuned_2_wt_cycle <-
-                min_detect(data = tuned_2_wt_cycle, pts = pts)
-          }
-
-          if (peak_opt == "max") {
-            pts_tuned_1_wt_cycle <-
-                max_detect(data = tuned_1_wt_cycle, pts = pts)
-            pts_tuned_2_wt_cycle <-
-                max_detect(data = tuned_2_wt_cycle, pts = pts)
-          }
-
-
-
-          dur_gap <-
-              (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
-                  max(pts_tuned_1_wt_cycle[, 1]))
-        }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = TRUE)
-  } else {
-    dur_gaps <- NA
-    set.seed(seed_nr)
-    for (j in 1:n_simulations) {
-      new_curve_1 <- matrix(
-          data = NA,
-          nrow = nrow(retracked_period_1),
-          ncol = 2
-      )
-      new_curve_1[, 1] <- retracked_period_1[, 1]
-
-      new_curve_2 <-
-          matrix(
-              data = NA,
-              nrow = nrow(retracked_period_2),
-              ncol = 2
-          )
-      new_curve_2[, 1] <-  retracked_period_2[, 1]
-
-      proxy_nr <- floor(runif(1, min = 1, max = length(proxies)))
-
-
-      val_1 <- abs(
-          rnorm(1, mean = 1/retracked_period_1[1, 2], sd = 1/retracked_period_1[1, 3]))
-
-
-      pnorm_val_1 <-  pnorm(
-          1 / val_1,
-          mean = retracked_period_1[1, 2],
-          sd = retracked_period_1[1, 3],
-          lower.tail = FALSE
-      )
-
-      for (k in 1:nrow(new_curve_1)) {
-        new_curve_1[k, 2] <-
-            1/(qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3]))
-      }
-
-      val_2 <- abs(
-          rnorm(1, mean = 1/retracked_period_2[1, 2], sd = 1/retracked_period_2[1, 3]))
-
-      pnorm_val_2 <-  pnorm(
-          1 / val_1,
-          mean = retracked_period_2[1, 2],
-          sd = retracked_period_2[1, 3],
-          lower.tail = FALSE
-      )
-
-      for (k in 1:nrow(new_curve_2)) {
-        new_curve_2[k, 2] <-
-            1/(qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3]))
-      }
-
-
-      proxy_1 <- proxies[[proxy_nr]]
-      proxy_1 <- proxy_1[proxy_1[, 1] >= new_curve_1[1, 1], ]
-      proxy_1 <-
-          proxy_1[proxy_1[, 1] <= new_curve_1[nrow(new_curve_1), 1], ]
-
-      proxy_2 <- proxies[[proxy_nr]]
-      proxy_2 <- proxy_2[proxy_2[, 1] >= new_curve_2[1, 1], ]
-      proxy_2 <-
-          proxy_2[proxy_2[, 1] <= new_curve_2[nrow(new_curve_2), 1], ]
-
-
-      if (tracked_cycle_period_unc_dist == "u") {
-        tracked_cycle_period_new <-
-            runif(
-                1,
-                min = tracked_cycle_period - tracked_cycle_period_unc,
-                max = tracked_cycle_period + tracked_cycle_period_unc
+        new_curve_2 <-
+            matrix(
+                data = NA,
+                nrow = nrow(retracked_period_2),
+                ncol = 2
             )
-      }
+        new_curve_2[, 1] <-  retracked_period_2[, 1]
 
-      if (tracked_cycle_period_unc_dist == "n") {
-        tracked_cycle_period_new <-
-            rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
-      }
+        proxy_nr <- sample.int(length(proxies), 1)
 
-      if (tracked_cycle_period == missing_cycle_dur) {
-        missing_cycle_dur_new <- tracked_cycle_period_new
-      } else{
-        if (missing_cycle_unc_dist == "u") {
-          missing_cycle_dur_new <-
-              runif(1,
-                  min = missing_cycle_dur - missing_cycle_unc,
-                  max = tracked_cycle_period + missing_cycle_unc)
+
+        pnorm_val_1 <- stats::pnorm(stats::rnorm(1), lower.tail = FALSE)
+
+
+        for (k in 1:nrow(new_curve_1)) {
+          new_curve_1[k, 2] <-
+              1/(qnorm(pnorm_val_1, mean = retracked_period_1[k, 2], sd = retracked_period_1[k, 3]))
         }
-        if (missing_cycle_unc_dist == "n") {
-          missing_cycle_dur_new <-
-              rnorm(1, mean = missing_cycle_dur, sd = missing_cycle_unc)
+
+        pnorm_val_2 <- stats::pnorm(stats::rnorm(1), lower.tail = FALSE)
+
+        for (k in 1:nrow(new_curve_2)) {
+          new_curve_2[k, 2] <-
+              1/(qnorm(pnorm_val_2, mean = retracked_period_2[k, 2], sd = retracked_period_2[k, 3]))
         }
-      }
+
+
+        proxy_1 <- proxies[[proxy_nr]]
+        proxy_1 <- proxy_1[proxy_1[, 1] >= new_curve_1[1, 1], ]
+        proxy_1 <-
+            proxy_1[proxy_1[, 1] <= new_curve_1[nrow(new_curve_1), 1], ]
+
+        proxy_2 <- proxies[[proxy_nr]]
+        proxy_2 <- proxy_2[proxy_2[, 1] >= new_curve_2[1, 1], ]
+        proxy_2 <-
+            proxy_2[proxy_2[, 1] <= new_curve_2[nrow(new_curve_2), 1], ]
+
+
+        if (tracked_cycle_period_unc_dist == "u") {
+          tracked_cycle_period_new <-
+              runif(
+                  1,
+                  min = tracked_cycle_period - tracked_cycle_period_unc,
+                  max = tracked_cycle_period + tracked_cycle_period_unc
+              )
+        }
+
+        if (tracked_cycle_period_unc_dist == "n") {
+          tracked_cycle_period_new <-
+              rnorm(1, mean = tracked_cycle_period, sd = tracked_cycle_period_unc)
+        }
+
+        if (tracked_cycle_period == missing_cycle_dur) {
+          missing_cycle_dur_new <- tracked_cycle_period_new
+        } else{
+          if (missing_cycle_unc_dist == "u") {
+            missing_cycle_dur_new <-
+                runif(1,
+                    min = missing_cycle_dur - missing_cycle_unc,
+                    max = missing_cycle_dur + missing_cycle_unc)
+          }
+          if (missing_cycle_unc_dist == "n") {
+            missing_cycle_dur_new <-
+                rnorm(1, mean = missing_cycle_dur, sd = missing_cycle_unc)
+          }
+        }
 
 
 
-      tuned_1 <- WaverideR::curve2tune(
-          data = proxy_1,
-          tracked_cycle_curve = new_curve_1,
-          tracked_cycle_period = tracked_cycle_period_new
-      )
+        tuned_1 <- WaverideR::curve2tune(
+            data = proxy_1,
+            tracked_cycle_curve = new_curve_1,
+            tracked_cycle_period = tracked_cycle_period_new
+        )
 
-      tuned_2 <- WaverideR::curve2tune(
-          data = proxy_2,
-          tracked_cycle_curve = new_curve_2,
-          tracked_cycle_period = tracked_cycle_period_new
-      )
-
-
-      tuned_1_wt <-
-          analyse_wavelet(
-              tuned_1,
-              dj = dj,
-              lowerPeriod = lowerPeriod,
-              upperPeriod = upperPeriod
-          )
-      tuned_1_wt_cycle <- extract_signal_stable_V2(
-          wavelet = tuned_1_wt,
-          period_max = period_max,
-          period_min = period_min,
-          add_mean = FALSE,
-          plot_residual = FALSE,
-          keep_editable = FALSE
-      )
-
-      tuned_1_wt <- NULL
-
-      tuned_2_wt <-
-          analyse_wavelet(
-              tuned_2,
-              dj = dj,
-              lowerPeriod = lowerPeriod,
-              upperPeriod = upperPeriod
-          )
-      tuned_2_wt_cycle <- extract_signal_stable_V2(
-          wavelet = tuned_2_wt,
-          period_max = period_max,
-          period_min = period_min,
-          add_mean = FALSE,
-          plot_residual = FALSE,
-          keep_editable = FALSE
-      )
-      tuned_2_wt <- NULL
-
-      peak_opt <- min_max[[proxy_nr]]
-
-      if (peak_opt == "min") {
-        pts_tuned_1_wt_cycle <-
-            min_detect(data = tuned_1_wt_cycle, pts = pts)
-        pts_tuned_2_wt_cycle <-
-            min_detect(data = tuned_2_wt_cycle, pts = pts)
-      }
-
-      if (peak_opt == "max") {
-        pts_tuned_1_wt_cycle <-
-            max_detect(data = tuned_1_wt_cycle, pts = pts)
-        pts_tuned_2_wt_cycle <-
-            max_detect(data = tuned_2_wt_cycle, pts = pts)
-      }
+        tuned_2 <- WaverideR::curve2tune(
+            data = proxy_2,
+            tracked_cycle_curve = new_curve_2,
+            tracked_cycle_period = tracked_cycle_period_new
+        )
 
 
+        tuned_1_wt <-
+            analyse_wavelet(
+                tuned_1,
+                dj = dj,
+                lowerPeriod = lowerPeriod,
+                upperPeriod = upperPeriod
+            )
+        tuned_1_wt_cycle <- extract_signal_stable_V2(
+            wavelet = tuned_1_wt,
+            period_max = period_max,
+            period_min = period_min,
+            add_mean = FALSE,
+            plot_residual = FALSE,
+            keep_editable = FALSE
+        )
 
-      dur_gap <-
-          (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
-              max(pts_tuned_1_wt_cycle[, 1]))
+        tuned_1_wt <- NULL
+
+        tuned_2_wt <-
+            analyse_wavelet(
+                tuned_2,
+                dj = dj,
+                lowerPeriod = lowerPeriod,
+                upperPeriod = upperPeriod
+            )
+        tuned_2_wt_cycle <- extract_signal_stable_V2(
+            wavelet = tuned_2_wt,
+            period_max = period_max,
+            period_min = period_min,
+            add_mean = FALSE,
+            plot_residual = FALSE,
+            keep_editable = FALSE
+        )
+        tuned_2_wt <- NULL
+
+        peak_opt <- min_max[[proxy_nr]]
 
 
-      dur_gaps <- c(dur_gaps, dur_gap)
-    }
+        if (peak_opt == "min") {
+          pts_tuned_1_wt_cycle <-
+              min_detect(data = tuned_1_wt_cycle, pts = pts)
+          pts_tuned_2_wt_cycle <-
+              min_detect(data = tuned_2_wt_cycle, pts = pts)
+        }
 
-    dur_gaps <- dur_gaps[-c(1)]
+        if (peak_opt == "max") {
+          pts_tuned_1_wt_cycle <-
+              max_detect(data = tuned_1_wt_cycle, pts = pts)
+          pts_tuned_2_wt_cycle <-
+              max_detect(data = tuned_2_wt_cycle, pts = pts)
+        }
 
-  }
+
+
+        dur_gap <-
+            (missing_cycle_dur_new * n_cycles_missing) - ((pts_tuned_2_wt_cycle[1, 1] + max(tuned_1_wt_cycle[, 1])) -
+                max(pts_tuned_1_wt_cycle[, 1]))
+      }, n_cores = n_cores, run_multicore = run_multicore, combine = "cbind", progress = TRUE)
 
   return(dur_gaps)
 }

@@ -540,8 +540,11 @@ retrack_wt_MC <- function(wt_list = NULL,
         genplot = FALSE
     )
 
-    completed_curve <- astrochron::linterp(completed_curve,dt=x_axis[2]-x_axis[1],start=x_axis[1],genplot = FALSE,verbose=FALSE)
-    completed_curve <- completed_curve[1:length(x_axis),]
+    # on the positions of the scalogram (linterp() on a grid of step x_axis[2] - x_axis[1] could end just short of
+    # the last position by rounding, which left the last row NA)
+    completed_curve <- as.matrix(completed_curve)
+    completed_curve <- data.frame(x_axis, stats::approx(completed_curve[, 1], completed_curve[, 2], xout = x_axis,
+        rule = 2, ties = mean)$y)
 
     if(smoothing[1]=="auto"){
       completed_curve <- WaverideR::loess_auto(completed_curve)
@@ -568,7 +571,7 @@ retrack_wt_MC <- function(wt_list = NULL,
 
 
     if (create_GIF==TRUE){
-      png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),type="cairo",width=width_plt,height=height_plt)
+      png(filename=paste0(file_name,"/",file_name,"_",j,".jpeg"),width=width_plt,height=height_plt)
 
       WaverideR::plot_wavelet(wavelet = wt_sel,
           plot.COI = plot.COI,

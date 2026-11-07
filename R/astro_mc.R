@@ -473,7 +473,9 @@ astro_mc <- function(constraints, age, domain = c("time", "depth"),
       terms_j <- cons[[j]]$terms
       hit <- NULL
       for (m in seq_along(terms_j)){
-        obs <- per[[terms_j[m]]] / scale          # predicted cycle in the units of the input
+        # predicted cycle in the units of the input: a duration stretched by the time scale (time domain), or a
+        # wavelength = period (kyr) x sedimentation rate (m/kyr) (depth domain)
+        obs <- if (domain == "depth") { per[[terms_j[m]]] * scale } else { per[[terms_j[m]]] / scale }
         inside <- obs >= lo & obs <= hi
         if (m == 1){
           hit <- inside

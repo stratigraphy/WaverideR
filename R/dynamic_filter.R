@@ -46,6 +46,10 @@
 #' interval and \code{window_length}). \code{NULL} uses 4 times the sample interval, or
 #' \code{(record length - window_length) / 500} when that would give more than 500 steps (Acycle GUI default).
 #' \code{Default=NULL}.
+#' @param pad_ends Mirror the record at both ends by one window length before filtering (logical, TRUE or FALSE).
+#' The first and last samples are then covered by many windows; without padding they are covered by a single
+#' window whose taper weight is close to zero, and dividing by that weight inflates the filtered values at the ends.
+#' \code{FALSE} reproduces Acycle exactly. \code{Default=TRUE}.
 #' @param genplot Plot the data and the filtered signal with \code{\link{plot_dynamic_filter}} (logical, TRUE or
 #' FALSE). \code{Default=FALSE}.
 #' @param x_lab Label of the depth/time axis of the plot, passed to \code{\link{plot_dynamic_filter}} (character).
@@ -113,6 +117,7 @@ dynamic_filter <- function(data = NULL,
     controls = NULL,
     window_length = NULL,
     step_length = NULL,
+    pad_ends = TRUE,
     genplot = FALSE,
     x_lab = "depth",
     y_lab = "proxy",
@@ -344,6 +349,20 @@ dynamic_filter <- function(data = NULL,
     stop("step_length is longer than the window, which would leave gaps")
   }
 
+  # mirror padding by one window less a sample at each end: the first and last samples are then covered by many
+  # windows. Without it they are covered by one window with a near-zero taper weight, and dividing by that weight
+  # inflates the filtered values at the ends (Acycle behaviour, pad_ends = FALSE)
+  n_orig <- n
+  n_pad <- 0L
+  if (isTRUE(pad_ends)) {
+    n_pad <- as.integer(min(window_samples - 1L, n - 1L))
+    vals <- values
+    values <- c(vals[(n_pad + 1):2], vals, vals[(n - 1):(n - n_pad)])
+    depth <- c(depth[1] - dt * (n_pad:1), depth, depth[n] + dt * seq_len(n_pad))
+    n <- length(values)
+  }
+  keep <- (n_pad + 1L):(n_pad + n_orig)
+
   last_start <- n - window_samples + 1
   start_idx <- seq(1, last_start, by = step_samples)
   terminal <- start_idx[length(start_idx)] != last_start
@@ -421,13 +440,14 @@ dynamic_filter <- function(data = NULL,
     filtered <- (accum / cov_weight) * value_scale
   }
 
-  out_filtered <- cbind(depth = depth, filtered = filtered,
-      coverage_count = cov_count,
-      coverage_weight = cov_weight)
+  out_filtered <- cbind(depth = depth[keep], filtered = filtered[keep],
+      coverage_count = cov_count[keep],
+      coverage_weight = cov_weight[keep])
+  # with padding, windows can start before or end after the record (indices < 1 or > the number of samples)
   out_windows <- cbind(centre = centres, f_low = win_low, f_high = win_high,
       f_centre = win_centre, start_depth = depth[start_idx],
-      end_depth = depth[end_idx], start_index = start_idx,
-      end_index = end_idx)
+      end_depth = depth[end_idx], start_index = start_idx - n_pad,
+      end_index = end_idx - n_pad)
   colnames(lower) <- c("depth", "frequency")
   colnames(upper) <- c("depth", "frequency")
   res <- list(filtered = out_filtered, windows = out_windows,

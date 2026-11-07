@@ -4,13 +4,13 @@
 #' a sedimentation rate curve
 #'
 #' @param data Proxy record in the depth domain (required): matrix or data frame with depth in metres in column 1 and
-#' the proxy value in column 2. The proxy values are paired row by row with the times computed on the (regularly
-#' resampled) depths of \code{sed_curve}, so \code{data} must be evenly sampled on the same depths as \code{sed_curve}
-#' (e.g. the record from which the sedimentation rate curve was made). \code{Default=NULL}.
+#' the proxy value in column 2. Its depths need not be those of \code{sed_curve}: the sedimentation rate is
+#' interpolated to every depth of the record. \code{Default=NULL}.
 #' @param sed_curve Sedimentation rate curve (required): matrix or data frame with depth in metres in column 1 and the
 #' sedimentation rate in cm/kyr in column 2, e.g. the output of \code{\link{minimal_tuning}}
-#' with \code{output = 1}. It is sorted, cleaned of
-#' \code{NA} rows and linearly interpolated to its median depth step before being integrated to time (in kyr).
+#' with \code{output = 1}. It is sorted, cleaned of \code{NA} rows and linearly interpolated to the depths of
+#' \code{data} (constant beyond its ends); the inverse rate is then integrated over depth to time (in kyr, 0 at the
+#' first sample of \code{data}).
 #' \code{Default=NULL}.
 #' @param genplot Plot the proxy record against time (kyr) (logical). \code{Default=FALSE}.
 #' @param keep_editable Keep the graphical parameters of the plot after the function returns, so that extra elements
@@ -79,35 +79,22 @@ sedrate2tune <- function(data = NULL,
     sed_curve = NULL,
     genplot = FALSE,
     keep_editable = FALSE) {
-  sedrates <- data.frame(sed_curve)
-  dat <- as.matrix(sed_curve)
-  dat <- na.omit(dat)
-  dat <- dat[order(dat[, 1], na.last = NA, decreasing = F),]
-  npts <- length(dat[, 1])
-  start <- dat[1, 1]
-  end <- dat[length(dat[, 1]), 1]
-  x1 <- dat[1:(npts - 1), 1]
-  x2 <- dat[2:(npts), 1]
-  dx = x2 - x1
-  dt = median(dx)
-  xout <- seq(start, end, by = dt)
-  npts <- length(xout)
-  interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-      n = npts)
-  sedrates <- as.data.frame(interp)
-
-  npts <- length(sedrates[, 1])
-  sedrates[1] = sedrates[1] * 100
-  sedrates[2] = 1 / sedrates[2]
-  dx = sedrates[2, 1] - sedrates[1, 1]
-  midptx = (sedrates[2:npts, 1] + sedrates[1:(npts - 1), 1]) / 2
-  slope = (sedrates[2:npts, 2] - sedrates[1:(npts - 1), 2]) / dx
-  yint = sedrates[2:npts, 2] - (slope * sedrates[2:npts, 1])
-  midpty = (slope * midptx) + yint
-  hsum = cumsum(midpty * dx)
-  hsum = append(0, hsum)
-  out = data.frame(cbind(sedrates[, 1] / 100, hsum))
-  out <- cbind(out[,2],data[,2])
+  # the sedimentation rate (cm/kyr) at the depths of the record, and time as the integral of its inverse over depth
+  # (trapezoid rule; time 0 at the first sample). Formerly the time of a regular grid of the curve was paired row by
+  # row with the record, which was only right when both had the same depths.
+  data <- as.data.frame(data)[, 1:2]
+  data <- data[order(data[, 1]), ]
+  sc <- stats::na.omit(as.matrix(sed_curve)[, 1:2])
+  sc <- sc[order(sc[, 1]), , drop = FALSE]
+  if (nrow(sc) == 1) {
+    rate <- rep(sc[1, 2], nrow(data))
+  } else {
+    rate <- stats::approx(sc[, 1], sc[, 2], xout = data[, 1], rule = 2, ties = mean)$y
+  }
+  zz <- data[, 1] * 100
+  inv <- 1 / rate
+  hsum <- c(0, cumsum(diff(zz) * (inv[-1] + inv[-length(inv)]) / 2))
+  out <- cbind(hsum, data[, 2])
 
 
   if (genplot == TRUE) {

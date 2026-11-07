@@ -42,9 +42,13 @@ plot_astro <- function(fit, peaks = NULL, age_ma = NULL, file = NULL,
 
   astrogeo22_nearest <- function(age_ma = NULL, file = NULL, url = ASTROGEO22_URL){
     if (is.null(file)){
-      file <- file.path(tempdir(), "AstroGeo22.txt")
-      if (!file.exists(file)){
-        try(utils::download.file(url, file, quiet = TRUE), silent = TRUE)
+      # the copy installed with WaverideR; downloaded only if that is missing
+      file <- system.file("extdata", "AstroGeo22.txt", package = "WaverideR")
+      if (!nzchar(file)){
+        file <- file.path(tempdir(), "AstroGeo22.txt")
+        if (!file.exists(file)){
+          try(utils::download.file(url, file, quiet = TRUE), silent = TRUE)
+        }
       }
     }
     if (!file.exists(file)){
@@ -106,8 +110,13 @@ plot_astro <- function(fit, peaks = NULL, age_ma = NULL, file = NULL,
     on.exit(dev.off())
   }
   AG <- astrogeo22_nearest()
-  COL <- c(obl = "#7570B3", p5 = "#1B9E77", p2 = "#D95F02", p4 = "#E7298A")
+  COL <- c(obl = "#7570B3", p5 = "#1B9E77", p2 = "#D95F02", p4 = "#E7298A", p3 = "#66A61E")
+  # panels (a) and (f) show the terms that depend on k; eccentricity windows (e405, ...) have no k offset
   terms <- names(fit$windows)
+  terms <- terms[terms %in% names(K_TERMS())]
+  if (!length(terms)){
+    stop("plot_astro() needs at least one k-bearing term (k+s3, k+g5, k+g2, k+g4, k+g3) in fit$windows")
+  }
   op <- par(no.readonly = TRUE)
   on.exit(par(op), add = TRUE)
   par(mfrow = c(2, 3), mar = c(4.2, 4.4, 3.0, 1.0), mgp = c(2.5, 0.6, 0),
@@ -184,15 +193,15 @@ plot_astro <- function(fit, peaks = NULL, age_ma = NULL, file = NULL,
 
   ## (f) measured against predicted periods at the fitted k
   pred <- period_kyr(freq_arcsec(fit$k[["mean"]]) + off)
-  obs  <- numeric(length(fit$windows))
-  err  <- numeric(length(fit$windows))
-  for (i in seq_along(fit$windows)){
-    w <- fit$windows[[i]]
+  obs  <- numeric(length(terms))
+  err  <- numeric(length(terms))
+  for (i in seq_along(terms)){
+    w <- fit$windows[[terms[i]]]
     obs[i] <- mean(w)
     err[i] <- diff(range(w)) / 2
   }
-  names(obs) <- names(fit$windows)
-  names(err) <- names(fit$windows)
+  names(obs) <- terms
+  names(err) <- terms
   rng  <- range(c(pred, obs)) + c(-2, 2)
   plot(pred, obs, pch = 16, col = COL[seq_along(terms)], cex = 1.3, xlim = rng,
       ylim = rng, xlab = "predicted period (kyr)", ylab = "measured period (kyr)",

@@ -13,14 +13,14 @@ sedrate2tune(
 }
 \arguments{
 \item{data}{Proxy record in the depth domain (required): matrix or data frame with depth in metres in column 1 and
-the proxy value in column 2. The proxy values are paired row by row with the times computed on the (regularly
-resampled) depths of \code{sed_curve}, so \code{data} must be evenly sampled on the same depths as \code{sed_curve}
-(e.g. the record from which the sedimentation rate curve was made). \code{Default=NULL}.}
+the proxy value in column 2. Its depths need not be those of \code{sed_curve}: the sedimentation rate is
+interpolated to every depth of the record. \code{Default=NULL}.}
 
 \item{sed_curve}{Sedimentation rate curve (required): matrix or data frame with depth in metres in column 1 and the
 sedimentation rate in cm/kyr in column 2, e.g. the output of \code{\link{minimal_tuning}}
-with \code{output = 1}. It is sorted, cleaned of
-\code{NA} rows and linearly interpolated to its median depth step before being integrated to time (in kyr).
+with \code{output = 1}. It is sorted, cleaned of \code{NA} rows and linearly interpolated to the depths of
+\code{data} (constant beyond its ends); the inverse rate is then integrated over depth to time (in kyr, 0 at the
+first sample of \code{data}).
 \code{Default=NULL}.}
 
 \item{genplot}{Plot the proxy record against time (kyr) (logical). \code{Default=FALSE}.}

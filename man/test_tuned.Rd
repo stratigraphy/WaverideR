@@ -41,7 +41,8 @@ pooled with those of \code{URAN_time} (a term found in several proxies adds supp
 \item{tbw}{Time-bandwidth product of the MTM spectrum (numeric, > 0; \code{tbw} of \code{astrochron::mtm}). It sets
 the resolution: the precession terms k+g5 and k+g2 only separate when \code{tbw <= (record length in kyr) / 1600}
 (about 3 for 5.5 Myr). A larger \code{tbw} merges them into one broad peak and k cannot be measured (a warning is
-printed). \code{Default=2}.}
+printed). At least 1.5 (two tapers; smaller values are raised to 1.5 with a warning), so records shorter than about
+2400 kyr cannot separate k+g5 and k+g2. \code{Default=2}.}
 
 \item{pad}{Zero-padding factor of the MTM spectrum (numeric, >= 1; \code{padfac} of \code{astrochron::mtm}).
 \code{Default=5}.}

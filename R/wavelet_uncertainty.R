@@ -182,7 +182,8 @@ wavelet_uncertainty <- function(tracked_cycle = NULL,
   if (!is.null(colour_brewer)) {
     color_brewer <- colour_brewer
   }  # British spelling synonym
-  data <- tracked_cycle[, c(1, 2)]
+  # a matrix or a data frame: the columns are added with $ below
+  data <- as.data.frame(tracked_cycle)[, c(1, 2)]
   ncycles <- wavelet$omega_nr
   b <- (2 * sqrt(2 * log(2)))
   a <- ((8 * log(2) / (2 * pi)))

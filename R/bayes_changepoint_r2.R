@@ -159,7 +159,7 @@ bayes_changepoint_r2 <- function(data = NULL,
       if (j0 > nn){
         next
       }
-      tt <- i:nn
+      tt <- as.numeric(i:nn)  # double: tt * tt and its cumulative sum overflow integers for long records
       yy <- y[i:nn]
       zz <- yy - y[i]
       uu <- tt - i
@@ -273,7 +273,7 @@ bayes_changepoint_r2 <- function(data = NULL,
   # @keywords internal
   # @noRd
   bcp_segment_beta <- function(y, i1, i2, k_0){
-    tt <- i1:i2
+    tt <- as.numeric(i1:i2)
     yy <- y[i1:i2]
     a <- i2 - i1 + 1
     bcp_solve2(k_0 + a, sum(tt), k_0 + sum(tt * tt), sum(yy), sum(tt * yy))

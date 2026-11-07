@@ -92,7 +92,9 @@ minimal_tuning <- function(data = NULL,
     genplot = FALSE,
     keep_editable = FALSE){
 
-
+  # a matrix or a data frame with more columns: depth and proxy
+  data <- as.data.frame(data)[, 1:2]
+  data <- data[order(data[, 1]), ]
   astro_mindetect <- as.data.frame(data)
   astro_mindetect$min <- 0
   for (i in pts:(nrow(data) - pts)) {
@@ -133,8 +135,9 @@ minimal_tuning <- function(data = NULL,
 
   while (i < res_rownr) {
     if ((i < res_rownr) & (peaks[i, 3] == peaks[(i + 1), 3])) {
+      # on a tie (equal values) the first extreme is kept, so that the loop always advances
       if ((i < res_rownr) & (peaks[i, 3]  == 1 & peaks[(i + 1), 3] == 1) &
-          (peaks[i, 2] > peaks[(i + 1), 2])) {
+          (peaks[i, 2] >= peaks[(i + 1), 2])) {
         peaks[(i + 1), ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
@@ -148,7 +151,7 @@ minimal_tuning <- function(data = NULL,
       }
       if ((i < res_rownr) &
           (peaks[i, 3] == -1 & peaks[(i + 1), 3] == -1) &
-          (peaks[i, 2] < peaks[(i + 1), 2])) {
+          (peaks[i, 2] <= peaks[(i + 1), 2])) {
         peaks[(i + 1), ] <- NA
         peaks <- na.omit(peaks)
         res_rownr <- res_rownr - 1
@@ -171,7 +174,7 @@ minimal_tuning <- function(data = NULL,
 
 
   if (tune_opt == "min") {
-    peaks_min <- peaks[peaks[, 3] > 0,]
+    peaks_min <- peaks[peaks[, 3] < 0,]
     dist <-
         peaks_min[2:(nrow(peaks_min)),] - peaks_min[1:(nrow(peaks_min) - 1),]
     sed_rate <- (dist[, 1] * 100) / cycle
@@ -229,38 +232,14 @@ minimal_tuning <- function(data = NULL,
     }
   }
 
-  tracked_cycle_curve <- data[, c(1, 3)]
+  # time: the inverse sedimentation rate (kyr/cm) integrated over depth (cm) with the trapezoid rule, on the depths
+  # of the record (on a regular record the same as the former midpoint sum on a regular grid, which could lose the
+  # last depth to rounding: "replacement has n - 1 rows")
+  zz <- data[, 1] * 100
+  inv <- 1 / data[, 3]
+  hsum <- c(0, cumsum(diff(zz) * (inv[-1] + inv[-length(inv)]) / 2))
 
-  sedrates <- data.frame(tracked_cycle_curve)
-  dat <- as.matrix(tracked_cycle_curve)
-  dat <- na.omit(dat)
-  dat <- dat[order(dat[, 1], na.last = NA, decreasing = F),]
-  npts <- length(dat[, 1])
-  start <- dat[1, 1]
-  end <- dat[length(dat[, 1]), 1]
-  x1 <- dat[1:(npts - 1), 1]
-  x2 <- dat[2:(npts), 1]
-  dx = x2 - x1
-  dt = median(dx)
-  xout <- seq(start, end, by = dt)
-  npts <- length(xout)
-  interp <- approx(dat[, 1], dat[, 2], xout, method = "linear",
-      n = npts)
-  sedrates <- as.data.frame(interp)
-
-  npts <- length(sedrates[, 1])
-  sedrates[1] = sedrates[1] * 100
-  sedrates[2] = 1 / sedrates[2]
-  dx = sedrates[2, 1] - sedrates[1, 1]
-  midptx = (sedrates[2:npts, 1] + sedrates[1:(npts - 1), 1]) / 2
-  slope = (sedrates[2:npts, 2] - sedrates[1:(npts - 1), 2]) / dx
-  yint = sedrates[2:npts, 2] - (slope * sedrates[2:npts, 1])
-  midpty = (slope * midptx) + yint
-  hsum = cumsum(midpty * dx)
-  hsum = append(0, hsum)
-  out = data.frame(cbind(sedrates[, 1] / 100, hsum))
-
-  data[, 4] <- out[, 2]
+  data[, 4] <- hsum
   colnames(data) <-  c("depth", "proxy", "cm/kyr", "time")
 
   if (output == 0) {

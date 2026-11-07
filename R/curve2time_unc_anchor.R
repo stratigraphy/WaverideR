@@ -553,12 +553,11 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
         }
         for (klm in 1:nrow(age_constraint)) {
           if (age_constraint[klm, 4] == "u") {
+            # the age of the constraint (column 3 is the full width of the range), not the duration of the cycle
             check_astro_age[klm] <- runif(
                 1,
-                min = tracked_cycle_period -
-                tracked_cycle_period_unc,
-                max = tracked_cycle_period +
-                tracked_cycle_period_unc
+                min = as.numeric(age_constraint[klm, 2]) - as.numeric(age_constraint[klm, 3]) / 2,
+                max = as.numeric(age_constraint[klm, 2]) + as.numeric(age_constraint[klm, 3]) / 2
             )
           }
           if (age_constraint[klm, 4] == "n") {
@@ -584,11 +583,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
           validator <- 1
           while (validator == 1) {
             new_curve <- multi_tracked[, c(1, 2)]
-            val <- rnorm(1, mean = multi_tracked[1, 2], sd = multi_tracked[1, 3])
-            pnorm_val <- 1 - pnorm(val,
-                mean = multi_tracked[1, 2],
-                sd = multi_tracked[1, 3],
-                lower.tail = FALSE)
+            # standard-normal draw (as rnorm(1, mean, sd)): no Inf from qnorm(1) when the uncertainty is 0
+            pnorm_val <- pnorm(rnorm(1))
             for (j in 1:nrow(new_curve)) {
               new_curve[j, 2] <- 1 / (qnorm(pnorm_val, mean = multi_tracked[j, 2], sd = multi_tracked[j, 3]))
             }
@@ -821,12 +817,11 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
         }
         for (klm in 1:nrow(age_constraint)) {
           if (age_constraint[klm, 4] == "u") {
+            # the age of the constraint (column 3 is the full width of the range), not the duration of the cycle
             check_astro_age[klm] <- runif(
                 1,
-                min = tracked_cycle_period -
-                tracked_cycle_period_unc,
-                max = tracked_cycle_period +
-                tracked_cycle_period_unc
+                min = as.numeric(age_constraint[klm, 2]) - as.numeric(age_constraint[klm, 3]) / 2,
+                max = as.numeric(age_constraint[klm, 2]) + as.numeric(age_constraint[klm, 3]) / 2
             )
           }
           if (age_constraint[klm, 4] == "n") {
@@ -852,11 +847,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
           validator <- 1
           while (validator == 1) {
             new_curve <- multi_tracked[, c(1, 2)]
-            val <- rnorm(1, mean = multi_tracked[1, 2], sd = multi_tracked[1, 3])
-            pnorm_val <- 1 - pnorm(val,
-                mean = multi_tracked[1, 2],
-                sd = multi_tracked[1, 3],
-                lower.tail = FALSE)
+            # standard-normal draw (as rnorm(1, mean, sd)): no Inf from qnorm(1) when the uncertainty is 0
+            pnorm_val <- pnorm(rnorm(1))
             for (j in 1:nrow(new_curve)) {
               new_curve[j, 2] <- 1 / (qnorm(pnorm_val, mean = multi_tracked[j, 2], sd = multi_tracked[j, 3]))
             }
@@ -1022,11 +1014,8 @@ curve2time_unc_anchor <- function (age_constraint = NULL, tracked_cycle_curve = 
           dif_astro_2[, ] <- 0
           dif_astro_2[rown_nr] <- 1
           anchor_diff <- cbind(anchor_diff, dif_astro_2)
-          sel_proxy_nr <- round(runif(
-              n = 1,
-              min = 1,
-              max = length(proxy_data)
-          ), 0)
+          # every proxy equally likely (round(runif(1, 1, n)) drew the first and last half as often)
+          sel_proxy_nr <- sample.int(length(proxy_data), 1)
           my.data <- proxy_data[[sel_proxy_nr]]
           out <- time_curve_anchored
           completed_series <- na.omit(out)

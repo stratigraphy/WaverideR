@@ -113,6 +113,12 @@ plot_win_timeOpt <- function(win_timeOpt_result = NULL,
 wr_win_timeopt_sel <- function(res, sel_parameter, corrected) {
   sel_name <- c("envelope", "power", "opt")[sel_parameter]
   use_z <- isTRUE(corrected) && !is.null(res[[paste0("z_", sel_name)]])
+  # no window could be tested against noise (all z values NA): show the uncorrected R^2 instead of failing
+  untested <- use_z && !any(is.finite(as.matrix(res[[paste0("z_", sel_name)]])))
+  if (untested) {
+    return(list(M = res[[paste0("r_2_", sel_name)]], avg = res[[paste0("r_2_", sel_name, "_avg")]],
+        key_lab = "R^2 (no window testable vs noise)", avg_lab = "avg. R^2", use_z = FALSE))
+  }
   if (use_z) {
     list(M = res[[paste0("z_", sel_name)]], avg = res[[paste0("z_", sel_name, "_avg")]],
         key_lab = "z (vs noise)", avg_lab = "avg. z", use_z = TRUE)
@@ -179,7 +185,7 @@ wr_plot_win_timeopt_panels <- function(res, proxy_name, abline_h, abline_v, add_
   avg <- sel$avg
   avg[!is.finite(avg)] <- NA
   plot(x = avg, y = yv, type = "l", yaxs = "i", yaxt = "n", xlab = sel$avg_lab, xaxs = "i",
-      ylim = range(yv))
+      ylim = range(yv), xlim = if (any(is.finite(avg))) { range(avg, na.rm = TRUE) } else { c(0, 1) })
   if (sel$use_z && !is.null(res$z_threshold) && any(is.finite(res$z_threshold))) {
     graphics::abline(v = stats::median(res$z_threshold, na.rm = TRUE), lty = 3, col = "grey40")
   }

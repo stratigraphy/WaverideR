@@ -25,7 +25,8 @@
 #' @param tbw Time-bandwidth product of the MTM spectrum (numeric, > 0; \code{tbw} of \code{astrochron::mtm}). It sets
 #' the resolution: the precession terms k+g5 and k+g2 only separate when \code{tbw <= (record length in kyr) / 1600}
 #' (about 3 for 5.5 Myr). A larger \code{tbw} merges them into one broad peak and k cannot be measured (a warning is
-#' printed). \code{Default=2}.
+#' printed). At least 1.5 (two tapers; smaller values are raised to 1.5 with a warning), so records shorter than about
+#' 2400 kyr cannot separate k+g5 and k+g2. \code{Default=2}.
 #' @param pad Zero-padding factor of the MTM spectrum (numeric, >= 1; \code{padfac} of \code{astrochron::mtm}).
 #' \code{Default=5}.
 #' @param siglevel Confidence level a spectral peak must reach to be used (numeric, between 0 and 1): the AR1
@@ -133,11 +134,17 @@ test_tuned <- function(URAN_time, others = NULL, tbw = 2, pad = 5, siglevel = 0.
     xr <- prep(recs[[ir]])
     recs[[ir]] <- xr[xr[, 1] >= win[1] & xr[, 1] <= win[2], ]
   }
+  # astrochron::mtm needs at least two tapers (tbw >= 1.5): with tbw = 1 (one taper) its F-test fails
+  if (tbw < 1.5) {
+    warning(sprintf("tbw = %g gives a single MTM taper, which astrochron::mtm cannot use; tbw = 1.5 is used", tbw))
+    tbw <- 1.5
+  }
   hb <- tbw / diff(win) # MTM half-bandwidth (cycles/kyr)
   # largest tbw that still resolves k+g5 and k+g2: full bandwidth 2W <= half their separation (synthetic tests with
   # test_tuned_check(): tbw <= 3 recovers k within ~0.05 kyr for a 5.5-Myr record; tbw 4 already gives errors of ~0.5 kyr, tbw 10-20 fails)
   sep52 <- 1 / term_period(k_ref, "k+g2") - 1 / term_period(k_ref, "k+g5")
-  tbw_max <- max(1, floor(sep52 * diff(win) / 4))
+  # in steps of 0.5, at least 1.5 (two tapers): a shorter record cannot resolve k+g5 and k+g2 with any usable tbw
+  tbw_max <- max(1.5, floor(sep52 * diff(win) / 4 * 2) / 2)
   # MTM power spectrum with AR1 background and confidence levels (astrochron::mtm, output = 1)
   spec <- function(x) mtm(x, tbw = tbw, padfac = pad, ar1 = TRUE, output = 1, genplot = FALSE, verbose = FALSE)
   # pre-scan: running precession-band variance of the standardised record (taner bandpass, Hilbert envelope; envelope^2 / 2
@@ -598,7 +605,7 @@ test_tuned <- function(URAN_time, others = NULL, tbw = 2, pad = 5, siglevel = 0.
   cat("\n=== Age-model test:", round(dur), "kyr ===\n\n")
   cat(sprintf("1. Precession constant (MTM tbw %g; %s)%s -> %s\n", tbw,
       if (scan) { sprintf("%.0f%% kept after pre-scan", 100 * mean(scans[[1]]$good)) } else { "no pre-scan" },
-      if (tbw > tbw_max) { sprintf(" WARNING: tbw too large, use <= %d", tbw_max) } else { "" }, k_status))
+      if (tbw > tbw_max) { sprintf(" WARNING: tbw too large, use <= %g", tbw_max) } else { "" }, k_status))
   if (!is.null(kc)) {
     cat(sprintf("   k = %.2f +/- %.2f kyr (1 sigma; %s%s)\n", kc$k, kc$sd, kc$what,
         if (kc$options > 1) { sprintf(", %d peak assignments combined", kc$options) } else { "" }))
@@ -760,7 +767,7 @@ plot_test_k <- function(res, constraints = NULL, age_ma = res$spec$age_ma) {
   mtext(sprintf("A  astrochron MTM (tbw %g, %d-%d kyr%s) - test 1: %s%s%s", sp$tbw, round(sp$window[1]), round(sp$window[2]),
       if (is.null(sp$k_search)) { "" } else { sprintf("; bars: search windows for k %g-%g", sp$k_search[1], sp$k_search[2]) }, res$k_status,
       if (!is.null(res$solutions) && nrow(res$solutions) > 1) { sprintf(" (%d solutions%s)", nrow(res$solutions), if (res$k_ambiguity == "unresolved") { ", ambiguous" } else { "" }) } else { "" },
-      if (too_wide) { sprintf(" - tbw too large (use tbw <= %d)", sp$tbw_max) } else { "" }), 3, 1.2, adj = 0, font = 2, cex = 0.8, col = if (too_wide) { "red3" } else { "black" })
+      if (too_wide) { sprintf(" - tbw too large (use tbw <= %g)", sp$tbw_max) } else { "" }), 3, 1.2, adj = 0, font = 2, cex = 0.8, col = if (too_wide) { "red3" } else { "black" })
   # B-D: obliquity, precession and obliquity + precession vs AstroGeo22 (grey band, dashed) and the Devonian composite (red dotted)
   dot <- function(col, ref, ref_rng, zee, xlab, lab) {
     n <- if (is.null(kr)) { 0 } else { nrow(kr) }

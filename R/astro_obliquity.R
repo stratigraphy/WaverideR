@@ -3,8 +3,9 @@
 
 #' Obliquity at a given age, from AstroGeo22 if available, else today's value
 #' @param age_ma Age in Ma at which the obliquity is wanted (numeric, single value; if a vector is given, only its
-#'   first value is used). The nearest row of the AstroGeo22 table is taken; the table is downloaded to
-#'   \code{tempdir()} on first use, and if it is not available today's obliquity (23.2545 degrees) is returned.
+#'   first value is used). The nearest row of the AstroGeo22 table installed with WaverideR is taken (if that copy
+#'   is missing it is downloaded to \code{tempdir()}); if no table is available today's obliquity (23.2545 degrees)
+#'   is returned.
 #'   Required, no default.
 #' @export
 astro_obliquity <- function(age_ma){
@@ -16,9 +17,13 @@ astro_obliquity <- function(age_ma){
 
   astrogeo22_nearest <- function(age_ma = NULL, file = NULL, url = ASTROGEO22_URL){
     if (is.null(file)){
-      file <- file.path(tempdir(), "AstroGeo22.txt")
-      if (!file.exists(file)){
-        try(utils::download.file(url, file, quiet = TRUE), silent = TRUE)
+      # the copy installed with WaverideR; downloaded only if that is missing
+      file <- system.file("extdata", "AstroGeo22.txt", package = "WaverideR")
+      if (!nzchar(file)){
+        file <- file.path(tempdir(), "AstroGeo22.txt")
+        if (!file.exists(file)){
+          try(utils::download.file(url, file, quiet = TRUE), silent = TRUE)
+        }
       }
     }
     if (!file.exists(file)){
