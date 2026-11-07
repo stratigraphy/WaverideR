@@ -60,16 +60,16 @@ a sedimentation rate curve</p>
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>Proxy record in the depth domain (required): matrix or data frame with depth in metres in column 1 and
-the proxy value in column 2. The proxy values are paired row by row with the times computed on the (regularly
-resampled) depths of <code>sed_curve</code>, so <code>data</code> must be evenly sampled on the same depths as <code>sed_curve</code>
-(e.g. the record from which the sedimentation rate curve was made). <code>Default=NULL</code>.</p></dd>
+the proxy value in column 2. Its depths need not be those of <code>sed_curve</code>: the sedimentation rate is
+interpolated to every depth of the record. <code>Default=NULL</code>.</p></dd>
 
 
 <dt id="arg-sed-curve">sed_curve<a class="anchor" aria-label="anchor" href="#arg-sed-curve"></a></dt>
 <dd><p>Sedimentation rate curve (required): matrix or data frame with depth in metres in column 1 and the
 sedimentation rate in cm/kyr in column 2, e.g. the output of <code><a href="minimal_tuning.html">minimal_tuning</a></code>
-with <code>output = 1</code>. It is sorted, cleaned of
-<code>NA</code> rows and linearly interpolated to its median depth step before being integrated to time (in kyr).
+with <code>output = 1</code>. It is sorted, cleaned of <code>NA</code> rows and linearly interpolated to the depths of
+<code>data</code> (constant beyond its ends); the inverse rate is then integrated over depth to time (in kyr, 0 at the
+first sample of <code>data</code>).
 <code>Default=NULL</code>.</p></dd>
 
 

@@ -69,7 +69,9 @@ test_tuned(
   sets the resolution: the precession terms k+g5 and k+g2 only separate
   when `tbw <= (record length in kyr) / 1600` (about 3 for 5.5 Myr). A
   larger `tbw` merges them into one broad peak and k cannot be measured
-  (a warning is printed). `Default=2`.
+  (a warning is printed). At least 1.5 (two tapers; smaller values are
+  raised to 1.5 with a warning), so records shorter than about 2400 kyr
+  cannot separate k+g5 and k+g2. `Default=2`.
 
 - pad:
 

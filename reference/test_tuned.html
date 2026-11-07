@@ -125,7 +125,8 @@ pooled with those of <code>URAN_time</code> (a term found in several proxies add
 <dd><p>Time-bandwidth product of the MTM spectrum (numeric, &gt; 0; <code>tbw</code> of <code><a href="https://rdrr.io/pkg/astrochron/man/mtm.html" class="external-link">astrochron::mtm</a></code>). It sets
 the resolution: the precession terms k+g5 and k+g2 only separate when <code>tbw &lt;= (record length in kyr) / 1600</code>
 (about 3 for 5.5 Myr). A larger <code>tbw</code> merges them into one broad peak and k cannot be measured (a warning is
-printed). <code>Default=2</code>.</p></dd>
+printed). At least 1.5 (two tapers; smaller values are raised to 1.5 with a warning), so records shorter than about
+2400 kyr cannot separate k+g5 and k+g2. <code>Default=2</code>.</p></dd>
 
 
 <dt id="arg-pad">pad<a class="anchor" aria-label="anchor" href="#arg-pad"></a></dt>

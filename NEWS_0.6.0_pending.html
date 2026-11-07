@@ -40,6 +40,39 @@
 <div id="changes-in-version-060" class="section level1">
 
 <div class="section level3">
+<h3 id="bug-fixes">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes"></a></h3>
+<ul><li>
+<code><a href="reference/minimal_tuning.html">minimal_tuning()</a></code>: no longer loops forever when two neighbouring maxima (or minima) have exactly the same value, e.g. on a stepwise or symmetric signal; <code>tune_opt = "min"</code> now uses the minima (it used the maxima, so it equalled <code>"max"</code>); the time is integrated on the depths of the record, which removes the “replacement has n - 1 rows” error when the last depth was lost to rounding (results are otherwise unchanged, differences &lt; 1e-9 kyr); a matrix input works.</li>
+<li>
+<code><a href="reference/bayes_changepoint.html">bayes_changepoint()</a></code>, <code><a href="reference/bayes_changepoint_r2.html">bayes_changepoint_r2()</a></code>: the position index is a double, so <code>cumsum(tt * tt)</code> no longer overflows the integer range above about 1800 points (“missing value where TRUE/FALSE needed” with <code>stable = TRUE</code>); shorter records give identical results.</li>
+<li>
+<code>astro_mc(domain = "depth")</code>: a predicted wavelength is now period x sedimentation rate (it was divided by the rate, so <code>scale_range</code> was read as kyr/m instead of m/kyr as documented).</li>
+<li>
+<code><a href="reference/curve2time_unc.html">curve2time_unc()</a></code>: <code>output = 2</code> gives the 0.15866 and 0.84134 quantiles (+-1 standard deviation) instead of 0.373 and 0.6827.</li>
+<li>
+<code><a href="reference/curve2time_unc.html">curve2time_unc()</a></code>, <code><a href="reference/curve2time_unc_anchor.html">curve2time_unc_anchor()</a></code>, <code><a href="reference/dur_gaps.html">dur_gaps()</a></code>: the quantile of the frequency uncertainty is drawn as a standard-normal quantile; an uncertainty of 0 in the first row made every simulated age NaN (qnorm(1) = Inf). Same random draws and results otherwise.</li>
+<li>
+<code><a href="reference/curve2time_unc_anchor.html">curve2time_unc_anchor()</a></code>: with a uniform age distribution the age of a constraint is drawn around that age (+- half the width in column 3), not around the duration of the tracked cycle (which made the age check fail for every run); every proxy is now drawn with the same probability (<code><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample.int()</a></code>; <code>round(runif())</code> drew the first and last half as often).</li>
+<li>
+<code><a href="reference/dur_gaps.html">dur_gaps()</a></code>: one code path for serial and parallel runs; the former serial branch (<code>run_multicore = FALSE</code>) mixed up periods and frequencies and failed. The uniform missing-cycle duration is drawn around <code>missing_cycle_dur</code> (it used <code>tracked_cycle_period</code> as upper bound), and the last proxy can be drawn (<code>floor(runif(1, 1, n))</code> never gave it). Seeded results differ from earlier versions.</li>
+<li>
+<code><a href="reference/sedrate2tune.html">sedrate2tune()</a></code>: the sedimentation rate is interpolated to the depths of <code>data</code> and integrated there; before, the times of a regular grid of the curve were paired row by row with the record, which was wrong when the curve was not on the record’s depths. Unchanged when it was.</li>
+<li>
+<code><a href="reference/retrack_wt_MC.html">retrack_wt_MC()</a></code>: the re-tracked curve is interpolated directly onto <code>x_axis</code>; the last row could be NaN (rounding in <code>linterp()</code>). The GIF frames no longer use <code>type = "cairo"</code>.</li>
+<li>
+<code><a href="reference/dynamic_filter.html">dynamic_filter()</a></code>: new argument <code>pad_ends = TRUE</code> mirrors the record by one window at both ends, so the first and last samples are covered by many windows; without it a single window with a near-zero taper weight covers them and the division by that weight inflated the end values (e.g. 966 instead of ~50 on the grey record). <code>pad_ends = FALSE</code> reproduces Acycle exactly.</li>
+<li>
+<code><a href="reference/wavelet_uncertainty.html">wavelet_uncertainty()</a></code>: accepts a matrix as <code>tracked_cycle</code>.</li>
+<li>
+<code><a href="reference/plot_win_timeOpt.html">plot_win_timeOpt()</a></code>, <code><a href="reference/plot_win_timeOpt_multi.html">plot_win_timeOpt_multi()</a></code>: when no window could be tested against noise (all z values NA) the uncorrected R^2 is shown instead of failing with “need finite ‘xlim’ values”.</li>
+<li>
+<code><a href="reference/plot_astro.html">plot_astro()</a></code>: panels (a) and (f) use only the k-bearing terms; an eccentricity window (e.g. e405) made them fail.</li>
+<li>
+<code><a href="reference/test_tuned.html">test_tuned()</a></code>: <code>tbw</code> is at least 1.5 (two MTM tapers; <code>tbw = 1</code> crashed in <code><a href="https://rdrr.io/pkg/astrochron/man/mtm.html" class="external-link">astrochron::mtm</a></code>, although the function itself recommended it for short records); the recommended maximum is given in steps of 0.5.</li>
+<li>
+<code><a href="reference/astro_obliquity.html">astro_obliquity()</a></code>, <code><a href="reference/plot_astro.html">plot_astro()</a></code>: use the AstroGeo22 table installed with WaverideR and only download it when that copy is missing.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="astromcbchron-version-2-outlier-mixture-laboratory-and-depth-offsets-tempering">astroMCBchron() version 2: outlier mixture, laboratory and depth offsets, tempering<a class="anchor" aria-label="anchor" href="#astromcbchron-version-2-outlier-mixture-laboratory-and-depth-offsets-tempering"></a></h3>
 <ul><li>Date model <code>date_model = c("mixture", "two_stage", "gaussian")</code>. The default <code>"mixture"</code> gives every date a mixture likelihood, (1 - p) x N(date, sd) + p x outlier component, with the outlier probability p estimated (beta prior <code>outlier_prior</code>, default <code>c(1, 19)</code>, mean 0.05) and the posterior outlier probability of every date reported (<code>dates$p_outlier</code>, <code>outlier_prob</code>). The outlier component is set by <code>outlier_type</code>: <code>"scaled"</code> (Gaussian with <code>outlier_k</code> x sd), <code>"old"</code> (one-sided: inherited or recycled zircon) or <code>"young"</code> (one-sided: residual Pb loss). <code>"two_stage"</code> reproduces version 1 (Student-t screening, flagged dates with <code>outlier_k</code> x sd); <code>two_stage = TRUE/FALSE</code> is still accepted (deprecated). Own date likelihoods (<code>date_loglik</code>, e.g. from <code><a href="reference/upb_grain_loglik.html">upb_grain_loglik()</a></code>) are normalised and combined with the same mixture.</li>
 <li>Weighted-mean dates: optional column <code>dates$mswd</code>; with <code>inflate_mswd = TRUE</code> (default) the sd of dates with MSWD &gt; 1 is multiplied by sqrt(MSWD).</li>

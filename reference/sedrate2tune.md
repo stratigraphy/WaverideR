@@ -19,11 +19,9 @@ sedrate2tune(
 - data:
 
   Proxy record in the depth domain (required): matrix or data frame with
-  depth in metres in column 1 and the proxy value in column 2. The proxy
-  values are paired row by row with the times computed on the (regularly
-  resampled) depths of `sed_curve`, so `data` must be evenly sampled on
-  the same depths as `sed_curve` (e.g. the record from which the
-  sedimentation rate curve was made). `Default=NULL`.
+  depth in metres in column 1 and the proxy value in column 2. Its
+  depths need not be those of `sed_curve`: the sedimentation rate is
+  interpolated to every depth of the record. `Default=NULL`.
 
 - sed_curve:
 
@@ -32,8 +30,9 @@ sedrate2tune(
   2, e.g. the output of
   [`minimal_tuning`](https://stratigraphy.github.io/WaverideR/reference/minimal_tuning.md)
   with `output = 1`. It is sorted, cleaned of `NA` rows and linearly
-  interpolated to its median depth step before being integrated to time
-  (in kyr). `Default=NULL`.
+  interpolated to the depths of `data` (constant beyond its ends); the
+  inverse rate is then integrated over depth to time (in kyr, 0 at the
+  first sample of `data`). `Default=NULL`.
 
 - genplot:
 

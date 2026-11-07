@@ -108,6 +108,7 @@ flow dynamic_filter.m / dynamic_filter_lang.m, GUI DynamicFilter.m)
 <span>  controls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  window_length <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  step_length <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pad_ends <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  genplot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  x_lab <span class="op">=</span> <span class="st">"depth"</span>,</span>
 <span>  y_lab <span class="op">=</span> <span class="st">"proxy"</span>,</span>
@@ -150,6 +151,13 @@ uses 20% of the record length (Acycle GUI default). <code>Default=NULL</code>.</
 interval and <code>window_length</code>). <code>NULL</code> uses 4 times the sample interval, or
 <code>(record length - window_length) / 500</code> when that would give more than 500 steps (Acycle GUI default).
 <code>Default=NULL</code>.</p></dd>
+
+
+<dt id="arg-pad-ends">pad_ends<a class="anchor" aria-label="anchor" href="#arg-pad-ends"></a></dt>
+<dd><p>Mirror the record at both ends by one window length before filtering (logical, TRUE or FALSE).
+The first and last samples are then covered by many windows; without padding they are covered by a single
+window whose taper weight is close to zero, and dividing by that weight inflates the filtered values at the ends.
+<code>FALSE</code> reproduces Acycle exactly. <code>Default=TRUE</code>.</p></dd>
 
 
 <dt id="arg-genplot">genplot<a class="anchor" aria-label="anchor" href="#arg-genplot"></a></dt>

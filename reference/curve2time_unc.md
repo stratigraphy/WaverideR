@@ -60,8 +60,9 @@ curve2time_unc(
 
   Form of the result (integer): `1` a matrix with the simulated ages
   (kyr) at every depth, one column per kept simulation; `2` a matrix
-  with depth, the mean tracked frequency and the 0.02275, 0.373, 0.5,
-  0.6827 and 0.97725 quantiles of the simulated ages; `3` a matrix with
+  with depth, the mean tracked frequency and the 0.02275, 0.15866, 0.5,
+  0.84134 and 0.97725 quantiles of the simulated ages (median, +-1 and
+  +-2 standard deviations of a normal distribution); `3` a matrix with
   depth, the mean and the standard deviation of the simulated ages.
   `Default=1`.
 
@@ -70,11 +71,11 @@ curve2time_unc(
 If output = 1 a matrix with the predicted ages given the input for each
 run is given If output = 2 a matrix with 6 columns is generated, the
 first column is depth/height, the other columns are the quantile
-(0.02275, 0.373, 0.5, 0.6827, 0.97725) age values of the runs if output
-= 3 a matrix with 4 columns is generated with the first column being
-depth/height, column 2 is the mean tracked duration (in kyrs) column 3
-is mean duration + 1 standard deviation and column 4 is mean duration -
-1 standard deviation
+(0.02275, 0.15866, 0.5, 0.84134, 0.97725) age values of the runs if
+output = 3 a matrix with 4 columns is generated with the first column
+being depth/height, column 2 is the mean tracked duration (in kyrs)
+column 3 is mean duration + 1 standard deviation and column 4 is mean
+duration - 1 standard deviation
 
 ## References
 

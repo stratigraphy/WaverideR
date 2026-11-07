@@ -1,5 +1,84 @@
 # Changes in version 0.6.0
 
+### Bug fixes
+
+- [`minimal_tuning()`](https://stratigraphy.github.io/WaverideR/reference/minimal_tuning.md):
+  no longer loops forever when two neighbouring maxima (or minima) have
+  exactly the same value, e.g. on a stepwise or symmetric signal;
+  `tune_opt = "min"` now uses the minima (it used the maxima, so it
+  equalled `"max"`); the time is integrated on the depths of the record,
+  which removes the “replacement has n - 1 rows” error when the last
+  depth was lost to rounding (results are otherwise unchanged,
+  differences \< 1e-9 kyr); a matrix input works.
+- [`bayes_changepoint()`](https://stratigraphy.github.io/WaverideR/reference/bayes_changepoint.md),
+  [`bayes_changepoint_r2()`](https://stratigraphy.github.io/WaverideR/reference/bayes_changepoint_r2.md):
+  the position index is a double, so `cumsum(tt * tt)` no longer
+  overflows the integer range above about 1800 points (“missing value
+  where TRUE/FALSE needed” with `stable = TRUE`); shorter records give
+  identical results.
+- `astro_mc(domain = "depth")`: a predicted wavelength is now period x
+  sedimentation rate (it was divided by the rate, so `scale_range` was
+  read as kyr/m instead of m/kyr as documented).
+- [`curve2time_unc()`](https://stratigraphy.github.io/WaverideR/reference/curve2time_unc.md):
+  `output = 2` gives the 0.15866 and 0.84134 quantiles (+-1 standard
+  deviation) instead of 0.373 and 0.6827.
+- [`curve2time_unc()`](https://stratigraphy.github.io/WaverideR/reference/curve2time_unc.md),
+  [`curve2time_unc_anchor()`](https://stratigraphy.github.io/WaverideR/reference/curve2time_unc_anchor.md),
+  [`dur_gaps()`](https://stratigraphy.github.io/WaverideR/reference/dur_gaps.md):
+  the quantile of the frequency uncertainty is drawn as a
+  standard-normal quantile; an uncertainty of 0 in the first row made
+  every simulated age NaN (qnorm(1) = Inf). Same random draws and
+  results otherwise.
+- [`curve2time_unc_anchor()`](https://stratigraphy.github.io/WaverideR/reference/curve2time_unc_anchor.md):
+  with a uniform age distribution the age of a constraint is drawn
+  around that age (+- half the width in column 3), not around the
+  duration of the tracked cycle (which made the age check fail for every
+  run); every proxy is now drawn with the same probability
+  ([`sample.int()`](https://rdrr.io/r/base/sample.html);
+  `round(runif())` drew the first and last half as often).
+- [`dur_gaps()`](https://stratigraphy.github.io/WaverideR/reference/dur_gaps.md):
+  one code path for serial and parallel runs; the former serial branch
+  (`run_multicore = FALSE`) mixed up periods and frequencies and failed.
+  The uniform missing-cycle duration is drawn around `missing_cycle_dur`
+  (it used `tracked_cycle_period` as upper bound), and the last proxy
+  can be drawn (`floor(runif(1, 1, n))` never gave it). Seeded results
+  differ from earlier versions.
+- [`sedrate2tune()`](https://stratigraphy.github.io/WaverideR/reference/sedrate2tune.md):
+  the sedimentation rate is interpolated to the depths of `data` and
+  integrated there; before, the times of a regular grid of the curve
+  were paired row by row with the record, which was wrong when the curve
+  was not on the record’s depths. Unchanged when it was.
+- [`retrack_wt_MC()`](https://stratigraphy.github.io/WaverideR/reference/retrack_wt_MC.md):
+  the re-tracked curve is interpolated directly onto `x_axis`; the last
+  row could be NaN (rounding in `linterp()`). The GIF frames no longer
+  use `type = "cairo"`.
+- [`dynamic_filter()`](https://stratigraphy.github.io/WaverideR/reference/dynamic_filter.md):
+  new argument `pad_ends = TRUE` mirrors the record by one window at
+  both ends, so the first and last samples are covered by many windows;
+  without it a single window with a near-zero taper weight covers them
+  and the division by that weight inflated the end values (e.g. 966
+  instead of ~50 on the grey record). `pad_ends = FALSE` reproduces
+  Acycle exactly.
+- [`wavelet_uncertainty()`](https://stratigraphy.github.io/WaverideR/reference/wavelet_uncertainty.md):
+  accepts a matrix as `tracked_cycle`.
+- [`plot_win_timeOpt()`](https://stratigraphy.github.io/WaverideR/reference/plot_win_timeOpt.md),
+  [`plot_win_timeOpt_multi()`](https://stratigraphy.github.io/WaverideR/reference/plot_win_timeOpt_multi.md):
+  when no window could be tested against noise (all z values NA) the
+  uncorrected R^2 is shown instead of failing with “need finite ‘xlim’
+  values”.
+- [`plot_astro()`](https://stratigraphy.github.io/WaverideR/reference/plot_astro.md):
+  panels (a) and (f) use only the k-bearing terms; an eccentricity
+  window (e.g. e405) made them fail.
+- [`test_tuned()`](https://stratigraphy.github.io/WaverideR/reference/test_tuned.md):
+  `tbw` is at least 1.5 (two MTM tapers; `tbw = 1` crashed in
+  [`astrochron::mtm`](https://rdrr.io/pkg/astrochron/man/mtm.html),
+  although the function itself recommended it for short records); the
+  recommended maximum is given in steps of 0.5.
+- [`astro_obliquity()`](https://stratigraphy.github.io/WaverideR/reference/astro_obliquity.md),
+  [`plot_astro()`](https://stratigraphy.github.io/WaverideR/reference/plot_astro.md):
+  use the AstroGeo22 table installed with WaverideR and only download it
+  when that copy is missing.
+
 ### astroMCBchron() version 2: outlier mixture, laboratory and depth offsets, tempering
 
 - Date model `date_model = c("mixture", "two_stage", "gaussian")`. The

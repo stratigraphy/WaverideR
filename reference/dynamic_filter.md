@@ -30,6 +30,7 @@ dynamic_filter(
   controls = NULL,
   window_length = NULL,
   step_length = NULL,
+  pad_ends = TRUE,
   genplot = FALSE,
   x_lab = "depth",
   y_lab = "proxy",
@@ -86,6 +87,15 @@ dynamic_filter(
   times the sample interval, or `(record length - window_length) / 500`
   when that would give more than 500 steps (Acycle GUI default).
   `Default=NULL`.
+
+- pad_ends:
+
+  Mirror the record at both ends by one window length before filtering
+  (logical, TRUE or FALSE). The first and last samples are then covered
+  by many windows; without padding they are covered by a single window
+  whose taper weight is close to zero, and dividing by that weight
+  inflates the filtered values at the ends. `FALSE` reproduces Acycle
+  exactly. `Default=TRUE`.
 
 - genplot:
 

@@ -3,7 +3,7 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   WaverideR-intro: WaverideR-intro.html
-last_built: 2026-11-05T15:48Z
+last_built: 2026-11-07T15:10Z
 urls:
   reference: https://stratigraphy.github.io/WaverideR/reference
   article: https://stratigraphy.github.io/WaverideR/articles
